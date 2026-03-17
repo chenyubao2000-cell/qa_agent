@@ -1,0 +1,14 @@
+{
+  "name": "qa-platform-plugin",
+  "version": "1.0.0",
+  "description": "QA 自动化测试平台 Plugin：E2E + 单元测试 + Linear Bug 上报",
+  "private": true,
+  "scripts": {
+    "install-to-project": "bash scripts/install.sh",
+    "generate-excel": "node skills/excel-case-export/scripts/generate-excel.js",
+    "check-coverage": "node skills/vitest-testing/scripts/coverage-check.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  }
+}
