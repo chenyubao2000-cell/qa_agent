@@ -19,14 +19,28 @@ allowed-tools: Bash, Read, Glob, Grep
   ├─ 通过 commit sha 反查关联 PR
   ├─ 分析 PR diff → 受影响的页面/组件
   ├─ 搜索 Linear 关联 Bug
-  ├─ CDP 自动探查受影响页面
   │
-  ├─ PR diff 含 PRD 变更（docs/prd/*.md）→ e2e-orchestrator (source: "prd")
-  ├─ PR 关联 Linear issue → e2e-orchestrator (source: "issue")
-  ├─ 其他情况 → /qa-run-all（直接跑已有 spec）
+  ├─ 判断触发哪些流水线（可同时触发多条，互不冲突）：
   │
-  └─ 统一走 report-analyzer → bug-reporter → linear-bug-report
+  │   ┌─ PR diff 含 PRD 变更？─── YES → 启动 /qa-run-prd 流水线
+  │   ├─ PR 关联 Linear issue？── YES → 启动 /qa-from-issue 流水线
+  │   └─ 都没有？─────────────── YES → 启动 /qa-run-all 流水线
+  │
+  │   三条流水线各自独立完整：
+  │     每条都走 e2e-orchestrator → test-executor → report-analyzer
+  │     互不阻塞，report-analyzer 的 Linear 去重保证不重复上报
+  │
+  └─ 同一个 PR 可能同时触发 PRD + issue 两条流水线（并行跑，不冲突）
 ```
+
+## 分发规则
+
+| PR 特征 | 触发流水线 | 说明 |
+|---------|-----------|------|
+| diff 含 `docs/prd/*.md` | /qa-run-prd | PRD 变更 → 生成新用例 |
+| 关联 Linear issue | /qa-from-issue | 针对 issue 生成/更新测试 |
+| 以上都没有 | /qa-run-all | 只跑已有 spec 回归 |
+| PRD 变更 + 关联 issue | 同时启动两条 | 各自独立跑，去重兜底 |
 
 ## 执行
 
