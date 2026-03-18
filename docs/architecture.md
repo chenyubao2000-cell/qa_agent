@@ -33,7 +33,7 @@ QA Platform 是一个基于 Claude Code 的 QA 自动化测试插件。通过 Sl
 │  ├ 步骤 2: 去重检查            │    │   │  │ → issue 模式 │
 │  ├ 步骤 3: test-case-generator │    │   │  └ 其他         │
 │  ├ 步骤 4: excel-case-export   │    │   │    → qa-run-all │
-│  ├ 步骤 5: playwright-e2e      │    │   └────────────────┘
+│  ├ 步骤 5: playwright-script-generator      │    │   └────────────────┘
 │  └ 步骤 6: 执行测试            │    │
 └──────────────┬─────────────────┘    │
                │ 返回 JSON 报告       │
@@ -83,7 +83,7 @@ report-analyzer 留在命令层调用（不在 e2e-orchestrator 内），因为�
 |-------|------|------|
 | test-case-generator | PRD / CDP baseline / Issue | 用例 .md + handoff.json |
 | excel-case-export | 用例 .md | Excel .xlsx |
-| playwright-e2e | handoff.json | Page Object + spec .test.ts |
+| playwright-script-generator | handoff.json | Page Object + spec .test.ts |
 | linear-bug-report | 失败用例列表 | Linear Issue（去重后） |
 
 ---
@@ -100,7 +100,7 @@ e2e-orchestrator
      ├─ 步骤 2: 去重检查（扫描已有 .md + .test.ts + POM）
      ├─ 步骤 3: test-case-generator skill → 用例 .md
      ├─ 步骤 4: excel-case-export skill → Excel .xlsx
-     ├─ 步骤 5: playwright-e2e skill → POM + spec
+     ├─ 步骤 5: playwright-script-generator skill → POM + spec
      └─ 步骤 6: 执行测试 → JSON + HTML 报告
      │
      ▼ 返回命令层
@@ -119,7 +119,7 @@ report-analyzer (haiku)
 |----|--------|---------|
 | 主入口 | e2e-orchestrator 步骤 2 | 扫描已有 .md + .test.ts，决定跳过/补充/新建 |
 | 兜底 1 | test-case-generator skill | 生成前再检查已有用例编号 |
-| 兜底 2 | playwright-e2e skill | 生成 spec 前再检查已有 spec + POM |
+| 兜底 2 | playwright-script-generator skill | 生成 spec 前再检查已有 spec + POM |
 | 上报去重 | linear-bug-report skill | 搜索 Linear 已有同名 Open Issue |
 
 ---

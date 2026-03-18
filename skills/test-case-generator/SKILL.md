@@ -676,12 +676,12 @@ Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts") → 已有 spec 文
 
 ---
 
-### 第六步 — 向 playwright-e2e 移交
+### 第六步 — 向 playwright-script-generator 移交
 
-与需求文档模式完全一致，调用 `playwright-e2e` skill，但额外优势：
+与需求文档模式完全一致，调用 `playwright-script-generator` skill，但额外优势：
 
 - CDP 模式生成的 handoff 中 `locatorHint` 字段已包含从真实 DOM 提取的精确选择器
-- playwright-e2e 应**优先使用 `locatorHint`**，无需再重新推断 locator
+- playwright-script-generator 应**优先使用 `locatorHint`**，无需再重新推断 locator
 
 ---
 
@@ -1973,7 +1973,7 @@ public class StoryParser {
 
 ## Handoff to Playwright E2E
 
-After all test cases are generated, **always** produce a `playwright-handoff.json` file and then invoke the `playwright-e2e` skill to implement them as runnable Playwright tests.
+After all test cases are generated, **always** produce a `playwright-handoff.json` file and then invoke the `playwright-script-generator` skill to implement them as runnable Playwright tests.
 
 ### Step 1 — Write playwright-handoff.json
 
@@ -2012,14 +2012,14 @@ Save to `tests/generated/playwright-handoff.json`. Each entry maps one Gherkin s
 - For equivalence-class / boundary scenarios, include one entry per class with `value` set to the representative value
 - For negative scenarios, set `assertions` to the expected error state (e.g. `{ "type": "visible", "selector": "alert" }`)
 
-### Step 2 — Invoke playwright-e2e
+### Step 2 — Invoke playwright-script-generator
 
 After writing `playwright-handoff.json`, tell the user:
 
 > ✅ Test cases written to `tests/generated/playwright-handoff.json`.
-> Now running `/playwright-e2e` to implement these as Playwright `.spec.ts` files.
+> Now running `/playwright-script-generator` to implement these as Playwright `.spec.ts` files.
 
-Then immediately apply the `playwright-e2e` skill, passing the handoff file as the input source.
+Then immediately apply the `playwright-script-generator` skill, passing the handoff file as the input source.
 
 ---
 
@@ -2260,7 +2260,7 @@ tools/（一次初始化，永久复用，不随需求变更重写）
 3. **Excel** — 只更新数据 JSON，执行 `python tests/utils/export_excel.py` 重新生成 `test-cases.xlsx`
 4. **traceability-matrix.json** — 更新该模块的 entries，保留未变更模块
 5. **playwright-handoff.json** — 更新该模块相关的 handoff entries
-6. **spec 文件** — 调用 `playwright-e2e` skill，传入更新后的 handoff，让其重写对应 spec 文件
+6. **spec 文件** — 调用 `playwright-script-generator` skill，传入更新后的 handoff，让其重写对应 spec 文件
 7. **Page Object** — 若 UI 元素（locator、组件名、交互方式）有变化，同步更新对应 `.page.ts`
 
 #### ➕ 新增模块
@@ -2270,7 +2270,7 @@ tools/（一次初始化，永久复用，不随需求变更重写）
 3. 重新生成 Excel（新增一个 Sheet）
 4. 在 traceability-matrix 中追加新模块的 entries
 5. 在 playwright-handoff.json 中追加新模块的 handoff entries
-6. 调用 `playwright-e2e` skill 新建对应 spec 文件
+6. 调用 `playwright-script-generator` skill 新建对应 spec 文件
 7. 若有新页面/新组件，新建或更新 Page Object
 
 #### ❌ 删除模块

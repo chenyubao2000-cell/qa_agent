@@ -283,7 +283,7 @@ page.getByRole("navigation")
 生成或修改 PO 后，必须在真实页面上验证：
 
 ```bash
-node skills/playwright-e2e/scripts/check-locator-uniqueness.cjs \
+node skills/playwright-script-generator/scripts/check-locator-uniqueness.cjs \
   --url <baseURL> [--path <path>] --expr "<expr>"
 ```
 

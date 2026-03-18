@@ -52,7 +52,7 @@ LINEAR_TEAM_ID=xxx
                                          │
               ┌──────────────────────────────────────────┐
               │ test-case-generator → excel-case-export  │
-              │ → playwright-e2e → 执行测试              │
+              │ → playwright-script-generator → 执行测试              │
               └──────────────────────────────────────────┘
                                          │
          report-analyzer (haiku) → bug-reporter → Linear

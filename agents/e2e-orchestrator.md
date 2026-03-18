@@ -16,7 +16,7 @@ model: claude-sonnet-4-6
 |------|---------|
 | 生成用例 | `skills/test-case-generator/SKILL.md` |
 | 导出 Excel | `skills/excel-case-export/SKILL.md` |
-| 生成 E2E 脚本 | `skills/playwright-e2e/SKILL.md` |
+| 生成 E2E 脚本 | `skills/playwright-script-generator/SKILL.md` |
 
 ## 输入源（四种，由调用方指定）
 
@@ -74,7 +74,7 @@ Read("$TARGET_PROJECT_DIR/.env")
 Read("$TARGET_PROJECT_DIR/playwright.config.ts")
 ```
 
-将 `projectContext` 传递给 test-case-generator 和 playwright-e2e skill，确保生成的代码符合目标项目的技术栈和约定。
+将 `projectContext` 传递给 test-case-generator 和 playwright-script-generator skill，确保生成的代码符合目标项目的技术栈和约定。
 
 ## 步骤 1：确定输入
 
@@ -99,7 +99,7 @@ Glob("$TARGET_PROJECT_DIR/tests/e2e/pages/*.ts")
 Glob("$TARGET_PROJECT_DIR/test-cases/generated/*.md")
 ```
 
-> **去重层级**：本步骤是去重的**主入口**。下游 skill（test-case-generator、playwright-e2e）内置的去重检查是防御性兜底，正常情况下本步骤已过滤完毕。
+> **去重层级**：本步骤是去重的**主入口**。下游 skill（test-case-generator、playwright-script-generator）内置的去重检查是防御性兜底，正常情况下本步骤已过滤完毕。
 
 ### 2.2 读取并建立索引
 
@@ -158,7 +158,7 @@ node scripts/generate-excel.js \
 
 ## 步骤 5：生成 E2E 脚本
 
-读取 `skills/playwright-e2e/SKILL.md`，按 skill 规范执行。
+读取 `skills/playwright-script-generator/SKILL.md`，按 skill 规范执行。
 - 输入：步骤 3 的用例 + handoff.json
 - 输出：tests/e2e/pages/{feature}.ts + tests/e2e/testcases/generated/{feature}.test.ts
 - 已有 spec → 追加 test case（不重复已有 case）

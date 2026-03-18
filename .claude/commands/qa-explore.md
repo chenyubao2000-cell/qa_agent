@@ -1,5 +1,5 @@
 ---
-description: 探查浏览器中打开的页面，生成 E2E 测试基线（page-baseline.json），然后衔接 test-case-generator + playwright-e2e skill 生成用例和脚本
+description: 探查浏览器中打开的页面，生成 E2E 测试基线（page-baseline.json），然后衔接 test-case-generator + playwright-script-generator skill 生成用例和脚本
 allowed-tools: Bash, Read, Write, Glob, Grep, Edit, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__click, mcp__chrome-devtools__navigate_page
 ---
 

@@ -7,7 +7,7 @@
   "components": {
     "skills": [
       "skills/test-case-generator",
-      "skills/playwright-e2e",
+      "skills/playwright-script-generator",
       "skills/vitest-testing",
       "skills/excel-case-export",
       "skills/linear-bug-report"
