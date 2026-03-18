@@ -22,25 +22,42 @@ allowed-tools: Bash, Read, Glob, Grep
   │
   ├─ 判断触发哪些流水线（可同时触发多条，互不冲突）：
   │
-  │   ┌─ PR diff 含 PRD 变更？─── YES → 启动 /qa-run-prd 流水线
-  │   ├─ PR 关联 Linear issue？── YES → 启动 /qa-from-issue 流水线
-  │   └─ 都没有？─────────────── YES → 启动 /qa-run-all 流水线
+  │   判断触发模式：
   │
-  │   三条流水线各自独立完整：
-  │     每条都走 e2e-orchestrator → test-executor → report-analyzer
-  │     互不阻塞，report-analyzer 的 Linear 去重保证不重复上报
+  │   ┌─ 只有 PRD 变更 → /qa-run-prd（完整流水线）
+  │   ├─ 只有 issue → /qa-from-issue（完整流水线）
+  │   ├─ 都没有 → /qa-run-all（只跑已有 spec）
+  │   └─ PRD + issue 同时有 → 合并模式（见下方）
   │
-  └─ 同一个 PR 可能同时触发 PRD + issue 两条流水线（并行跑，不冲突）
+  └─ 所有模式最终都走 test-executor → report-analyzer
 ```
 
 ## 分发规则
 
-| PR 特征 | 触发流水线 | 说明 |
-|---------|-----------|------|
-| diff 含 `docs/prd/*.md` | /qa-run-prd | PRD 变更 → 生成新用例 |
-| 关联 Linear issue | /qa-from-issue | 针对 issue 生成/更新测试 |
-| 以上都没有 | /qa-run-all | 只跑已有 spec 回归 |
-| PRD 变更 + 关联 issue | 同时启动两条 | 各自独立跑，去重兜底 |
+| PR 特征 | 触发方式 | 说明 |
+|---------|---------|------|
+| 只有 PRD 变更 | /qa-run-prd | 完整流水线 |
+| 只有 issue | /qa-from-issue | 完整流水线 |
+| 都没有 | /qa-run-all | 只跑已有 spec |
+| PRD + issue 同时有 | 合并模式 | 见下方 |
+
+## 合并模式（PRD + issue 同时存在）
+
+避免 test-executor 重复执行全量 spec，合并为一条流水线：
+
+```
+Phase 1: 并行生成（Agent tool, run_in_background: true）
+  ├─ Agent(e2e-orchestrator, source: "prd")   → 生成 PRD 相关 spec
+  └─ Agent(e2e-orchestrator, source: "issue") → 生成 issue 相关 spec
+
+Phase 2: 两个都完成后（Agent tool 自动通知）
+  └─ Agent(test-executor) → 收集所有 spec，跑一次全量
+
+Phase 3: 并行监听
+  └─ Agent(report-analyzer) → 监听报告 → 分析 → bug-reporter → Linear
+```
+
+**关键：两个生成器并行跑（各写不同 spec 文件），但 test-executor 只跑一次，不重复执行。**
 
 ## 执行
 
