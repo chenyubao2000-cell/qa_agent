@@ -175,7 +175,8 @@ npx playwright test <步骤 5 生成的 spec 文件> --project=e2e --reporter=js
 
 ## 返回
 
-返回结果给调用方（命令层），由命令层调用 report-analyzer agent 完成报告分析 + Bug 上报。
+执行完成后将 JSON 报告写入 `$TARGET_PROJECT_DIR/tests/reports/playwright-results.json`。
+report-analyzer agent 并行监听该目录，会自动拾取并处理。
 
 ```json
 {

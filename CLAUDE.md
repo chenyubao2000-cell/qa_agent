@@ -26,19 +26,16 @@ qa-platform-plugin/
 ## 流水线
 
 ```
-统一流水线（所有命令共享）：
-  用例 .md (test-case-generator skill)
-    → Excel (excel-case-export skill)
-    → POM + spec (playwright-e2e skill)
-    → 执行测试 (JSON + HTML 报告)
-    → report-analyzer agent → bug-reporter agent → linear-bug-report skill
+命令层并行启动 Agent：
+  ├─ e2e-orchestrator (sonnet) → 用例 → Excel → spec → 执行 → 产出报告
+  └─ report-analyzer (haiku)   → 监听报告 → 分析 → bug-reporter → Linear
 
 输入源按命令不同：
-├── /qa-explore    → CDP 页面探查
-├── /qa-from-issue → Linear issue
-├── /qa-run-prd    → PRD 文档
-├── /qa-run-all    → 已有 PRD/源码
-└── /qa-watch      → CI 轮询 PR → 增量触发
+├── /qa-explore    → CDP 页面探查 → 并行启动
+├── /qa-from-issue → Linear issue → 并行启动
+├── /qa-run-prd    → PRD 文档 → 并行启动
+├── /qa-run-all    → 直接执行已有 spec + report-analyzer 监听
+└── /qa-watch      → CI 轮询 PR → 自动分发
 ```
 
 ## 命令

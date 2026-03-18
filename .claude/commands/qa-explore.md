@@ -14,10 +14,9 @@ Phase 0: 加载项目上下文（.env → 目标项目配置）
      ↓
 Phase 1: CDP 自动探查 → page-baseline.json（命令层独有）
      ↓
-Phase 2: e2e-orchestrator (source: "cdp")
-         → 用例 → Excel → POM + spec → 执行测试
-     ↓
-Phase 3: report-analyzer → bug-reporter → linear-bug-report（始终执行）
+Phase 2: 并行启动
+         ├─ e2e-orchestrator (cdp) → 用例 → Excel → spec → 执行 → 产出报告
+         └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
 ```
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
@@ -189,34 +188,17 @@ page-slug 从 URL 提取（如 `/task/abc123` → `task-abc123`）。
 
 ---
 
-## Phase 2: 启动 e2e-orchestrator（完整流水线）
+## Phase 2: 并行启动 Agent
 
-读取 `agents/e2e-orchestrator.md`，启动 agent（sonnet），传入：
-- Phase 1 的 baseline JSON
-- `source: "cdp"`
-- `projectContext`
+同时启动两个 Agent（同一条消息中并行）：
 
-e2e-orchestrator 内部完成：
-1. 去重检查
-2. test-case-generator skill → 用例 .md
-3. excel-case-export skill → Excel
-4. playwright-e2e skill → POM + spec
-5. 执行测试（JSON + HTML 报告）
+**Agent 1 — e2e-orchestrator**（sonnet）：
+- 传入：Phase 1 的 baseline JSON + `source: "cdp"` + `projectContext`
+- 内部完成：去重 → 用例 → Excel → spec → 执行测试 → 产出 JSON 报告
 
----
-
-## Phase 3: report-analyzer（始终执行）
-
-e2e-orchestrator 返回后，启动 **report-analyzer agent**（`agents/report-analyzer.md`，haiku），传入 JSON 报告路径。
-report-analyzer → **bug-reporter agent** → **linear-bug-report skill**：去重 → 上报 → 汇总报告。
-
-最后用系统命令打开 HTML 报告（不要用 CDP 导航）：
-```bash
-# Windows
-start http://localhost:9323
-# macOS
-# open http://localhost:9323
-```
+**Agent 2 — report-analyzer**（haiku）：
+- 并行监听 `$TARGET_PROJECT_DIR/tests/reports/` 目录
+- e2e-orchestrator 产出报告后立即分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
 
 ---
 
