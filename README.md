@@ -48,15 +48,19 @@ LINEAR_TEAM_ID=xxx
 ## 架构
 
 ```
-命令层 → e2e-orchestrator (sonnet) → Skill 层
-                                         │
-              ┌──────────────────────────────────────────┐
-              │ test-case-generator → excel-case-export  │
-              │ → playwright-script-generator → 执行测试              │
-              └──────────────────────────────────────────┘
-                                         │
-         report-analyzer (haiku) → bug-reporter → Linear
+命令层（输入准备 + 并行启动 Agent）
+  │
+  ├─ e2e-orchestrator (sonnet)  ── 生成层
+  │   去重 → 用例 → Excel → spec
+  │
+  ├─ test-executor (haiku)      ── 执行层
+  │   接收 spec → 执行测试 → 产出报告
+  │
+  └─ report-analyzer (haiku)    ── 报告层
+      监听报告 → 分析 → bug-reporter → Linear
 ```
+
+三个 Agent 并行运行，各自独立：生成完 → 执行 → 报告，流水线自动衔接。
 
 详细架构见 [docs/architecture.md](docs/architecture.md)。
 
@@ -65,9 +69,23 @@ LINEAR_TEAM_ID=xxx
 ```
 qa-platform-plugin/
 ├── .claude/commands/     5 个 Slash Command
-├── agents/               3 个 Agent（e2e-orchestrator, report-analyzer, bug-reporter）
-├── skills/               4 个 Skill（用例生成, Excel 导出, Playwright E2E, Linear 上报）
-├── hooks/                4 个 Hook（env 校验, git 同步, lint, 通知）
+├── agents/               4 个 Agent + 1 暂停
+│   ├── e2e-orchestrator    生成引擎 (sonnet)
+│   ├── test-executor       测试执行器 (haiku)
+│   ├── report-analyzer     报告分析 (haiku)
+│   ├── bug-reporter        Bug 上报 (haiku)
+│   └── unit-test-orchestrator  (暂停)
+├── skills/               4 个 Skill + 1 暂停
+│   ├── test-case-generator       用例生成
+│   ├── excel-case-export         Excel 导出
+│   ├── playwright-script-generator  脚本生成
+│   ├── linear-bug-report         Linear 上报
+│   └── vitest-testing            (暂停)
+├── hooks/                4 个 Hook
+│   ├── validate-env.sh     .env 校验
+│   ├── git-sync.sh         自动 clone/pull
+│   ├── post-write-lint.sh  lint
+│   └── post-notify.sh     通知
 ├── scripts/              安装脚本 + CI Watcher
 ├── mcp-templates/        MCP 配置模板
 ├── project-template/     新项目接入模板
