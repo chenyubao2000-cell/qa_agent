@@ -7,14 +7,7 @@ allowed-tools: Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issue, mcp_
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
 
-### Step 0 — 同步目标项目最新代码
-
-```bash
-bash scripts/pull-latest.sh
-```
-
-脚本会 fetch + pull 目标项目到最新，并输出当前 HEAD commit hash。
-**如果脚本返回非 0，终止流水线并告知用户。**
+> git 同步由 SessionStart hook（`hooks/git-sync.sh`）自动完成，此处不再拉代码。
 
 ### Step 1 — 读取本项目 .env
 
@@ -22,29 +15,21 @@ bash scripts/pull-latest.sh
 Read(".env")  # valition_agent 根目录
 ```
 
-提取：
-- `TARGET_PROJECT_DIR` — 目标项目根目录
-- `PREVIEW_URL` — 预览环境 URL
+提取 `TARGET_PROJECT_DIR`、`PREVIEW_URL`。
 
 ### Step 2 — 读取目标项目配置
 
 ```
-Read("$TARGET_PROJECT_DIR/CLAUDE.md")        # 技术栈、架构、业务背景
-Read("$TARGET_PROJECT_DIR/.env")             # PLAYWRIGHT_BASE_URL、测试账号等
-Read("$TARGET_PROJECT_DIR/playwright.config.ts")  # auth setup、reporter、项目结构
+Read("$TARGET_PROJECT_DIR/CLAUDE.md")
+Read("$TARGET_PROJECT_DIR/.env")
+Read("$TARGET_PROJECT_DIR/playwright.config.ts")
 ```
 
-提取关键信息缓存为 `projectContext`：
-- `techStack` — 框架、UI 库、状态管理
-- `baseURL` — 测试基准 URL（PLAYWRIGHT_BASE_URL）
-- `authSetup` — auth.setup.ts 配置、storageState 路径
-- `testCredentials` — TEST_USER_EMAIL / TEST_USER_PASSWORD
-- `existingTests` — 已有测试目录结构
+提取 `projectContext`：techStack、baseURL、authSetup、testCredentials、existingTests。
 
 ### Step 3 — 确定导航 URL
 
 issue 中提取的 `pageUrl` 如果是相对路径，拼接 `baseURL`。
-CDP 导航时使用完整 URL。
 
 ---
 

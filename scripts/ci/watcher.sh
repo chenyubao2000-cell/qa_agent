@@ -66,20 +66,14 @@ except:
 
   echo "[$TIMESTAMP] 🚀 发现 ${DEPLOY_COUNT} 个新部署"
 
-  # ── Step 2: 拉取最新代码 ──
+  # ── Step 2: 拉取最新代码（复用 git-sync.sh）──
   echo "[$TIMESTAMP] 📥 拉取最新代码 ..."
   if [ -d "$TARGET_PROJECT_DIR/.git" ]; then
     cd "$TARGET_PROJECT_DIR"
     git clean -fd test-results/ playwright-report/ 2>/dev/null || true
-    git checkout -- . 2>/dev/null || true
-    git fetch origin "$TARGET_BRANCH"
-    git checkout "$TARGET_BRANCH" 2>/dev/null || true
-    git pull origin "$TARGET_BRANCH" || {
-      echo "[$TIMESTAMP]   ⚠️  git pull 失败，尝试 reset"
-      git reset --hard "origin/$TARGET_BRANCH"
-    }
     cd "$PLUGIN_DIR"
   fi
+  PROJECT_DIR="$PLUGIN_DIR" bash "$PLUGIN_DIR/hooks/git-sync.sh" || true
 
   # ── Step 3: 逐个处理部署 ──
   echo "$NEW_DEPLOYS" | python -c "

@@ -18,21 +18,13 @@ Phase 2: 并行启动
          └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
 ```
 
-## Phase 0: 加载项目上下文
+## Phase 0: 加载项目上下文（强制，最先执行）
 
-### Step 0 — 同步目标项目最新代码
+> git 同步由 SessionStart hook（`hooks/git-sync.sh`）自动完成，此处不再拉代码。
 
-```bash
-bash scripts/pull-latest.sh
-```
-
-脚本会 fetch + pull 目标项目到最新，并输出当前 HEAD commit hash。
-**如果脚本返回非 0，终止流水线并告知用户。**
-
-### Step 1 — 读取项目配置
-
-读取 valition_agent/.env 获取 TARGET_PROJECT_DIR 和 PREVIEW_URL。
-读取 $TARGET_PROJECT_DIR 的 CLAUDE.md 获取技术栈。
+读取 `.env` 获取 `TARGET_PROJECT_DIR` 和 `PREVIEW_URL`。
+读取 `$TARGET_PROJECT_DIR/CLAUDE.md` 获取技术栈。
+读取 `$TARGET_PROJECT_DIR/.env` 获取 `PLAYWRIGHT_BASE_URL`。
 
 ## Phase 1: 读取 PRD + 增量检测
 

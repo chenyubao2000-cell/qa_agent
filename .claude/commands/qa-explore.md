@@ -20,24 +20,41 @@ Phase 2: 并行启动
          └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
 ```
 
-## Phase 0: 项目上下文（由 Hook 自动注入）
+## Phase 0: 加载项目上下文（强制，最先执行）
 
-Phase 0 由 `user-prompt-submit` hook 自动运行 `scripts/phase0-context.sh`，
-结果已注入到本次 prompt 中。查找 `[Phase0-Hook]` 标记和 `projectContext=` 获取数据。
+> git 同步由 SessionStart hook（`hooks/git-sync.sh`）自动完成，此处不再拉代码。
 
-**如果未看到 `[Phase0-Hook]` 标记**（hook 未触发），手动执行：
-```bash
-bash scripts/phase0-context.sh $ARGUMENTS
+### Step 1 — 读取本项目 .env
+
 ```
-**禁止**：跳过此脚本、复用之前的输出、手动读取 .env 代替脚本执行。
+Read(".env")  # valition_agent 根目录
+```
 
-从 `projectContext` JSON 中提取：
-- `targetProjectDir` — 目标项目根目录
-- `exploreUrl` — 探查 URL（优先级：用户参数 > PLAYWRIGHT_BASE_URL > PREVIEW_URL）
-- `baseURL` — 测试基准 URL
-- `existingTests` — 已有测试文件列表
-- `testCredentials` — 测试账号
-- `hasAuthSetup` — 是否有 auth setup
+提取：
+- `TARGET_PROJECT_DIR` — 目标项目根目录
+- `PREVIEW_URL` — 预览环境 URL（CDP 导航的默认目标）
+
+### Step 2 — 读取目标项目配置
+
+```
+Read("$TARGET_PROJECT_DIR/CLAUDE.md")        # 技术栈、架构、业务背景
+Read("$TARGET_PROJECT_DIR/.env")             # PLAYWRIGHT_BASE_URL、测试账号等
+Read("$TARGET_PROJECT_DIR/playwright.config.ts")  # auth setup、reporter、项目结构
+```
+
+提取关键信息缓存为 `projectContext`：
+- `techStack` — 框架、UI 库、状态管理（来自 CLAUDE.md）
+- `baseURL` — 测试基准 URL（来自目标 .env 的 PLAYWRIGHT_BASE_URL）
+- `authSetup` — 是否有 auth.setup.ts、storageState 路径（来自 playwright.config.ts）
+- `testCredentials` — TEST_USER_EMAIL / TEST_USER_PASSWORD（来自目标 .env）
+- `existingTests` — 已有测试目录结构（来自 playwright.config.ts 的 testDir）
+
+### Step 3 — 确定探查 URL
+
+优先级：
+1. 用户传入的 `$ARGUMENTS`（如果是 URL）
+2. 目标项目 `.env` 中的 `PLAYWRIGHT_BASE_URL`
+3. 本项目 `.env` 中的 `PREVIEW_URL`
 
 ---
 
