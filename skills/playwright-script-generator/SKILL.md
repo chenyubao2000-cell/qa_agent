@@ -4,7 +4,7 @@ description: Comprehensive Playwright end-to-end testing patterns with Page Obje
 version: 2.0.0
 allowed_tools: [Read, Write, Edit, Bash, Grep, Glob]
 license: MIT
-testingTypes: [e2e, visual]
+testingTypes: [e2e]
 frameworks: [playwright]
 languages: [typescript, javascript]
 domains: [web]
@@ -307,8 +307,6 @@ tests/
     testcases/           # 用例：**/*.test.ts
     pages/               # Page Object，与用例解耦
     fixtures.ts          # 扩展 test/expect
-    snapshots/           # 快照：{testFileName}/{arg}{ext}
-    ignore-css/          # toHaveScreenshot 的 stylePath，忽略动态样式
     common/              # 共享 mock、工具
     files/               # 上传等用的静态文件
 playwright.config.ts     # testDir: ./tests/e2e，testMatch: **/testcases/**/*.test.ts
@@ -392,7 +390,7 @@ test.describe('登录页', { tag: ['@all', '@smoke'] }, () => {
   test('登录页加载且表单可见', async ({ page }) => {
     const signInPage = new SignInPage(page);
     await signInPage.goto();
-    await expect(page).toHaveScreenshot('sign-in-page.png');
+    await expect(signInPage.emailInput).toBeVisible();
   });
 });
 ```
@@ -403,7 +401,7 @@ test.describe('登录页', { tag: ['@all', '@smoke'] }, () => {
 
 ## 6. Assertions
 
-每个测试必须至少一个断言。优先截图断言保护 UI 状态。
+每个测试必须至少一个断言。
 
 ```typescript
 // Visibility
@@ -430,12 +428,6 @@ await expect(page.getByRole('listitem')).toHaveCount(5);
 await expect(locator).toHaveCSS('color', 'rgb(255, 0, 0)');
 await expect(locator).toHaveClass(/active/);
 
-// Screenshot（snapshots 目录由 config 控制）
-await expect(page).toHaveScreenshot('homepage.png');
-// 忽略动态内容：
-await expect(page).toHaveScreenshot('name.png', {
-  stylePath: [path.join(__dirname, '..', 'ignore-css', 'task-title.css')],
-});
 ```
 
 ---
@@ -522,40 +514,22 @@ await page.getByRole('option', { name: 'United States' }).click();
 
 ---
 
-## 9. Screenshot & Ignore-CSS
-
-动态内容导致截图不稳定时，在 `tests/e2e/ignore-css/` 下创建 CSS 文件隐藏可变元素：
-
-```typescript
-import path from "path";
-await expect(page).toHaveScreenshot("name.png", {
-  stylePath: [path.join(__dirname, "..", "ignore-css", "task-title.css")],
-});
-```
-
-多个可变区域可组合多个 CSS 文件。全局 stylePath 在 `playwright.config.ts` 中配置。
-
----
-
-## 10. Configuration
+## 9. Configuration
 
 > **强制配置**（Bug 上报流程前置依赖）：
-> - `screenshot: 'only-on-failure'` — 失败截图用于 Linear issue 附件
 > - `reporter` 必须包含 `['json', { outputFile: '...' }]` — report-analyzer 依赖
-> - `video: 'retain-on-failure'` — 失败视频辅助定位
 
 项目 `playwright.config.ts` 关键设置：
 
 - **testDir**: `./tests/e2e`
 - **testMatch**: `**/testcases/**/*.test.ts`
-- **snapshotPathTemplate**: `{testDir}/snapshots/{testFileName}/{arg}{ext}`
 - **baseURL**: `process.env.PLAYWRIGHT_TEST_BASE_URL`
 - **Reporter**: CI 使用 `html` + `junit` + `json`
 - **Run**: `pnpm test:e2e` 或 `pnpm exec playwright test --project=e2e`
 
 ---
 
-## 11. Best Practices
+## 10. Best Practices
 
 1. **永远不用 `page.waitForTimeout()`** — 用 auto-waiting 或显式事件等待
 2. **用 `test.describe` 分组**相关测试
@@ -569,7 +543,7 @@ await expect(page).toHaveScreenshot("name.png", {
 
 ---
 
-## 12. Anti-Patterns
+## 11. Anti-Patterns
 
 1. `waitForTimeout(3000)` — 脆弱且慢
 2. 测试间共享可变状态
@@ -583,7 +557,7 @@ await expect(page).toHaveScreenshot("name.png", {
 
 ---
 
-## 13. Debugging
+## 12. Debugging
 
 ```bash
 pnpm exec playwright test --headed --project=e2e          # headed 模式

@@ -46,8 +46,18 @@ function saveState() {
 
 const knownPRs: Record<number, PRState> = loadState();
 
-function run(cmd: string, cwd?: string): string {
-  return execSync(cmd, { cwd, encoding: "utf-8", timeout: 30_000 }).trim();
+function run(cmd: string, cwd?: string, retries = 3): string {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return execSync(cmd, { cwd, encoding: "utf-8", timeout: 30_000 }).trim();
+    } catch (e: any) {
+      if (i < retries - 1 && e.message?.includes("EOF")) {
+        continue;
+      }
+      throw e;
+    }
+  }
+  return "";
 }
 
 function extractLinearIssues(text: string): string[] {
@@ -57,7 +67,7 @@ function extractLinearIssues(text: string): string[] {
 }
 
 function triggerCommand(command: string, args: string = ""): boolean {
-  const cmd = `claude -p --command "${command} ${args}"`.trim();
+  const cmd = `claude -p "${`${command} ${args}`.trim()}"`;
   console.log(`  → trigger: ${cmd}`);
   try {
     execSync(cmd, { cwd: PROJECT_ROOT, stdio: "inherit", timeout: 600_000 });
@@ -180,7 +190,11 @@ function check() {
       commentOnPRs(infoUpdated.map((p) => p.number), passed);
     }
 
-    syncState(prs);
+    // 评论会更新 PR 的 updatedAt，必须重新获取最新状态，否则下次轮询会误判为 info update
+    const freshRaw = run(
+      `gh pr list --repo ${OWNER}/${REPO} --state open --json number,title,body,headRefName,headRefOid,updatedAt --limit 10`
+    );
+    syncState(JSON.parse(freshRaw));
   } catch (err: any) {
     console.error(`[${now}] error:`, err.message);
   }
