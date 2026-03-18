@@ -14,6 +14,7 @@
     ],
     "agents": [
       "agents/e2e-orchestrator.md",
+      "agents/test-executor.md",
       "agents/unit-test-orchestrator.md",
       "agents/report-analyzer.md",
       "agents/bug-reporter.md"

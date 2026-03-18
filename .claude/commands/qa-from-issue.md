@@ -79,7 +79,8 @@ Phase 1: 读取 Issue → 提取测试上下文（命令层独有）
 Phase 2: CDP 定向探查 → 验证 issue 描述的页面状态（命令层独有）
      ↓
 Phase 3: 并行启动
-         ├─ e2e-orchestrator (issue) → 用例 → Excel → spec → 执行 → 产出报告
+         ├─ e2e-orchestrator (issue) → 用例 → Excel → spec
+         ├─ test-executor → 接收 spec → 执行测试 → 产出报告
          └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
      ↓
 Phase 4: 回写原 Issue
@@ -189,11 +190,13 @@ mcp__chrome-devtools__evaluate_script
 
 **Agent 1 — e2e-orchestrator**（sonnet）：
 - 传入：Phase 2 的 CDP 探查结果 + issue 上下文 + `source: "issue"` + issue key + `projectContext`
-- 内部完成：去重 → 用例 → Excel → spec → 执行测试 → 产出 JSON 报告
+- 内部完成：去重 → 用例 → Excel → spec
 
-**Agent 2 — report-analyzer**（haiku）：
-- 并行监听 `$TARGET_PROJECT_DIR/tests/reports/` 目录
-- e2e-orchestrator 产出报告后立即分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+**Agent 2 — test-executor**（haiku）：
+- 接收 e2e-orchestrator 产出的 spec → 执行测试 → 产出报告
+
+**Agent 3 — report-analyzer**（haiku）：
+- 监听报告目录 → 分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
 
 ---
 

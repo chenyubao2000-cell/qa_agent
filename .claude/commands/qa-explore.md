@@ -15,7 +15,8 @@ Phase 0: 加载项目上下文（.env → 目标项目配置）
 Phase 1: CDP 自动探查 → page-baseline.json（命令层独有）
      ↓
 Phase 2: 并行启动
-         ├─ e2e-orchestrator (cdp) → 用例 → Excel → spec → 执行 → 产出报告
+         ├─ e2e-orchestrator (cdp) → 用例 → Excel → spec
+         ├─ test-executor → 接收 spec → 执行测试 → 产出报告
          └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
 ```
 
@@ -194,11 +195,16 @@ page-slug 从 URL 提取（如 `/task/abc123` → `task-abc123`）。
 
 **Agent 1 — e2e-orchestrator**（sonnet）：
 - 传入：Phase 1 的 baseline JSON + `source: "cdp"` + `projectContext`
-- 内部完成：去重 → 用例 → Excel → spec → 执行测试 → 产出 JSON 报告
+- 内部完成：去重 → 用例 → Excel → spec
+- 完成后将 spec 路径交给 test-executor
 
-**Agent 2 — report-analyzer**（haiku）：
+**Agent 2 — test-executor**（haiku）：
+- 接收 e2e-orchestrator 产出的 spec 文件路径
+- 执行测试，产出 JSON + HTML 报告到 `$TARGET_PROJECT_DIR/tests/reports/`
+
+**Agent 3 — report-analyzer**（haiku）：
 - 并行监听 `$TARGET_PROJECT_DIR/tests/reports/` 目录
-- e2e-orchestrator 产出报告后立即分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+- test-executor 产出报告后立即分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
 
 ---
 

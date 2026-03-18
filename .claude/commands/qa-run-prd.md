@@ -13,7 +13,8 @@ Phase 0: 加载项目上下文（.env → 目标项目配置）
 Phase 1: 读取 PRD + 增量检测（命令层独有）
      ↓
 Phase 2: 并行启动
-         ├─ e2e-orchestrator (prd) → 用例 → Excel → spec → 执行 → 产出报告
+         ├─ e2e-orchestrator (prd) → 用例 → Excel → spec
+         ├─ test-executor → 接收 spec → 执行测试 → 产出报告
          └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
 ```
 
@@ -28,12 +29,12 @@ Phase 2: 并行启动
 
 ## Phase 2: 并行启动 Agent
 
-同时启动两个 Agent：
-
 **Agent 1 — e2e-orchestrator**（sonnet）：
 - 传入：PRD 内容 + `source: "prd"` + `projectContext`
-- 内部完成：去重 → 用例 → Excel → spec → 执行测试 → 产出 JSON 报告
+- 内部完成：去重 → 用例 → Excel → spec
 
-**Agent 2 — report-analyzer**（haiku）：
-- 并行监听 `$TARGET_PROJECT_DIR/tests/reports/` 目录
-- e2e-orchestrator 产出报告后立即分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+**Agent 2 — test-executor**（haiku）：
+- 接收 e2e-orchestrator 产出的 spec → 执行测试 → 产出报告
+
+**Agent 3 — report-analyzer**（haiku）：
+- 监听报告目录 → 分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告

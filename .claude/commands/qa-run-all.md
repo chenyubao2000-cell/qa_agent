@@ -11,7 +11,7 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__create_i
 Phase 0: 加载项目上下文（.env → 目标项目配置）
      ↓
 Phase 1: 并行启动
-         ├─ 执行已有 E2E spec → 产出 JSON + HTML 报告
+         ├─ test-executor → 执行已有 spec → 产出报告
          └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
 ```
 
@@ -21,15 +21,10 @@ Phase 1: 并行启动
 
 ## Phase 1: 并行启动
 
-**任务 1 — 执行测试**（直接 bash，不走 e2e-orchestrator）：
+**Agent 1 — test-executor**（haiku）：
+- 跳过 e2e-orchestrator，直接执行已有 spec
+- 如果 $ARGUMENTS 指定了文件路径则只跑指定的，否则跑全量
+- 产出 JSON + HTML 报告到 `$TARGET_PROJECT_DIR/tests/reports/`
 
-```bash
-PLAYWRIGHT_JSON_OUTPUT_NAME=$TARGET_PROJECT_DIR/tests/reports/playwright-results.json \
-cd $TARGET_PROJECT_DIR && npx playwright test $ARGUMENTS --project=e2e --reporter=json,html
-```
-
-如果 $ARGUMENTS 为空则跑全量已有 spec。
-
-**Agent — report-analyzer**（haiku）：
-- 并行监听 `$TARGET_PROJECT_DIR/tests/reports/` 目录
-- 测试产出报告后立即分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+**Agent 2 — report-analyzer**（haiku）：
+- 监听报告目录 → 分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
