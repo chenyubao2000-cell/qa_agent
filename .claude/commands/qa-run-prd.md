@@ -20,15 +20,13 @@ Phase 2: 并行启动
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
 
-> git 同步由 SessionStart hook（`hooks/git-sync.sh`）自动完成，此处不再拉代码。
-
 读取 `.env` 获取 `TARGET_PROJECT_DIR` 和 `PREVIEW_URL`。
 读取 `$TARGET_PROJECT_DIR/CLAUDE.md` 获取技术栈。
 读取 `$TARGET_PROJECT_DIR/.env` 获取 `PLAYWRIGHT_BASE_URL`。
 
 ## Phase 1: 读取 PRD + 增量检测
 
-读取 PRD（$ARGUMENTS 或默认 $TARGET_PROJECT_DIR/docs/prd/），用 checksums.json 增量检测，未变更的跳过。
+读取 PRD（$ARGUMENTS 或默认 $TARGET_PROJECT_DIR/docs/prd/）。
 
 ## Phase 2: 并行启动 Agent
 

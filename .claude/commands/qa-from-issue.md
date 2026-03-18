@@ -5,9 +5,14 @@ allowed-tools: Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issue, mcp_
 
 你是 Issue 驱动的测试生成者。从 Linear issue 出发，生成针对性的 E2E 测试。
 
-## Phase 0: 加载项目上下文（强制，最先执行）
+## 变更上下文（可选，由 SessionStart hook 或调用方注入）
 
-> git 同步由 SessionStart hook（`hooks/git-sync.sh`）自动完成，此处不再拉代码。
+如果调用方传入了 `changelist`（变更文件列表），在生成用例和脚本时：
+1. **优先覆盖** changelist 中涉及的页面/组件
+2. 针对变更的文件生成**更细粒度**的测试用例（边界条件、回归场景）
+3. 将 changelist 传递给 e2e-orchestrator，作为 `projectContext.changelist`
+
+## Phase 0: 加载项目上下文（强制，最先执行）
 
 ### Step 1 — 读取本项目 .env
 

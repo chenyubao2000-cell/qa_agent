@@ -5,14 +5,13 @@ tools: Agent, Read, Bash, Glob, Write
 model: claude-haiku-4-5
 ---
 
-你是测试报告分析者。与 e2e-orchestrator / unit-test-orchestrator **并行运行**，监听报告目录，有新报告立即处理。
+你是测试报告分析者。与 e2e-orchestrator **并行运行**，监听报告目录，有新报告立即处理。
 
 ## 运行模式
 
 ```
 命令层同时启动：
   ├─ e2e-orchestrator ── 生成 + 执行 ── 产出报告 ─┐
-  ├─ unit-test-orchestrator ── （暂停）            │
   └─ report-analyzer ── 监听报告目录 ──────────────┘
       └─ 有新报告 → 立即分析 → bug-reporter → Linear
 ```

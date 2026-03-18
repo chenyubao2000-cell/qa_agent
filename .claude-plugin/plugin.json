@@ -1,21 +1,19 @@
 {
   "name": "qa-platform",
   "version": "1.0.0",
-  "description": "QA 自动化测试平台：E2E + 单元测试 + Linear Bug 上报",
+  "description": "QA 自动化测试平台：E2E + Linear Bug 上报",
   "author": "qa-team",
   "namespace": "qa",
   "components": {
     "skills": [
       "skills/test-case-generator",
       "skills/playwright-script-generator",
-      "skills/vitest-testing",
       "skills/excel-case-export",
       "skills/linear-bug-report"
     ],
     "agents": [
       "agents/e2e-orchestrator.md",
       "agents/test-executor.md",
-      "agents/unit-test-orchestrator.md",
       "agents/report-analyzer.md",
       "agents/bug-reporter.md"
     ],
@@ -23,13 +21,10 @@
       ".claude/commands/qa-explore.md",
       ".claude/commands/qa-from-issue.md",
       ".claude/commands/qa-run-all.md",
-      ".claude/commands/qa-run-prd.md",
-      ".claude/commands/qa-run-unit.md",
-      ".claude/commands/qa-watch.md"
+      ".claude/commands/qa-run-prd.md"
     ],
     "hooks": {
-      "SessionStart": ["hooks/validate-env.sh", "hooks/git-sync.sh"],
-      "PostToolUse:Write": ["hooks/post-write-lint.sh"],
+      "SessionStart": ["hooks/session-start.sh"],
       "Stop": ["hooks/post-notify.sh"]
     }
   }

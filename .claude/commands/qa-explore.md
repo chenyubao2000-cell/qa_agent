@@ -22,8 +22,6 @@ Phase 2: 并行启动
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
 
-> git 同步由 SessionStart hook（`hooks/git-sync.sh`）自动完成，此处不再拉代码。
-
 ### Step 1 — 读取本项目 .env
 
 ```

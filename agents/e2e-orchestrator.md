@@ -34,29 +34,17 @@ model: claude-sonnet-4-6
 - 如果已有对应 spec → 追加 test case 到已有文件
 - 如果没有 → 走模式 B 流程新建
 
-### 模式 D: PR 驱动（由 /qa-watch CI Watcher 触发）
-- 输入：PR diff 上下文（changedFiles、affectedPages、prTitle）+ CDP 探查结果 + Linear 关联 issue（可选）
-- 调用方（watcher）已完成：
-  1. PR diff 分析 → 受影响的页面/组件列表
-  2. CDP 自动探查 → 每个受影响页面的 DOM snapshot
-  3. Linear 搜索 → 与本次 PR 相关的 open bug（可能为空）
-- 处理逻辑：
-  - 有关联 Linear issue → 按模式 C 处理每个 issue（与 /qa-from-issue 相同）
-  - 无关联 issue 但有新页面/组件 → 按模式 B 处理 CDP baseline
-  - 已有 spec 覆盖的页面 → 不重新生成，仅执行已有测试
-
 调用方在 prompt 中通过 `source` 字段指定模式：
 ```
 source: "prd"     → 模式 A
 source: "cdp"     → 模式 B
 source: "issue"   → 模式 C
-source: "pr"      → 模式 D
 ```
 
 
 ## 项目上下文
 
-调用方（qa-explore / qa-from-issue / qa-run-prd / qa-watch）在 prompt 中传入 `projectContext` 对象，包含：
+调用方（qa-explore / qa-from-issue / qa-run-prd）在 prompt 中传入 `projectContext` 对象，包含：
 
 | 字段 | 来源 | 用途 |
 |------|------|------|
@@ -66,6 +54,7 @@ source: "pr"      → 模式 D
 | `authSetup` | 目标项目 playwright.config.ts | 是否需要 storageState 依赖 |
 | `testCredentials` | 目标项目 .env | auth.setup.ts 使用 |
 | `existingTests` | 目标项目 playwright.config.ts 的 testDir | 已有测试目录 |
+| `changelist` | SessionStart hook 检测的变更文件列表（可选） | 生成用例时重点覆盖变更涉及的页面/组件 |
 
 如果调用方未传入 `projectContext`，则自行读取：
 ```
@@ -82,10 +71,6 @@ Read("$TARGET_PROJECT_DIR/playwright.config.ts")
 - **prd**: 读取 PRD .md 文件，列出功能模块
 - **cdp**: 读取 baseline JSON，提取 headings/forms/buttons 等
 - **issue**: 读取 issue 上下文，定位受影响的功能模块
-- **pr**: 读取 PR 上下文，按优先级处理：
-  1. 有关联 Linear issue → 逐个按 issue 模式处理
-  2. 有 CDP 探查结果但无 issue → 按 cdp 模式处理
-  3. 受影响页面已有 spec → 跳过生成，仅标记需执行
 
 ## 步骤 2：审查已有用例集（强制，所有模式）
 
@@ -134,7 +119,7 @@ existingTests = [
 - **同一断言**（同页面 + 同 locator + 同 expect）不得出现在两个 test case 中
 - **仅 URL 不同**但验证逻辑完全相同 → 用 `for...of` 或 `test.each` 参数化，不拆成多个 test
 - **issue 是已有 test 的失败报告** → 不新增用例，仅更新已有 test 的实际结果记录
-- **PRD 重新生成时**，如果 PRD 未变（checksums.json 校验），跳过已有用例对应的模块
+- **PRD 重新生成时**，已有 spec 完全覆盖的模块跳过
 
 ## 步骤 3：生成测试用例
 

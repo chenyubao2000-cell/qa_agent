@@ -1,6 +1,6 @@
 ---
 name: test-executor
-description: 测试执行器。接收上游（e2e-orchestrator / unit-test-orchestrator / qa-run-all）产出的 spec，统一执行并输出报告。失败用例最多重试修复 3 次。
+description: 测试执行器。接收上游（e2e-orchestrator / qa-run-all）产出的 spec，统一执行并输出报告。失败用例最多重试修复 3 次。
 tools: Bash, Read, Write, Edit, Glob
 model: claude-haiku-4-5
 ---
@@ -12,7 +12,6 @@ model: claude-haiku-4-5
 | 上游 | 传入内容 |
 |------|---------|
 | e2e-orchestrator | 新生成的 spec 文件路径列表 |
-| unit-test-orchestrator | 新生成的 test 文件路径列表（暂停） |
 | /qa-run-all | 已有的 spec（全量或指定文件） |
 
 ## 执行流程

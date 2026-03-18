@@ -43,7 +43,6 @@ LINEAR_TEAM_ID=xxx
 | `/qa-from-issue STE-9` | 从 Linear Issue 生成测试 |
 | `/qa-run-prd` | PRD 驱动测试流水线 |
 | `/qa-run-all` | 执行已有测试 + 报告 |
-| `/qa-watch` | CI 持续监控 |
 
 ## 架构
 
@@ -73,20 +72,16 @@ qa-platform-plugin/
 │   ├── e2e-orchestrator    生成引擎 (sonnet)
 │   ├── test-executor       测试执行器 (haiku)
 │   ├── report-analyzer     报告分析 (haiku)
-│   ├── bug-reporter        Bug 上报 (haiku)
-│   └── unit-test-orchestrator  (暂停)
-├── skills/               4 个 Skill + 1 暂停
+│   └── bug-reporter        Bug 上报 (haiku)
+├── skills/               4 个 Skill
 │   ├── test-case-generator       用例生成
 │   ├── excel-case-export         Excel 导出
 │   ├── playwright-script-generator  脚本生成
-│   ├── linear-bug-report         Linear 上报
-│   └── vitest-testing            (暂停)
-├── hooks/                4 个 Hook
-│   ├── validate-env.sh     .env 校验
-│   ├── git-sync.sh         自动 clone/pull
-│   ├── post-write-lint.sh  lint
+│   └── linear-bug-report         Linear 上报
+├── hooks/                3 个 Hook
+│   ├── session-start.sh    校验 + 同步 + 变更检测 + 路由
 │   └── post-notify.sh     通知
-├── scripts/              安装脚本 + CI Watcher
+├── scripts/              安装脚本
 ├── mcp-templates/        MCP 配置模板
 ├── project-template/     新项目接入模板
 └── docs/                 架构文档
