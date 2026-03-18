@@ -20,6 +20,17 @@ Phase 2: 并行启动
 
 ## Phase 0: 加载项目上下文
 
+### Step 0 — 同步目标项目最新代码
+
+```bash
+bash scripts/pull-latest.sh
+```
+
+脚本会 fetch + pull 目标项目到最新，并输出当前 HEAD commit hash。
+**如果脚本返回非 0，终止流水线并告知用户。**
+
+### Step 1 — 读取项目配置
+
 读取 valition_agent/.env 获取 TARGET_PROJECT_DIR 和 PREVIEW_URL。
 读取 $TARGET_PROJECT_DIR 的 CLAUDE.md 获取技术栈。
 
@@ -29,12 +40,28 @@ Phase 2: 并行启动
 
 ## Phase 2: 并行启动 Agent
 
+**关键约束**：启动 agent 时，prompt 只传入**输入数据**（PRD 内容、source、projectContext），
+**不要**在 prompt 中写具体的代码规范、locator 策略、文件模板。
+agent 必须自行读取 `agents/e2e-orchestrator.md` → `skills/*/SKILL.md` 链路获取规范。
+
 **Agent 1 — e2e-orchestrator**（sonnet）：
-- 传入：PRD 内容 + `source: "prd"` + `projectContext`
-- 内部完成：去重 → 用例 → Excel → spec
 
-**Agent 2 — test-executor**（haiku）：
-- 接收 e2e-orchestrator 产出的 spec → 执行测试 → 产出报告
+prompt 模板：
+```
+你是 e2e-orchestrator。请先读取 agents/e2e-orchestrator.md 了解你的完整职责和步骤。
 
-**Agent 3 — report-analyzer**（haiku）：
-- 监听报告目录 → 分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+输入：
+- source: "prd"
+- prdFiles: [PRD 文件路径列表]
+- projectContext: { targetProjectDir, baseURL, existingTests, ... }
+
+按 agents/e2e-orchestrator.md 的步骤执行（读 SKILL.md → 生成），返回产物路径。
+```
+
+**Agent 2 — test-executor**（sonnet）：
+- 等 e2e-orchestrator 完成后启动
+- 接收 spec 文件路径 → 执行测试 → 产出报告
+
+**Agent 3 — report-analyzer**（sonnet）：
+- 等 test-executor 完成后启动
+- 分析报告 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告

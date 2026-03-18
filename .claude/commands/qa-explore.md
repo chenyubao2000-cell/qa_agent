@@ -20,39 +20,24 @@ Phase 2: 并行启动
          └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
 ```
 
-## Phase 0: 加载项目上下文（强制，最先执行）
+## Phase 0: 项目上下文（由 Hook 自动注入）
 
-### Step 1 — 读取本项目 .env
+Phase 0 由 `user-prompt-submit` hook 自动运行 `scripts/phase0-context.sh`，
+结果已注入到本次 prompt 中。查找 `[Phase0-Hook]` 标记和 `projectContext=` 获取数据。
 
+**如果未看到 `[Phase0-Hook]` 标记**（hook 未触发），手动执行：
+```bash
+bash scripts/phase0-context.sh $ARGUMENTS
 ```
-Read(".env")  # valition_agent 根目录
-```
+**禁止**：跳过此脚本、复用之前的输出、手动读取 .env 代替脚本执行。
 
-提取：
-- `TARGET_PROJECT_DIR` — 目标项目根目录
-- `PREVIEW_URL` — 预览环境 URL（CDP 导航的默认目标）
-
-### Step 2 — 读取目标项目配置
-
-```
-Read("$TARGET_PROJECT_DIR/CLAUDE.md")        # 技术栈、架构、业务背景
-Read("$TARGET_PROJECT_DIR/.env")             # PLAYWRIGHT_BASE_URL、测试账号等
-Read("$TARGET_PROJECT_DIR/playwright.config.ts")  # auth setup、reporter、项目结构
-```
-
-提取关键信息缓存为 `projectContext`：
-- `techStack` — 框架、UI 库、状态管理（来自 CLAUDE.md）
-- `baseURL` — 测试基准 URL（来自目标 .env 的 PLAYWRIGHT_BASE_URL）
-- `authSetup` — 是否有 auth.setup.ts、storageState 路径（来自 playwright.config.ts）
-- `testCredentials` — TEST_USER_EMAIL / TEST_USER_PASSWORD（来自目标 .env）
-- `existingTests` — 已有测试目录结构（来自 playwright.config.ts 的 testDir）
-
-### Step 3 — 确定探查 URL
-
-优先级：
-1. 用户传入的 `$ARGUMENTS`（如果是 URL）
-2. 目标项目 `.env` 中的 `PLAYWRIGHT_BASE_URL`
-3. 本项目 `.env` 中的 `PREVIEW_URL`
+从 `projectContext` JSON 中提取：
+- `targetProjectDir` — 目标项目根目录
+- `exploreUrl` — 探查 URL（优先级：用户参数 > PLAYWRIGHT_BASE_URL > PREVIEW_URL）
+- `baseURL` — 测试基准 URL
+- `existingTests` — 已有测试文件列表
+- `testCredentials` — 测试账号
+- `hasAuthSetup` — 是否有 auth setup
 
 ---
 
@@ -191,20 +176,39 @@ page-slug 从 URL 提取（如 `/task/abc123` → `task-abc123`）。
 
 ## Phase 2: 并行启动 Agent
 
-同时启动两个 Agent（同一条消息中并行）：
+同时启动 Agent（同一条消息中并行）。
+
+**关键约束**：启动 agent 时，prompt 只传入**输入数据**（baseline、source、projectContext），
+**不要**在 prompt 中写具体的代码规范、locator 策略、文件模板。
+agent 必须自行读取 `agents/e2e-orchestrator.md` → `skills/*/SKILL.md` 链路获取规范。
 
 **Agent 1 — e2e-orchestrator**（sonnet）：
-- 传入：Phase 1 的 baseline JSON + `source: "cdp"` + `projectContext`
-- 内部完成：去重 → 用例 → Excel → spec
-- 完成后将 spec 路径交给 test-executor
 
-**Agent 2 — test-executor**（haiku）：
-- 接收 e2e-orchestrator 产出的 spec 文件路径
-- 执行测试，产出 JSON + HTML 报告到 `$TARGET_PROJECT_DIR/tests/reports/`
+prompt 模板：
+```
+你是 e2e-orchestrator。请先读取 agents/e2e-orchestrator.md 了解你的完整职责和步骤。
 
-**Agent 3 — report-analyzer**（haiku）：
-- 并行监听 `$TARGET_PROJECT_DIR/tests/reports/` 目录
-- test-executor 产出报告后立即分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+输入：
+- source: "cdp"
+- baselineFile: $TARGET_PROJECT_DIR/test-cases/generated/page-baseline-{slug}.json
+- projectContext: { targetProjectDir, baseURL, existingTests, ... }
+
+按 agents/e2e-orchestrator.md 的步骤执行：
+1. 读取 baseline JSON
+2. 审查已有用例（步骤 2）
+3. 读取 skills/test-case-generator/SKILL.md → 生成用例
+4. 读取 skills/excel-case-export/SKILL.md → 导出 Excel
+5. 读取 skills/playwright-script-generator/SKILL.md → 生成 POM + spec
+6. 返回产物路径
+```
+
+**Agent 2 — test-executor**（sonnet）：
+- 等 e2e-orchestrator 完成后启动
+- 接收 spec 文件路径 → 执行测试 → 产出报告到 `$TARGET_PROJECT_DIR/tests/reports/`
+
+**Agent 3 — report-analyzer**（sonnet）：
+- 等 test-executor 完成后启动
+- 分析报告 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
 
 ---
 

@@ -135,6 +135,13 @@ test.describe('US-101 · User Login', () => {
 
 After generating all `test()` blocks, **extract every locator into a Page Object class** — no locator string should appear directly in spec files.
 
+**已有 POM 的处理**：
+1. 先读取已有 POM（如 `tests/e2e/pages/chat.ts`），列出所有 public 方法和 getter
+2. 已有 public 方法可直接用 → 在 spec 中调用（如 `chatPage.collapseSidebar()`）
+3. 已有 private 属性但无 public getter → **先添加 getter**（如 `getWelcomeHeading()`），再在 spec 中用
+4. 完全没有的 locator → **先添加 private 属性 + public getter/方法**，再在 spec 中用
+5. **禁止**在 spec 中通过 `chatPage.page.locator()` / `chatPage.page.getByRole()` 绕过 POM
+
 ---
 
 ## 2. Locator 探查与选择
@@ -282,9 +289,8 @@ page.getByRole("navigation")
 
 生成或修改 PO 后，必须在真实页面上验证：
 
-```bash
-node skills/playwright-script-generator/scripts/check-locator-uniqueness.cjs \
-  --url <baseURL> [--path <path>] --expr "<expr>"
+```
+CDP
 ```
 
 输出：`UNIQUE`（可用）/ `MULTIPLE(n)`（需收窄）/ `ZERO`（未匹配）。

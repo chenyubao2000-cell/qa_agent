@@ -164,6 +164,24 @@ node scripts/generate-excel.js \
 - 已有 spec → 追加 test case（不重复已有 case）
 - 已有 POM → 追加 locator / 方法（不重复已有属性）
 
+### 5.1 POM 强制规则
+
+**spec 文件中禁止出现任何裸 locator**（`page.locator()`、`page.getByRole()`、`page.getByTestId()` 等）。
+所有元素交互必须通过 POM 的 public 方法或 getter。
+
+生成 spec 前，必须：
+1. 读取已有 POM 文件（如 `tests/e2e/pages/chat.ts`），列出所有 public 方法和 getter
+2. spec 中需要的 locator 如果已有 POM 方法 → 直接调用
+3. spec 中需要的 locator 如果 POM 有 private 属性但无 public getter → **先给 POM 添加 public getter**，再在 spec 中调用
+4. spec 中需要的 locator 如果 POM 完全没有 → **先给 POM 添加 private 属性 + public getter/方法**，再在 spec 中调用
+
+### 5.2 自检清单（生成后必须执行）
+
+- [ ] spec 文件中搜索 `page.locator`、`page.getByRole`、`page.getByTestId`、`page.getByText`、`page.getByPlaceholder`、`page.getByLabel` → 结果必须为 0
+- [ ] spec 中所有元素操作均通过 `chatPage.xxx()` 或 `chatPage.getXxx()` 调用
+- [ ] 新增的 POM getter/方法有对应的 private locator 属性
+- [ ] import 路径正确（`generated/` 下用 `../../fixtures`，`testcases/` 下用 `../fixtures`）
+
 ## 返回
 
 生成完成后返回产物路径，交给下游 **test-executor agent** 执行测试。
