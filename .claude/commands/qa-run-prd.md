@@ -6,7 +6,7 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__chrome-devtools_
 你是 E2E 测试流水线调度者。
 
 ```
-/qa-run-prd [prd-path]
+/qa-run-prd [prd-path] [--source <源码目录>]
      ↓
 Phase 0: 加载项目上下文（.env → 目标项目配置）
      ↓
@@ -22,13 +22,19 @@ Phase 2: 顺序启动 Agent
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
 
-读取 `.env` 获取 `TARGET_PROJECT_DIR` 和 `PREVIEW_URL`。
-读取 `$TARGET_PROJECT_DIR/CLAUDE.md` 获取技术栈。
-读取 `$TARGET_PROJECT_DIR/.env` 获取 `PLAYWRIGHT_BASE_URL`。
+### 源码目录
+
+读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
+- **读源码**→ 从源码目录读
+- **写文件**（spec/POM/用例/报告）→ 始终写入 QA_WORKSPACE_DIR
+
+读取 `.env` 获取 `QA_WORKSPACE_DIR`、`SOURCE_PROJECT_DIR`、`PREVIEW_URL`。
+读取 `$SOURCE_PROJECT_DIR/CLAUDE.md` 获取技术栈。
+读取 `$SOURCE_PROJECT_DIR/.env` 获取 `PLAYWRIGHT_BASE_URL`。
 
 ## Phase 1: 读取 PRD
 
-读取 PRD（$ARGUMENTS 或默认 $TARGET_PROJECT_DIR/docs/prd/）。
+读取 PRD（$ARGUMENTS 或默认 $SOURCE_PROJECT_DIR/docs/prd/）。
 
 ### PRD 分模块策略
 

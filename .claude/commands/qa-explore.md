@@ -8,7 +8,7 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__chrome-devtools_
 ## 流程
 
 ```
-/qa-explore [page-url]
+/qa-explore [page-url] [--source <源码目录>]
      ↓
 Phase 0: 加载项目上下文（.env → 目标项目配置）
      ↓
@@ -24,6 +24,12 @@ Phase 2: 顺序启动 Agent
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
 
+### 源码目录
+
+读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
+- **读源码**→ 从源码目录读
+- **写文件**（spec/POM/用例/报告）→ 始终写入 QA_WORKSPACE_DIR
+
 ### Step 1 — 读取本项目 .env
 
 ```
@@ -31,15 +37,15 @@ Read(".env")  # valition_agent 根目录
 ```
 
 提取：
-- `TARGET_PROJECT_DIR` — 目标项目根目录
+- `QA_WORKSPACE_DIR` — 目标项目根目录
 - `PREVIEW_URL` — 预览环境 URL（CDP 导航的默认目标）
 
-### Step 2 — 读取目标项目配置
+### Step 2 — 读取源码项目配置
 
 ```
-Read("$TARGET_PROJECT_DIR/CLAUDE.md")        # 技术栈、架构、业务背景
-Read("$TARGET_PROJECT_DIR/.env")             # PLAYWRIGHT_BASE_URL、测试账号等
-Read("$TARGET_PROJECT_DIR/playwright.config.ts")  # auth setup、reporter、项目结构
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # 技术栈、架构、业务背景
+Read("$SOURCE_PROJECT_DIR/.env")             # PLAYWRIGHT_BASE_URL、测试账号等
+Read("$SOURCE_PROJECT_DIR/playwright.config.ts")  # auth setup、reporter、项目结构
 ```
 
 提取关键信息缓存为 `projectContext`：
@@ -70,7 +76,7 @@ Read("skills/cdp-explorer/SKILL.md")
 执行参数：
 - mode: "full"
 - pageUrl: Phase 0 确定的探查 URL
-- outputPath: $TARGET_PROJECT_DIR/test-cases/generated/page-baseline-{page-slug}.json
+- outputPath: $QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{page-slug}.json
 ```
 
 按 cdp-explorer SKILL 的 Phase 1 → Phase 2 → Phase 3 → Phase 5 完整执行：
@@ -97,7 +103,7 @@ prompt 模板：
 
 输入：
 - source: "cdp"
-- baselineFile: $TARGET_PROJECT_DIR/test-cases/generated/page-baseline-{slug}.json
+- baselineFile: $QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{slug}.json
 - projectContext: { targetProjectDir, baseURL, existingTests, ... }
 
 按 agents/e2e-orchestrator.md 的步骤执行：
@@ -122,7 +128,7 @@ prompt 模板：
 
 **Agent 2 — test-executor**（haiku）：
 - 等 e2e-orchestrator 完成后启动
-- 接收 spec 文件路径 → 执行测试 → 产出报告到 `$TARGET_PROJECT_DIR/tests/reports/`
+- 接收 spec 文件路径 → 执行测试 → 产出报告到 `$QA_WORKSPACE_DIR/tests/reports/`
 
 **Agent 3 — report-analyzer**（haiku）：
 - 等 test-executor 完成后启动

@@ -21,8 +21,8 @@ You are an expert QA automation engineer specializing in Playwright end-to-end t
 生成任何新 spec 之前，**必须**扫描已有脚本，避免重复：
 
 ```
-Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts")
-Glob("$TARGET_PROJECT_DIR/tests/e2e/pages/*.ts")
+Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
+Glob("$QA_WORKSPACE_DIR/tests/e2e/pages/*.ts")
 ```
 
 对 handoff 中的每个用例条目：
@@ -86,6 +86,8 @@ When invoked after `test-case-generator`, check for `tests/generated/playwright-
 | `P3-low` | `@extended` |
 
 **Equivalence-class / boundary entries** (same `criterionId`, different `value`): generate parametrized tests, not duplicate blocks.
+
+**timeout 字段**：handoff 条目含 `"timeout": 600000` 时，在生成的 `test()` 块顶部插入 `test.setTimeout(600_000);`。`null` 或缺省则不插入。
 
 ### 1.2 Handoff source 决定 locator 策略
 
@@ -550,7 +552,7 @@ report-analyzer → bug-reporter → Linear Issue 全链路依赖此数据。
 3. **Tag 标记**用于选择性执行：`{ tag: ['@smoke'] }`
 4. **Soft assertions** 用于非阻塞检查：`await expect.soft(locator).toHaveText('...')`
 5. **参数化测试**用循环 + 数组，不要复制粘贴
-6. **timeout 在 config 层设置**，不在单个测试里
+6. **timeout 默认在 config 层设置**；但涉及 AI 处理、长时间异步任务（如 `waitForTaskCompleted`）的用例，**必须**在 test 级别加 `test.setTimeout(600_000)`（10 分钟），因为 config 默认 timeout 不够覆盖这类耗时操作
 7. **trace viewer 调试**：`pnpm exec playwright show-trace trace.zip`
 8. **fullyParallel: true** 但确保测试隔离
 9. **afterEach 清理**测试数据

@@ -1,5 +1,8 @@
 #!/bin/bash
-# SessionStart hook：校验 .env 必填项
+# ── SessionStart Hook ──────────────────────────────
+# Claude Code 会话启动时自动执行。
+# 校验 .env 中的必填配置项，缺失则输出 JSON 错误信息。
+# 输出格式：{"env":"ok"} 或 {"error":"缺少配置项：XXX"}
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -14,7 +17,8 @@ set +e
 source "$ENV_FILE" 2>/dev/null
 set -e
 
-REQUIRED=("PREVIEW_URL" "GITHUB_TOKEN" "LINEAR_API_KEY" "TARGET_PROJECT_DIR")
+# 四项必填：预览地址、GitHub token、Linear API key、目标项目路径
+REQUIRED=("PREVIEW_URL" "GITHUB_TOKEN" "LINEAR_API_KEY" "QA_WORKSPACE_DIR")
 MISSING=()
 for var in "${REQUIRED[@]}"; do
   [ -z "${!var}" ] && MISSING+=("$var")

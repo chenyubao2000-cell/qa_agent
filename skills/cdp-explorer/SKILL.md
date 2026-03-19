@@ -530,7 +530,7 @@ mcp__chrome-devtools__evaluate_script
 
 ### 基线文件格式
 
-保存到 `$TARGET_PROJECT_DIR/test-cases/generated/page-baseline-{page-slug}.json`：
+保存到 `$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{page-slug}.json`：
 
 ```json
 {

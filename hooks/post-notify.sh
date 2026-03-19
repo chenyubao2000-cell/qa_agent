@@ -1,5 +1,8 @@
 #!/bin/bash
-# Stop：会话结束通知（需要 .env 中配置 SLACK_WEBHOOK_URL）
+# ── Post-Notify Hook ──────────────────────────────
+# 会话结束后执行。向 Slack 发送完成通知。
+# 依赖 .env 中的 SLACK_WEBHOOK_URL（可选，未配置则跳过）。
+
 source .env 2>/dev/null
 
 [ -n "$SLACK_WEBHOOK_URL" ] && \

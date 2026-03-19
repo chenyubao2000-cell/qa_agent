@@ -18,7 +18,7 @@ model: claude-haiku-4-5
 
 ### Step 1: 验证 playwright.config.ts 失败证据配置
 
-执行前检查目标项目的 `playwright.config.ts`，确认包含：
+执行前检查源码目录（`$SOURCE_PROJECT_DIR`，默认同 `$QA_WORKSPACE_DIR`）的 `playwright.config.ts`，确认包含：
 ```typescript
 use: {
   screenshot: 'only-on-failure',
@@ -31,8 +31,8 @@ use: {
 ### Step 2: 执行测试
 
 ```bash
-PLAYWRIGHT_JSON_OUTPUT_NAME=$TARGET_PROJECT_DIR/tests/reports/playwright-results.json \
-cd $TARGET_PROJECT_DIR && npx playwright test <spec 文件列表> --project=e2e --reporter=json,html
+PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/playwright-results.json \
+cd $QA_WORKSPACE_DIR && npx playwright test <spec 文件列表> --project=e2e --reporter=json,html
 ```
 
 如果未指定文件列表，则跑全量。
@@ -44,11 +44,11 @@ cd $TARGET_PROJECT_DIR && npx playwright test <spec 文件列表> --project=e2e 
 - 失败就是失败，如实报告
 - 不修改 spec（locator 修正、timeout 调整等属于上游 e2e-orchestrator 的职责）
 - 不将失败用例改为 `test.skip`
-- 失败截图自动保存在 `$TARGET_PROJECT_DIR/test-results/` 目录（Playwright 默认行为）
+- 失败截图自动保存在 `$QA_WORKSPACE_DIR/test-results/` 目录（Playwright 默认行为）
 
 ## 输出
 
-将报告写入 `$TARGET_PROJECT_DIR/tests/reports/`：
+将报告写入 `$QA_WORKSPACE_DIR/tests/reports/`：
 - `playwright-results.json` — E2E 报告
 - `vitest-results.json` — Unit 报告（暂停）
 

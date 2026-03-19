@@ -25,7 +25,7 @@ bash /path/to/qa-platform-plugin/scripts/install.sh
 编辑 `.env`：
 
 ```bash
-TARGET_PROJECT_DIR=D:/code/your-project
+QA_WORKSPACE_DIR=D:/code/your-project
 TARGET_GITHUB_URL=https://github.com/your-org/your-repo
 TARGET_BRANCH=main
 PREVIEW_URL=https://preview.your-domain.com

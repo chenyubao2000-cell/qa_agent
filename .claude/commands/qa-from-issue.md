@@ -7,10 +7,23 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issu
 
 ## 变更上下文（可选，由 git-watcher 或调用方注入）
 
-如果 prompt 中包含"变更文件列表（changelist）"段落（由 git-watcher 从 PR changed files 自动注入），提取文件列表并：
+如果 prompt 中包含以下段落（由 git-watcher 从 PR 自动注入），提取并利用：
+
+**变更文件列表**：提取文件路径，用于精准测试范围
 1. **优先覆盖** changelist 中涉及的页面/组件（`.tsx`/`.vue` → 对应的 POM 和 spec）
 2. 针对变更的文件生成**更细粒度**的测试用例（边界条件、回归场景）
 3. 将 changelist 传递给 e2e-orchestrator，作为 `projectContext.changelist`
+
+**代码变更摘要（changeSummary）**：AI 生成的结构化摘要，包含每个改动点的描述、涉及文件和行号、改动类型。据此：
+1. 生成针对**变更逻辑**的测试用例（如：修改了条件分支 → 测试新旧两种路径）
+2. 识别摘要中涉及的 UI 组件/API 端点，精准定位测试目标
+3. 将摘要传递给 e2e-orchestrator，作为 `projectContext.changeSummary`
+
+**PR 源码目录（prSourceDir）**：git-watcher 通过 worktree 创建的 PR 全量代码副本，固定路径 `.qa-worktree-pr`。
+1. **读源码时**从 `prSourceDir` 读（如查看组件实现、理解业务逻辑）
+2. **写文件时**仍写入原 `QA_WORKSPACE_DIR`（spec/POM/用例/报告）
+3. **不要**向 prSourceDir 写入任何文件
+4. 将 prSourceDir 传递给 e2e-orchestrator，作为 `projectContext.prSourceDir`
 
 ```
 识别格式：
@@ -18,6 +31,14 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issu
 - src/components/Chat.tsx
 - src/api/tasks.ts
 - ...
+
+代码变更摘要（changeSummary）：
+1. 【新功能】Chat 组件新增语言切换下拉菜单
+   文件: src/components/Chat.tsx L42-L68
+2. 【bug修复】修复任务列表分页参数未传递的问题
+   文件: src/api/tasks.ts L15, L23-L25
+
+PR 源码目录（prSourceDir）：D:\code\.qa-worktree-pr
 ```
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
@@ -28,14 +49,14 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issu
 Read(".env")  # valition_agent 根目录
 ```
 
-提取 `TARGET_PROJECT_DIR`、`PREVIEW_URL`。
+提取 `QA_WORKSPACE_DIR`、`PREVIEW_URL`。
 
-### Step 2 — 读取目标项目配置
+### Step 2 — 读取源码项目配置
 
 ```
-Read("$TARGET_PROJECT_DIR/CLAUDE.md")
-Read("$TARGET_PROJECT_DIR/.env")
-Read("$TARGET_PROJECT_DIR/playwright.config.ts")
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")
+Read("$SOURCE_PROJECT_DIR/.env")
+Read("$SOURCE_PROJECT_DIR/playwright.config.ts")
 ```
 
 提取 `projectContext`：techStack、baseURL、authSetup、testCredentials、existingTests。
@@ -57,7 +78,14 @@ issue 中提取的 `pageUrl` 如果是相对路径，拼接 `baseURL`。
 /qa-from-issue 下载格式选择               # 搜索关键词（匹配所有结果）
 /qa-from-issue --status backlog          # 按状态批量（处理该状态下的所有 issue）
 /qa-from-issue --all-open                # 所有 Open/Backlog issue
+/qa-from-issue STE-9 --source D:\code\my-project  # 指定源码目录（读源码用，写文件仍写 QA_WORKSPACE_DIR）
 ```
+
+### 源码目录
+
+读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > prompt 中的 `prSourceDir` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
+- **读源码**（查看组件实现、理解业务逻辑）→ 从源码目录读
+- **写文件**（spec/POM/用例/报告）→ 始终写入 `QA_WORKSPACE_DIR`
 
 ### 批量处理逻辑
 
@@ -175,7 +203,7 @@ Read("skills/cdp-explorer/SKILL.md")
 3. 围绕 targetArea 定向交互式探查（Phase 3 targeted 规则）
 4. 如果有 reproSteps → 按步骤逐步操作，记录每步状态变化
 5. 对比 expectedBehavior vs actualBehavior
-6. 将定向探查结果保存到 `$TARGET_PROJECT_DIR/test-cases/generated/page-baseline-{feature}.json`（feature 取自 issue title 提取的模块名，非页面 slug）
+6. 将定向探查结果保存到 `$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{feature}.json`（feature 取自 issue title 提取的模块名，非页面 slug）
 
 ---
 

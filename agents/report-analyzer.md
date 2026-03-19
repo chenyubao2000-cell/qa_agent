@@ -1,7 +1,7 @@
 ---
 name: report-analyzer
 description: 测试执行完成后，分析报告，去重后上报 Linear Bug。
-tools: Agent, Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__add_issue_comment
+tools: Agent, Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__get_issue, mcp__linear__update_issue
 model: claude-haiku-4-5
 ---
 
@@ -30,7 +30,7 @@ test-executor ── 执行测试 ── 产出报告
 读取 test-executor 产出的报告文件：
 
 ```
-$TARGET_PROJECT_DIR/tests/reports/
+$QA_WORKSPACE_DIR/tests/reports/
   ├── playwright-results.json    ← E2E 报告（test-executor 产出）
   └── vitest-results.json        ← Unit 报告（暂停，将来产出）
 ```
@@ -58,18 +58,19 @@ $TARGET_PROJECT_DIR/tests/reports/
 - 有 sourceIssueKeys（/qa-from-issue 场景）→ 对每个 source issue 评论"✅ 自动化测试全部通过"，然后进入步骤 4
 - 无 sourceIssueKeys → 直接进入步骤 4
 
-**全部通过时的评论模板**（report-analyzer 直接调用）：
+**全部通过时的回写方式**（report-analyzer 直接调用）：
+
+> Linear MCP 无 comment API，改用 description 追加方式：先 get_issue 读原文，末尾追加记录，再 update_issue 写回。
 
 ```
-mcp__linear__add_issue_comment
-  issueId: <sourceIssueKey 对应的 issue ID>
-  body: |
-    ## ✅ 自动化测试全部通过
+1. mcp__linear__get_issue(issueId) → 获取当前 description
+2. mcp__linear__update_issue(issueId, description: 原文 + 追加内容)
 
-    **执行时间**: {timestamp}
-    **用例总数**: {total}
-    **全部通过**: {passed}/{total}
-    **Spec 文件**: {spec file paths}
+追加内容模板：
+---
+## ✅ 自动化测试全部通过
+**执行时间**: {timestamp} | **用例总数**: {total} | **全部通过**: {passed}/{total}
+**Spec 文件**: {spec file paths}
 ```
 
 ### 2.1 分流判断
@@ -87,7 +88,7 @@ mcp__linear__add_issue_comment
 ### 2.2 来源 issue 回写（/qa-from-issue 场景）
 
 对"回写"列表中的失败用例，标记为回写到原 issue，**委托给 bug-reporter 执行**：
-- action: "comment"
+- action: "append"
 - targetIssueId: sourceIssueKey 对应的 issue ID（通过 specToIssueMap 映射）
 - 合并到步骤 3 的待处理列表中，与新 bug 一起传给 bug-reporter
 
@@ -97,25 +98,26 @@ mcp__linear__add_issue_comment
 
 - 通过 Linear MCP 查询是否存在相同标题的 Open Issue
 - 搜索关键词：`[自动] {测试用例名}`
-- 已存在 Open Issue → **追加评论**更新最新失败信息（错误、截图、时间）
+- 已存在 Open Issue → **追加到 description 末尾**更新最新失败信息（错误、截图、时间）
 - 已存在但状态为 Done / Cancelled → 视为回归 Bug，**重新创建** issue
 - 不存在 → 加入待上报列表
 
 ## 步骤 3：触发上报（有失败用例时执行）
 
 > **去重由本 agent 统一完成**，bug-reporter 不再重复检查。
-> **所有失败相关的 Linear 写操作统一委托给 bug-reporter**，report-analyzer 仅保留"全部通过"时的成功评论。
+> **所有失败相关的 Linear 写操作统一委托给 bug-reporter**，report-analyzer 仅保留"全部通过"时的成功回写。
+> **注意：Linear MCP 无 comment API**，所有回写均通过 get_issue + update_issue 追加到 description 末尾。
 
 启动 **bug-reporter agent**（`agents/bug-reporter.md`，haiku）批量处理所有失败用例。
 bug-reporter 内部按 **linear-bug-report skill**（`skills/linear-bug-report/SKILL.md`）的格式规范创建 Issue。
 
-传入：去重后的失败用例列表（每条已标注 action=create 或 action=comment，来源 issue 回写项包含 targetIssueId）+ .env 中的 LINEAR_PROJECT_ID、LINEAR_TEAM_ID
+传入：去重后的失败用例列表（每条已标注 action=create 或 action=append，来源 issue 回写项包含 targetIssueId）+ .env 中的 LINEAR_PROJECT_ID、LINEAR_TEAM_ID
 
 ## 步骤 4：生成汇总报告（始终执行）
 
 **每处理一份报告都追加到汇总报告中。**
 
-写入/更新 `$TARGET_PROJECT_DIR/tests/reports/combined/summary.md`：
+写入/更新 `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`：
 
 ```markdown
 # QA 测试汇总报告
@@ -145,9 +147,9 @@ bug-reporter 内部按 **linear-bug-report skill**（`skills/linear-bug-report/S
 
 ## Linear 上报
 
-- 回写来源 Issue: N 条评论（/qa-from-issue 场景）
+- 回写来源 Issue: N 条（追加到 description，/qa-from-issue 场景）
 - 新增 Bug: N 个
-- 追加评论（已存在 Open）: N 个
+- 追加记录（已存在 Open）: N 个
 - 跳过（已存在 Open 且信息无变化）: N 个
 - Issue 链接: {urls}
 

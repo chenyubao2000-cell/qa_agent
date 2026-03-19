@@ -49,19 +49,26 @@ source: "issue"   → 模式 C
 
 | 字段 | 来源 | 用途 |
 |------|------|------|
-| `targetProjectDir` | 本项目 .env 的 TARGET_PROJECT_DIR | 产物输出路径前缀 |
-| `techStack` | 目标项目 CLAUDE.md | 生成代码风格、import 路径 |
-| `baseURL` | 目标项目 .env 的 PLAYWRIGHT_BASE_URL | spec 中的 baseURL |
-| `authSetup` | 目标项目 playwright.config.ts | 是否需要 storageState 依赖 |
-| `testCredentials` | 目标项目 .env | auth.setup.ts 使用 |
-| `existingTests` | 目标项目 playwright.config.ts 的 testDir | 已有测试目录 |
+| `targetProjectDir` | .env 的 QA_WORKSPACE_DIR | **写文件**：产物输出路径（spec/POM/用例/Excel） |
+| `sourceProjectDir` | .env 的 SOURCE_PROJECT_DIR（默认同 targetProjectDir） | **读源码**：查看组件实现、理解业务逻辑 |
+| `techStack` | 源码目录 CLAUDE.md | 生成代码风格、import 路径 |
+| `baseURL` | 源码目录 .env 的 PLAYWRIGHT_BASE_URL | spec 中的 baseURL |
+| `authSetup` | 源码目录 playwright.config.ts | 是否需要 storageState 依赖 |
+| `testCredentials` | 源码目录 .env | auth.setup.ts 使用 |
+| `existingTests` | targetProjectDir 的 testDir | 已有测试目录（去重用） |
 | `changelist` | git-watcher 检测的变更文件列表（可选） | 生成用例时重点覆盖变更涉及的页面/组件 |
+| `changeSummary` | git-watcher 生成的变更摘要（可选） | 包含每个改动点的描述、涉及文件行号、改动类型，用于生成针对变更逻辑的测试用例 |
+
+**读写分离规则**：
+- **读源码**（CLAUDE.md、.env、playwright.config.ts、src/ 下的组件）→ 从 `sourceProjectDir` 读
+- **写产物**（spec/POM/用例/Excel）→ 写入 `targetProjectDir`
+- **读已有测试**（去重扫描）→ 从 `targetProjectDir` 读
 
 如果调用方未传入 `projectContext`，则自行读取：
 ```
-Read("$TARGET_PROJECT_DIR/CLAUDE.md")
-Read("$TARGET_PROJECT_DIR/.env")
-Read("$TARGET_PROJECT_DIR/playwright.config.ts")
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")
+Read("$SOURCE_PROJECT_DIR/.env")
+Read("$SOURCE_PROJECT_DIR/playwright.config.ts")
 ```
 
 将 `projectContext` 传递给 test-case-generator 和 playwright-script-generator skill，确保生成的代码符合目标项目的技术栈和约定。
@@ -80,9 +87,9 @@ Read("$TARGET_PROJECT_DIR/playwright.config.ts")
 ### 2.1 扫描已有产物
 
 ```
-Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts")
-Glob("$TARGET_PROJECT_DIR/tests/e2e/pages/*.ts")
-Glob("$TARGET_PROJECT_DIR/test-cases/generated/*.md")
+Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
+Glob("$QA_WORKSPACE_DIR/tests/e2e/pages/*.ts")
+Glob("$QA_WORKSPACE_DIR/test-cases/generated/*.md")
 ```
 
 > **去重层级**：本步骤是去重的**主入口**。下游 skill（test-case-generator、playwright-script-generator）内置的去重检查是防御性兜底，正常情况下本步骤已过滤完毕。
@@ -138,8 +145,8 @@ existingTests = [
 
 ```bash
 node skills/excel-case-export/scripts/generate-excel.js \
-  --input $TARGET_PROJECT_DIR/test-cases/generated/{feature}.md \
-  --output $TARGET_PROJECT_DIR/test-cases/excel/{feature}.xlsx
+  --input $QA_WORKSPACE_DIR/test-cases/generated/{feature}.md \
+  --output $QA_WORKSPACE_DIR/test-cases/excel/{feature}.xlsx
 ```
 
 ## 步骤 5：生成 E2E 脚本

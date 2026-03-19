@@ -529,8 +529,8 @@ baseline JSON 包含：
 推断用户故事之前，先检查已有产物：
 
 ```
-Glob("$TARGET_PROJECT_DIR/test-cases/generated/*.md")       → 已有用例文件
-Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts") → 已有 spec 文件
+Glob("$QA_WORKSPACE_DIR/test-cases/generated/*.md")       → 已有用例文件
+Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts") → 已有 spec 文件
 ```
 
 对每个已有文件，提取用例编号和验证目标。后续推断的故事如果与已有用例的验证目标重复，直接跳过，不生成重复用例。
@@ -1877,6 +1877,8 @@ public class StoryParser {
 
 10. **Generate cross-cutting concern tests separately** -- Security, performance, and accessibility tests that apply to all features should be in dedicated feature files, not scattered across individual story features.
 
+11. **为耗时操作标注 timeout 要求** -- 涉及 AI 处理、长时间异步任务（如等待任务完成、文件转换、批量处理）的用例，在 handoff 中标注 `"timeout": 600000`（10 分钟）。生成 spec 时必须在对应 test 级别加 `test.setTimeout(600_000)`，因为 config 默认 timeout 不够覆盖这类耗时操作。
+
 ## Anti-Patterns to Avoid
 
 1. **Generating tests without reading the story** -- Blindly applying templates without understanding the business context produces irrelevant test cases. Always read and parse the full user story narrative before generating.
@@ -1942,7 +1944,8 @@ Save to `tests/generated/playwright-handoff.json`. Each entry maps one Gherkin s
       { "type": "url",     "expected": "/dashboard" },
       { "type": "visible", "selector": "heading", "name": "Welcome" }
     ],
-    "tags": ["authentication", "smoke"]
+    "tags": ["authentication", "smoke"],
+    "timeout": null
   }
 ]
 ```
@@ -1951,6 +1954,7 @@ Save to `tests/generated/playwright-handoff.json`. Each entry maps one Gherkin s
 - `uiElements[].role` — use ARIA roles: `textbox`, `button`, `link`, `checkbox`, `combobox`, `heading`
 - `uiElements[].action` — one of: `fill`, `click`, `select`, `check`, `uncheck`, `hover`, `press`
 - `assertions[].type` — one of: `url`, `visible`, `hidden`, `text`, `value`, `count`, `enabled`, `disabled`
+- `timeout` — 默认 `null`（使用 config 默认值）；涉及 AI 处理、长时间异步等待的用例设为 `600000`（10 分钟）
 - For equivalence-class / boundary scenarios, include one entry per class with `value` set to the representative value
 - For negative scenarios, set `assertions` to the expected error state (e.g. `{ "type": "visible", "selector": "alert" }`)
 

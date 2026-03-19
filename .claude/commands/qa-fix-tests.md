@@ -6,7 +6,7 @@ allowed-tools: Agent, Bash, Read, Write, Edit, Glob, Grep, mcp__chrome-devtools_
 你是测试修复专家。找到目标项目中失败的非 skip E2E 用例，通过 CDP 探查真实页面状态，修正 locator 和断言，直到测试通过。
 
 ```
-/qa-fix-tests [spec文件路径]
+/qa-fix-tests [spec文件路径] [--source <源码目录>]
      ↓
 Phase 0: 加载项目上下文
      ↓
@@ -23,11 +23,17 @@ Phase 3: 全量回归 → 汇总报告
 Read(".env")
 ```
 
-提取 `TARGET_PROJECT_DIR`。
+提取 `QA_WORKSPACE_DIR`。
+
+### 源码目录
+
+读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
+- **读源码**（查看组件实现、定位 locator）→ 从源码目录读
+- **写文件**（修正的 spec/POM）→ 始终写入 QA_WORKSPACE_DIR
 
 ```
-Read("$TARGET_PROJECT_DIR/playwright.config.ts")
-Read("$TARGET_PROJECT_DIR/.env")
+Read("$SOURCE_PROJECT_DIR/playwright.config.ts")
+Read("$SOURCE_PROJECT_DIR/.env")
 ```
 
 提取 `baseURL`、`testCredentials`。
@@ -39,7 +45,7 @@ Read("$TARGET_PROJECT_DIR/.env")
 ### Step 1 — 找出非 skip 的 spec 文件
 
 ```
-Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts")
+Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
 ```
 
 对每个文件，Grep 检查是否**全文件 skip**（`test.describe.skip` 或文件内所有 `test(` 都被 `test.skip(` 替换）：
@@ -51,7 +57,7 @@ Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts")
 ### Step 2 — 执行一轮测试
 
 ```bash
-cd $TARGET_PROJECT_DIR && PLAYWRIGHT_JSON_OUTPUT_NAME=tests/reports/fix-baseline.json \
+cd $QA_WORKSPACE_DIR && PLAYWRIGHT_JSON_OUTPUT_NAME=tests/reports/fix-baseline.json \
 npx playwright test <非skip文件列表> --project=e2e --reporter=json
 ```
 
@@ -84,8 +90,8 @@ failedTests = [
 ### Step 1 — 读取失败的 spec 和 POM
 
 ```
-Read("$TARGET_PROJECT_DIR/<failed spec file>")
-Read("$TARGET_PROJECT_DIR/tests/e2e/pages/<对应 POM>.ts")  # 从 spec 的 import 推断
+Read("$QA_WORKSPACE_DIR/<failed spec file>")
+Read("$QA_WORKSPACE_DIR/tests/e2e/pages/<对应 POM>.ts")  # 从 spec 的 import 推断
 ```
 
 ### Step 2 — 分析错误类型
@@ -133,7 +139,7 @@ Read("$TARGET_PROJECT_DIR/tests/e2e/pages/<对应 POM>.ts")  # 从 spec 的 impo
 每修完一个文件立即验证：
 
 ```bash
-cd $TARGET_PROJECT_DIR && npx playwright test <修复的文件> --project=e2e --reporter=list
+cd $QA_WORKSPACE_DIR && npx playwright test <修复的文件> --project=e2e --reporter=list
 ```
 
 - 通过 → 标记为 ✅ 已修复，继续下一个文件
@@ -147,7 +153,7 @@ cd $TARGET_PROJECT_DIR && npx playwright test <修复的文件> --project=e2e --
 所有文件修复完成后，执行全量回归：
 
 ```bash
-cd $TARGET_PROJECT_DIR && npx playwright test <所有非skip文件> --project=e2e --reporter=json,html
+cd $QA_WORKSPACE_DIR && npx playwright test <所有非skip文件> --project=e2e --reporter=json,html
 ```
 
 ### 汇总报告
