@@ -30,6 +30,13 @@ Phase 2: 顺序启动 Agent
 
 读取 PRD（$ARGUMENTS 或默认 $TARGET_PROJECT_DIR/docs/prd/）。
 
+### PRD 分模块策略
+
+PRD 包含多个功能模块时，按模块拆分后传给 orchestrator：
+- 解析 PRD 的 ## 级标题，每个标题视为一个功能模块
+- orchestrator 接收完整 PRD，但按模块逐个处理（步骤 2 去重 → 步骤 3 生成 → 步骤 5 生成 spec）
+- 每个模块独立产出 spec，某个模块生成失败不影响其他模块
+
 ## Phase 2: 顺序启动 Agent
 
 **关键约束**：启动 agent 时，prompt 只传入**输入数据**（PRD 内容、source、projectContext），
@@ -49,6 +56,15 @@ prompt 模板：
 
 按 agents/e2e-orchestrator.md 的步骤执行（读 SKILL.md → 生成），返回产物路径。
 ```
+
+**检查 orchestrator 返回值**：
+- 如果 `specs` 和 `modified_specs` 均为空 → 跳过 test-executor 和 report-analyzer，告知用户"所有用例已有 spec 覆盖"
+- 否则 → 合并为执行列表，继续启动 test-executor
+
+**Locator 验证**（命令层执行，orchestrator 完成后）：
+1. 读取 orchestrator 返回的 `page_objects`
+2. 从 POM 提取 locator → cdp-explorer verify 模式验证
+3. 修正到全部 UNIQUE 后继续
 
 **Agent 2 — test-executor**（haiku）：
 - 等 e2e-orchestrator 完成后启动

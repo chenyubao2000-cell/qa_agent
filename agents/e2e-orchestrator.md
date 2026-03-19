@@ -111,7 +111,7 @@ existingTests = [
 
 | 匹配结果 | 处理 |
 |----------|------|
-| 已有 test 完全覆盖当前场景 | **跳过生成**，仅修正 locator / 断言 / 参数化 URL |
+| 已有 test 完全覆盖当前场景 | **跳过生成**，仅修正 locator / 断言 / 参数化 URL。如果修正了已有 spec 的 locator/断言，将修改后的 spec 路径记录到返回值的 `modified_specs` 字段，确保下游 test-executor 能执行该 spec |
 | 已有 test 部分覆盖（缺少某些测试角度） | 仅生成缺失的 case，追加到已有 spec |
 | 无已有 test | 正常生成新用例 + POM + spec |
 
@@ -179,6 +179,7 @@ node skills/excel-case-export/scripts/generate-excel.js \
   "test_cases": ["test-cases/generated/xxx.md"],
   "excel": ["test-cases/excel/xxx.xlsx"],
   "page_objects": ["tests/e2e/pages/xxx.ts"],
-  "specs": ["tests/e2e/testcases/generated/xxx.test.ts"]
+  "specs": ["tests/e2e/testcases/generated/xxx.test.ts"],
+  "modified_specs": ["tests/e2e/testcases/generated/existing.test.ts"]
 }
 ```

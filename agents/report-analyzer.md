@@ -54,7 +54,23 @@ $TARGET_PROJECT_DIR/tests/reports/
 
 ## 步骤 2：失败用例分流（仅有失败时执行）
 
-如果没有失败用例 → 跳过步骤 2 和步骤 3，直接进入步骤 4。
+如果没有失败用例：
+- 有 sourceIssueKeys（/qa-from-issue 场景）→ 对每个 source issue 评论"✅ 自动化测试全部通过"，然后进入步骤 4
+- 无 sourceIssueKeys → 直接进入步骤 4
+
+**全部通过时的评论模板**（report-analyzer 直接调用）：
+
+```
+mcp__linear__add_issue_comment
+  issueId: <sourceIssueKey 对应的 issue ID>
+  body: |
+    ## ✅ 自动化测试全部通过
+
+    **执行时间**: {timestamp}
+    **用例总数**: {total}
+    **全部通过**: {passed}/{total}
+    **Spec 文件**: {spec file paths}
+```
 
 ### 2.1 分流判断
 
@@ -70,22 +86,10 @@ $TARGET_PROJECT_DIR/tests/reports/
 
 ### 2.2 来源 issue 回写（/qa-from-issue 场景）
 
-对"回写"列表中的失败用例，**评论到原 issue**，不新建：
-
-```
-mcp__linear__add_issue_comment
-  issueId: <sourceIssueKey 对应的 issue ID>
-  body: |
-    ## 🔴 自动化测试失败
-
-    **用例**: {测试用例名}
-    **错误**: {错误信息}
-    **截图**: {截图路径}
-    **Spec**: {spec 文件路径}
-    **执行时间**: {timestamp}
-```
-
-如果同一 sourceIssueKey 有多条失败，合并为一条评论。
+对"回写"列表中的失败用例，标记为回写到原 issue，**委托给 bug-reporter 执行**：
+- action: "comment"
+- targetIssueId: sourceIssueKey 对应的 issue ID（通过 specToIssueMap 映射）
+- 合并到步骤 3 的待处理列表中，与新 bug 一起传给 bug-reporter
 
 ### 2.3 新 Bug 去重 + 新建
 
@@ -97,14 +101,15 @@ mcp__linear__add_issue_comment
 - 已存在但状态为 Done / Cancelled → 视为回归 Bug，**重新创建** issue
 - 不存在 → 加入待上报列表
 
-## 步骤 3：触发上报（仅有新 Bug 时执行）
+## 步骤 3：触发上报（有失败用例时执行）
 
 > **去重由本 agent 统一完成**，bug-reporter 不再重复检查。
+> **所有失败相关的 Linear 写操作统一委托给 bug-reporter**，report-analyzer 仅保留"全部通过"时的成功评论。
 
-启动 **bug-reporter agent**（`agents/bug-reporter.md`，haiku）批量上报新 Bug。
+启动 **bug-reporter agent**（`agents/bug-reporter.md`，haiku）批量处理所有失败用例。
 bug-reporter 内部按 **linear-bug-report skill**（`skills/linear-bug-report/SKILL.md`）的格式规范创建 Issue。
 
-传入：去重后的失败用例列表（每条已标注 action=create 或 action=comment）+ .env 中的 LINEAR_PROJECT_ID、LINEAR_TEAM_ID
+传入：去重后的失败用例列表（每条已标注 action=create 或 action=comment，来源 issue 回写项包含 targetIssueId）+ .env 中的 LINEAR_PROJECT_ID、LINEAR_TEAM_ID
 
 ## 步骤 4：生成汇总报告（始终执行）
 

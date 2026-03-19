@@ -68,8 +68,8 @@ model: claude-haiku-4-5
 通过 Linear MCP 的 `add_issue_comment` 方法追加评论。
 
 用于两种场景：
-1. **来源 issue 回写**（/qa-from-issue 触发的测试失败）
-2. **已有 Open issue 更新**（相同用例再次失败，更新最新信息）
+1. **来源 issue 回写**（/qa-from-issue 触发的测试失败，由 report-analyzer 步骤 2.2 分流，targetIssueId 为原始 source issue）
+2. **已有 Open issue 更新**（相同用例再次失败，由 report-analyzer 步骤 2.3 去重判定，targetIssueId 为已存在的 Open issue）
 
 **评论模板**：
 

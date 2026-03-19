@@ -54,17 +54,16 @@ issue 中提取的 `pageUrl` 如果是相对路径，拼接 `baseURL`。
 ### 批量处理逻辑
 
 1. 解析 $ARGUMENTS，收集所有目标 issue
-2. 按 **pageUrl 分组** — 同一页面的 issue 合并为一次 CDP 探查
-3. 每组内逐个 issue 生成/更新 test case
+2. 按 **pageUrl 分组** — 同一页面的 issue 合并
+3. **逐组串行执行完整流程**：
+   ```
+   for each pageUrl group:
+     Phase 2: CDP 探查（该组共享一次探查）
+     Phase 3: orchestrator → executor → analyzer
+       └─ orchestrator 接收该组所有 issue 的上下文
+   ```
 4. 共享同一 POM（同页面的 issue 复用同一个 Page Object）
-
-```
-/qa-from-issue STE-9 STE-10
-     ↓
-收集: STE-9 (pageUrl=/task/abc), STE-10 (pageUrl=/task/abc)
-     ↓
-同一页面 → 1 次 CDP 探查 → 2 个 test case → 共享 POM
-```
+5. 跨页面组之间串行执行，避免 CDP 连接冲突
 
 ## 单个 Issue 流程
 
@@ -116,6 +115,10 @@ mcp__linear__search_issues  query=$ARGUMENTS
 | `priority` | issue priority | Urgent(1) → P0 |
 | `feature` | issue title 中的模块名 | canvas-download |
 | `existingSpec` | 搜索是否已有对应 spec | tests/e2e/testcases/generated/canvas-download.test.ts |
+
+**缺失字段处理**：
+- `pageUrl` 为空 → 跳过 Phase 2 (CDP 探查)，仅根据 issue 文本描述生成用例（orchestrator source 仍为 "issue"，但不传 cdpBaseline）
+- `reproSteps` 为空 → Phase 2 CDP 探查降级为 full 模式（而非 targeted），探查整个页面
 
 ### Step 3 — 判断操作类型
 
@@ -190,8 +193,19 @@ prompt 模板：
 按 agents/e2e-orchestrator.md 的步骤执行（读 SKILL.md → 生成），返回产物路径。
 ```
 
+**检查 orchestrator 返回值**：
+- 如果 `specs` 和 `modified_specs` 均为空 → 跳过 test-executor 和 report-analyzer，直接告知用户
+- 否则 → 合并为执行列表，继续启动 test-executor
+
+**Locator 验证**（命令层执行，orchestrator 完成后）：
+1. 读取 orchestrator 返回的 `page_objects` 列表
+2. 从 POM 文件提取所有 locator
+3. 按 `skills/cdp-explorer/SKILL.md` Phase 4 (verify 模式) 验证
+4. ZERO 或 MULTIPLE → 修正后重新验证
+5. 全部 UNIQUE → 继续启动 test-executor
+
 **Agent 2 — test-executor**（sonnet）：
-- 等 e2e-orchestrator 完成后启动
+- 等 orchestrator + Locator 验证完成后启动
 - 接收 spec 文件路径 → 执行测试 → 产出报告
 
 **Agent 3 — report-analyzer**（sonnet）：

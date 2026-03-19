@@ -109,6 +109,17 @@ prompt 模板：
 6. 返回产物路径
 ```
 
+**检查 orchestrator 返回值**：
+- 如果 `specs` 和 `modified_specs` 均为空 → 所有用例已覆盖，跳过 test-executor 和 report-analyzer，直接告知用户"所有用例已有 spec 覆盖，无需执行测试"
+- 否则 → 将 `specs` + `modified_specs` 合并为执行列表，传给 test-executor
+
+**Locator 验证**（命令层执行，orchestrator 完成后）：
+1. 读取 orchestrator 返回的 `page_objects` 列表
+2. 从每个 POM 文件中提取所有 locator（private 属性）
+3. 按 `skills/cdp-explorer/SKILL.md` 的 Phase 4 (verify 模式) 逐个验证
+4. 结果为 ZERO 或 MULTIPLE → 修正 POM 中的 locator，重新验证
+5. 全部 UNIQUE 后 → 继续启动 test-executor
+
 **Agent 2 — test-executor**（haiku）：
 - 等 e2e-orchestrator 完成后启动
 - 接收 spec 文件路径 → 执行测试 → 产出报告到 `$TARGET_PROJECT_DIR/tests/reports/`

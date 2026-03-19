@@ -22,6 +22,17 @@ Phase 1: 串行启动（按顺序执行）
 
 ## Phase 1: 串行启动（按顺序执行）
 
+### 前置检查
+
+启动 test-executor 前，先检查是否有可执行的 spec：
+
+```
+Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts")
+```
+
+- 如果结果为空 → 直接告知用户"目标项目中无 spec 文件，请先运行 /qa-explore 或 /qa-run-prd 生成测试"
+- 否则 → 启动 test-executor
+
 **Agent 1 — test-executor**（haiku）：
 - 跳过 e2e-orchestrator，直接执行已有 spec
 - 如果 $ARGUMENTS 指定了文件路径则只跑指定的，否则跑全量
