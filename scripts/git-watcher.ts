@@ -176,12 +176,50 @@ function parseReport(): ReportResult {
   return { passed: false, content: "报告文件未生成" };
 }
 
-function commentOnPRs(prNumbers: number[], cmdSuccess: boolean) {
+function buildCommentBody(cmdSuccess: boolean): string {
   const report = parseReport();
-  // 命令本身崩溃 OR 报告解析出失败 → 失败
   const passed = cmdSuccess && report.passed;
-  const status = passed ? "✅ 通过" : "❌ 失败";
-  const body = `## QA 自动化测试结果\n\n**结果：${status}**\n\n<details>\n<summary>详情</summary>\n\n${report.content}\n\n</details>`;
+  const icon = passed ? "✅" : "❌";
+  const status = passed ? "通过" : "失败";
+  const content = report.content;
+
+  // 从 summary.md 提取执行摘要表格（## 执行摘要 到下一个 ## 之间）
+  const summaryMatch = content.match(/## 执行摘要\s*\n([\s\S]*?)(?=\n## |$)/);
+  const summaryTable = summaryMatch?.[1]?.trim() ?? "";
+
+  // 从 summary.md 提取失败用例段落
+  const failMatch = content.match(/## 失败用例[\s\S]*?(?=\n## |$)/);
+  const failSection = failMatch?.[0]?.trim() ?? "";
+
+  // 从 summary.md 提取 Linear 上报段落
+  const linearMatch = content.match(/## Linear 上报[\s\S]*?(?=\n## |$)/);
+  const linearSection = linearMatch?.[0]?.trim() ?? "";
+
+  let body = `## ${icon} QA 自动化测试 — ${status}\n\n`;
+
+  // 摘要表格直接展示
+  if (summaryTable) {
+    body += `${summaryTable}\n\n`;
+  }
+
+  // 失败用例直接展示（重要信息不折叠）
+  if (failSection && !passed) {
+    body += `${failSection}\n\n`;
+  }
+
+  // Linear 上报直接展示
+  if (linearSection) {
+    body += `${linearSection}\n\n`;
+  }
+
+  // 全部用例详情折叠
+  body += `<details>\n<summary>用例详情（点击展开）</summary>\n\n${content}\n\n</details>`;
+
+  return body;
+}
+
+function commentOnPRs(prNumbers: number[], cmdSuccess: boolean) {
+  const body = buildCommentBody(cmdSuccess);
 
   // 用临时文件传递 body，避免 shell 转义问题
   const bodyFile = resolve(PROJECT_ROOT, ".pr-comment-body.md");
