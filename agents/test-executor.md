@@ -52,7 +52,7 @@ cd $TARGET_PROJECT_DIR && npx playwright test <spec 文件列表> --project=e2e 
 - `playwright-results.json` — E2E 报告
 - `vitest-results.json` — Unit 报告（暂停）
 
-report-analyzer agent 并行监听该目录，会自动拾取并处理。
+命令层在 test-executor 完成后启动 report-analyzer，由其读取该目录下的报告文件。
 
 ## 返回
 

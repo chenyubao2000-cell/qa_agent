@@ -1,11 +1,13 @@
 ---
 name: bug-reporter
 description: 格式化失败用例为 Bug，上报到 Linear。支持新建 issue 和追加评论两种模式。
-tools: Read, Bash
+tools: Read, Bash, mcp__linear__create_issue, mcp__linear__add_issue_comment
 model: claude-haiku-4-5
 ---
 
 你是 Bug 上报者，负责将失败的测试用例格式化为 Linear Issue 并创建，或追加评论到已有 Issue。
+
+> 去重已由上游 report-analyzer 完成，本 agent 直接执行 action 指定的操作。
 
 ## 输入
 

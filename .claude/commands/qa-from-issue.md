@@ -77,10 +77,12 @@ Phase 1: 读取 Issue → 提取测试上下文（命令层独有）
      ↓
 Phase 2: CDP 定向探查 → 验证 issue 描述的页面状态（命令层独有）
      ↓
-Phase 3: 并行启动
-         ├─ e2e-orchestrator (issue) → 用例 → Excel → spec
-         ├─ test-executor → 接收 spec → 执行测试 → 产出报告
-         └─ report-analyzer（传入 sourceIssueKeys）→ 分流：
+Phase 3: 串行启动（按顺序执行）
+         e2e-orchestrator (issue) → 用例 → Excel → spec
+              ↓ 完成后
+         test-executor → 接收 spec → 执行测试 → 产出报告
+              ↓ 完成后
+         report-analyzer（传入 sourceIssueKeys + specToIssueMap）→ 分流：
                ├─ 来源 issue 相关失败 → 评论回写原 issue
                └─ 新发现的 bug → 去重 + 新建 issue
 ```
@@ -130,6 +132,8 @@ Grep("TC-VF-001", "tests/e2e/testcases/generated/")  → 精确匹配
 ```
 issue 描述的场景已有完全对应的 test case？
   ├─ YES → 模式 X: 不新增用例，仅修正已有 test 的 locator / 断言 / 参数化 URL
+  │         （由 e2e-orchestrator 通过 Read/Write/Edit 工具修改 spec 文件；
+  │          locator 验证在命令层通过 CDP 完成后，将验证结果传给 orchestrator）
   ├─ PARTIAL → 模式 A: 在已有 spec 中补充缺失的测试角度
   └─ NO  → 模式 B: 新建用例 + POM + spec
 ```
@@ -160,10 +164,11 @@ Read("skills/cdp-explorer/SKILL.md")
 3. 围绕 targetArea 定向交互式探查（Phase 3 targeted 规则）
 4. 如果有 reproSteps → 按步骤逐步操作，记录每步状态变化
 5. 对比 expectedBehavior vs actualBehavior
+6. 将定向探查结果保存到 `$TARGET_PROJECT_DIR/test-cases/generated/page-baseline-{feature}.json`（feature 取自 issue title 提取的模块名，非页面 slug）
 
 ---
 
-## Phase 3: 并行启动 Agent
+## Phase 3: 串行启动 Agent（按顺序执行）
 
 **关键约束**：启动 agent 时，prompt 只传入**输入数据**（issue 上下文、CDP 探查结果、source、projectContext），
 **不要**在 prompt 中写具体的代码规范、locator 策略、文件模板。
@@ -201,10 +206,11 @@ prompt 模板：
 输入：
 - sourceIssueKeys: [<issue-key-1>, <issue-key-2>, ...]
 - sourceSpecs: [<从这些 issue 生成的 spec 文件路径列表>]
+- specToIssueMap: { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9", "tests/e2e/testcases/generated/feature-b.test.ts": "STE-10" }
 - projectContext: { targetProjectDir, ... }
 
 注意：本次由 /qa-from-issue 触发，失败用例需要区分：
-1. sourceSpecs 中的失败 → 回写到对应的 sourceIssueKey（评论）
+1. sourceSpecs 中的失败 → 通过 specToIssueMap 路由到对应的 sourceIssueKey，回写评论
 2. 其他 spec 的失败 → 正常去重 + 新建 issue
 ```
 

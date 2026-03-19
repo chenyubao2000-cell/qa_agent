@@ -77,10 +77,13 @@ description: 将测试失败用例格式化并上报到 Linear。支持新建 is
 
 ## 去重逻辑
 
-上报前必须检查：
-1. 在 Linear 中搜索标题包含 `[自动] {测试用例名}` 的 Issue
-2. 状态为 Open / In Progress → **追加评论**更新最新失败信息
-3. 状态为 Done / Cancelled → 视为回归 Bug，**重新创建** issue
+> **去重由 report-analyzer agent 统一负责。** 本 Skill 仅定义格式规范，不重复执行去重检查。
+> report-analyzer 在调用 bug-reporter 前已完成去重，每条传入的用例都已标记 action（create/comment）。
+
+去重规则（由 report-analyzer 执行）：
+1. 搜索标题包含 `[自动] {测试用例名}` 的 Issue
+2. 状态为 Open / In Progress → 追加评论
+3. 状态为 Done / Cancelled → 回归 Bug，重新创建
 4. 不存在 → 正常创建
 
 ## API 调用

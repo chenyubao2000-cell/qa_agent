@@ -208,8 +208,9 @@ After generating all `test()` blocks, **extract every locator into a Page Object
 
 ```
 有项目源码？
-  ├─ YES → 先源码 Grep（秒级）→ 再 CDP verify 模式验证
-  └─ NO  → 读取 skills/cdp-explorer/SKILL.md → 按 verify 模式验证 locator
+  ├─ YES → 先源码 Grep（秒级）
+  └─ NO  → 依赖 handoff 中的 locatorHint
+需要 CDP 验证时，由命令层或 e2e-orchestrator 调用 cdp-explorer verify 模式完成，本 Skill 不直接执行 CDP 工具。
 ```
 
 **源码探查**（有源码时优先）：
@@ -288,11 +289,9 @@ page.getByRole("navigation")
 - [ ] 多处同文案已用区域收窄
 - [ ] `.first()/.last()` 有注释说明原因
 
-**步骤 4 — CDP 验证（必须）**：
+**步骤 4 — CDP 验证（由调用方执行）**：
 
-生成或修改 PO 后，按 `skills/cdp-explorer/SKILL.md` 的 **verify 模式** 验证每个 locator。
-
-输出：`UNIQUE`（可用）/ `MULTIPLE(n)`（需收窄）/ `ZERO`（未匹配）。
+生成或修改 PO 后，将 locator 列表返回给调用方（e2e-orchestrator 或命令层），由调用方通过 cdp-explorer verify 模式验证。输出：`UNIQUE`（可用）/ `MULTIPLE(n)`（需收窄）/ `ZERO`（未匹配）。
 
 ---
 

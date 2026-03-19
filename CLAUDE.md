@@ -16,7 +16,7 @@ qa-platform-plugin/
 <!-- ├── skills/vitest-testing/ — 单元测试 Skill（暂停） -->
 <!-- ├── agents/unit-test-orchestrator.md — 单元测试 Agent（暂停） -->
 <!-- ├── .claude/commands/qa-run-unit.md — 单元测试命令（暂停） -->
-├── hooks/           → 2 个 Hook（session-start 校验+同步+变更检测、通知）
+├── hooks/           → 2 个 Hook（session-start 校验、通知）
 ├── mcp-templates/   → MCP 配置模板（GitHub + Linear + Filesystem）
 ├── scripts/         → 环境加载、一键接入
 └── project-template/→ .env.example + CLAUDE.md.template
@@ -25,21 +25,24 @@ qa-platform-plugin/
 ## 流水线
 
 ```
-命令层并行启动 Agent：
-  ├─ e2e-orchestrator (sonnet) → 用例 → Excel → spec（生成层）
-  ├─ test-executor (haiku)     → 接收 spec → 执行测试 → 产出报告（执行层）
-  └─ report-analyzer (haiku)   → 监听报告 → 分析 → bug-reporter → Linear（报告层）
+命令层顺序启动 Agent：
+  e2e-orchestrator (sonnet) → 用例 → Excel → spec（生成层）
+     ↓ 完成后
+  test-executor (sonnet)    → 执行测试 → 产出报告（执行层）
+     ↓ 完成后
+  report-analyzer (haiku)   → 分析报告 → bug-reporter → Linear（报告层）
 
-SessionStart hook 自动路由：
-  hooks/session-start.sh → 校验 .env → 同步代码 → 检测新提交
-    ├─ 有新提交 + PR 关联 Linear issue → 自动触发 /qa-from-issue（带 changelist）
-    └─ 有新提交但无 issue → 自动触发 /qa-run-all
+SessionStart hook：
+  hooks/session-start.sh → 校验 .env 必需变量 → 输出 {"env":"ok"}
+
+PR 监控（独立流程）：
+  scripts/git-watcher.ts → 监听 PR 变更 → 评论同步
 
 手动命令：
-├── /qa-explore    → CDP 页面探查 → 并行启动
-├── /qa-from-issue → Linear issue → 并行启动
-├── /qa-run-prd    → PRD 文档 → 并行启动
-└── /qa-run-all    → 直接执行已有 spec + report-analyzer 监听
+├── /qa-explore    → CDP 页面探查 → 顺序启动 Agent
+├── /qa-from-issue → Linear issue → 顺序启动 Agent
+├── /qa-run-prd    → PRD 文档 → 顺序启动 Agent
+└── /qa-run-all    → 直接执行 spec → report-analyzer
 ```
 
 ## 命令

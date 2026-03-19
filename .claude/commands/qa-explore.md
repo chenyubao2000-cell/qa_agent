@@ -14,10 +14,12 @@ Phase 0: 加载项目上下文（.env → 目标项目配置）
      ↓
 Phase 1: CDP 穷尽式探查 → page-baseline.json（命令层独有）
      ↓
-Phase 2: 并行启动
-         ├─ e2e-orchestrator (cdp) → 用例 → Excel → spec
-         ├─ test-executor → 接收 spec → 执行测试 → 产出报告
-         └─ report-analyzer → 监听报告 → 分析 → bug-reporter → Linear
+Phase 2: 顺序启动 Agent
+         e2e-orchestrator (cdp) → 用例 → Excel → spec
+              ↓ 完成后
+         test-executor → 接收 spec → 执行测试 → 产出报告
+              ↓ 完成后
+         report-analyzer → 分析 → bug-reporter → Linear
 ```
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
@@ -79,9 +81,9 @@ Read("skills/cdp-explorer/SKILL.md")
 
 ---
 
-## Phase 2: 并行启动 Agent
+## Phase 2: 顺序启动 Agent
 
-同时启动 Agent（同一条消息中并行）。
+按依赖顺序逐个启动 Agent，每个等前一个完成后再启动。
 
 **关键约束**：启动 agent 时，prompt 只传入**输入数据**（baseline、source、projectContext），
 **不要**在 prompt 中写具体的代码规范、locator 策略、文件模板。
@@ -121,13 +123,13 @@ prompt 模板：
 
 | 文件 | 说明 |
 |------|------|
-| `test-cases/generated/page-baseline-{slug}.json` | Phase 1: 页面状态流图基线 |
-| `test-cases/generated/{slug}-cdp.md` | Phase 2: 测试用例 |
-| `test-cases/generated/playwright-handoff-{slug}.json` | Phase 2: Playwright 移交文件 |
-| `test-cases/excel/{slug}-cdp.xlsx` | Phase 3: Excel 用例表格 |
-| `tests/e2e/pages/{slug}.page.ts` | Phase 4: Page Object |
-| `tests/e2e/testcases/generated/{slug}-cdp.test.ts` | Phase 4: Playwright spec |
-| `tests/reports/playwright-results.json` | Phase 5: JSON 报告 |
-| `playwright-report/index.html` | Phase 5: HTML 报告 |
-| `tests/reports/combined/summary.md` | Phase 6: 汇总报告（始终生成） |
-| Linear Issue | Phase 6: 失败用例上报（去重后，全部通过时跳过） |
+| `test-cases/generated/page-baseline-{slug}.json` | CDP 探查: 页面状态流图基线 |
+| `test-cases/generated/{slug}-cdp.md` | 用例生成: 测试用例 |
+| `test-cases/generated/playwright-handoff-{slug}.json` | 用例生成: Playwright 移交文件 |
+| `test-cases/excel/{slug}-cdp.xlsx` | Excel 导出: 用例表格 |
+| `tests/e2e/pages/{slug}.page.ts` | 脚本生成: Page Object |
+| `tests/e2e/testcases/generated/{slug}-cdp.test.ts` | 脚本生成: Playwright spec |
+| `tests/reports/playwright-results.json` | 测试执行: JSON 报告 |
+| `playwright-report/index.html` | 测试执行: HTML 报告 |
+| `tests/reports/combined/summary.md` | 报告分析: 汇总报告（始终生成） |
+| Linear Issue | 报告分析: 失败用例上报（去重后，全部通过时跳过） |

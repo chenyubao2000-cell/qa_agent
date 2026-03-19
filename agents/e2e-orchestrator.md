@@ -14,14 +14,14 @@ model: claude-sonnet-4-6
 
 | 步骤 | 必读文件 |
 |------|---------|
-| CDP 探查（cdp/issue 模式） | `skills/cdp-explorer/SKILL.md` |
+| CDP 基线格式（cdp/issue 模式） | `skills/cdp-explorer/SKILL.md` → 仅参考 Phase 5 输出格式，不执行探查 |
 | 生成用例 | `skills/test-case-generator/SKILL.md` |
 | 导出 Excel | `skills/excel-case-export/SKILL.md` |
 | 生成 E2E 脚本 | `skills/playwright-script-generator/SKILL.md` |
 
 ## 输入源（四种，由调用方指定）
 
-### 模式 A: PRD 驱动（由 /qa-run-all、/qa-run-prd 触发）
+### 模式 A: PRD 驱动（由 /qa-run-prd 触发）
 - 输入：PRD Markdown 文件路径
 - test-case-generator SKILL 走 **需求文档模式**
 
@@ -174,7 +174,7 @@ node scripts/generate-excel.js \
 
 ```json
 {
-  "source": "prd|cdp|issue|pr",
+  "source": "prd|cdp|issue",
   "skipped": ["TC-VF-001 (已覆盖，仅修正 locator)"],
   "test_cases": ["test-cases/generated/xxx.md"],
   "excel": ["test-cases/excel/xxx.xlsx"],

@@ -506,21 +506,17 @@ Apply the same derivation rules as the Figma MCP section above, substituting Pen
 
 ---
 
-### 第一步 — CDP 穷尽式探查
+### 第一步 — 读取 CDP baseline JSON
 
-> **CDP 探查的完整规范定义在 `skills/cdp-explorer/SKILL.md`。** 本步骤不再内联探查逻辑。
+> **本 Skill 不直接连接 Chrome，也不调用任何 chrome-devtools MCP 工具。**
+> CDP 穷尽式探查由命令层通过 cdp-explorer SKILL 预先完成，产出 baseline JSON 文件。
+> 本步骤仅读取并解析该 baseline。
 
 ```
-Read("skills/cdp-explorer/SKILL.md")
-
-执行参数：
-- mode: "full"
-- pageUrl: 目标页面 URL
+读取调用方传入的 baseline JSON 文件（由命令层通过 cdp-explorer SKILL 预先生成）
 ```
 
-按 cdp-explorer SKILL 的 Phase 1 → Phase 2 → Phase 3 完整执行穷尽式探查。
-
-探查产出的 baseline JSON 包含：
+baseline JSON 包含：
 - **多状态数据**：初始页面 + 交互后发现的隐藏状态（Modal、下拉、Tab 面板等）
 - **状态流图**：记录了哪些交互导致了状态转换
 - **表单约束**：required、maxlength、pattern 等
