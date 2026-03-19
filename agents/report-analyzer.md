@@ -87,6 +87,10 @@ bug-reporter 内部按 **linear-bug-report skill**（`skills/linear-bug-report/S
 
 ## 失败用例（如有）
 
+| # | 用例名 | 错误摘要 | 截图 |
+|---|--------|----------|------|
+| 1 | {name} | {error}  | {screenshot path or —} |
+
 （全部通过时显示："无失败用例"）
 
 ## Linear 上报

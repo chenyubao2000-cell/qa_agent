@@ -515,6 +515,8 @@ await page.getByRole('option', { name: 'United States' }).click();
 
 > **强制配置**（Bug 上报流程前置依赖）：
 > - `reporter` 必须包含 `['json', { outputFile: '...' }]` — report-analyzer 依赖
+> - `screenshot: 'only-on-failure'` — 失败截图用于 Linear Bug 附件
+> - `trace: 'retain-on-failure'` — 失败 trace 用于调试定位
 
 项目 `playwright.config.ts` 关键设置：
 
@@ -523,6 +525,22 @@ await page.getByRole('option', { name: 'United States' }).click();
 - **baseURL**: `process.env.PLAYWRIGHT_TEST_BASE_URL`
 - **Reporter**: CI 使用 `html` + `junit` + `json`
 - **Run**: `pnpm test:e2e` 或 `pnpm exec playwright test --project=e2e`
+
+**失败证据配置（必须）**：
+
+```typescript
+// playwright.config.ts → use
+use: {
+  screenshot: 'only-on-failure',   // 失败时自动截图 → test-results/
+  trace: 'retain-on-failure',      // 失败时保留 trace → test-results/
+}
+```
+
+失败截图会自动出现在 Playwright JSON 报告的 `attachments` 数组中：
+```json
+{ "name": "screenshot", "contentType": "image/png", "path": "test-results/.../test-failed-1.png" }
+```
+report-analyzer → bug-reporter → Linear Issue 全链路依赖此数据。
 
 ---
 
