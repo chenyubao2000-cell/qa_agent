@@ -109,11 +109,11 @@ mcp__chrome-devtools__evaluate_script
 ```
 
 如果检测到登录页：
-1. 从 `projectContext.testCredentials` 获取 `TEST_USER_EMAIL` + `TEST_USER_PASSWORD`
+1. 从本项目 `.env` 获取 `E2E_TEST_EMAIL` + `E2E_TEST_PASSWORD`（或从 `projectContext.testCredentials` 获取）
 2. 填写登录表单并提交：
    ```
-   mcp__chrome-devtools__fill  selector="input[type='email'], input[name='email'], input[name='username']"  value=TEST_USER_EMAIL
-   mcp__chrome-devtools__fill  selector="input[type='password']"  value=TEST_USER_PASSWORD
+   mcp__chrome-devtools__fill  selector="input[type='email'], input[name='email'], input[name='username']"  value=E2E_TEST_EMAIL
+   mcp__chrome-devtools__fill  selector="input[type='password']"  value=E2E_TEST_PASSWORD
    mcp__chrome-devtools__click  selector="button[type='submit'], button:has-text('Sign in'), button:has-text('登录')"
    ```
 3. 等待导航完成，验证已离开登录页

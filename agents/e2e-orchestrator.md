@@ -52,23 +52,23 @@ source: "issue"   → 模式 C
 | `targetProjectDir` | .env 的 QA_WORKSPACE_DIR | **写文件**：产物输出路径（spec/POM/用例/Excel） |
 | `sourceProjectDir` | .env 的 SOURCE_PROJECT_DIR（默认同 targetProjectDir） | **读源码**：查看组件实现、理解业务逻辑 |
 | `techStack` | 源码目录 CLAUDE.md | 生成代码风格、import 路径 |
-| `baseURL` | 源码目录 .env 的 PLAYWRIGHT_BASE_URL | spec 中的 baseURL |
-| `authSetup` | 源码目录 playwright.config.ts | 是否需要 storageState 依赖 |
-| `testCredentials` | 源码目录 .env | auth.setup.ts 使用 |
+| `baseURL` | 本项目 .env 的 PLAYWRIGHT_BASE_URL | spec 中的 baseURL |
+| `authSetup` | 本项目 .env 的 E2E_TEST_EMAIL 是否存在 | 有值 → 需要登录态；无值 → 公开页面 |
+| `testCredentials` | 本项目 .env 的 E2E_TEST_EMAIL / E2E_TEST_PASSWORD | fixtures 登录使用 |
 | `existingTests` | targetProjectDir 的 testDir | 已有测试目录（去重用） |
 | `changelist` | git-watcher 检测的变更文件列表（可选） | 生成用例时重点覆盖变更涉及的页面/组件 |
 | `changeSummary` | git-watcher 生成的变更摘要（可选） | 包含每个改动点的描述、涉及文件行号、改动类型，用于生成针对变更逻辑的测试用例 |
 
 **读写分离规则**：
-- **读源码**（CLAUDE.md、.env、playwright.config.ts、src/ 下的组件）→ 从 `sourceProjectDir` 读
+- **读源码**（CLAUDE.md、src/ 下的组件）→ 从 `sourceProjectDir` 读（仅用于理解业务逻辑）
 - **写产物**（spec/POM/用例/Excel）→ 写入 `targetProjectDir`
 - **读已有测试**（去重扫描）→ 从 `targetProjectDir` 读
+- **读配置**（baseURL、认证凭证、Playwright 设置）→ 从**本项目 .env** 读，不从源码项目读
 
 如果调用方未传入 `projectContext`，则自行读取：
 ```
-Read("$SOURCE_PROJECT_DIR/CLAUDE.md")
-Read("$SOURCE_PROJECT_DIR/.env")
-Read("$SOURCE_PROJECT_DIR/playwright.config.ts")
+Read(".env")                          # 本项目 .env：PLAYWRIGHT_BASE_URL、E2E_TEST_EMAIL 等
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md") # 仅用于获取技术栈
 ```
 
 将 `projectContext` 传递给 test-case-generator 和 playwright-script-generator skill，确保生成的代码符合目标项目的技术栈和约定。

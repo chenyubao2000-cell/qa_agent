@@ -537,10 +537,10 @@ function hasExistingComment(prNum: number, commitSha: string): boolean {
 
 /** 给指定 PR 列表添加测试结果评论（同一 commit 不重复评论） */
 function commentOnPRs(prs: PRInfo[], cmdSuccess: boolean) {
-  // 如果命令失败且报告文件不存在，说明流水线根本没跑完，不发空评论
+  // 报告文件不存在时跳过评论（命令失败、空文件夹无 spec、流水线未跑完等）
   const summaryPath = resolve(TARGET_DIR, "tests/reports/combined/summary.md");
-  if (!cmdSuccess && !existsSync(summaryPath)) {
-    log("📝 命令失败且无报告文件，跳过评论");
+  if (!existsSync(summaryPath)) {
+    log("📝 无报告文件，跳过评论");
     return;
   }
 

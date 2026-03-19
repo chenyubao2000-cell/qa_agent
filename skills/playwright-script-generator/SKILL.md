@@ -519,13 +519,13 @@ await page.getByRole('option', { name: 'United States' }).click();
 > - `screenshot: 'only-on-failure'` — 失败截图用于 Linear Bug 附件
 > - `trace: 'retain-on-failure'` — 失败 trace 用于调试定位
 
-项目 `playwright.config.ts` 关键设置：
+项目 `playwright.config.ts` 关键设置（由 test-executor 从环境变量自动生成，不从源码项目复制）：
 
 - **testDir**: `./tests/e2e`
 - **testMatch**: `**/testcases/**/*.test.ts`
-- **baseURL**: `process.env.PLAYWRIGHT_TEST_BASE_URL`
-- **Reporter**: CI 使用 `html` + `junit` + `json`
-- **Run**: `pnpm test:e2e` 或 `pnpm exec playwright test --project=e2e`
+- **baseURL**: `process.env.PLAYWRIGHT_BASE_URL`（来自本项目 .env）
+- **Reporter**: `json`（输出到 tests/reports/）+ `html`
+- **Run**: `npx playwright test --project=e2e`
 
 **失败证据配置（必须）**：
 

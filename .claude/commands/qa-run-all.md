@@ -18,12 +18,20 @@ Phase 1: 串行启动（按顺序执行）
 
 ## Phase 0: 加载项目上下文
 
-读取 .env 获取 QA_WORKSPACE_DIR 等配置。将 `QA_WORKSPACE_DIR` 作为 `projectContext.targetProjectDir` 传入 test-executor 和 report-analyzer 的 prompt 中。
+```
+Read(".env")
+```
 
-### 源码目录
+只需提取：
+- `QA_WORKSPACE_DIR` — 读 spec、写报告
+- `LINEAR_*` — 透传给 report-analyzer（Bug 上报）
+
+不需要：SOURCE_PROJECT_DIR（不读源码）、PLAYWRIGHT_BASE_URL（已在 config 里）、E2E_TEST_EMAIL（已在 global-setup 里）。
+不做初始化——只跑已有 spec，工作区必须已由 `/qa-explore` 等命令初始化过。
+
+### 源码目录（可选，git-watcher 注入）
 
 读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > prompt 中的 `prSourceDir` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
-- **读源码**→ 从源码目录读
 - **写文件**（报告）→ 始终写入 QA_WORKSPACE_DIR
 
 ## Phase 1: 串行启动（按顺序执行）

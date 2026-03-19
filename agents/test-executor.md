@@ -16,17 +16,19 @@ model: claude-haiku-4-5
 
 ## 执行流程
 
-### Step 1: 验证 playwright.config.ts 失败证据配置
+### Step 1: 前置检查 + 验证 config
 
-执行前检查源码目录（`$SOURCE_PROJECT_DIR`，默认同 `$QA_WORKSPACE_DIR`）的 `playwright.config.ts`，确认包含：
-```typescript
-use: {
-  screenshot: 'only-on-failure',
-  trace: 'retain-on-failure',
-}
+工作区初始化由**命令层 Phase 0**（`/qa-explore`、`/qa-from-issue`、`/qa-run-prd`）完成，test-executor 只做验证：
+
+```
+检查项：
+1. playwright.config.ts 存在
+2. tests/e2e/fixtures.ts 存在
+3. node_modules/@playwright/test 存在
 ```
 
-如果缺失 → 自动补上（Bug 上报全链路依赖失败截图）。
+- 全部通过 → 验证 playwright.config.ts 包含失败证据配置（`screenshot: 'only-on-failure'`、`trace: 'retain-on-failure'`），缺失则补上
+- 缺失 → 返回错误，提示上游命令未完成初始化
 
 ### Step 2: 执行测试
 

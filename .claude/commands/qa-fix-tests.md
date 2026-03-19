@@ -32,11 +32,10 @@ Read(".env")
 - **写文件**（修正的 spec/POM）→ 始终写入 QA_WORKSPACE_DIR
 
 ```
-Read("$SOURCE_PROJECT_DIR/playwright.config.ts")
-Read("$SOURCE_PROJECT_DIR/.env")
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # 仅用于理解业务逻辑
 ```
 
-提取 `baseURL`、`testCredentials`。
+所有 Playwright 配置从**本项目 .env** 提取：`baseURL`（PLAYWRIGHT_BASE_URL）、`testCredentials`（E2E_TEST_EMAIL / E2E_TEST_PASSWORD）。
 
 ---
 
@@ -47,6 +46,8 @@ Read("$SOURCE_PROJECT_DIR/.env")
 ```
 Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
 ```
+
+- 如果结果为空 → 直接告知用户"目标项目中无 spec 文件，请先运行 /qa-explore 或 /qa-run-prd 生成测试" → 结束
 
 对每个文件，Grep 检查是否**全文件 skip**（`test.describe.skip` 或文件内所有 `test(` 都被 `test.skip(` 替换）：
 - 全文件 skip → 排除

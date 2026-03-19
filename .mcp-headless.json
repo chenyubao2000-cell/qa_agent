@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--headless"
+      ]
+    },
+    "linear": {
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@ibraheem4/linear-mcp"
+      ],
+      "env": {
+        "LINEAR_API_KEY": "lin_api_ieA2WOtELGFZ6L4QXvyEasGYHD0zMTctnB3lqH6C"
+      }
+    }
+  }
+}

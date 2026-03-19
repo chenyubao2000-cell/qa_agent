@@ -20,17 +20,20 @@ Phase 2: 顺序启动 Agent
          report-analyzer → 分析 → bug-reporter → Linear
 ```
 
-## Phase 0: 加载项目上下文（强制，最先执行）
-
-### 源码目录
+## Phase 0: 加载上下文 + 初始化工作区（强制，最先执行）
 
 读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
 - **读源码**→ 从源码目录读
 - **写文件**（spec/POM/用例/报告）→ 始终写入 QA_WORKSPACE_DIR
 
-读取 `.env` 获取 `QA_WORKSPACE_DIR`、`SOURCE_PROJECT_DIR`、`PREVIEW_URL`。
-读取 `$SOURCE_PROJECT_DIR/CLAUDE.md` 获取技术栈。
-读取 `$SOURCE_PROJECT_DIR/.env` 获取 `PLAYWRIGHT_BASE_URL`。
+读取 `.env` 获取 `QA_WORKSPACE_DIR`、`SOURCE_PROJECT_DIR`、`PREVIEW_URL`、`PLAYWRIGHT_BASE_URL`、`E2E_TEST_EMAIL`、`E2E_TEST_PASSWORD`。
+读取 `$SOURCE_PROJECT_DIR/CLAUDE.md` 获取技术栈（仅用于理解业务逻辑）。
+
+**初始化工作区**（空文件夹兼容，已初始化则全部跳过）：
+与 `/qa-explore` Phase 0 Step 2 相同：目录、npm install、playwright.config.ts、fixtures.ts。
+
+> PRD 流程本身无 CDP，但 Locator 验证阶段需要 CDP 导航到页面验证 selector。
+> 如果遇到登录墙，与 `/qa-explore` Phase 1 Step 1 相同处理：探查登录表单 → 生成 global-setup.ts。
 
 ## Phase 1: 读取 PRD
 

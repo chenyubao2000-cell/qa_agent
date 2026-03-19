@@ -41,25 +41,21 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issu
 PR 源码目录（prSourceDir）：D:\code\.qa-worktree-pr
 ```
 
-## Phase 0: 加载项目上下文（强制，最先执行）
+## Phase 0: 加载上下文 + 初始化工作区（强制，最先执行）
 
-### Step 1 — 读取本项目 .env
+### Step 1 — 读取 .env + 构建 projectContext
 
 ```
 Read(".env")  # valition_agent 根目录
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # 技术栈（仅读源码理解业务）
 ```
 
-提取 `QA_WORKSPACE_DIR`、`PREVIEW_URL`。
+从**本项目 .env** 提取所有配置：`QA_WORKSPACE_DIR`、`PREVIEW_URL`、`PLAYWRIGHT_BASE_URL`、`E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`、`techStack`（源码 CLAUDE.md）。
 
-### Step 2 — 读取源码项目配置
+### Step 2 — 初始化工作区（空文件夹兼容，已初始化则全部跳过）
 
-```
-Read("$SOURCE_PROJECT_DIR/CLAUDE.md")
-Read("$SOURCE_PROJECT_DIR/.env")
-Read("$SOURCE_PROJECT_DIR/playwright.config.ts")
-```
-
-提取 `projectContext`：techStack、baseURL、authSetup、testCredentials、existingTests。
+与 `/qa-explore` Phase 0 Step 2 完全相同：目录、npm install、playwright.config.ts、fixtures.ts。
+global-setup.ts 此时不生成——Phase 2 CDP 探查遇到登录墙时才写（见下方）。
 
 ### Step 3 — 确定导航 URL
 
@@ -199,11 +195,12 @@ Read("skills/cdp-explorer/SKILL.md")
 
 按 cdp-explorer SKILL 的 targeted 模式执行：
 1. 连接页面（Phase 1）
-2. 初始状态三层扫描（Phase 2）
-3. 围绕 targetArea 定向交互式探查（Phase 3 targeted 规则）
-4. 如果有 reproSteps → 按步骤逐步操作，记录每步状态变化
-5. 对比 expectedBehavior vs actualBehavior
-6. 将定向探查结果保存到 `$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{feature}.json`（feature 取自 issue title 提取的模块名，非页面 slug）
+2. **登录墙处理**：与 `/qa-explore` Phase 1 Step 1 相同——CDP 探查登录表单真实 selector → 登录 → 生成 global-setup.ts（不存在时）→ 更新 config → 生成 sign-in POM
+3. 初始状态三层扫描（Phase 2）
+4. 围绕 targetArea 定向交互式探查（Phase 3 targeted 规则）
+5. 如果有 reproSteps → 按步骤逐步操作，记录每步状态变化
+6. 对比 expectedBehavior vs actualBehavior
+7. 将定向探查结果保存到 `$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{feature}.json`（feature 取自 issue title 提取的模块名，非页面 slug）
 
 ---
 
