@@ -1,15 +1,22 @@
 ---
 name: linear-bug-report
-description: 将测试失败用例格式化并上报到 Linear。当任务涉及"上报 Bug"、"Linear Issue"时激活。
+description: 将测试失败用例格式化并上报到 Linear。支持新建 issue 和追加评论。当任务涉及"上报 Bug"、"Linear Issue"时激活。
 ---
 
 # Linear Bug 上报规范
 
 ## 触发条件
 
-由 report-analyzer agent 在发现失败用例且去重检查通过后调用。
+由 report-analyzer agent 在发现失败用例且去重/分流检查通过后调用。
 
-## Issue 创建规范
+## 两种上报模式
+
+| 模式 | 触发条件 | 操作 |
+|------|---------|------|
+| **新建** | 失败用例无对应 Open issue | `createIssue` 创建新 issue |
+| **评论** | 失败用例有对应 Open issue，或来源于 /qa-from-issue 的原始 issue | `add_issue_comment` 追加评论 |
+
+## Issue 创建规范（新建模式）
 
 ### 标题格式
 `[自动] {测试用例名} — {错误摘要（≤50字）}`
@@ -52,15 +59,32 @@ description: 将测试失败用例格式化并上报到 Linear。当任务涉及
 {失败截图路径（E2E）或错误堆栈（Unit）}
 ```
 
+## 评论规范（评论模式）
+
+### 评论模板
+
+```markdown
+## 🔴 自动化测试失败
+
+**用例**: {测试用例名}
+**错误**: {错误信息}
+**截图**: {截图路径 or "无"}
+**Spec**: {spec 文件路径}
+**执行时间**: {ISO timestamp}
+```
+
+多条失败合并为一条评论，用 `---` 分隔。
+
 ## 去重逻辑
 
 上报前必须检查：
 1. 在 Linear 中搜索标题包含 `[自动] {测试用例名}` 的 Issue
-2. 状态为 Open / In Progress → 跳过上报
-3. 状态为 Done / Cancelled → 视为新 Bug，重新上报
+2. 状态为 Open / In Progress → **追加评论**更新最新失败信息
+3. 状态为 Done / Cancelled → 视为回归 Bug，**重新创建** issue
+4. 不存在 → 正常创建
 
 ## API 调用
 
-通过 Linear MCP server 的 createIssue 方法：
-- projectId: 来自 .env → LINEAR_PROJECT_ID
-- teamId: 来自 .env → LINEAR_TEAM_ID
+通过 Linear MCP server：
+- 新建：`createIssue`（projectId + teamId 来自 .env）
+- 评论：`add_issue_comment`（issueId + body）
