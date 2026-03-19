@@ -133,6 +133,54 @@ test.describe('US-101 · User Login', () => {
 });
 ```
 
+### 1.4 CRUD 用例依赖排序
+
+CRUD 场景（新建、编辑、删除、详情）存在天然依赖关系——编辑、删除、详情都必须依赖新建产生的数据。生成 spec 时**必须**处理这种依赖：
+
+**强制规则：**
+1. 同一模块的 CRUD 用例必须放在同一个 `test.describe` 内，使用 `test.describe.serial` 保证顺序执行
+2. **新建用例必须排在最前面**，编辑/删除/详情用例排在其后
+3. 新建用例产生的数据（如名称、ID）通过 `test.describe` 级别的变量在后续用例间共享
+4. 删除用例必须排在最后（删除后其他用例无法执行）
+
+**推荐顺序：** 新建 → 详情 → 编辑 → 删除
+
+**示例：**
+```typescript
+test.describe.serial('订单管理 CRUD', { tag: ['@all'] }, () => {
+  let createdOrderName: string;
+
+  test('新建订单', async ({ page }) => {
+    createdOrderName = `Order-${Date.now()}`;
+    // ... 新建操作 ...
+    await expect(page.getByText(createdOrderName)).toBeVisible();
+  });
+
+  test('查看订单详情', async ({ page }) => {
+    // 依赖上一步新建的 createdOrderName
+    await page.getByText(createdOrderName).click();
+    await expect(page).toHaveURL(/\/orders\/\d+/);
+  });
+
+  test('编辑订单', async ({ page }) => {
+    // 依赖新建的数据
+    await page.getByText(createdOrderName).click();
+    // ... 编辑操作 ...
+  });
+
+  test('删除订单', async ({ page }) => {
+    // 必须最后执行
+    await page.getByText(createdOrderName).click();
+    // ... 删除操作 ...
+  });
+});
+```
+
+**handoff 映射时的处理：**
+- 扫描同一 `storyId` 下的用例标题，识别 CRUD 关键词（新建/创建/create、编辑/修改/edit/update、删除/delete/remove、详情/查看/view/detail）
+- 自动将这些用例归入同一个 `test.describe.serial` 块
+- 非 CRUD 用例仍使用普通 `test.describe`（可并行）
+
 After generating all `test()` blocks, **extract every locator into a Page Object class** — no locator string should appear directly in spec files.
 
 **已有 POM 的处理**：
@@ -550,7 +598,7 @@ await page.getByRole('option', { name: 'United States' }).click();
 3. 测试实现细节而非用户行为
 4. 过度具体的 CSS 选择器（`div > ul > li:nth-child(3)`）
 5. 单文件塞太多测试
-6. 依赖执行顺序
+6. 无关用例之间依赖执行顺序（CRUD 场景除外，见 §1.4）
 7. 不用 baseURL，写死绝对路径
 8. 直接测试第三方服务（应 mock）
 9. 不清理副作用

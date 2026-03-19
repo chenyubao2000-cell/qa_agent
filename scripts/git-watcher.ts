@@ -1,12 +1,48 @@
 import { execSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { config } from "dotenv";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "..");
 config({ path: resolve(PROJECT_ROOT, ".env") });
+
+// ── 单实例锁 ────────────────────────────────────────
+const LOCK_FILE = resolve(PROJECT_ROOT, ".git-watcher.pid");
+
+function acquireLock() {
+  if (existsSync(LOCK_FILE)) {
+    const oldPid = Number(readFileSync(LOCK_FILE, "utf-8").trim());
+    if (oldPid && isProcessAlive(oldPid)) {
+      console.error(`[git-watcher] another instance is already running (pid ${oldPid}), exiting.`);
+      process.exit(0);
+    }
+    console.log(`[git-watcher] stale lock found (pid ${oldPid}), taking over.`);
+  }
+  writeFileSync(LOCK_FILE, String(process.pid));
+}
+
+function releaseLock() {
+  try {
+    const content = readFileSync(LOCK_FILE, "utf-8").trim();
+    if (Number(content) === process.pid) unlinkSync(LOCK_FILE);
+  } catch {}
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+acquireLock();
+process.on("exit", releaseLock);
+process.on("SIGINT", () => { releaseLock(); process.exit(0); });
+process.on("SIGTERM", () => { releaseLock(); process.exit(0); });
 
 const TARGET_DIR = process.env.TARGET_PROJECT_DIR ?? "";
 const TARGET_BRANCH = process.env.TARGET_BRANCH ?? "main";
@@ -70,7 +106,7 @@ function triggerCommand(command: string, args: string = ""): boolean {
   const cmd = `claude -p "${`${command} ${args}`.trim()}"`;
   console.log(`  → trigger: ${cmd}`);
   try {
-    execSync(cmd, { cwd: PROJECT_ROOT, stdio: "inherit", timeout: 600_000 });
+    execSync(cmd, { cwd: PROJECT_ROOT, stdio: "inherit", timeout: 14_400_000 });
     return true;
   } catch (e: any) {
     console.error(`  → command failed:`, e.message);
@@ -181,13 +217,11 @@ function check() {
       commentOnPRs(affectedPRs.map((p) => p.number), passed);
     }
 
-    // info update → qa-run-all（统一触发一次，不拉代码）
+    // info update → 仅记录，不触发测试（避免评论→updatedAt→再触发的死循环）
     if (infoUpdated.length > 0) {
       for (const pr of infoUpdated) {
-        console.log(`[${now}] 💬 INFO UPDATED PR #${pr.number}: ${pr.title}`);
+        console.log(`[${now}] 💬 INFO UPDATED PR #${pr.number}: ${pr.title} (skip, no code change)`);
       }
-      const passed = triggerCommand("/qa-run-all");
-      commentOnPRs(infoUpdated.map((p) => p.number), passed);
     }
 
     // 评论会更新 PR 的 updatedAt，必须重新获取最新状态，否则下次轮询会误判为 info update
