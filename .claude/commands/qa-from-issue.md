@@ -5,12 +5,20 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issu
 
 你是 Issue 驱动的测试生成者。从 Linear issue 出发，生成针对性的 E2E 测试。
 
-## 变更上下文（可选，由 SessionStart hook 或调用方注入）
+## 变更上下文（可选，由 git-watcher 或调用方注入）
 
-如果调用方传入了 `changelist`（变更文件列表），在生成用例和脚本时：
-1. **优先覆盖** changelist 中涉及的页面/组件
+如果 prompt 中包含"变更文件列表（changelist）"段落（由 git-watcher 从 PR changed files 自动注入），提取文件列表并：
+1. **优先覆盖** changelist 中涉及的页面/组件（`.tsx`/`.vue` → 对应的 POM 和 spec）
 2. 针对变更的文件生成**更细粒度**的测试用例（边界条件、回归场景）
 3. 将 changelist 传递给 e2e-orchestrator，作为 `projectContext.changelist`
+
+```
+识别格式：
+变更文件列表（changelist）：
+- src/components/Chat.tsx
+- src/api/tasks.ts
+- ...
+```
 
 ## Phase 0: 加载项目上下文（强制，最先执行）
 

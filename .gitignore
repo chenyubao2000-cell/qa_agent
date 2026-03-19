@@ -4,6 +4,8 @@ node_modules/
 .claude/settings.local.json
 scripts/ci/state.json
 .git-watcher.pid
+.claude-prompt.tmp
+.pr-comment-body.md
 package-lock.json
 .cursorindexingignore
 .pr-state.json

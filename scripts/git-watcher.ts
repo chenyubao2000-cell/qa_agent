@@ -110,15 +110,51 @@ function extractLinearIssues(text: string): string[] {
   )];
 }
 
-function triggerCommand(command: string, args: string = ""): boolean {
-  const cmd = `claude -p "${`${command} ${args}`.trim()}"`;
-  console.log(`  → trigger: ${cmd}`);
+function getChangedFiles(prNumbers: number[]): string[] {
+  const files = new Set<string>();
+  for (const prNum of prNumbers) {
+    try {
+      const raw = run(`gh pr view ${prNum} --repo ${OWNER}/${REPO} --json files --jq ".[].path"`);
+      if (raw) {
+        for (const f of raw.split("\n").filter(Boolean)) {
+          files.add(f);
+        }
+      }
+    } catch {
+      // fallback: gh pr diff --name-only
+      try {
+        const raw = run(`gh pr diff ${prNum} --repo ${OWNER}/${REPO} --name-only`);
+        for (const f of raw.split("\n").filter(Boolean)) {
+          files.add(f);
+        }
+      } catch {}
+    }
+  }
+  return [...files];
+}
+
+function triggerCommand(command: string, args: string = "", changelist?: string[]): boolean {
+  let prompt = `${command} ${args}`.trim();
+  if (changelist && changelist.length > 0) {
+    prompt += `\n\n变更文件列表（changelist）：\n${changelist.map((f) => `- ${f}`).join("\n")}`;
+  }
+
+  // 用临时文件传递 prompt，避免长 changelist 的 shell 转义问题
+  const promptFile = resolve(PROJECT_ROOT, ".claude-prompt.tmp");
+  writeFileSync(promptFile, prompt);
+  const cmd = `claude -p --input-file ${promptFile}`;
+  console.log(`  → trigger: ${command} ${args}`.trim());
+  if (changelist?.length) {
+    console.log(`  → changelist: ${changelist.length} files`);
+  }
   try {
     execSync(cmd, { cwd: PROJECT_ROOT, stdio: "inherit", timeout: 14_400_000 });
     return true;
   } catch (e: any) {
     console.error(`  → command failed:`, e.message);
     return false;
+  } finally {
+    try { unlinkSync(promptFile); } catch {}
   }
 }
 
@@ -218,15 +254,21 @@ function check() {
         }
       }
 
+      // 提取所有变更 PR 的 changed files
+      const changelist = getChangedFiles(affectedPRs.map((p) => p.number));
+      if (changelist.length > 0) {
+        console.log(`  → changed files: ${changelist.length} (${changelist.slice(0, 5).join(", ")}${changelist.length > 5 ? " ..." : ""})`);
+      }
+
       // 统一触发一次，收集结果
       let passed: boolean;
       if (allIssues.size > 0) {
         const issueList = [...allIssues].join(" ");
         console.log(`  → Linear issues collected: ${issueList}`);
-        passed = triggerCommand("/qa-from-issue", issueList);
+        passed = triggerCommand("/qa-from-issue", issueList, changelist);
       } else {
         console.log(`  → no Linear issues found, running qa-run-all`);
-        passed = triggerCommand("/qa-run-all");
+        passed = triggerCommand("/qa-run-all", "", changelist);
       }
 
       // 给所有相关 PR 添加评论

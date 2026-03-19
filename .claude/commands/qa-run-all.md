@@ -33,6 +33,16 @@ Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts")
 - 如果结果为空 → 直接告知用户"目标项目中无 spec 文件，请先运行 /qa-explore 或 /qa-run-prd 生成测试"
 - 否则 → 启动 test-executor
 
+### 变更上下文（可选）
+
+如果 prompt 中包含"变更文件列表（changelist）"段落（由 git-watcher 注入），提取变更文件列表。优先执行 changelist 涉及的模块对应的 spec，而非全量：
+
+```
+changelist 中有 src/components/Chat.tsx
+  → 查找 tests/e2e/testcases/ 中 import 了 ChatPage 或文件名含 chat 的 spec
+  → 优先执行这些 spec，其余仍跑全量
+```
+
 **Agent 1 — test-executor**（haiku）：
 - 跳过 e2e-orchestrator，直接执行已有 spec
 - 如果 $ARGUMENTS 指定了文件路径则只跑指定的，否则跑全量
