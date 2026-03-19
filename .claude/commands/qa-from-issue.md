@@ -1,6 +1,6 @@
 ---
 description: 从 Linear issue 生成或更新 E2E 测试用例和脚本
-allowed-tools: Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issue, mcp__linear__search_issues, mcp__linear__update_issue, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__click, mcp__chrome-devtools__navigate_page
+allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issue, mcp__linear__search_issues, mcp__linear__update_issue, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__click, mcp__chrome-devtools__hover, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__wait_for, mcp__chrome-devtools__press_key, mcp__chrome-devtools__fill
 ---
 
 你是 Issue 驱动的测试生成者。从 Linear issue 出发，生成针对性的 E2E 测试。
@@ -140,46 +140,26 @@ issue 描述的场景已有完全对应的 test case？
 
 ## Phase 2: CDP 定向探查
 
-不需要全量探查，只针对 issue 描述的场景：
+> **规范来源**：先读取 `skills/cdp-explorer/SKILL.md`，按其定义的流程执行。
 
-### Step 1 — 导航到目标页面
-
-如果用户已在 Chrome 中打开了相关页面：
-```
-mcp__chrome-devtools__list_pages
-mcp__chrome-devtools__select_page  pageId=<matched>
-```
-
-如果没有，用 `navigate_page` 导航到 issue 中提取的 pageUrl。
-
-### Step 2 — 定向 DOM 探查
-
-只探查 issue 涉及的元素，不全量扫描。
+读取 Skill 后，以 **targeted 模式** 执行：
 
 ```
-mcp__chrome-devtools__evaluate_script
-  function: () => {
-    const root = document.querySelector('main') || document.body;
-    // 根据 issue 上下文定向查询
-    // 例如 issue 关于"下载按钮"，就只查下载相关元素
-    const targets = root.querySelectorAll('button, [role="menu"], [role="listbox"]');
-    return Array.from(targets).slice(0, 30).map(el => ({
-      tag: el.tagName,
-      testId: el.dataset?.testid,
-      class: el.className?.toString().substring(0, 80),
-      ariaLabel: el.getAttribute('aria-label'),
-      text: el.textContent?.trim().substring(0, 60),
-      visible: el.offsetParent !== null
-    }));
-  }
+Read("skills/cdp-explorer/SKILL.md")
+
+执行参数：
+- mode: "targeted"
+- pageUrl: Phase 1 提取的 issue pageUrl
+- targetArea: issue 涉及的功能区域（如 "button:下载" 或 ".download-section"）
+- reproSteps: Phase 1 提取的复现步骤
 ```
 
-### Step 3 — 复现验证
-
-按 issue 的 reproSteps 尝试复现：
-- 用 `click`、`fill` 等 MCP 工具执行操作步骤
-- 记录每步的实际结果
-- 对比 expectedBehavior vs actualBehavior
+按 cdp-explorer SKILL 的 targeted 模式执行：
+1. 连接页面（Phase 1）
+2. 初始状态三层扫描（Phase 2）
+3. 围绕 targetArea 定向交互式探查（Phase 3 targeted 规则）
+4. 如果有 reproSteps → 按步骤逐步操作，记录每步状态变化
+5. 对比 expectedBehavior vs actualBehavior
 
 ---
 
@@ -199,7 +179,7 @@ prompt 模板：
 - source: "issue"
 - issueKey: <issue-key>
 - issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
-- cdpSnapshot: <Phase 2 探查结果>
+- cdpBaseline: <Phase 2 探查产出的 baseline JSON 路径>
 - projectContext: { targetProjectDir, baseURL, existingTests, ... }
 
 按 agents/e2e-orchestrator.md 的步骤执行（读 SKILL.md → 生成），返回产物路径。

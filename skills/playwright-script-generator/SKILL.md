@@ -194,25 +194,22 @@ After generating all `test()` blocks, **extract every locator into a Page Object
 
 ## 2. Locator 探查与选择
 
+> **CDP 探查的完整规范定义在 `skills/cdp-explorer/SKILL.md`。** 本节仅保留 playwright-script-generator 特有的 locator 选择规则。
+> 需要 CDP 探查时，读取 cdp-explorer SKILL 并按其流程执行。
+
 ### 2.1 强制规则
 
 - **禁止凭经验猜测 locator**
 - **禁止使用 MCP playwright browser**（`mcp__playwright__browser_*`，headless 无登录态、无真实数据）
-- CDP 探查通过 **chrome-devtools MCP 工具**完成
+- CDP 探查规范见 `skills/cdp-explorer/SKILL.md`
 - **验证循环**：每个 PO/spec 写完立即跑一次（单文件、单 worker），修正到全部通过。不要一次写完再跑
 
-### 2.2 语言差异警告
-
-CDP 连接本地 Chrome（可能中文），Playwright headless 默认英文。按钮/标题文本可能不同（"继续" vs "Continue"）。
-
-**解决方案**：优先用语言无关选择器（data-testid、aria-label）；若必须文本匹配，以 Playwright 错误输出的页面快照为准。
-
-### 2.3 探查策略选择
+### 2.2 探查策略选择
 
 ```
 有项目源码？
-  ├─ YES → 先源码 Grep（秒级）→ 再 CDP 验证渲染结果
-  └─ NO  → 直接 CDP 探查
+  ├─ YES → 先源码 Grep（秒级）→ 再 CDP verify 模式验证
+  └─ NO  → 读取 skills/cdp-explorer/SKILL.md → 按 verify 模式验证 locator
 ```
 
 **源码探查**（有源码时优先）：
@@ -221,64 +218,22 @@ Grep "data-testid" --glob "*.tsx,*.jsx,*.vue"
 Grep "aria-label|role=" --glob "*.tsx,*.jsx"
 ```
 
-**CDP 探查**（无源码 / 需验证真实渲染）：
+**CDP 验证**（无源码 / 需验证真实渲染）：
+按 `skills/cdp-explorer/SKILL.md` 的 **Phase 4: Locator 验证（verify 模式）** 执行。
 
-| 用途 | MCP 工具 |
-|---|---|
-| 列出/选择页面 | `list_pages` → `select_page` |
-| DOM 探查（优先） | `evaluate_script` — 语言无关 |
-| 无障碍树 | `take_snapshot` — 理解结构，但 name 可能有语言差异 |
-| 截图 | `take_screenshot` — 视觉辅助，不作为定位依据 |
-| 交互验证 | `click` / `fill` / `wait_for` |
+### 2.3 Locator 优先级
 
-**CDP 探查步骤：**
+> Locator 优先级的完整定义在 `skills/cdp-explorer/SKILL.md` 的「Locator 优先级」章节，此处为快速参考。
 
-1. `list_pages` → `select_page` 选中目标 tab
-2. `evaluate_script` — DOM 探查（优先，语言无关）：
-   ```javascript
-   () => {
-     const root = document.querySelector('main') || document.body;
-     const els = root.querySelectorAll('[data-testid], button, input, a, [role]');
-     return Array.from(els).slice(0, 50).map(el => ({
-       tag: el.tagName, testId: el.dataset?.testid,
-       class: el.className?.toString().substring(0, 80),
-       type: el.getAttribute('type'),
-       ariaLabel: el.getAttribute('aria-label'),
-       text: el.textContent?.trim().substring(0, 60)
-     }));
-   }
-   ```
-3. `take_snapshot` — 理解层级关系、role、状态（disabled/expanded）
-4. `evaluate_script` — 验证候选 selector 命中数量
-5. `take_screenshot` — 可选，验证视觉状态
+**语言无关优先（CDP 探查后 / 多语言场景）：**
+`data-testid` > CSS class > `aria-label` > `role+name` > 纯文本
 
-### 2.4 Locator 优先级（统一标准）
+**语义性优先（单语言、确认无差异时）：**
+`getByRole` > `getByLabel` > `getByPlaceholder` > `getByText` > `getByTestId` > CSS
 
-> **两个场景，一个原则：稳定性优先。**
->
-> - **CDP 探查后写 locator**：按语言无关性排序（testid > CSS > aria-label > role+name > text）
-> - **直接写 spec（无 CDP）**：按语义性排序（getByRole > getByLabel > getByPlaceholder > getByText > getByTestId > CSS）
->
-> **冲突时的决策规则**：如果页面存在多语言/i18n，或 CDP 与 headless 文本不一致，**始终优先语言无关的 locator**。如果确认单语言且文本稳定，优先语义性 locator。
+**冲突时**：存在多语言/i18n 或 CDP 与 headless 文本不一致 → 始终优先语言无关 locator。
 
-**语言无关优先级（CDP 探查后 / 多语言场景）：**
-
-1. `page.getByTestId('xxx')` — 最稳定
-2. `page.locator('button.btn-download')` — CSS class，语言无关
-3. `page.getByLabel('xxx')` — aria-label 硬编码英文时可用
-4. `page.getByRole('button', { name: '...' })` — 注意 headless 语言差异
-5. `page.getByText('...')` — 最易受语言影响
-
-**语义性优先级（单语言、无 CDP 差异）：**
-
-1. `page.getByRole('button', { name: 'Submit' })` — 语义最佳
-2. `page.getByLabel('Email')` — 表单 input
-3. `page.getByPlaceholder('Search...')` — 无 label 时
-4. `page.getByText('Welcome')` — 非交互元素
-5. `page.getByTestId('checkout-total')` — 语义不可行时
-6. `page.locator('.legacy-widget')` — 最后手段，需注释原因
-
-### 2.5 常见 locator 情形
+### 2.4 常见 locator 情形
 
 **A. 有 data-testid** → `page.getByTestId('download-btn')`
 
@@ -288,7 +243,7 @@ Grep "aria-label|role=" --glob "*.tsx,*.jsx"
 
 **D. strict mode violation（命中多个）**：
 ```typescript
-// 先用 evaluate_script 确认数量，再用父级收窄
+// 用父级收窄
 page.locator('.file-card').first().locator('button.btn-download')
 // 或
 page.getByTestId('file-card').first().getByRole('button', { name: /download/i })
@@ -311,7 +266,7 @@ const frame = page.frameLocator('#iframe-id');
 await frame.getByRole('button', { name: 'Submit' }).click();
 ```
 
-### 2.6 选择器唯一性（避免 strict mode）
+### 2.5 选择器唯一性（避免 strict mode）
 
 Playwright strict mode 要求交互 locator 只匹配一个元素。
 
@@ -333,17 +288,11 @@ page.getByRole("navigation")
 - [ ] 多处同文案已用区域收窄
 - [ ] `.first()/.last()` 有注释说明原因
 
-**步骤 4 — 脚本校验（必须）**：
+**步骤 4 — CDP 验证（必须）**：
 
-生成或修改 PO 后，必须在真实页面上验证：
-
-```
-CDP
-```
+生成或修改 PO 后，按 `skills/cdp-explorer/SKILL.md` 的 **verify 模式** 验证每个 locator。
 
 输出：`UNIQUE`（可用）/ `MULTIPLE(n)`（需收窄）/ `ZERO`（未匹配）。
-
-> 注：正则必须写 `new RegExp("...", "i")`，不能写 `/xxx/i`（命令行限制）。
 
 ---
 

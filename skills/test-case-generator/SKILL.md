@@ -506,92 +506,29 @@ Apply the same derivation rules as the Figma MCP section above, substituting Pen
 
 ---
 
-### 第一步 — 列出 Chrome 目标页面
+### 第一步 — CDP 穷尽式探查
+
+> **CDP 探查的完整规范定义在 `skills/cdp-explorer/SKILL.md`。** 本步骤不再内联探查逻辑。
 
 ```
-mcp__chrome-devtools__list_pages
+Read("skills/cdp-explorer/SKILL.md")
+
+执行参数：
+- mode: "full"
+- pageUrl: 目标页面 URL
 ```
 
-输出所有打开的 tab 及其 pageId。请用户确认要检查哪个 tab（或根据 URL/title 自动匹配）。
+按 cdp-explorer SKILL 的 Phase 1 → Phase 2 → Phase 3 完整执行穷尽式探查。
 
-选中目标页面：
-```
-mcp__chrome-devtools__select_page  pageId=<id>
-```
+探查产出的 baseline JSON 包含：
+- **多状态数据**：初始页面 + 交互后发现的隐藏状态（Modal、下拉、Tab 面板等）
+- **状态流图**：记录了哪些交互导致了状态转换
+- **表单约束**：required、maxlength、pattern 等
+- **危险操作标记**：删除、提交等不可逆操作
 
 ---
 
-### 第二步 — 三层 DOM 探查
-
-> **探查优先级：DOM (evaluate_script) > Snapshot (a11y tree) > Screenshot (视觉辅助)**
-> DOM 层面的 data-testid、CSS class 是语言无关的，避免 headless 中英文差异导致 locator 不匹配。
-
-按以下顺序执行，**不要跳步**：
-
-**① DOM 探查 — 提取语言无关的 locator 信息（首选）**
-
-```
-mcp__chrome-devtools__evaluate_script
-  function: () => {
-    // 只查 main 区域，避免 sidebar 噪音
-    const root = document.querySelector('main') || document.body;
-    const els = root.querySelectorAll('[data-testid], button, input, select, a, [role]');
-    return Array.from(els).slice(0, 80).map(el => ({
-      tag: el.tagName,
-      testId: el.dataset?.testid,
-      class: el.className?.toString().substring(0, 80),
-      type: el.getAttribute('type'),
-      role: el.getAttribute('role'),
-      ariaLabel: el.getAttribute('aria-label'),
-      disabled: el.disabled || el.getAttribute('aria-disabled') === 'true',
-      required: el.required,
-      text: el.textContent?.trim().substring(0, 60)
-    }));
-  }
-```
-
-从 DOM 输出中提取：
-- 所有 `data-testid` → 首选 locator，语言无关
-- 所有 `button / input / select / a` 的 class、属性
-- 有 `disabled` 属性的元素 → 生成「启用条件」测试
-- 有 `required` 属性的元素 → 生成「空提交」测试
-
-**② Accessibility Tree — 理解页面结构和元素关系**
-
-```
-mcp__chrome-devtools__take_snapshot
-```
-
-从 snapshot 输出中补充：
-- 元素层级关系（用于确定 locator 的父子结构）
-- `role=heading` — 用于划分功能区块
-- 元素的 expanded / checked 等交互状态
-
-**③ Screenshot — 视觉辅助确认（可选）**
-
-```
-mcp__chrome-devtools__take_screenshot
-```
-
-观察页面整体布局：有哪些区域、卡片、表单、按钮组。截图不作为定位依据。
-
-**④ evaluate_script — 深入补充细节**
-
-```
-mcp__chrome-devtools__evaluate_script
-  function: (selector) => document.querySelector(selector)?.outerHTML || 'Not found'
-  args: ["<CSS selector>"]
-```
-
-对 DOM 探查中语义不清晰的区域，用 CSS selector 精确提取 HTML。重点关注：
-- `data-testid` 属性（首选 locator 来源）
-- `placeholder` 文本
-- 表单 `action`、`method`
-- 动态加载区域（如分页、下拉列表选项）
-
----
-
-### 第三步 — 去重检查（生成前必须执行）
+### 第二步 — 去重检查（生成前必须执行）
 
 推断用户故事之前，先检查已有产物：
 
@@ -604,47 +541,56 @@ Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts") → 已有 spec 文
 
 ---
 
-### 第四步 — 从 DOM 推断用户故事
+### 第三步 — 从状态流图推断用户故事
 
-遍历 snap 中的每个功能区块（以 heading 为边界），生成对应的用户故事：
+遍历 baseline 中的**每个状态及其交互元素**，生成对应的用户故事：
 
 ```
-推断规则：
-  heading "用户登录"
+推断规则（基于状态流图）：
+
+  State₀ (初始页面):
+    heading "用户登录"
     textbox "邮箱" (required)
     textbox "密码" (required)
     button "登录"
     link "忘记密码"
   →
   US-CDP-01: 用户登录
-    As a 用户
-    I want to 使用邮箱和密码登录
-    So that 访问系统功能
-
     AC-1: 有效邮箱 + 密码 → 登录成功
     AC-2: 邮箱为空 → 不可提交（required）
     AC-3: 密码为空 → 不可提交（required）
     AC-4: 点击"忘记密码" → 跳转到密码重置页
+
+  State₁ (通过 click "新建" 从 State₀ 到达):
+    dialog "新建任务"
+    textbox "标题" (required, maxlength=100)
+    textarea "描述"
+    button "创建" (disabled)
+  →
+  US-CDP-02: 新建任务
+    AC-1: 填写标题 → 创建按钮启用
+    AC-2: 标题超过100字符 → 边界测试
+    AC-3: 点击创建 → Modal 关闭，任务出现在列表
+    AC-4: 按 Escape → Modal 关闭，不创建
 ```
 
-**推断优先级：**
+**推断优先级（从 baseline 元素属性推断）：**
 
-| DOM 特征 | 推断的测试场景 |
+| 元素特征 | 推断的测试场景 |
 |---|---|
-| `button[disabled]` 或 `aria-disabled=true` | 验证启用条件：什么操作后按钮变为可用 |
-| `input[required]` | 空提交测试：期望出现错误提示 |
-| `input[maxlength]` | 边界值测试：maxlength 和 maxlength+1 |
-| `role=dialog` / `[aria-modal]` | 弹窗开关测试：触发 → 展示 → 关闭 |
-| `role=tab` | Tab 切换测试：每个 tab 的内容正确渲染 |
-| `role=alert` / `[data-testid*=error]` | 错误状态测试：触发条件 → 消息可见 |
-| `role=progressbar` / loading spinner | 加载状态测试：操作 → loading 出现 → 消失 |
-| 分页按钮 (`上一页` / `下一页`) | 分页测试：边界页（第一页/最后一页） |
-| 文件上传 `input[type=file]` | 上传格式、大小边界测试 |
-| 下载链接 / download 按钮 | 下载触发 + 文件类型测试 |
+| `disabled: true` | 验证启用条件：什么操作后变为可用 |
+| `required: true` | 空提交测试：期望出现错误提示 |
+| `maxLength` 存在 | 边界值测试：maxLength 和 maxLength+1 |
+| 状态流图有 dialog 状态 | 弹窗开关测试：触发 → 展示 → 关闭 |
+| 状态流图有 tab 切换 | Tab 切换测试：每个 tab 的内容正确渲染 |
+| `role=alert` / alerts[] | 错误状态测试：触发条件 → 消息可见 |
+| dangerousActions[] | 危险操作测试：确认弹窗、误操作防护 |
+| forms[].submitButton.disabled | 表单验证测试：何时可提交 |
+| externalLinks[] | 外链可达性测试 |
 
 ---
 
-### 第五步 — 生成测试用例（与需求文档模式相同的产出物）
+### 第四步 — 生成测试用例（与需求文档模式相同的产出物）
 
 从推断出的用户故事出发，走完整的用例生成流程：
 
@@ -656,15 +602,15 @@ Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts") → 已有 spec 文
 
 3. **Excel** — 重新生成，新增对应 sheet，sheet 标签颜色用橙色（区别于需求文档驱动的蓝色标签）
 
-4. **playwright-handoff.json** — 新增条目，所有条目的 `uiElements` 直接使用从 snap/html 提取的真实选择器：
+4. **playwright-handoff.json** — 新增条目，所有条目的 `uiElements` 直接使用从 baseline 提取的真实选择器：
    ```json
    {
      "id": "TC-CDP-001",
      "storyId": "cdp-<page-slug>",
      "source": "cdp",
      "pageUrl": "https://...",
-     "snapshotDate": "2026-03-14",
-     ...
+     "snapshotDate": "2026-03-18",
+     "fromState": "S0",
      "uiElements": [
        { "role": "textbox", "name": "邮箱", "action": "fill", "value": "user@example.com",
          "locatorHint": "getByRole('textbox', { name: '邮箱' })" }
@@ -676,7 +622,7 @@ Glob("$TARGET_PROJECT_DIR/tests/e2e/testcases/**/*.test.ts") → 已有 spec 文
 
 ---
 
-### 第六步 — 向 playwright-script-generator 移交
+### 第五步 — 向 playwright-script-generator 移交
 
 与需求文档模式完全一致，调用 `playwright-script-generator` skill，但额外优势：
 

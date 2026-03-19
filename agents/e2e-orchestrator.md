@@ -14,6 +14,7 @@ model: claude-sonnet-4-6
 
 | 步骤 | 必读文件 |
 |------|---------|
+| CDP 探查（cdp/issue 模式） | `skills/cdp-explorer/SKILL.md` |
 | 生成用例 | `skills/test-case-generator/SKILL.md` |
 | 导出 Excel | `skills/excel-case-export/SKILL.md` |
 | 生成 E2E 脚本 | `skills/playwright-script-generator/SKILL.md` |
