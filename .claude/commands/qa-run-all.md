@@ -28,4 +28,4 @@ Phase 1: 串行启动（按顺序执行）
 - 产出 JSON + HTML 报告到 `$TARGET_PROJECT_DIR/tests/reports/`
 
 **Agent 2 — report-analyzer**（haiku）：
-- 监听报告目录 → 分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+- 读取报告 → 分析 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告

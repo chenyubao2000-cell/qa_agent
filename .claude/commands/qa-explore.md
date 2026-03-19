@@ -109,11 +109,11 @@ prompt 模板：
 6. 返回产物路径
 ```
 
-**Agent 2 — test-executor**（sonnet）：
+**Agent 2 — test-executor**（haiku）：
 - 等 e2e-orchestrator 完成后启动
 - 接收 spec 文件路径 → 执行测试 → 产出报告到 `$TARGET_PROJECT_DIR/tests/reports/`
 
-**Agent 3 — report-analyzer**（sonnet）：
+**Agent 3 — report-analyzer**（haiku）：
 - 等 test-executor 完成后启动
 - 分析报告 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
 

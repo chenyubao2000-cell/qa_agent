@@ -55,7 +55,7 @@ source: "issue"   → 模式 C
 | `authSetup` | 目标项目 playwright.config.ts | 是否需要 storageState 依赖 |
 | `testCredentials` | 目标项目 .env | auth.setup.ts 使用 |
 | `existingTests` | 目标项目 playwright.config.ts 的 testDir | 已有测试目录 |
-| `changelist` | SessionStart hook 检测的变更文件列表（可选） | 生成用例时重点覆盖变更涉及的页面/组件 |
+| `changelist` | git-watcher 检测的变更文件列表（可选） | 生成用例时重点覆盖变更涉及的页面/组件 |
 
 如果调用方未传入 `projectContext`，则自行读取：
 ```
