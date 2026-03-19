@@ -96,9 +96,17 @@ function run(cmd: string, cwd?: string, retries = 3): string {
   return "";
 }
 
+// 常见误匹配排除：HTTP-xxx, UTF-xxx, SHA-xxx, ISO-xxx 等技术术语
+const ISSUE_KEY_BLACKLIST = new Set([
+  "HTTP", "UTF", "SHA", "ISO", "RFC", "TCP", "UDP", "API", "URL", "URI",
+  "CSS", "HTML", "JSON", "XML", "SQL", "SSL", "TLS", "SSH", "DNS", "FTP",
+]);
+
 function extractLinearIssues(text: string): string[] {
   return [...new Set(
-    [...text.matchAll(/[A-Z]{2,10}-\d+/g)].map((m) => m[0])
+    [...text.matchAll(/[A-Z]{2,10}-\d+/g)]
+      .map((m) => m[0])
+      .filter((key) => !ISSUE_KEY_BLACKLIST.has(key.split("-")[0]))
   )];
 }
 
@@ -123,8 +131,10 @@ function parseReport(): ReportResult {
   const summaryPath = resolve(TARGET_DIR, "tests/reports/combined/summary.md");
   if (existsSync(summaryPath)) {
     const content = readFileSync(summaryPath, "utf-8");
-    // "## 失败用例" 段落后紧跟 "无失败用例" → 通过，否则失败
-    const passed = content.includes("无失败用例");
+    // 从执行摘要表格提取失败数：匹配 "| E2E | N | N | 0 |" 中的失败列
+    const failMatch = content.match(/\|\s*E2E\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*(\d+)\s*\|/);
+    const failCount = failMatch ? Number(failMatch[1]) : -1;
+    const passed = failCount === 0;
     return { passed, content };
   }
   return { passed: false, content: "报告文件未生成" };
@@ -137,14 +147,20 @@ function commentOnPRs(prNumbers: number[], cmdSuccess: boolean) {
   const status = passed ? "✅ 通过" : "❌ 失败";
   const body = `## QA 自动化测试结果\n\n**结果：${status}**\n\n<details>\n<summary>详情</summary>\n\n${report.content}\n\n</details>`;
 
+  // 用临时文件传递 body，避免 shell 转义问题
+  const bodyFile = resolve(PROJECT_ROOT, ".pr-comment-body.md");
+  writeFileSync(bodyFile, body);
+
   for (const prNum of prNumbers) {
     try {
-      run(`gh pr comment ${prNum} --repo ${OWNER}/${REPO} --body ${JSON.stringify(body)}`);
+      run(`gh pr comment ${prNum} --repo ${OWNER}/${REPO} --body-file ${bodyFile}`);
       console.log(`  → commented on PR #${prNum}: ${status}`);
     } catch (e: any) {
       console.error(`  → failed to comment on PR #${prNum}:`, e.message);
     }
   }
+
+  try { unlinkSync(bodyFile); } catch {}
 }
 
 function check() {
