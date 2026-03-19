@@ -137,7 +137,7 @@ existingTests = [
 - 输出：test-cases/excel/{feature}.xlsx
 
 ```bash
-node scripts/generate-excel.js \
+node skills/excel-case-export/scripts/generate-excel.js \
   --input $TARGET_PROJECT_DIR/test-cases/generated/{feature}.md \
   --output $TARGET_PROJECT_DIR/test-cases/excel/{feature}.xlsx
 ```

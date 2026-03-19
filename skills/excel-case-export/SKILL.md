@@ -39,10 +39,10 @@ test-cases/excel/{feature}.xlsx
 
 ## 实现
 
-使用 scripts/generate-excel.js（基于 exceljs 库）：
+使用 skills/excel-case-export/scripts/generate-excel.js（基于 exceljs 库）：
 
 ```bash
-node scripts/generate-excel.js \
+node skills/excel-case-export/scripts/generate-excel.js \
   --input test-cases/generated/{feature}.md \
   --output test-cases/excel/{feature}.xlsx
 ```
