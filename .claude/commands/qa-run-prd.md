@@ -62,9 +62,16 @@ prompt 模板：
 - 否则 → 合并为执行列表，继续启动 test-executor
 
 **Locator 验证**（命令层执行，orchestrator 完成后）：
-1. 读取 orchestrator 返回的 `page_objects`
-2. 从 POM 提取 locator → cdp-explorer verify 模式验证
-3. 修正到全部 UNIQUE 后继续
+
+PRD 流程不做 CDP 探查，浏览器中可能没有目标页面。验证前需先导航：
+
+1. 从 orchestrator 返回的 `page_objects` 中提取每个 POM 对应的页面路径（从 POM 的 `goto()` 方法或 spec 的 `page.goto()` 调用推断）
+2. 拼接 `projectContext.baseURL` + 页面路径 → 用 `mcp__chrome-devtools__navigate_page` 打开目标页面
+3. 按 `skills/cdp-explorer/SKILL.md` Phase 1 Step 3 检测并处理登录墙
+4. 从 POM 文件提取所有 locator → cdp-explorer verify 模式逐个验证
+5. 结果为 ZERO 或 MULTIPLE → 修正 POM 中的 locator，重新验证
+6. 全部 UNIQUE 后 → 继续启动 test-executor
+7. 多个 POM 对应不同页面时，逐页面串行验证
 
 **Agent 2 — test-executor**（haiku）：
 - 等 e2e-orchestrator 完成后启动
