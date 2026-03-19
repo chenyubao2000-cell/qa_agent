@@ -70,24 +70,40 @@ Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # 技术栈（仅读源码理解业务）
 
 检查 `$QA_WORKSPACE_DIR`，不存在或为空时执行初始化：
 
-#### 2a. 目录结构（已存在则跳过）
+#### 2a. 复制 .env（不存在时）
+
+将本项目 `.env` 中 Playwright 相关变量写入 `$QA_WORKSPACE_DIR/.env`：
+
+```
+PLAYWRIGHT_BASE_URL=<从本项目 .env 取>
+PLAYWRIGHT_HEADLESS=<从本项目 .env 取>
+E2E_TEST_EMAIL=<从本项目 .env 取>
+E2E_TEST_PASSWORD=<从本项目 .env 取>
+```
+
+> dotenv 在 playwright.config.ts 和 global-setup.ts 中加载此文件。
+
+#### 2b. 目录结构（已存在则跳过）
 
 ```bash
 mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/.auth
 mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-results
 ```
 
-#### 2b. 安装 Playwright（package.json 不存在时）
+#### 2c. 安装 Playwright（package.json 不存在时）
 
 ```bash
-npm init -y && npm install -D @playwright/test && npx playwright install chromium
+npm init -y && npm install -D @playwright/test dotenv && npx playwright install chromium
 ```
 
-#### 2c. 生成 playwright.config.ts（不存在时）
+#### 2d. 生成 playwright.config.ts（不存在时）
 
 ```typescript
+import { config } from "dotenv";
 import { defineConfig, devices } from "@playwright/test";
 import fs from "node:fs";
+
+config();
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -112,7 +128,7 @@ export default defineConfig({
 });
 ```
 
-#### 2d. 生成 fixtures.ts（不存在时）
+#### 2e. 生成 fixtures.ts（不存在时）
 
 **有 E2E_TEST_EMAIL** → 带 auth 的完整版：
 
