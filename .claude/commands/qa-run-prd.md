@@ -1,6 +1,6 @@
 ---
 description: PRD 驱动 E2E 测试流水线
-allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit
+allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot
 ---
 
 你是 E2E 测试流水线调度者。

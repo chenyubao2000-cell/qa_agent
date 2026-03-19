@@ -148,7 +148,7 @@ bug-reporter 内部按 **linear-bug-report skill**（`skills/linear-bug-report/S
 - 回写来源 Issue: N 条评论（/qa-from-issue 场景）
 - 新增 Bug: N 个
 - 追加评论（已存在 Open）: N 个
-- 跳过（已存在且无新信息）: N 个
+- 跳过（已存在 Open 且信息无变化）: N 个
 - Issue 链接: {urls}
 
 （全部通过时显示："全部通过，跳过 Linear 上报"）
