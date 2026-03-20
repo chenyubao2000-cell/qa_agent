@@ -140,13 +140,14 @@ existingTests = [
 ## 步骤 4：导出 Excel（自动，不提示用户）
 
 读取 `skills/excel-case-export/SKILL.md`，按 skill 规范执行。
-- 输入：步骤 3 的用例 .md
-- 输出：test-cases/excel/{feature}.xlsx
+- 输入：步骤 3 生成的所有用例 .md
+- 输出：test-cases/excel/{feature}-全部用例.xlsx（多个模块合并为多 Sheet）
 
 ```bash
+# 多模块合并为一个 Excel（每个 .md 一个 Sheet）
 node skills/excel-case-export/scripts/generate-excel.js \
-  --input $QA_WORKSPACE_DIR/test-cases/generated/{feature}.md \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/{feature}.xlsx
+  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+  --output $QA_WORKSPACE_DIR/test-cases/excel/{feature}-全部用例.xlsx
 ```
 
 ## 步骤 5：生成 E2E 脚本

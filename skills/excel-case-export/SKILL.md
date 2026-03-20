@@ -42,7 +42,18 @@ test-cases/excel/{feature}.xlsx
 使用 skills/excel-case-export/scripts/generate-excel.js（基于 exceljs 库）：
 
 ```bash
+# 单文件 → 单 Sheet
 node skills/excel-case-export/scripts/generate-excel.js \
   --input test-cases/generated/{feature}.md \
   --output test-cases/excel/{feature}.xlsx
+
+# 多文件 → 每个文件一个 Sheet（逗号分隔）
+node skills/excel-case-export/scripts/generate-excel.js \
+  --input test-cases/generated/a.md,test-cases/generated/b.md \
+  --output test-cases/excel/all-cases.xlsx
+
+# 整个目录 → 每个 .md 一个 Sheet
+node skills/excel-case-export/scripts/generate-excel.js \
+  --input-dir test-cases/generated \
+  --output test-cases/excel/all-cases.xlsx
 ```

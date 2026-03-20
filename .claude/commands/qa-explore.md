@@ -35,16 +35,17 @@ Phase 3: 统一执行 + 报告
 | 用户输入 | 解析结果 |
 |----------|---------|
 | `（无参数）` | 全量探查，所有区域 |
-| `帮我探索一个用例` / `一个` | `maxAreas = 1`，只探查一个最有价值的区域 |
+| `帮我探索N个用例` | 只探查一个最有价值的区域 + N个用例 |
 | `探索表单` / `探索登录` | `targetArea = "表单"/"登录"`，只探查匹配的区域 |
 | `https://xxx/join-waitlist` | 指定 URL，全量探查该页面 |
-| `https://xxx/join-waitlist 一个` | 指定 URL + 限制数量 |
+| `https://xxx/join-waitlist N个` | 指定 URL + 限制数量 |
+| `https://xxx/join-waitlist https://xxx/join-waitlist2...` | 指定 多URL 探查多页面的功能关系 全量|
+| `https://xxx/join-waitlist https://xxx/join-waitlist2... N个` | 指定 多URL 探查多页面的功能关系 +限制数量|
 
 解析规则：
 1. 包含 URL → 作为探查 URL
-2. 包含数字（"一个"→1、"三个"→3、"5个"→5）→ 设为 `maxAreas`
-3. 包含功能关键词（表单/导航/弹窗/Tab 等）→ 设为 `targetArea` 过滤
-4. 都没有 → 全量（`maxAreas = Infinity`）
+2. 包含功能关键词（表单/导航/弹窗/Tab 等）→ 设为 `targetArea` 过滤
+3. N个指的生成多少个用例不要过分生成，控制探索时间
 
 ---
 
@@ -68,7 +69,7 @@ Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # 技术栈（仅读源码理解业务）
 
 ### Step 2 — 初始化工作区（空文件夹兼容，已初始化则全部跳过）
 
-检查 `$QA_WORKSPACE_DIR`，不存在或为空时执行初始化：
+检查 `$QA_WORKSPACE_DIR`，不存在或为空时执行初始化：不存在要创建 `$QA_WORKSPACE_DIR`
 
 #### 2a. 复制 .env（不存在时）
 
@@ -321,16 +322,24 @@ for area in areas:
 
   输入：
   - source: "cdp"
-  - baselineFile: $QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{slug}.json
+  - baselineFile: {baselineFile 绝对路径}
   - areaScope: { id: "{area.id}", name: "{area.name}", type: "{area.type}" }
-  - projectContext: { targetProjectDir, baseURL, existingTests, ... }
-  - existingPageObjects: [已生成的 POM 文件路径列表，供追加 locator 而非新建]
+  - projectContext:
+      targetProjectDir: {QA_WORKSPACE_DIR}
+      sourceProjectDir: {SOURCE_PROJECT_DIR}
+      baseURL: {PLAYWRIGHT_BASE_URL}
+      authSetup: {true/false，E2E_TEST_EMAIL 是否有值}
+      existingTests: tests/e2e/testcases/
+      techStack: {来自 CLAUDE.md}
+  - existingPageObjects: [已生成的 POM 文件路径列表]
 
-  约束：
-  - 读取 baseline 后，只处理 sourceArea = "{area.id}" 的 states/edges/forms
-  - 如果 POM 文件已存在（前一个区域创建的同页面 POM），追加新 locator 和方法，不重建
-  - 按 agents/e2e-orchestrator.md 步骤执行，返回产物路径
+  按 agents/e2e-orchestrator.md 步骤执行，返回产物路径。
   ```
+
+  > 命令层只传数据，不传约束。orchestrator 自己读 SKILL.md 决定：
+  > - authSetup=true → spec 用 authenticatedPage fixture
+  > - POM 已存在 → 追加不重建
+  > - sourceArea 过滤 → 只处理当前区域
 
   收集返回的 specs、page_objects 到 allSpecs、allPageObjects
 

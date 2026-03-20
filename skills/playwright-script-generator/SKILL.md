@@ -183,6 +183,90 @@ test.describe.serial('订单管理 CRUD', { tag: ['@all'] }, () => {
 - 自动将这些用例归入同一个 `test.describe.serial` 块
 - 非 CRUD 用例仍使用普通 `test.describe`（可并行）
 
+### 1.5 测试数据准备策略（Data Self-Sufficiency）
+
+E2E 测试必须**数据自给自足**：每个 test.describe 自行创建所需的前置数据，不依赖外部预置数据。
+
+**强制规则：**
+1. **禁止硬编码数据 ID** — 不允许在 spec 中写死 task ID、文件 ID、用户 ID 等外部标识符。`const TASK_ID = 'abc123'` 或 `process.env.E2E_TASK_WITH_PDF ?? 'fallbackId'` 均**禁止**
+2. **beforeAll/beforeEach 创建数据** — 测试所需的前置数据（任务、文件、记录等）必须在 `beforeAll` 或 `beforeEach` 中通过 UI 操作或 API 调用创建
+3. **等待异步数据就绪** — 如果前置操作是异步的（如 Agent 执行任务、文件生成），必须用 `waitForResponse` / `waitForSelector` / polling 等方式确认数据就绪后再执行断言
+4. **跨模块数据依赖** — 当模块 B 的测试依赖模块 A 产生的数据时（如测试 Canvas 预览需要先有任务+文件），在 `beforeAll` 中完成模块 A 的操作，将产出的 ID/URL 存入 `test.describe` 级变量供后续用例使用
+
+**常见模式：**
+
+**模式 A — UI 操作创建数据（推荐，最贴近真实用户）：**
+```typescript
+test.describe.serial('Canvas 预览', { tag: ['@all'] }, () => {
+  let taskUrl: string;
+
+  test.beforeAll(async ({ browser }) => {
+    // 1. 登录并新建任务
+    const ctx = await browser.newContext({ storageState: '.auth/user.json' });
+    const page = await ctx.newPage();
+    await page.goto('/task');
+    // 2. 输入 prompt 触发 Agent 执行
+    await page.getByRole('textbox', { name: /请输入/ }).fill('帮我找一个全栈工程师');
+    await page.getByRole('button', { name: 'Submit' }).click();
+    // 3. 等待任务完成（文件生成）
+    await page.waitForSelector('text=任务已完成', { timeout: 120_000 });
+    // 4. 保存 taskUrl 供后续用例使用
+    taskUrl = page.url();
+    await ctx.close();
+  });
+
+  test('文件打开后 Canvas 展示下载按钮', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(taskUrl);
+    // ... 断言 Canvas 功能 ...
+  });
+});
+```
+
+**模式 B — API 创建数据（速度快，适合大量前置数据）：**
+```typescript
+test.describe('文件下载', { tag: ['@all'] }, () => {
+  let taskId: string;
+
+  test.beforeAll(async ({ request }) => {
+    // 通过 API 创建任务（如果项目有对应接口）
+    const resp = await request.post('/api/tasks', {
+      data: { prompt: '帮我找全栈工程师' },
+    });
+    const body = await resp.json();
+    taskId = body.id;
+    // 轮询等待完成
+    await expect.poll(async () => {
+      const r = await request.get(`/api/tasks/${taskId}`);
+      return (await r.json()).status;
+    }, { timeout: 120_000 }).toBe('completed');
+  });
+
+  test('下载按钮触发文件下载', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(`/task/${taskId}`);
+    // ...
+  });
+});
+```
+
+**模式 C — 数据无需创建（测试目标本身就是创建操作）：**
+```typescript
+// 测试"新建任务"功能时，操作本身就是数据创建，无需 beforeAll
+test('新建任务后跳转到任务详情页', async ({ authenticatedPage }) => {
+  await authenticatedPage.goto('/task');
+  await authenticatedPage.getByRole('textbox').fill('测试内容');
+  await authenticatedPage.getByRole('button', { name: 'Submit' }).click();
+  await expect(authenticatedPage).toHaveURL(/\/task\/.+/);
+});
+```
+
+**handoff 映射时的处理：**
+- 分析每个用例的 `preconditions`，识别是否需要前置数据（如"Canvas 已加载文件"→ 需先创建任务并等待文件生成）
+- 同一 `storyId` 下共享相同前置数据的用例，归入同一个 `test.describe.serial`，在 `beforeAll` 中统一创建
+- 前置数据创建耗时较长时（如 Agent 任务 > 30s），必须使用 `test.describe.serial` + `beforeAll`（只创建一次），而非每个用例重复创建
+- `beforeAll` 中创建数据时设置合理的 timeout（如 `test.setTimeout(180_000)`），Agent 任务通常需要 1~2 分钟
+
+---
+
 After generating all `test()` blocks, **extract every locator into a Page Object class** — no locator string should appear directly in spec files.
 
 **已有 POM 的处理**：
