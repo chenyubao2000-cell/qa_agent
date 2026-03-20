@@ -1,58 +1,58 @@
 ---
 name: excel-case-export
-description: 将 Markdown 测试用例导出为 Excel 文件。当任务涉及"导出 Excel"、"用例表格"时激活。
+description: Export Markdown test cases to Excel files. Activated when the task involves "export Excel" or "case spreadsheet".
 ---
 
-# Excel 用例导出规范
+# Excel Test Case Export Specification
 
-## 输入
+## Input
 
-test-cases/generated/{feature}.md 中的测试用例 Markdown 文件。
+Markdown test case files located in test-cases/generated/{feature}.md.
 
-## 输出
+## Output
 
 test-cases/excel/{feature}.xlsx
 
-## Excel 表格结构
+## Excel Table Structure
 
-| 列 | 字段 | 说明 |
-|----|------|------|
-| A  | 用例编号 | TC-{mod}-{seq} |
-| B  | 功能模块 | 所属功能 |
-| C  | 用例标题 | 描述性标题 |
-| D  | 优先级 | P0/P1/P2 |
-| E  | 前置条件 | Given |
-| F  | 操作步骤 | When |
-| G  | 预期结果 | Then |
-| H  | 测试数据 | 具体值 |
-| I  | 测试类型 | 正向/异常/边界 |
-| J  | 执行结果 | 空（供手工测试填写） |
-| K  | 备注 | 空 |
+| Column | Field | Description |
+|--------|-------|-------------|
+| A  | Case ID | TC-{mod}-{seq} |
+| B  | Feature Module | Associated feature |
+| C  | Case Title | Descriptive title |
+| D  | Priority | P0/P1/P2 |
+| E  | Preconditions | Given |
+| F  | Steps | When |
+| G  | Expected Result | Then |
+| H  | Test Data | Specific values |
+| I  | Test Type | Positive/Negative/Boundary |
+| J  | Execution Result | Empty (for manual testing) |
+| K  | Remarks | Empty |
 
-## 样式要求
+## Styling Requirements
 
-- 表头行：加粗、浅蓝背景、居中
-- 优先级单元格着色：P0 红色、P1 橙色、P2 黄色
-- 列宽自适应内容
-- 冻结首行
-- 自动筛选
+- Header row: bold, light blue background, centered
+- Priority cell coloring: P0 red, P1 orange, P2 yellow
+- Column width auto-fit to content
+- Freeze first row
+- Auto-filter
 
-## 实现
+## Implementation
 
-使用 skills/excel-case-export/scripts/generate-excel.js（基于 exceljs 库）：
+Uses skills/excel-case-export/scripts/generate-excel.js (based on exceljs library):
 
 ```bash
-# 单文件 → 单 Sheet
+# Single file → single Sheet
 node skills/excel-case-export/scripts/generate-excel.js \
   --input test-cases/generated/{feature}.md \
   --output test-cases/excel/{feature}.xlsx
 
-# 多文件 → 每个文件一个 Sheet（逗号分隔）
+# Multiple files → one Sheet per file (comma-separated)
 node skills/excel-case-export/scripts/generate-excel.js \
   --input test-cases/generated/a.md,test-cases/generated/b.md \
   --output test-cases/excel/all-cases.xlsx
 
-# 整个目录 → 每个 .md 一个 Sheet
+# Entire directory → one Sheet per .md file
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir test-cases/generated \
   --output test-cases/excel/all-cases.xlsx

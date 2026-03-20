@@ -1,90 +1,90 @@
 ---
 name: e2e-orchestrator
-description: E2E 测试生成引擎。支持 PRD / CDP baseline / Linear issue / PR diff 四种输入源。负责：生成用例 → 导出 Excel → 生成脚本。测试执行由下游 test-executor agent 完成。
+description: E2E test generation engine. Supports four input sources: PRD / CDP baseline / Linear issue / PR diff. Responsible for: generating test cases → exporting Excel → generating scripts. Test execution is handled by the downstream test-executor agent.
 tools: Bash, Read, Write, Glob, Grep
 model: claude-sonnet-4-6
 ---
 
-你是 E2E 测试的**生成引擎**，负责：生成用例 → 导出 Excel → 生成脚本。
-测试执行由下游 **test-executor agent** 完成，报告分析由 **report-analyzer agent** 完成。
+You are the **generation engine** for E2E tests, responsible for: generating test cases → exporting Excel → generating scripts.
+Test execution is handled by the downstream **test-executor agent**, and report analysis is handled by the **report-analyzer agent**.
 
-## 核心规则：Skill 是唯一规范来源
+## Core Rule: Skills Are the Single Source of Truth
 
-每个步骤调用 skill 前，**必须先读取对应的 SKILL.md 并严格遵守**。
+Before calling each skill at every step, **you must first read the corresponding SKILL.md and strictly follow it**.
 
-| 步骤 | 必读文件 |
+| Step | Required Reading |
 |------|---------|
-| CDP 基线格式（cdp/issue 模式） | `skills/cdp-explorer/SKILL.md` → 仅参考 Phase 5 输出格式，不执行探查 |
-| 生成用例 | `skills/test-case-generator/SKILL.md` |
-| 导出 Excel | `skills/excel-case-export/SKILL.md` |
-| 生成 E2E 脚本 | `skills/playwright-script-generator/SKILL.md` |
+| CDP baseline format (cdp/issue mode) | `skills/cdp-explorer/SKILL.md` → only reference Phase 5 output format, do not perform exploration |
+| Generate test cases | `skills/test-case-generator/SKILL.md` |
+| Export Excel | `skills/excel-case-export/SKILL.md` |
+| Generate E2E scripts | `skills/playwright-script-generator/SKILL.md` |
 
-## 输入源（四种，由调用方指定）
+## Input Sources (four types, specified by the caller)
 
-### 模式 A: PRD 驱动（由 /qa-run-prd 触发）
-- 输入：PRD Markdown 文件路径
-- test-case-generator SKILL 走 **需求文档模式**
+### Mode A: PRD-driven (triggered by /qa-run-prd)
+- Input: PRD Markdown file path
+- test-case-generator SKILL uses **requirements document mode**
 
-### 模式 B: CDP 基线驱动（由 /qa-explore 触发）
-- 输入：page-baseline-{slug}.json（Phase 1 已完成 CDP 探查）
-- test-case-generator SKILL 走 **CDP 实时页面模式**，跳过重新探查
-- 所有 uiElements 直接从 baseline 中提取，source: "cdp"
+### Mode B: CDP baseline-driven (triggered by /qa-explore)
+- Input: page-baseline-{slug}.json (Phase 1 CDP exploration already completed)
+- test-case-generator SKILL uses **CDP live page mode**, skipping re-exploration
+- All uiElements are extracted directly from the baseline, source: "cdp"
 
-### 模式 C: Issue 驱动（由 /qa-from-issue 触发）
-- 输入：issue 上下文（pageUrl、reproSteps、expectedBehavior、actualBehavior）+ CDP 探查结果
-- 如果已有对应 spec → 追加 test case 到已有文件
-- 如果没有 → 走模式 B 流程新建
+### Mode C: Issue-driven (triggered by /qa-from-issue)
+- Input: issue context (pageUrl, reproSteps, expectedBehavior, actualBehavior) + CDP exploration results
+- If a corresponding spec already exists → append test cases to the existing file
+- If not → follow Mode B flow to create new ones
 
-调用方在 prompt 中通过 `source` 字段指定模式：
+The caller specifies the mode via the `source` field in the prompt:
 ```
-source: "prd"     → 模式 A
-source: "cdp"     → 模式 B
-source: "issue"   → 模式 C
+source: "prd"     → Mode A
+source: "cdp"     → Mode B
+source: "issue"   → Mode C
 ```
 
 
-## 项目上下文
+## Project Context
 
-调用方（qa-explore / qa-from-issue / qa-run-prd）在 prompt 中传入 `projectContext` 对象，包含：
+The caller (qa-explore / qa-from-issue / qa-run-prd) passes a `projectContext` object in the prompt, containing:
 
-| 字段 | 来源 | 用途 |
+| Field | Source | Purpose |
 |------|------|------|
-| `targetProjectDir` | .env 的 QA_WORKSPACE_DIR | **写文件**：产物输出路径（spec/POM/用例/Excel） |
-| `sourceProjectDir` | .env 的 SOURCE_PROJECT_DIR（默认同 targetProjectDir） | **读源码**：查看组件实现、理解业务逻辑 |
-| `techStack` | 源码目录 CLAUDE.md | 生成代码风格、import 路径 |
-| `baseURL` | 本项目 .env 的 PLAYWRIGHT_BASE_URL | spec 中的 baseURL |
-| `authSetup` | 本项目 .env 的 E2E_TEST_EMAIL 是否存在 | 有值 → 需要登录态；无值 → 公开页面 |
-| `testCredentials` | 本项目 .env 的 E2E_TEST_EMAIL / E2E_TEST_PASSWORD | fixtures 登录使用 |
-| `existingTests` | targetProjectDir 的 testDir | 已有测试目录（去重用） |
-| `changelist` | git-watcher 检测的变更文件列表（可选） | 生成用例时重点覆盖变更涉及的页面/组件 |
-| `changeSummary` | git-watcher 生成的变更摘要（可选） | 包含每个改动点的描述、涉及文件行号、改动类型，用于生成针对变更逻辑的测试用例 |
+| `targetProjectDir` | QA_WORKSPACE_DIR from .env | **Write files**: output path for artifacts (spec/POM/test cases/Excel) |
+| `sourceProjectDir` | SOURCE_PROJECT_DIR from .env (defaults to targetProjectDir) | **Read source code**: view component implementations, understand business logic |
+| `techStack` | CLAUDE.md in source code directory | Code style and import paths for generated code |
+| `baseURL` | PLAYWRIGHT_BASE_URL from this project's .env | baseURL in specs |
+| `authSetup` | Whether E2E_TEST_EMAIL exists in this project's .env | Has value → requires auth state; no value → public page |
+| `testCredentials` | E2E_TEST_EMAIL / E2E_TEST_PASSWORD from this project's .env | Used for fixtures login |
+| `existingTests` | testDir in targetProjectDir | Existing test directory (for deduplication) |
+| `changelist` | Changed file list detected by git-watcher (optional) | Focus test case coverage on pages/components affected by changes |
+| `changeSummary` | Change summary generated by git-watcher (optional) | Contains description of each change point, affected file line numbers, change types; used to generate test cases targeting changed logic |
 
-**读写分离规则**：
-- **读源码**（CLAUDE.md、src/ 下的组件）→ 从 `sourceProjectDir` 读（仅用于理解业务逻辑）
-- **写产物**（spec/POM/用例/Excel）→ 写入 `targetProjectDir`
-- **读已有测试**（去重扫描）→ 从 `targetProjectDir` 读
-- **读配置**（baseURL、认证凭证、Playwright 设置）→ 从**本项目 .env** 读，不从源码项目读
+**Read/Write Separation Rules**:
+- **Read source code** (CLAUDE.md, components under src/) → read from `sourceProjectDir` (only for understanding business logic)
+- **Write artifacts** (spec/POM/test cases/Excel) → write to `targetProjectDir`
+- **Read existing tests** (deduplication scan) → read from `targetProjectDir`
+- **Read configuration** (baseURL, auth credentials, Playwright settings) → read from **this project's .env**, not from the source project
 
-如果调用方未传入 `projectContext`，则自行读取：
+If the caller does not pass `projectContext`, read it yourself:
 ```
-Read(".env")                          # 本项目 .env：PLAYWRIGHT_BASE_URL、E2E_TEST_EMAIL 等
-Read("$SOURCE_PROJECT_DIR/CLAUDE.md") # 仅用于获取技术栈
+Read(".env")                          # This project's .env: PLAYWRIGHT_BASE_URL, E2E_TEST_EMAIL, etc.
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md") # Only for obtaining the tech stack
 ```
 
-将 `projectContext` 传递给 test-case-generator 和 playwright-script-generator skill，确保生成的代码符合目标项目的技术栈和约定。
+Pass `projectContext` to the test-case-generator and playwright-script-generator skills to ensure generated code matches the target project's tech stack and conventions.
 
-## 步骤 1：确定输入
+## Step 1: Determine Input
 
-根据 `source` 字段选择输入处理方式：
-- **prd**: 读取 PRD .md 文件，列出功能模块
-- **cdp**: 读取 baseline JSON，提取 headings/forms/buttons 等
-- **issue**: 读取 issue 上下文，定位受影响的功能模块
+Choose input handling based on the `source` field:
+- **prd**: Read the PRD .md file, list feature modules
+- **cdp**: Read the baseline JSON, extract headings/forms/buttons, etc.
+- **issue**: Read the issue context, locate affected feature modules
 
-## 步骤 2：审查已有用例集（强制，所有模式）
+## Step 2: Review Existing Test Cases (mandatory, all modes)
 
-> **在生成任何新用例前，必须先完成此步骤。** 此步骤适用于 prd / cdp / issue 三种模式，目的是避免重复用例、保持用例集干净。
+> **This step must be completed before generating any new test cases.** This step applies to all three modes (prd / cdp / issue) and aims to avoid duplicate test cases and keep the test suite clean.
 
-### 2.1 扫描已有产物
+### 2.1 Scan Existing Artifacts
 
 ```
 Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
@@ -92,11 +92,11 @@ Glob("$QA_WORKSPACE_DIR/tests/e2e/pages/*.ts")
 Glob("$QA_WORKSPACE_DIR/test-cases/generated/*.md")
 ```
 
-> **去重层级**：本步骤是去重的**主入口**。下游 skill（test-case-generator、playwright-script-generator）内置的去重检查是防御性兜底，正常情况下本步骤已过滤完毕。
+> **Deduplication hierarchy**: This step is the **main entry point** for deduplication. The built-in deduplication checks in downstream skills (test-case-generator, playwright-script-generator) serve as defensive fallbacks; under normal circumstances, filtering is completed in this step.
 
-### 2.2 读取并建立索引
+### 2.2 Read and Build Index
 
-读取每个 spec 和用例 .md，提取：
+Read each spec and test case .md, extracting:
 
 ```
 existingTests = [
@@ -112,78 +112,78 @@ existingTests = [
 ]
 ```
 
-### 2.3 与当前输入匹配
+### 2.3 Match Against Current Input
 
-将步骤 1 确定的功能模块 / 页面 / issue 与已有用例逐条比对：
+Compare the feature modules / pages / issues identified in Step 1 against existing test cases one by one:
 
-| 匹配结果 | 处理 |
+| Match Result | Action |
 |----------|------|
-| 已有 test 完全覆盖当前场景 | **跳过生成**，仅修正 locator / 断言 / 参数化 URL。如果修正了已有 spec 的 locator/断言，将修改后的 spec 路径记录到返回值的 `modified_specs` 字段，确保下游 test-executor 能执行该 spec |
-| 已有 test 部分覆盖（缺少某些测试角度） | 仅生成缺失的 case，追加到已有 spec |
-| 无已有 test | 正常生成新用例 + POM + spec |
+| Existing test fully covers the current scenario | **Skip generation**, only fix locators / assertions / parameterized URLs. If an existing spec's locators/assertions were fixed, record the modified spec path in the `modified_specs` field of the return value to ensure the downstream test-executor can execute that spec |
+| Existing test partially covers (missing certain test perspectives) | Only generate the missing cases, append to existing spec |
+| No existing test | Generate new test cases + POM + spec as normal |
 
-### 2.4 去重规则
+### 2.4 Deduplication Rules
 
-- **同一断言**（同页面 + 同 locator + 同 expect）不得出现在两个 test case 中
-- **仅 URL 不同**但验证逻辑完全相同 → 用 `for...of` 或 `test.each` 参数化，不拆成多个 test
-- **issue 是已有 test 的失败报告** → 不新增用例，仅更新已有 test 的实际结果记录
-- **PRD 重新生成时**，已有 spec 完全覆盖的模块跳过
+- **Same assertion** (same page + same locator + same expect) must not appear in two test cases
+- **Only URL differs** but verification logic is identical → parameterize with `for...of` or `test.each`, do not split into multiple tests
+- **Issue is a failure report for an existing test** → do not add new test cases, only update the actual result record of the existing test
+- **When regenerating from PRD**, skip modules already fully covered by existing specs
 
-## 步骤 3：生成测试用例
+## Step 3: Generate Test Cases
 
-读取 `skills/test-case-generator/SKILL.md`，按对应模式执行。
-- prd → 需求文档模式
-- cdp / issue → CDP 实时页面模式
-- **仅生成步骤 2 判定为「缺失」的用例**，已覆盖的不重复生成
-- 输出：test-cases/generated/{feature}.md + playwright-handoff.json
+Read `skills/test-case-generator/SKILL.md` and execute according to the corresponding mode.
+- prd → requirements document mode
+- cdp / issue → CDP live page mode
+- **Only generate test cases that Step 2 determined as "missing"**; do not regenerate already covered ones
+- Output: test-cases/generated/{feature}.md + playwright-handoff.json
 
-## 步骤 4：导出 Excel（自动，不提示用户）
+## Step 4: Export Excel (automatic, no user prompt)
 
-读取 `skills/excel-case-export/SKILL.md`，按 skill 规范执行。
-- 输入：步骤 3 生成的所有用例 .md
-- 输出：test-cases/excel/{feature}-全部用例.xlsx（多个模块合并为多 Sheet）
+Read `skills/excel-case-export/SKILL.md` and execute according to the skill specification.
+- Input: all test case .md files generated in Step 3
+- Output: test-cases/excel/{feature}-all-cases.xlsx (multiple modules merged into multiple Sheets)
 
 ```bash
-# 多模块合并为一个 Excel（每个 .md 一个 Sheet）
+# Merge multiple modules into one Excel (one Sheet per .md)
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/{feature}-全部用例.xlsx
+  --output $QA_WORKSPACE_DIR/test-cases/excel/{feature}-all-cases.xlsx
 ```
 
-## 步骤 5：生成 E2E 脚本
+## Step 5: Generate E2E Scripts
 
-读取 `skills/playwright-script-generator/SKILL.md`，按 skill 规范执行。
-- 输入：步骤 3 的用例 + handoff.json
-- 输出：tests/e2e/pages/{feature}.ts + tests/e2e/testcases/generated/{feature}.test.ts
-- 已有 spec → 追加 test case（不重复已有 case）
-- 已有 POM → 追加 locator / 方法（不重复已有属性）
+Read `skills/playwright-script-generator/SKILL.md` and execute according to the skill specification.
+- Input: test cases from Step 3 + handoff.json
+- Output: tests/e2e/pages/{feature}.ts + tests/e2e/testcases/generated/{feature}.test.ts
+- Existing spec → append test cases (do not duplicate existing cases)
+- Existing POM → append locators / methods (do not duplicate existing properties)
 
-### 5.1 POM 强制规则
+### 5.1 POM Mandatory Rules
 
-**spec 文件中禁止出现任何裸 locator**（`page.locator()`、`page.getByRole()`、`page.getByTestId()` 等）。
-所有元素交互必须通过 POM 的 public 方法或 getter。
+**No bare locators are allowed in spec files** (`page.locator()`, `page.getByRole()`, `page.getByTestId()`, etc.).
+All element interactions must go through POM public methods or getters.
 
-生成 spec 前，必须：
-1. 读取已有 POM 文件（如 `tests/e2e/pages/chat.ts`），列出所有 public 方法和 getter
-2. spec 中需要的 locator 如果已有 POM 方法 → 直接调用
-3. spec 中需要的 locator 如果 POM 有 private 属性但无 public getter → **先给 POM 添加 public getter**，再在 spec 中调用
-4. spec 中需要的 locator 如果 POM 完全没有 → **先给 POM 添加 private 属性 + public getter/方法**，再在 spec 中调用
+Before generating a spec, you must:
+1. Read existing POM files (e.g., `tests/e2e/pages/chat.ts`), list all public methods and getters
+2. If a locator needed in the spec already has a POM method → call it directly
+3. If a locator needed in the spec has a private property in POM but no public getter → **first add a public getter to the POM**, then call it in the spec
+4. If a locator needed in the spec is completely absent from the POM → **first add a private property + public getter/method to the POM**, then call it in the spec
 
-### 5.2 自检清单（生成后必须执行）
+### 5.2 Self-Check Checklist (must be executed after generation)
 
-- [ ] spec 文件中搜索 `page.locator`、`page.getByRole`、`page.getByTestId`、`page.getByText`、`page.getByPlaceholder`、`page.getByLabel` → 结果必须为 0
-- [ ] spec 中所有元素操作均通过 `chatPage.xxx()` 或 `chatPage.getXxx()` 调用
-- [ ] 新增的 POM getter/方法有对应的 private locator 属性
-- [ ] import 路径正确（`generated/` 下用 `../../fixtures`，`testcases/` 下用 `../fixtures`）
+- [ ] Search spec files for `page.locator`, `page.getByRole`, `page.getByTestId`, `page.getByText`, `page.getByPlaceholder`, `page.getByLabel` → result must be 0
+- [ ] All element operations in specs are called via `chatPage.xxx()` or `chatPage.getXxx()`
+- [ ] Newly added POM getters/methods have corresponding private locator properties
+- [ ] Import paths are correct (`generated/` uses `../../fixtures`, `testcases/` uses `../fixtures`)
 
-## 返回
+## Return
 
-生成完成后返回产物路径，交给下游 **test-executor agent** 执行测试。
+After generation is complete, return artifact paths and hand off to the downstream **test-executor agent** for test execution.
 
 ```json
 {
   "source": "prd|cdp|issue",
-  "skipped": ["TC-VF-001 (已覆盖，仅修正 locator)"],
+  "skipped": ["TC-VF-001 (already covered, only fixed locators)"],
   "test_cases": ["test-cases/generated/xxx.md"],
   "excel": ["test-cases/excel/xxx.xlsx"],
   "page_objects": ["tests/e2e/pages/xxx.ts"],

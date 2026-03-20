@@ -1,82 +1,82 @@
 ---
 name: vitest-testing
-description: 基于源代码生成 Vitest 单元测试。当任务涉及"单元测试"、"Vitest"、"函数测试"时激活。
+description: Generate Vitest unit tests based on source code. Activated when a task involves "unit testing", "Vitest", or "function testing".
 ---
 
-# Vitest 单元测试生成规范
+# Vitest Unit Test Generation Guidelines
 
-## 输入
+## Input
 
-- 源代码文件（.ts / .tsx）
-- 项目 CLAUDE.md（技术栈、测试约定）
-- 业务规则文档（辅助理解函数意图）
+- Source code files (.ts / .tsx)
+- Project CLAUDE.md (tech stack, testing conventions)
+- Business rule documentation (to help understand function intent)
 
-## 测试文件结构
+## Test File Structure
 
 ```typescript
 // tests/unit/generated/{mirror-path}/{module}.test.ts
 import { describe, it, expect, vi } from 'vitest'
 import { functionName } from '@/path/to/module'
 
-describe('{模块名}', () => {
-  describe('{函数名}', () => {
-    it('正常输入返回预期结果', () => {
+describe('{ModuleName}', () => {
+  describe('{FunctionName}', () => {
+    it('returns expected result for normal input', () => {
       expect(functionName(validInput)).toBe(expectedOutput)
     })
 
-    it('空输入抛出异常', () => {
+    it('throws on empty input', () => {
       expect(() => functionName(null)).toThrow()
     })
 
-    it('边界值处理正确', () => {
+    it('handles boundary values correctly', () => {
       expect(functionName(boundaryValue)).toBe(expectedBoundary)
     })
   })
 })
 ```
 
-## 覆盖策略
+## Coverage Strategy
 
-对每个导出函数/方法：
-1. **正常路径**：至少 1 个典型输入
-2. **边界值**：空值、零值、最大值、空数组、空对象
-3. **异常路径**：非法类型、缺少必填字段
-4. **分支覆盖**：每个 if/switch 分支至少 1 个用例
+For each exported function/method:
+1. **Happy path**: at least 1 typical input
+2. **Boundary values**: null, zero, max value, empty array, empty object
+3. **Error path**: invalid types, missing required fields
+4. **Branch coverage**: at least 1 test case per if/switch branch
 
-## Mock 规范
+## Mock Guidelines
 
-- 外部依赖（API 调用、数据库）→ `vi.mock()`
-- 内部纯函数 → 不 mock，直接测试
-- 时间相关 → `vi.useFakeTimers()`
-- 环境变量 → `vi.stubEnv()`
+- External dependencies (API calls, database) → `vi.mock()`
+- Internal pure functions → do not mock, test directly
+- Time-related → `vi.useFakeTimers()`
+- Environment variables → `vi.stubEnv()`
 
 ```typescript
-// Mock 示例
+// Mock example
 vi.mock('@/services/api', () => ({
   fetchUser: vi.fn().mockResolvedValue({ id: 1, name: 'Test' })
 }))
 ```
 
-## React 组件测试（如适用）
+## React Component Testing (if applicable)
 
-使用 @testing-library/react：
+Use @testing-library/react:
 
 ```typescript
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-it('点击提交按钮触发回调', async () => {
+it('clicking the submit button triggers callback', async () => {
   const onSubmit = vi.fn()
   render(<Form onSubmit={onSubmit} />)
-  await userEvent.click(screen.getByRole('button', { name: '提交' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Submit' }))
   expect(onSubmit).toHaveBeenCalledOnce()
 })
 ```
 
-## 关键原则
+## Key Principles
 
-- 测试描述用中文，说明"做什么得到什么"
-- 每个 it block 只测一个行为
-- 不测试实现细节（private 方法、内部状态）
-- 不 mock 被测函数本身
-- 测试数据内联，不用外部 fixture 文件（除非数据量极大）
+- Write test descriptions in plain language, stating "what action produces what result"
+- Each it block tests only one behavior
+- Do not test implementation details (private methods, internal state)
+- Do not mock the function under test itself
+- Inline test data; do not use external fixture files (unless the data volume is very large)
