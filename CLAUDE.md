@@ -4,22 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目简介
 
-QA 自动化测试平台 Plugin（qa-platform）。所有通用 QA 能力打包为 Plugin，一次开发，多项目复用。
+QA 自动化测试平台（qa-platform）。通用 QA 能力集中管理，多项目复用。
 
 ## 架构
 
 ```
-qa-platform-plugin/
+qa-platform/
 ├── skills/          → 5 个 Skill（CDP 探查、测试用例生成、Playwright E2E、Excel 导出、Linear 上报）
 ├── agents/          → 4 个 Subagent（e2e-orchestrator、test-executor、report-analyzer、bug-reporter）
 ├── .claude/commands/→ 4 个 Slash Command（/qa-explore、qa-from-issue、qa-run-all、qa-run-prd）
-<!-- ├── skills/vitest-testing/ — 单元测试 Skill（暂停） -->
-<!-- ├── agents/unit-test-orchestrator.md — 单元测试 Agent（暂停） -->
-<!-- ├── .claude/commands/qa-run-unit.md — 单元测试命令（暂停） -->
 ├── hooks/           → 2 个 Hook（session-start 校验、通知）
-├── mcp-templates/   → MCP 配置模板（GitHub + Linear + Filesystem）
-├── scripts/         → 环境加载、一键接入
-└── project-template/→ .env.example + CLAUDE.md.template
+└── scripts/         → PR 监控（git-watcher）
 ```
 
 ## 流水线
@@ -47,7 +42,6 @@ PR 监控（独立流程）：
 
 ## 命令
 
-- `bash scripts/install.sh` — 在目标项目根目录运行，一键接入
 - `/qa-explore` — 探查浏览器页面，自动生成 E2E 测试基线 + 用例 + POM + spec
 - `/qa-from-issue <issues>` — 从 Linear issue 生成或更新 E2E 测试（支持批量：多个 key / 关键词 / --all-open）
 - `/qa-run-all` — 执行已有 E2E 测试，汇总报告，上报 Linear（不生成用例/spec）
