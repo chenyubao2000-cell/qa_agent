@@ -255,42 +255,11 @@ while attempt < MAX_ATTEMPTS:
       The caller receives empty specs → skips test-executor → reports the error to user
 ```
 
-## Step 4: Translate to Chinese + Export Excel (automatic, no user prompt)
+## Step 4: Export Excel (automatic, no user prompt)
 
-### Step 4.1: Translate .md to Chinese (haiku model)
+> Test cases are already generated in Chinese by the test-case-generator skill (Output Language rule). No translation step needed.
 
-> Test cases are generated in English by default. Before Excel export, translate all user-facing content to Chinese using haiku (cheapest model, sufficient for translation).
-
-For each .md file generated in Step 3, launch a **translation subagent** (haiku):
-
-```
-prompt:
-You are a translator. Translate the test case content in the given .md file from English to Chinese.
-
-Input:
-- file: {absolute path to the .md file}
-
-Rules:
-1. Read the file, translate ONLY these fields to Chinese:
-   - Case titles (after **TC-xxx-nnn**:)
-   - **Priority** values: keep as P0/P1/P2 (don't translate)
-   - **Preconditions** content → translate to Chinese
-   - **Operations** content → translate to Chinese
-   - **Expected Result** content → translate to Chinese
-   - **Test Data** content → keep technical values (URLs, selectors, etc.), translate descriptions
-   - Method section headings → keep in English (## Method 1: ...)
-   - N/A reasons → translate to Chinese
-2. DO NOT change:
-   - TC IDs (TC-CP-001 etc.)
-   - HTML comments (<!-- PRD-hash: ... -->)
-   - Markdown structure/formatting
-   - Technical terms (locator, POM, CDP, etc.)
-3. Write the translated content back to the SAME file (overwrite)
-```
-
-> **Why haiku**: Translation is a straightforward task — no code generation or complex reasoning needed. Haiku is ~10x cheaper than sonnet and produces equivalent quality for translation.
-
-### Step 4.2: Export Excel
+### Export Excel
 
 Read `skills/excel-case-export/SKILL.md` and execute according to the skill specification.
 

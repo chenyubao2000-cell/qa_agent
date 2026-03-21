@@ -131,12 +131,7 @@ Tasks:
      - New requirement → add new case
      - Requirement removed → mark case as DEPRECATED
    - Update PRD-hash in header
-4. Translate all generated .md files to Chinese before Excel export:
-   - For each .md file, translate case titles, preconditions, operations, expected results to Chinese
-   - Keep TC IDs, priority labels (P0/P1/P2), HTML comments, and technical terms unchanged
-   - Use haiku model for translation (cheapest, sufficient for this task)
-   - Write translated content back to the same file
-5. Call excel-case-export script to export Excel (all cases merged into one file, one Sheet per module)
+4. Call excel-case-export script to export Excel (all cases merged into one file, one Sheet per module)
    - Command: node skills/excel-case-export/scripts/generate-excel.js --input-dir $targetProjectDir/test-cases/generated --output $targetProjectDir/test-cases/excel/{prd-name}-all-cases.xlsx
    - Output: $targetProjectDir/test-cases/excel/{prd-name}-all-cases.xlsx
 
