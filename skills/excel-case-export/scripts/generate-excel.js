@@ -126,14 +126,15 @@ async function main() {
 // 列名 → 内部字段名映射（支持中英文 + 模糊匹配）
 const COLUMN_ALIASES = {
   id:       ['用例编号', 'case id', 'caseid', 'tc', '编号'],
+  module:   ['功能模块', 'feature module', 'module', '模块'],
   type:     ['有效还是无效等价类', 'valid/invalid', 'valid/invalid equivalence class', '测试类型', 'test type', '等价类'],
   priority: ['用例等级', 'case level', '优先级', 'priority', '等级'],
   title:    ['用例名', 'case name', '用例标题', 'title', '标题'],
   given:    ['输入条件', 'input conditions', '前置条件', 'preconditions', 'given', '条件'],
-  when:     ['操作', 'operations', '操作步骤', 'steps', 'when'],
+  when:     ['操作', 'operations', '操作步骤', '测试步骤', '步骤', 'steps', 'when'],
   then:     ['预期结果', 'expected result', 'then', '预期'],
   testData: ['测试数据', 'test data', '数据'],
-  remarks:  ['条件组合编号', 'condition ids', 'related step 1 condition combination ids', '备注', 'remarks', '涉及第一步的条件组合编号'],
+  remarks:  ['条件组合编号', 'condition ids', 'related step 1 condition combination ids', '备注', 'remarks', '来源方法', '涉及第一步的条件组合编号'],
 }
 
 function matchColumn(headerText) {
@@ -188,15 +189,15 @@ function parseMarkdownTable(md, module) {
       }
     }
 
-    // 跳过空行
-    if (!tc.id && !tc.title) continue
-    cases.push(tc)
-
     // 表格结束后重置，允许一个文件中有多个表格
     if (i + 1 < lines.length) {
       const nextLine = lines[i + 1].trim()
       if (!nextLine.startsWith('|')) headerMap = null
     }
+
+    // 跳过空行
+    if (!tc.id && !tc.title) continue
+    cases.push(tc)
   }
 
   return cases
@@ -210,7 +211,6 @@ function parseMarkdownCases(md) {
   // 先尝试格式 A（结构化字段），再尝试格式 B（表格）
   const casesA = parseFormatA(md, module)
   const casesB = parseMarkdownTable(md, module)
-
   // 合并两种格式的结果（去重：同一个 id 只保留一次）
   if (casesA.length > 0 && casesB.length > 0) {
     const seenIds = new Set(casesA.map(c => c.id))
