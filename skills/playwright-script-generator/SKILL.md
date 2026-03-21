@@ -16,9 +16,49 @@ You are an expert QA automation engineer specializing in Playwright end-to-end t
 
 ---
 
-## 0. Deduplication Check (Must Execute Before Generating Specs)
+## 0a. Assertion Quality Validation (Mandatory after spec generation)
 
-Before generating any new spec, you **must** scan existing scripts to avoid duplication:
+> After generating each spec file, scan ALL `expect()` calls and validate assertion quality. Weak assertions that only check existence without verifying business semantics must be strengthened.
+
+**Assertion quality rules:**
+
+| Pattern | Verdict | Required Fix |
+|---------|---------|-------------|
+| `expect(locator).toBeVisible()` alone | **WEAK** — only checks existence | Add content assertion: `.toHaveText()`, `.toContainText()`, or semantic check |
+| `expect(locator).toBeVisible()` for loading spinner/skeleton | **OK** — existence IS the business meaning | No fix needed |
+| `expect(locator).toHaveText('...')` with specific expected text | **STRONG** | No fix needed |
+| `expect(locator).toHaveAttribute('...', '...')` | **STRONG** | No fix needed |
+| `expect(page).toHaveURL('...')` | **STRONG** | No fix needed |
+| `expect(items).toHaveCount(N)` where N > 0 | **STRONG** | No fix needed |
+| `expect(locator).toBeTruthy()` | **WEAK** — doesn't validate content | Replace with specific assertion |
+| `expect(locator).not.toBeVisible()` for error/empty state | **OK** — absence IS the business meaning | No fix needed |
+
+**Validation process (run after generating each spec file):**
+```
+1. Grep the generated spec for all expect() calls
+2. For each expect():
+   a. Is it toBeVisible() alone (no chained content check)?
+      → Check if the element is a spinner/skeleton/loading indicator (from POM context)
+      → If NOT a loading indicator → WEAK → strengthen:
+        - For text elements: add .toHaveText() or .toContainText() with expected content from handoff
+        - For inputs: add .toHaveValue() or .toHaveAttribute('placeholder', '...')
+        - For lists/tables: add .toHaveCount() with expected count
+        - For buttons: add .toBeEnabled() or .toBeDisabled() depending on context
+   b. Is it toBeTruthy()?
+      → Always WEAK → replace with specific assertion
+3. If any WEAK assertions were found and strengthened, log:
+   "Strengthened N weak assertions in {specFile}"
+```
+
+> **Why this matters**: A test that only checks `toBeVisible()` will pass even if the element shows an error message instead of the expected content. This makes the test useless for catching regressions.
+
+---
+
+## 0b. Deduplication Check (Defensive Fallback)
+
+> **Deduplication hierarchy**: The primary deduplication is performed by the **e2e-orchestrator** (agents/e2e-orchestrator.md Step 2) before this skill is invoked. The orchestrator already filtered out fully covered scenarios. This skill's check is a **defensive fallback** — if somehow a duplicate entry reaches the handoff, catch it here.
+
+Before generating any new spec, scan existing scripts to avoid duplication:
 
 ```
 Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
@@ -34,9 +74,89 @@ For each test case entry in the handoff:
 
 ---
 
+## 0c. Test Data Self-Sufficiency (Mandatory for every generated test)
+
+> **Core rule**: Every generated `test()` block must be **completely self-contained** — it sets up its own test data, executes, verifies, and cleans up. No test may depend on another test's output. This enables `fullyParallel: true` and ensures a single test failure doesn't cascade.
+
+### Setup & Teardown Code Generation Rules
+
+For each `test()` block, generate setup and teardown based on the test case's preconditions and postconditions from the handoff:
+
+**1. Setup (before test action) — via UI POM methods:**
+```typescript
+test('Delete task removes it from list', async ({ authenticatedPage: page }) => {
+  const tasksPage = new TasksPage(page);
+  const taskName = `Test-Del-${Date.now()}`;
+
+  // ── Setup: create test data via UI ──
+  await tasksPage.goto();
+  await tasksPage.createTask(taskName);
+  await expect(tasksPage.getTaskByName(taskName)).toBeVisible(); // confirm setup succeeded
+
+  // ── Action: what we're actually testing ──
+  await tasksPage.deleteTask(taskName);
+
+  // ── Assertion ──
+  await expect(tasksPage.getTaskByName(taskName)).not.toBeVisible();
+
+  // ── Teardown: not needed (task deleted by the test itself) ──
+});
+```
+
+**2. Teardown (after test action) — via UI POM methods:**
+```typescript
+test('Create task shows in list', async ({ authenticatedPage: page }) => {
+  const tasksPage = new TasksPage(page);
+  const taskName = `Test-Create-${Date.now()}`;
+
+  // ── Action ──
+  await tasksPage.goto();
+  await tasksPage.createTask(taskName);
+
+  // ── Assertion ──
+  await expect(tasksPage.getTaskByName(taskName)).toBeVisible();
+
+  // ── Teardown: clean up via UI ──
+  await tasksPage.deleteTask(taskName);
+});
+```
+
+**3. Unique test data naming:**
+- Always use `Date.now()` or `crypto.randomUUID()` suffix in test data names
+- Prevents collisions when tests run in parallel
+- Pattern: `Test-{Action}-{timestamp}` (e.g., `Test-Edit-1711234567890`)
+
+**4. When to use `test.beforeEach` / `test.afterEach`:**
+- If ALL tests in a `test.describe` need the same setup → use `beforeEach`
+- If cleanup is needed regardless of test pass/fail → use `afterEach` (ensures teardown even on failure)
+- Individual tests with unique setup → inline setup in the test body
+
+**5. POM must include setup/teardown methods:**
+```typescript
+// POM should expose both "test action" methods and "setup/teardown" methods
+export class TasksPage {
+  // Setup methods (called in test setup, not the test action itself)
+  async createTask(name: string) { /* navigate, click create, fill name, submit */ }
+  async deleteTask(name: string) { /* find task, click delete, confirm */ }
+
+  // Getter methods (for assertions)
+  getTaskByName(name: string) { return this.page.getByText(name); }
+}
+```
+
+> **Key principle**: Setup and teardown use the SAME POM methods as the tests. `createTask()` is both a setup helper (for delete/edit tests) and a test action (for create tests). This reuse keeps the code DRY and ensures setup stays in sync with the actual UI.
+
+**6. Handoff integration:**
+- The handoff JSON's `setup[]` field describes what UI operations are needed before the test action
+- The `teardown[]` field describes what UI cleanup is needed after
+- The `pomMethod` field in each setup/teardown entry maps directly to a POM method name
+- `{timestamp}` placeholders are replaced with `Date.now()` in generated code
+
+---
+
 ## 1. Consuming Handoff from test-case-generator
 
-When invoked after `test-case-generator`, check for `tests/generated/playwright-handoff.json`. If it exists, use it as the **sole source of truth** — do not ask the user to describe tests again.
+When invoked after `test-case-generator`, check for the handoff JSON file. The path is passed by the caller — typically `$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-{slug}.json` (or `playwright-handoff-{slug}-{area-id}.json` when called per area from `/qa-explore`). If it exists, use it as the **sole source of truth** — do not ask the user to describe tests again.
 
 ### 1.1 Mapping Rules
 
@@ -85,14 +205,14 @@ When invoked after `test-case-generator`, check for `tests/generated/playwright-
 | `P2-medium` | `@regression` |
 | `P3-low` | `@extended` |
 
-**Equivalence-class / boundary entries** (same `criterionId`, different `value`): generate parametrized tests, not duplicate blocks.
+**Equivalence-class or boundary-value entries** (same `criterionId`, different `value`): generate parametrized tests, not duplicate blocks. Note: equivalence partitioning (Method 1) and boundary value analysis (Method 2) are independent methods but produce entries in the same format.
 
 **timeout field**: When a handoff entry contains `"timeout": 600000`, insert `test.setTimeout(600_000);` at the top of the generated `test()` block. If `null` or absent, do not insert.
 
 ### 1.2 Handoff Source Determines Locator Strategy
 
 ```
-source = "requirements":
+source = "prd" (PRD-driven, also matches "requirements"):
   1. Read uiElements → verify each locator via CDP/source code → fix → write spec
 
 source = "cdp":

@@ -1,57 +1,57 @@
 ---
-description: 从需求文档生成测试用例 + Excel，不生成脚本
+description: Generate test cases + Excel from requirement documents, no script generation
 allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit
 ---
 
-你是测试用例生成器。根据需求文档（PRD，支持 `.md` 和 `.docx`）生成测试用例和 Excel，**不生成 Playwright 脚本、不执行测试、不上报 Linear**。
+You are a test case generator. Generate test cases and Excel from requirement documents (PRD, supports `.md` and `.docx`), **no Playwright script generation, no test execution, no Linear reporting**.
 
 ```
-/qa-gen-cases [prd-path] [--output <输出目录>]
-     ↓
-Phase 0: 加载项目上下文（.env → 输出目录）
-     ↓
-Phase 1: 读取需求文档（.md / .docx）
-     ↓
-Phase 2: 生成用例 + 导出 Excel
+/qa-gen-cases [prd-path] [--output <output-dir>]
+     |
+Phase 0: Load project context (.env -> output directory)
+     |
+Phase 1: Read requirement document (.md / .docx)
+     |
+Phase 2: Generate cases + Export Excel
 ```
 
-## 用户意图解析
+## User Intent Parsing
 
-从 `$ARGUMENTS` 中解析：
-- 包含文件路径（`.md` 或 `.docx`）→ 作为 PRD 路径
-- `--output <dir>` → 覆盖默认输出目录
-- 无参数 → 在 `$SOURCE_PROJECT_DIR/docs/prd/` 下查找 `.md` 和 `.docx` 文件
+Parse from `$ARGUMENTS`:
+- Contains file path (`.md` or `.docx`) -> use as PRD path
+- `--output <dir>` -> override default output directory
+- No arguments -> look for `.md` and `.docx` files under `$SOURCE_PROJECT_DIR/docs/prd/`
 
-## Phase 0: 加载上下文
+## Phase 0: Load Context
 
-读取 `.env` 获取 `QA_WORKSPACE_DIR`（默认产物输出目录）和 `SOURCE_PROJECT_DIR`（PRD/源码所在目录）。
+Read `.env` to get `QA_WORKSPACE_DIR` (default artifact output directory) and `SOURCE_PROJECT_DIR` (PRD/source code directory).
 
 ```
 Read(".env")
 ```
 
-确定输出目录（优先级）：
-1. `$ARGUMENTS` 中的 `--output` 参数
-2. `.env` 中的 `QA_WORKSPACE_DIR`
-3. 当前工作目录
+Determine output directory (priority):
+1. `--output` parameter in `$ARGUMENTS`
+2. `QA_WORKSPACE_DIR` in `.env`
+3. Current working directory
 
-确保输出目录存在（不存在则创建）：
+Ensure output directory exists (create if not):
 ```bash
 mkdir -p $OUTPUT_DIR/test-cases/generated $OUTPUT_DIR/test-cases/excel
 ```
 
-## Phase 1: 读取需求文档
+## Phase 1: Read Requirement Document
 
-读取 PRD 文件（`$ARGUMENTS` 或默认 `$SOURCE_PROJECT_DIR/docs/prd/`）。
+Read PRD file (`$ARGUMENTS` or default `$SOURCE_PROJECT_DIR/docs/prd/`).
 
-### 支持的文档格式
+### Supported Document Formats
 
-| 格式 | 处理方式 |
-|------|---------|
-| `.md` | 直接 `Read()` 读取 |
-| `.docx` | 先用 `python3` 转为文本，再解析（见下方） |
+| Format | Processing Method |
+|--------|------------------|
+| `.md` | Read directly with `Read()` |
+| `.docx` | First convert to text with `python3`, then parse (see below) |
 
-#### .docx 转换
+#### .docx Conversion
 
 ```bash
 python3 -c "
@@ -72,58 +72,119 @@ for table in doc.tables:
 " "$PRD_FILE" > "$OUTPUT_DIR/test-cases/generated/_prd-converted.md"
 ```
 
-转换后的 `.md` 文件作为后续步骤的输入。
+The converted `.md` file serves as input for subsequent steps.
 
-### PRD 分模块策略
+### PRD Module Splitting Strategy
 
-PRD 包含多个功能模块时，按 `##` 级标题拆分为独立模块，每个模块独立生成用例。
+When PRD contains multiple feature modules, split by `##` level headings into independent modules, each generating cases independently.
 
-## Phase 2: 生成用例 + 导出 Excel
+### PRD Change Detection (same mechanism as /qa-run-prd)
 
-启动 **case-only-orchestrator**（sonnet），只执行用例生成和 Excel 导出，跳过脚本生成。
+Before generating, detect which PRD modules have changed since last generation:
 
-**Agent prompt**：
 ```
-你是测试用例生成专家。请先读取以下两个 SKILL 文件了解规范：
-1. skills/test-case-generator/SKILL.md — 用例生成规范
-2. skills/excel-case-export/SKILL.md — Excel 导出规范
+1. Read existing .md files: Glob("$OUTPUT_DIR/test-cases/generated/*-prd.md")
+2. For each existing .md, extract PRD-hash from header: <!-- PRD-hash: {hash} -->
+3. For each current PRD module, compute content hash (sha256)
+4. Compare:
+   - Hash matches → prdChangeMode: "none" (skip, existing cases up-to-date)
+   - Hash differs → prdChangeMode: "updated" (incremental update)
+   - No existing .md → prdChangeMode: "new" (generate from scratch)
+   - Existing .md but module removed from PRD → prdChangeMode: "removed" (mark deprecated)
+```
 
-输入：
+## Phase 2: Generate Cases + Export Excel
+
+For each module based on its `prdChangeMode`:
+- `"none"` → skip (existing .md and Excel are up-to-date)
+- `"removed"` → add deprecation header to existing .md: `<!-- DEPRECATED: module removed from PRD -->`
+- `"new"` or `"updated"` → launch case-only-orchestrator
+
+Launch **case-only-orchestrator** (sonnet), only execute case generation and Excel export, skip script generation.
+
+**Agent prompt**:
+```
+You are a test case generation expert. First read the following two SKILL files for specifications:
+1. skills/test-case-generator/SKILL.md — case generation specification
+2. skills/excel-case-export/SKILL.md — Excel export specification
+
+Input:
 - source: "prd"
-- prdFiles: [PRD 文件路径列表，.md 或已转换的 .md]
+- prdFiles: [PRD file path list, .md or already-converted .md]
+- prdModuleScope: "{module heading}"
+- prdChangeMode: "new" | "updated"
 - projectContext:
     targetProjectDir: {OUTPUT_DIR}
     sourceProjectDir: {SOURCE_PROJECT_DIR}
 
-任务：
-1. 确保输出目录存在：mkdir -p $targetProjectDir/test-cases/generated $targetProjectDir/test-cases/excel
-2. 读取 PRD 文件，按 test-case-generator SKILL 的「需求文档模式」生成用例
-   - 输出：$targetProjectDir/test-cases/generated/{feature}-prd.md
-3. 调用 excel-case-export 脚本导出 Excel（所有用例合并到一个文件，每个模块一个 Sheet）
-   - 命令：node skills/excel-case-export/scripts/generate-excel.js --input-dir $targetProjectDir/test-cases/generated --output $targetProjectDir/test-cases/excel/{prd-name}-全部用例.xlsx
-   - 输出：$targetProjectDir/test-cases/excel/{prd-name}-全部用例.xlsx
+Tasks:
+1. Ensure output directories exist: mkdir -p $targetProjectDir/test-cases/generated $targetProjectDir/test-cases/excel
+2. If prdChangeMode is "new":
+   - Generate cases from scratch per test-case-generator SKILL
+   - Output: $targetProjectDir/test-cases/generated/{feature}-prd.md
+   - Include header: <!-- PRD-hash: {sha256(module text)} -->
+3. If prdChangeMode is "updated":
+   - Read existing $targetProjectDir/test-cases/generated/{feature}-prd.md
+   - Diff PRD requirements against existing cases:
+     - Requirement unchanged → keep existing case
+     - Requirement modified → update case with new expected behavior
+     - New requirement → add new case
+     - Requirement removed → mark case as DEPRECATED
+   - Update PRD-hash in header
+4. Translate all generated .md files to Chinese before Excel export:
+   - For each .md file, translate case titles, preconditions, operations, expected results to Chinese
+   - Keep TC IDs, priority labels (P0/P1/P2), HTML comments, and technical terms unchanged
+   - Use haiku model for translation (cheapest, sufficient for this task)
+   - Write translated content back to the same file
+5. Call excel-case-export script to export Excel (all cases merged into one file, one Sheet per module)
+   - Command: node skills/excel-case-export/scripts/generate-excel.js --input-dir $targetProjectDir/test-cases/generated --output $targetProjectDir/test-cases/excel/{prd-name}-all-cases.xlsx
+   - Output: $targetProjectDir/test-cases/excel/{prd-name}-all-cases.xlsx
 
-⚠️ 重要约束：
-- 只生成用例文档（.md）和 Excel（.xlsx）
-- 不生成 Playwright 脚本（.test.ts）
-- 不生成 Page Object（.page.ts）
-- 不生成 handoff JSON
-- 不修改目标项目的 tests/ 目录下的任何文件
-- 不执行测试、不分析报告、不上报 Linear
+Important constraints:
+- Only generate case documents (.md) and Excel (.xlsx)
+- Do not generate Playwright scripts (.test.ts)
+- Do not generate Page Objects (.page.ts)
+- Do not generate handoff JSON
+- Do not modify any files under the target project's tests/ directory
+- Do not execute tests, analyze reports, or report to Linear
 
-返回产物路径：
+Return artifact paths:
 {
   "source": "prd",
+  "prdChangeMode": "new|updated",
   "test_cases": ["test-cases/generated/xxx-prd.md"],
   "excel": ["test-cases/excel/xxx-prd.xlsx"]
 }
 ```
 
-## 产出物
+### Post-Generation Verification (mandatory)
 
-| 文件 | 说明 |
-|------|------|
-| `test-cases/generated/{feature}-prd.md` | Markdown 测试用例文档 |
-| `test-cases/excel/{feature}-prd.xlsx` | Excel 测试用例表格 |
+After the subagent returns, the main command MUST verify that files were actually written to disk:
 
-仅此两类文件，不产出其他任何文件。
+```
+1. For each test_cases path in the return value:
+   - Check file exists: Read(path) or Glob
+   - If file NOT found → ERROR: "Subagent reported success but file not written: {path}"
+   - Retry: re-launch subagent with explicit instruction to use Write tool
+
+2. For the Excel file:
+   - Check file exists
+   - If NOT found → re-run excel-case-export script directly in main command:
+     node skills/excel-case-export/scripts/generate-excel.js --input-dir {outputDir}/test-cases/generated --output {excelPath}
+
+3. For each .md file, validate:
+   - Contains "## Merged Test Case List" section (method enforcement check)
+   - Contains at least 1 "**TC-" pattern (has actual cases)
+   - If validation fails → report to user, do not silently succeed
+```
+
+> **Why this is needed**: Subagents run in isolated contexts. If a subagent's Write call fails silently (permission, path issue), the subagent may report success while no file was written. This verification catches that.
+
+## Artifacts
+
+| File | Description |
+|------|-------------|
+| `test-cases/generated/{feature}-prd.md` | Markdown test case document |
+| `test-cases/excel/{feature}-prd.xlsx` | Excel test case spreadsheet |
+
+Only these two file types are produced, no other files.

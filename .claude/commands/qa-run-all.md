@@ -1,97 +1,97 @@
 ---
-description: 运行已有 E2E 测试，汇总报告，上报 Linear
+description: Run existing E2E tests, aggregate reports, report to Linear
 allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit
 ---
 
-你是测试执行者。不生成用例、不导出 Excel、不生成 spec——只执行已有测试并报告。
+You are a test executor. Do not generate cases, export Excel, or generate specs — only execute existing tests and report.
 
 ```
-/qa-run-all [spec文件路径] [--source <源码目录>]
-     ↓
-Phase 0: 加载项目上下文（.env → 目标项目配置）
-     ↓
-Phase 1: 串行启动（按顺序执行）
-         test-executor → 执行已有 spec → 产出报告
-              ↓ 完成后
-         report-analyzer → 分析报告 → bug-reporter → Linear
+/qa-run-all [spec-file-path] [--source <source-code-dir>]
+     |
+Phase 0: Load project context (.env -> target project config)
+     |
+Phase 1: Sequential launch (execute in order)
+         test-executor -> execute existing specs -> produce reports
+              | after completion
+         report-analyzer -> analyze reports -> bug-reporter -> Linear
 ```
 
-## Phase 0: 加载项目上下文
+## Phase 0: Load Project Context
 
 ```
 Read(".env")
 ```
 
-只需提取：
-- `QA_WORKSPACE_DIR` — 读 spec、写报告
-- `LINEAR_*` — 透传给 report-analyzer（Bug 上报）
+Only need to extract:
+- `QA_WORKSPACE_DIR` — read specs, write reports
+- `LINEAR_*` — pass through to report-analyzer (bug reporting)
 
-不需要：SOURCE_PROJECT_DIR（不读源码）、PLAYWRIGHT_BASE_URL（已在 config 里）、E2E_TEST_EMAIL（已在 global-setup 里）。
-不做初始化——只跑已有 spec，工作区必须已由 `/qa-explore` 等命令初始化过。
+Not needed: SOURCE_PROJECT_DIR (no source reading), PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in global-setup).
+No initialization — only runs existing specs; workspace must have been initialized by `/qa-explore` or similar commands.
 
-### 源码目录（可选，git-watcher 注入）
+### Source Code Directory (optional, injected by git-watcher)
 
-读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > prompt 中的 `prSourceDir` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
-- **写文件**（报告）→ 始终写入 QA_WORKSPACE_DIR
+Source code directory priority: `--source` in `$ARGUMENTS` > `prSourceDir` in prompt > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
+- **Write files** (reports) -> always write to QA_WORKSPACE_DIR
 
-## Phase 1: 串行启动（按顺序执行）
+## Phase 1: Sequential Launch (execute in order)
 
-### 前置检查
+### Pre-check
 
-启动 test-executor 前，先检查是否有可执行的 spec：
+Before launching test-executor, check for executable specs:
 
 ```
 Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
 ```
 
-- 如果结果为空 → 直接告知用户"目标项目中无 spec 文件，请先运行 /qa-explore 或 /qa-run-prd 生成测试"
-- 否则 → 启动 test-executor
+- If result is empty -> inform user "No spec files in target project, please run /qa-explore or /qa-run-prd to generate tests first"
+- Otherwise -> launch test-executor
 
-### 变更上下文（可选，由 git-watcher 注入）
+### Change Context (optional, injected by git-watcher)
 
-如果 prompt 中包含以下段落，提取并利用：
+If the prompt contains the following sections, extract and utilize them:
 
-**变更文件列表（changelist）**：优先执行 changelist 涉及的模块对应的 spec，而非全量：
+**Changed file list (changelist)**: Prioritize executing specs for modules involved in the changelist, rather than running all:
 ```
-changelist 中有 src/components/Chat.tsx
-  → 查找 tests/e2e/testcases/ 中 import 了 ChatPage 或文件名含 chat 的 spec
-  → 优先执行这些 spec，其余仍跑全量
-```
-
-**代码变更摘要（changeSummary）**：AI 生成的结构化变更摘要，传给 report-analyzer 用于判断失败是否与本次变更直接相关。
-
-**PR 源码目录（prSourceDir）**：git-watcher 通过 worktree 创建的 PR 全量代码副本。读源码从此目录读，写文件仍写入原 QA_WORKSPACE_DIR。
-
-**关联 Linear Issue**：如果 prompt 中包含 `关联 Linear Issue（用于失败归因）：STE-123, STE-456`，提取 issue key 列表，传给 report-analyzer 作为 `relatedIssueKeys`。report-analyzer 据此将失败用例与 PR 关联的 issue 对应，在汇总报告和 Linear 评论中标注关联关系。
-
-```
-识别格式：
-关联 Linear Issue（用于失败归因）：STE-123, STE-456
-PR 源码目录（prSourceDir）：D:\code\.qa-worktree-pr
+changelist contains src/components/Chat.tsx
+  -> find specs in tests/e2e/testcases/ that import ChatPage or have filenames containing chat
+  -> prioritize executing these specs, still run all for the rest
 ```
 
-**Agent 1 — test-executor**（haiku）：
-- 跳过 e2e-orchestrator，直接执行已有 spec
-- 如果 $ARGUMENTS 指定了文件路径则只跑指定的，否则跑全量
-- 产出 JSON + HTML 报告到 `$QA_WORKSPACE_DIR/tests/reports/`
+**Code change summary (changeSummary)**: AI-generated structured change summary, passed to report-analyzer to determine if failures are directly related to this change.
 
-### Headless 模式检测
+**PR source directory (prSourceDir)**: Full PR code copy created by git-watcher via worktree. Read source from this directory; write files still to the original QA_WORKSPACE_DIR.
 
-如果 prompt 中包含 `_trigger: git-watcher_`，在启动 report-analyzer 时传入 `headless: true`，使其跳过打开浏览器。
+**Related Linear Issues**: If the prompt contains `Related Linear Issues (for failure attribution): STE-123, STE-456`, extract the issue key list and pass to report-analyzer as `relatedIssueKeys`. report-analyzer uses this to associate failed cases with PR-related issues, annotating the relationship in summary reports and Linear comments.
 
-**Agent 2 — report-analyzer**（haiku）：
-- 读取报告 → 分析 → bug-reporter → Linear 上报 → 汇总报告
-- 如果有 changeSummary → 传给 report-analyzer，用于区分"本次回归"vs"已有失败"
-- 如果有 relatedIssueKeys → 传给 report-analyzer，用于失败归因
-- 如果 headless → 传给 report-analyzer，跳过打开浏览器
-
-prompt 模板：
 ```
-你是 report-analyzer。请先读取 agents/report-analyzer.md 了解你的完整职责。
+Identification format:
+Related Linear Issues (for failure attribution): STE-123, STE-456
+PR source directory (prSourceDir): D:\code\.qa-worktree-pr
+```
 
-输入：
+**Agent 1 — test-executor** (haiku):
+- Skip e2e-orchestrator, directly execute existing specs
+- If $ARGUMENTS specifies file paths, only run those; otherwise run all
+- Produce JSON + HTML reports to `$QA_WORKSPACE_DIR/tests/reports/`
+
+### Headless Mode Detection
+
+If the prompt contains `_trigger: git-watcher_`, pass `headless: true` when launching report-analyzer, so it skips opening the browser.
+
+**Agent 2 — report-analyzer** (haiku):
+- Read reports -> analyze -> bug-reporter -> Linear reporting -> summary report
+- If changeSummary available -> pass to report-analyzer to distinguish "this regression" vs "existing failure"
+- If relatedIssueKeys available -> pass to report-analyzer for failure attribution
+- If headless -> pass to report-analyzer to skip opening the browser
+
+prompt template:
+```
+You are report-analyzer. First read agents/report-analyzer.md to understand your full responsibilities.
+
+Input:
 - projectContext: { targetProjectDir, ... }
-- changeSummary: <代码变更摘要，如有>
-- relatedIssueKeys: [<关联的 Linear issue key 列表，如有>]
+- changeSummary: <code change summary, if available>
+- relatedIssueKeys: [<list of related Linear issue keys, if available>]
 - headless: <true if triggered by git-watcher>
 ```

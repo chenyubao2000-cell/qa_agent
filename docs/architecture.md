@@ -1,200 +1,379 @@
-# QA Platform Plugin — 系统架构文档
+# QA 平台插件 — 系统架构文档
 
 ## 1. 概述
 
-QA Platform 是一个基于 Claude Code 的 QA 自动化测试插件。通过 Command + Agent + Skill 三层架构，将测试用例生成、脚本编写、执行和 Bug 上报全流程自动化。
+QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command → Agent → Skill 三层架构，将测试用例设计、脚本编写、执行和 Bug 上报全流程自动化。
 
 **设计目标：**
 - 一次开发，多项目复用
-- 输入源灵活（CDP 页面探查 / Linear Issue / PRD 文档）
-- 三层并行：生成层 | 执行层 | 报告层
-- 支持增量检测和去重，避免重复生成
+- 输入源灵活（CDP 页面探查 / Linear Issue / PRD 文档 / 已有 spec）
+- CDP 串行 + AI 并行流水线，最大化吞吐
+- 子 Agent 上下文隔离，防止上下文爆炸
+- 增量探查 + 中断恢复
 
 ---
 
-## 2. 三层架构
+## 2. 入口层（7 个入口）
+
+| 入口 | 触发方式 | 生成 | 执行 | 报告 | CDP |
+|------|---------|:----:|:----:|:----:|:---:|
+| `/qa-explore` | 用户命令 | 是 | 是 | 是 | 全量探查 |
+| `/qa-from-issue` | 用户命令 / git-watcher | 是 | 是 | 是 | 定向探查 |
+| `/qa-run-prd` | 用户命令 | 是 | 是 | 是 | 仅验证 |
+| `/qa-gen-cases` | 用户命令 | 仅用例+Excel | 否 | 否 | 否 |
+| `/qa-run-all` | 用户命令 / git-watcher | 否 | 是 | 是 | 否 |
+| `/qa-fix-tests` | 用户命令 | 仅修复 | 是 | 否 | 验证+修复 |
+| `git-watcher` | 守护进程（轮询 PR） | 路由到上述命令 | — | 评论 PR | Headless |
+
+---
+
+## 3. 三层架构
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    命令层 (Commands)                          │
-│         用户入口，负责输入准备 + 并行启动 Agent                 │
-├──────────┬──────────┬──────────┬──────────┤
-│qa-explore│qa-from-  │qa-run-   │qa-run-   │
-│          │issue     │prd       │all       │
-│ CDP 探查 │ Linear   │ PRD 文档 │ 直接执行 │
-└────┬─────┴────┬─────┴────┬─────┴────┬────┘
-     │          │          │          │
-     ▼          ▼          ▼          │
-┌──────────────────────────────┐      │   ┌───────────────────┐
-│  生成层                       │      │   │ 自动分发           │
-│  e2e-orchestrator (sonnet)   │      │   │ ├ PRD 变更→prd    │
-│  ├ 去重检查                   │      │   │ ├ 有 issue→issue  │
-│  ├ test-case-generator skill │      │   │ ├ 都有→合并模式    │
-│  ├ excel-case-export skill   │      │   │ └ 其他→qa-run-all │
-│  └ playwright-script-generator│      │   └───────────────────┘
-└──────────────┬───────────────┘      │
-               │ spec 文件             │
-               ▼                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  执行层                                                      │
-│  test-executor (haiku)                                       │
-│  接收上游 spec → 执行测试 → 产出 JSON + HTML 报告              │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ 报告文件
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  报告层                                                      │
-│  report-analyzer (haiku) ← 并行监听报告目录                    │
-│  └ bug-reporter (haiku)                                      │
-│      └ linear-bug-report skill → Linear Issue                │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     命令层（入口）                                     │
+│  输入准备 + 上下文加载 + 流水线编排                                     │
+├──────────┬───────────┬──────────┬──────────┬──────────┬─────────────┤
+│qa-explore│qa-from-   │qa-run-   │qa-gen-   │qa-run-  │qa-fix-      │
+│          │issue      │prd       │cases     │all      │tests        │
+│ CDP 全量 │ CDP 定向  │ PRD 文本 │ PRD 文本 │ 直接执行 │ CDP 修复    │
+└────┬─────┴────┬──────┴────┬─────┴────┬─────┴────┬────┴────┬────────┘
+     │          │           │          │          │         │
+     ▼          ▼           ▼          ▼          │         │
+┌────────────────────────────────────────────┐    │         │
+│  生成层                                    │    │         │
+│  e2e-orchestrator (sonnet)                 │    │         │
+│  ├ 步骤 1: 确定输入 (cdp/issue/prd)         │    │         │
+│  ├ 步骤 2: 去重检查（主入口）                │    │         │
+│  ├ 步骤 3: test-case-generator SKILL       │    │         │
+│  ├ 步骤 4: excel-case-export SKILL         │    │         │
+│  └ 步骤 5: playwright-script-generator     │    │         │
+└──────────────────┬─────────────────────────┘    │         │
+                   │ specs + modified_specs        │         │
+                   ▼                               ▼         │
+┌─────────────────────────────────────────────────────────┐  │
+│  执行层                                                  │  │
+│  test-executor (haiku)                                   │  │
+│  接收 spec 列表 → npx playwright test → JSON + HTML 报告 │  │
+└──────────────────────────┬──────────────────────────────┘  │
+                           │ 报告文件                        │
+                           ▼                                 │
+┌─────────────────────────────────────────────────────────┐  │
+│  报告层                                                  │  │
+│  report-analyzer (haiku)                                 │  │
+│  ├ 读取报告 → 分析 → 去重                                │  │
+│  ├ 路由: 源 issue → 回写 / 新 bug → 新建                 │  │
+│  └ bug-reporter (haiku) → Linear API                     │  │
+└─────────────────────────────────────────────────────────┘  │
+                                                             │
+  qa-fix-tests: 绕过生成层 ──────────────────────────────────┘
+  直接: CDP 探查 → 修复 spec/POM → 验证 → 回归
 ```
 
-### 2.1 命令层
+### 3.1 Agent 流水线
 
-| 命令 | 输入源 | 走 e2e-orchestrator | 说明 |
-|------|--------|:-------------------:|------|
-| `/qa-explore` | CDP 页面 | 是 (source: "cdp") | 探查浏览器页面，端到端生成 |
-| `/qa-from-issue` | Linear Issue | 是 (source: "issue") | 从 Bug/需求 issue 出发 |
-| `/qa-run-prd` | PRD 文档 | 是 (source: "prd") | 需求文档驱动 |
-| `/qa-run-all` | 已有 spec | 否 | 只执行 + 报告，不生成 |
+Agent 按**串行顺序**执行（非并行）：
 
-### 2.2 Agent 层
+```
+e2e-orchestrator 完成 → test-executor 启动 → report-analyzer 启动
+```
 
-| Agent | 模型 | 层 | 职责 |
-|-------|------|-----|------|
-| e2e-orchestrator | sonnet | 生成层 | 去重 → 用例 → Excel → spec |
-| test-executor | haiku | 执行层 | 接收 spec → 执行测试 → 产出报告 |
-| report-analyzer | haiku | 报告层 | 并行监听报告 → 分析 → 触发上报 |
-| bug-reporter | haiku | 报告层 | 格式化 Issue → 调用 Linear API |
+每个 Agent 在独立的子 Agent 中运行，上下文互相隔离。命令层负责编排顺序。
 
-**并行协同：** 三个 Agent 由命令层同时启动，各自独立运行：
-- e2e-orchestrator 生成完 spec → test-executor 拾取执行
-- test-executor 产出报告 → report-analyzer 拾取分析
-- report-analyzer 不等所有测试完成，谁先产出报告就先处理
+| Agent | 模型 | 职责 | 上下文 |
+|-------|------|------|--------|
+| e2e-orchestrator | sonnet | 去重 → 用例 → Excel → spec | 独立子 Agent |
+| test-executor | haiku | 执行 spec → 产出报告 | 独立子 Agent |
+| report-analyzer | haiku | 分析 → 路由 → Linear | 独立子 Agent |
+| bug-reporter | haiku | 格式化 → 创建/更新 Linear Issue | 独立子 Agent |
 
-### 2.3 Skill 层
+### 3.2 Skill 层
 
-Skill 只在项目级维护（`skills/` 目录），Agent 通过 `Read` 工具读取 SKILL.md 后执行。
+Skill 是 `.md` 规范文件。Agent 通过 `Read` 工具读取后按规范执行。
 
 | Skill | 调用者 | 输入 | 输出 |
 |-------|--------|------|------|
-| test-case-generator | e2e-orchestrator | PRD / CDP baseline / Issue | 用例 .md + handoff.json |
+| cdp-explorer | 命令层（通过子 Agent） | 浏览器页面 + 模式 | page-baseline-{slug}.json |
+| test-case-generator | e2e-orchestrator | PRD / CDP 基线 / Issue | 用例 .md + handoff .json |
 | excel-case-export | e2e-orchestrator | 用例 .md | Excel .xlsx |
-| playwright-script-generator | e2e-orchestrator | handoff.json | POM + spec .test.ts |
-| linear-bug-report | bug-reporter | 失败用例列表 | Linear Issue（去重后） |
+| playwright-script-generator | e2e-orchestrator | handoff .json | POM .ts + spec .test.ts |
 
 ---
 
-## 3. 流水线
+## 4. 流水线详解
 
-### 3.1 标准流水线（qa-explore / qa-from-issue / qa-run-prd）
-
-```
-命令层并行启动 3 个 Agent：
-  │
-  ├─ e2e-orchestrator (sonnet) ── 生成层
-  │   ├─ 步骤 1: 确定输入 (cdp / issue / prd)
-  │   ├─ 步骤 2: 去重检查
-  │   ├─ 步骤 3: test-case-generator skill → 用例 .md
-  │   ├─ 步骤 4: excel-case-export skill → Excel
-  │   └─ 步骤 5: playwright-script-generator skill → POM + spec
-  │
-  ├─ test-executor (haiku) ── 执行层
-  │   └─ 接收 spec → 执行测试 → 产出 JSON + HTML 报告
-  │
-  └─ report-analyzer (haiku) ── 报告层
-      └─ 监听报告 → 分析 → bug-reporter → Linear 上报 → 汇总报告
-```
-
-### 3.2 纯执行流水线（qa-run-all）
+### 4.1 `/qa-explore` — 页面探查流水线
 
 ```
-命令层并行启动 2 个 Agent：
-  │
-  ├─ test-executor (haiku) ── 直接执行已有 spec（跳过生成层）
-  │
-  └─ report-analyzer (haiku) ── 监听报告
+Phase 0: 读取 .env → 初始化工作区（目录、playwright、fixtures）
+Phase 1: CDP 连接 → 登录墙处理 → State₀ 扫描 → 识别功能区域
+Phase 2a: 串行 CDP 探查（每个区域一个子 Agent，顺序执行）
+  区域1: CDP BFS 探查 → 写入 baseline → 返回摘要（~100 tokens）
+  区域2: CDP BFS 探查 → 写入 baseline → 返回摘要
+  ...（动态发现的区域追加并继续探查）
+Phase 2b: 并行用例生成（每个区域一个 orchestrator，同时启动）
+  区域1: orchestrator → 用例 + POM fragment + spec  ←─┐
+  区域2: orchestrator → 用例 + POM fragment + spec  ←─┤ 并行
+  区域3: orchestrator → 用例 + POM fragment + spec  ←─┘
+  → 主命令合并 POM fragment 为最终 POM 文件
+Phase 2c: 串行 Locator 验证（每个 POM 一个子 Agent）
+  POM1: CDP 验证 → 修复 locator → 返回结果
+  POM2: CDP 验证 → 修复 locator → 返回结果
+Phase 2.5: 跨区域流程发现
+  主命令: 分析 baseline 中跨区域 edge（无需 CDP）
+  CDP 子 Agent: 探查 1 跳导航目标（仅 State₀）
+  orchestrator: 生成跨区域集成测试用例
+Phase 3: test-executor → report-analyzer → Linear
+```
+
+**上下文开销**：每个区域 ~700 tokens 进入主上下文（不用子 Agent 则是 ~100K）。
+
+### 4.2 `/qa-from-issue` — Issue 驱动流水线
+
+```
+Phase 0: 读取 .env → 初始化工作区
+Phase 1: 从 Linear 获取 issue → 提取 pageUrl/reproSteps/expected/actual
+  → 判断模式: X（修复已有）/ A（补充）/ B（新建）
+Phase 2: CDP 定向探查（子 Agent）
+  → 围绕 issue 区域做定向 BFS
+  → targetArea 找不到时降级为全量模式
+Phase 3（模式 A/B）: 流水线并行生成
+  串行 CDP 探查（按 pageUrl 分组）
+  → 并行 orchestrator（按分组）
+  → 串行 Locator 验证
+  → 构建 specToIssueMap
+  → test-executor → report-analyzer（失败路由回源 issue）
+Phase 3（模式 X）: 修复子 Agent
+  → CDP 探查 + 直接修复 spec/POM（绕过 orchestrator）
+  → test-executor → report-analyzer
+```
+
+**批量处理**：多个 issue 按 pageUrl 分组。CDP 按组串行，orchestrator 跨组并行。
+
+### 4.3 `/qa-run-prd` — PRD 驱动流水线
+
+```
+Phase 0: 读取 .env → 初始化工作区
+Phase 1: 读取 PRD → 按 ## 标题拆分模块 → PRD 变更检测（content hash 对比）
+  → 每个模块判定: none（未变）/ new（新增）/ updated（变更）/ removed（删除）
+Phase 2: 流水线并行生成
+  none → 跳过
+  removed → 标记已有 spec 为 deprecated（test.describe.skip）
+  new/updated → 并行 orchestrator（每个模块一个，同时启动）
+    → updated 模式: 增量更新（保留未变/修改变更/新增/废弃删除的用例）
+  → 串行 CDP 页面探查 + Locator 验证（每个页面一个子 Agent）
+  → test-executor → report-analyzer → Linear
+```
+
+**PRD 变更检测**：每个 .md 文件头部存储 `<!-- PRD-hash: {sha256} | PRD-module: {heading} | feature-slug: {slug} -->`，下次运行时对比 hash 判定变更类型。
+
+### 4.4 `/qa-run-all` — 纯执行
+
+```
+Phase 0: 读取 .env（仅 QA_WORKSPACE_DIR，不做初始化）
+Phase 1: 检查是否有 spec 文件
+  → test-executor (haiku) → 执行全量/指定 spec
+  → report-analyzer (haiku) → 分析 + 报告
+```
+
+可选的 git-watcher 上下文：changelist、changeSummary、prSourceDir、headless。
+
+### 4.5 `/qa-gen-cases` — 仅生成用例
+
+```
+Phase 0: 读取 .env → 确定输出目录
+Phase 1: 读取 PRD（.md 或 .docx） → PRD 变更检测（同 qa-run-prd 的 hash 机制）
+  → none → 跳过 / updated → 增量更新 / new → 从零生成 / removed → 标记废弃
+Phase 2: case-only-orchestrator → 用例 .md + Excel .xlsx
+  → 不生成脚本、不生成 POM、不生成 handoff、不执行、不上报 Linear
+```
+
+### 4.6 `/qa-fix-tests` — 修复失败测试
+
+```
+Phase 0: 读取 .env
+Phase 1: 查找非 skip 的 spec → 执行一轮 → 收集失败列表
+Phase 2: 逐文件修复（每个失败文件一个独立子 Agent）
+  子 Agent 对每个失败先分类:
+    TEST_ISSUE（locator 过期/选择器模糊）→ 修复测试
+    POSSIBLE_BUG（功能真的坏了）→ 不修测试，记录为 Bug
+    AMBIGUOUS（不确定）→ 深入调查后分类
+  → 直接执行 Playwright 验证（不走 test-executor Agent）
+Phase 2.5: Bug 上报
+  如有 classification="bug" 的失败 → 启动 report-analyzer → 创建 Linear issue
+  → 这些测试保持原样（断言是正确的，应用有问题）
+Phase 3: 全量回归 → 汇总报告（分三类：修复的测试问题 / 发现的应用 Bug / 需人工审查）
+```
+
+**核心原则**：不为了让测试通过而改变正确的业务断言。如果按钮应该 enabled 但实际 disabled，测试断言 `toBeEnabled()` 是正确的——应该报 Bug，不该改断言。
+
+### 4.7 `git-watcher` — CI 监控守护进程
+
+```
+每 20 秒轮询 GitHub PR（base: TARGET_BRANCH）
+  → 检测: 新 PR / 代码推送 / 信息更新
+  → 首次运行: 仅记录状态，不触发
+  → 代码推送/新 PR:
+    从 title+body 提取 Linear issue key
+    获取变更文件列表 + 生成 diff 摘要（claude -p --model haiku）
+    创建 worktree（PR 全量代码副本）
+    有 issue → /qa-from-issue {issues}
+    无 issue → /qa-run-all
+    注入 prompt: changelist、changeSummary、prSourceDir、_trigger: git-watcher_
+    解析报告 → 在 PR 上评论（按 commit SHA 去重）
+    命令执行+评论完成后保存状态（崩溃恢复: 下次重启会重新触发未完成的 PR）
 ```
 
 ---
 
-## 4. 去重机制（三层防御）
+## 5. 性能设计
 
-| 层 | 执行者 | 检查内容 |
-|----|--------|---------|
-| 主入口 | e2e-orchestrator 步骤 2 | 扫描已有 .md + .test.ts，决定跳过/补充/新建 |
-| 兜底 1 | test-case-generator skill | 生成前再检查已有用例编号 |
-| 兜底 2 | playwright-script-generator skill | 生成 spec 前再检查已有 spec + POM |
-| 上报去重 | linear-bug-report skill | 搜索 Linear 已有同名 Open Issue |
+### 5.1 CDP 串行 + AI 并行
 
----
+| 操作 | 约束 | 执行方式 |
+|------|------|---------|
+| CDP 页面探查 | 一个浏览器，一个页面 | **串行**（每次一个子 Agent） |
+| CDP Locator 验证 | 同上 | **串行** |
+| AI 用例生成 | 不需要浏览器 | **并行**（N 个 orchestrator 同时运行） |
+| AI 用例设计 | 不需要浏览器 | **并行** |
 
-## 5. Hook 机制
+### 5.2 子 Agent 上下文隔离
 
-| 触发时机 | Hook | 功能 |
-|----------|------|------|
-| SessionStart | session-start.sh | 校验 .env → 同步代码 → 检测变更 → 分析 PR/Issue → 输出路由 JSON |
-| Stop | post-notify.sh | 会话结束 Slack 通知 |
+每次 CDP 探查在独立子 Agent 中执行：
+- 子 Agent：执行完整 BFS，全部 CDP 交互（~50-100K tokens 的 DOM/snapshot 数据）
+- 将所有发现写入 **baseline JSON 文件**（持久化，不依赖上下文）
+- 仅返回 ~100 tokens 的摘要给主命令
+- 子 Agent 结束后上下文释放
 
-### session-start.sh 逻辑
+**效果**：5 个区域 = 主上下文 ~3.5K tokens（不用隔离则 ~500K）。
 
-```
-1. 校验 .env 必要配置
-2. git fetch + pull 目标项目
-3. 对比上次记录的 HEAD，检测新提交
-4. 有新提交时：
-   ├─ 提取 changelist（变更文件列表）
-   ├─ 从 git log 提取 PR 编号
-   ├─ 通过 gh CLI 获取 PR 详情
-   └─ 从 PR 标题/描述提取 Linear issue ID
-5. 输出 JSON（hasNewCommits, changedFiles, linearIssues, route）
-   ├─ route: "qa-from-issue" — 有关联 issue，带 changelist 上下文
-   └─ route: "qa-run-all" — 无 issue，执行已有测试
-```
+### 5.3 Fragment 合并 POM 策略
+
+并行生成时，多个 orchestrator 可能操作同一页面的 POM 文件：
+- 每个 orchestrator 写 **POM fragment 文件**：`{slug}.page.{area-id}.fragment.ts`
+- 全部完成后，主命令合并 fragment 为最终 POM
+- 无并发写共享文件 → 无数据丢失
 
 ---
 
-## 6. 产出物路径
+## 6. 去重层级
+
+| 层级 | 执行者 | 检查内容 | 角色 |
+|------|--------|---------|------|
+| 主入口 | e2e-orchestrator 步骤 2 | 扫描已有 spec + .md → 跳过/补充/新建 | 主要 |
+| 兜底 1 | test-case-generator Phase A | 生成前再检查已有用例 | 防御性 |
+| 兜底 2 | playwright-script-generator 步骤 0 | 生成 spec 前再检查已有 spec + POM | 防御性 |
+| 上报去重 | report-analyzer 步骤 2 | 搜索 Linear 已有同名 Open Issue | Bug 去重 |
+
+---
+
+## 7. 用例设计方法
+
+test-case-generator SKILL 强制应用 6 种设计方法：
+
+| # | 方法 | 产出 |
+|---|------|------|
+| 1 | 等价类划分法 | 有效/无效等价类 → 用例（一个用例覆盖多个有效类，一个无效类单独一个用例） |
+| 2 | 边界值分析法 | min±1、max±1 边界用例 |
+| 3 | 因果图法 / 判定表 | 因素分析 → 判定表 → 用例 |
+| 4 | 状态转移法 | 状态机 → 有效/无效转换 |
+| 5 | 场景法 | 基本流 + 备选流 → 场景组合 |
+| 6 | 错误推测法 | 基于经验的边界用例（并发、特殊字符、空状态等） |
+
+流程：**6 种方法各自设计 → 合并 → 去重 → 输出完整用例列表**。
+
+**强制执行机制**（orchestrator Step 3.5）：
+- 生成的 .md 必须包含 6 个 `## Method N:` 段落（可以 N/A + 原因，不能缺失）
+- 至少 3 个方法必须产出实际用例（不能全部 N/A）
+- 不通过 → 重新生成（最多 2 次）→ 仍不通过 → 阻塞流水线
+
+**断言质量验证**（playwright-script-generator Step 0a）：
+- 生成 spec 后扫描所有 `expect()` 调用
+- 孤立的 `toBeVisible()` / `toBeTruthy()` 判定为弱断言 → 自动补充内容校验
+- spinner/loading 等存在性元素豁免
+
+---
+
+## 8. 产出物路径
 
 ```
 $QA_WORKSPACE_DIR/
 ├── test-cases/
-│   ├── generated/*.md                    ← 用例文档
-│   ├── generated/playwright-handoff-*.json ← Playwright 移交
-│   ├── generated/page-baseline-*.json    ← CDP 页面基线
-│   └── excel/*.xlsx                      ← Excel 表格
-├── tests/
-│   ├── e2e/
-│   │   ├── pages/*.ts                    ← Page Object
-│   │   └── testcases/generated/*.test.ts ← Playwright spec
-│   └── reports/
-│       ├── playwright-results.json       ← JSON 报告
-│       └── combined/summary.md           ← 汇总报告
-└── playwright-report/index.html          ← HTML 报告
+│   ├── generated/
+│   │   ├── page-baseline-{slug}.json              CDP 状态流图
+│   │   ├── {slug}-{area-id}-cdp.md                 用例文档
+│   │   └── playwright-handoff-{slug}-{area-id}.json Playwright 移交
+│   └── excel/
+│       └── {slug}-{area-id}-cdp.xlsx               Excel 表格
+├── tests/e2e/
+│   ├── pages/
+│   │   ├── {slug}.page.ts                          Page Object（最终合并版）
+│   │   └── {slug}.page.{area-id}.fragment.ts       POM fragment（临时，合并后删除）
+│   ├── testcases/generated/
+│   │   └── {slug}-{area-id}-cdp.test.ts            Playwright spec
+│   ├── fixtures.ts                                 测试 fixtures（auth 或简单版）
+│   ├── global-setup.ts                             登录设置（需要认证时）
+│   └── .auth/user.json                             缓存的认证状态
+├── tests/reports/
+│   ├── playwright-results.json                     JSON 报告
+│   └── combined/summary.md                         汇总报告
+└── playwright-report/index.html                    HTML 报告
 ```
 
 ---
 
-## 7. 模型分级
+## 9. 模型分级
 
 | Agent | 模型 | 原因 |
 |-------|------|------|
-| e2e-orchestrator | sonnet | 代码生成需要强能力，性价比最优 |
-| test-executor | haiku | 确定性操作（执行 bash 命令） |
-| report-analyzer | haiku | 模板填充 + API 调用 |
-| bug-reporter | haiku | 格式化 + API 调用 |
+| e2e-orchestrator | claude-sonnet-4-6 | 代码生成需要强能力 |
+| test-executor | claude-haiku-4-5 | 确定性操作（执行 bash 命令） |
+| report-analyzer | claude-haiku-4-5 | 模板填充 + API 调用 |
+| bug-reporter | claude-haiku-4-5 | 格式化 + API 调用 |
 
 ---
 
-## 8. 扩展设计
+## 10. 错误处理
+
+| 场景 | 处理方式 |
+|------|---------|
+| CDP 探查遇到登录墙 | 自动检测 → 填入凭据 → 生成 global-setup.ts |
+| Locator 验证失败（0 或 N 个匹配） | CDP DOM 扫描 → 修复 POM → 重新验证（最多 3 轮） |
+| 交互后回退失败 | 降级链：Escape → 浏览器后退 → 强制导航到初始 URL |
+| BFS 探查超出限制 | 终止条件：最多 100 次交互 / 30 个状态 / 10 分钟 → 输出覆盖率报告 |
+| git-watcher 命令执行中崩溃 | 状态在命令完成后才保存 → 下次轮询重新触发未完成的 PR |
+| 网络错误（git-watcher） | 指数退避重试（5s → 10s → ... → 60s 上限） |
+| targetArea 未找到（qa-from-issue） | 从定向模式降级为全量探查模式 |
+| 测试失败是应用 Bug（qa-fix-tests） | 不修改测试断言 → 分类为 Bug → 上报 Linear |
+| 6 种设计方法覆盖不足 | 重试生成（最多 2 次）→ 仍不足 → 阻塞流水线并报错 |
+| 弱断言通过验证（playwright-script） | 自动补充内容校验断言（toHaveText/toHaveValue/toHaveCount） |
+| PRD 内容更新 | content hash 对比 → 只更新变化的模块（保留/修改/新增/废弃） |
+| 页面 UI 变更后重跑 qa-explore | State₀ 指纹对比 → 只重新探查变化的区域 |
+| PRD 模块被删除 | 通过 feature-slug 精确定位 spec → test.describe.skip 标记废弃 |
+
+---
+
+## 11. 增量更新机制
+
+| 入口 | 检测方式 | 变更类型 | 处理 |
+|------|---------|---------|------|
+| `/qa-run-prd` | PRD content hash（sha256）存储在 .md 头部 | none/new/updated/removed | none 跳过、new 全新生成、updated 增量更新（保留/修改/新增/废弃）、removed 标记 skip |
+| `/qa-gen-cases` | 同上（相同 hash 机制） | 同上 | 同上（但只产出 .md + Excel，无脚本） |
+| `/qa-explore` | State₀ 页面指纹（CDP fingerprint） | 匹配/不匹配 | 匹配 → 恢复中断点继续、不匹配 → 逐区域检测变化 → 只重新探查变化区域 |
+| `/qa-from-issue` | Issue 内容驱动（每次从 issue 出发） | Mode X/A/B | X 修复已有、A 补充、B 新建 |
+
+**不会丢失旧用例**：废弃的需求/区域只做 `test.skip()` 标记或 `<!-- DEPRECATED -->` 注释，不删除代码。
+
+---
+
+## 12. 扩展设计
 
 ### 单元测试（暂停，预留）
 
 ```
-agents/unit-test-orchestrator.md    ← 暂停
-skills/vitest-testing/SKILL.md      ← 暂停
-.claude/commands/qa-run-unit.md     ← 暂停
+agents/unit-test-orchestrator.md     ← 暂停
+skills/vitest-testing/SKILL.md       ← 暂停
+.claude/commands/qa-run-unit.md      ← 暂停
 ```
 
 ### 新项目接入
@@ -203,7 +382,4 @@ skills/vitest-testing/SKILL.md      ← 暂停
 bash scripts/install.sh    # 在目标项目根目录运行
 ```
 
-自动完成：
-1. 复制 `.env.example` → 目标项目 `.env`
-2. 复制 `CLAUDE.md.template` → 目标项目 `CLAUDE.md`
-3. 复制 `mcp.json.template` → 目标项目 `.claude/mcp.json`
+自动完成：.env 配置、CLAUDE.md 模板、MCP 配置。

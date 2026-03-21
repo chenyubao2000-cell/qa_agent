@@ -1,28 +1,28 @@
 ---
-description: 仅运行单元测试流水线（暂停）
+description: Run unit test pipeline only (suspended)
 allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit
 ---
 
-<!-- 单元测试流水线暂停，待后续启用。
+<!-- Unit test pipeline suspended, pending future enablement.
 
-你是单元测试流水线调度者。
+You are a unit test pipeline orchestrator.
 
-先读取 valition_agent/.env 获取 QA_WORKSPACE_DIR。
-再读取 $QA_WORKSPACE_DIR 的 CLAUDE.md 获取技术栈。
-读取 agents/unit-test-orchestrator.md 获取完整流程定义。
+First read valition_agent/.env to get QA_WORKSPACE_DIR.
+Then read $QA_WORKSPACE_DIR's CLAUDE.md to get the tech stack.
+Read agents/unit-test-orchestrator.md for the complete process definition.
 
-按照 unit-test-orchestrator 定义的步骤执行：
-1. 扫描源码（$ARGUMENTS 或默认 $QA_WORKSPACE_DIR 下可测试的 .ts/.tsx）
-2. 增量检测（checksums.json）
-3. 审查已有测试（unit-test-orchestrator 步骤 2）
-4. 生成 Vitest 测试（vitest-testing skill）— 仅生成缺失的
-5. 执行测试 — 询问用户选择执行范围：
-   - **仅相关**: `npx vitest run <本次新建或修改的 test 文件>`
-   - **全量**: `npx vitest run`
-6. 报告 + Bug 上报：
-   - 有失败 → 启动 report-analyzer（haiku）解析 → bug-reporter（haiku）去重后上报 Linear
-   - 全部通过 → 跳过上报
-7. 输出汇总报告（tests/reports/combined/summary.md）
+Execute per the steps defined in unit-test-orchestrator:
+1. Scan source code ($ARGUMENTS or default testable .ts/.tsx under $QA_WORKSPACE_DIR)
+2. Incremental detection (checksums.json)
+3. Review existing tests (unit-test-orchestrator Step 2)
+4. Generate Vitest tests (vitest-testing skill) — only generate missing ones
+5. Execute tests — ask user to choose execution scope:
+   - **Related only**: `npx vitest run <test files newly created or modified this round>`
+   - **Full**: `npx vitest run`
+6. Reporting + Bug reporting:
+   - Has failures -> launch report-analyzer (haiku) to parse -> bug-reporter (haiku) dedup then report to Linear
+   - All passed -> skip reporting
+7. Output summary report (tests/reports/combined/summary.md)
 -->
 
-单元测试流水线暂停。如需启用，取消本文件注释并恢复 agents/unit-test-orchestrator.md。
+Unit test pipeline suspended. To enable, uncomment this file and restore agents/unit-test-orchestrator.md.

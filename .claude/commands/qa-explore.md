@@ -1,103 +1,107 @@
 ---
-description: 探查浏览器中打开的页面，生成 E2E 测试基线（page-baseline.json），然后衔接 test-case-generator + playwright-script-generator skill 生成用例和脚本
+description: Explore pages open in the browser, generate E2E test baselines (page-baseline.json), then chain test-case-generator + playwright-script-generator skills to produce test cases and scripts
 allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__click, mcp__chrome-devtools__hover, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__wait_for, mcp__chrome-devtools__press_key, mcp__chrome-devtools__fill
 ---
 
-你是页面探查者。通过 chrome-devtools MCP 自动探查浏览器中打开的页面，**边探边写**，按功能区域增量生成 E2E 测试产物。
+You are a page explorer. Automatically explore pages open in the browser via chrome-devtools MCP, **exploring and writing incrementally**, generating E2E test artifacts by functional area.
 
-## 流程
+## Workflow
 
 ```
-/qa-explore [page-url] [--source <源码目录>] [自然语言描述]
-     ↓
-Phase 0: 加载项目上下文（.env → 配置）
-     ↓
-Phase 1: 初始扫描 → 识别功能区域列表（轻量，只扫 State₀）
-     ↓
-Phase 2: 增量循环（核心改动）
-         for each 功能区域:
-           a. 深度探查该区域（CDP 交互）
-           b. 生成该区域的 mini-baseline
-           c. e2e-orchestrator → 用例 + POM + spec（只处理该区域）
-           d. Locator 验证
-           e. 如果已达到用户要求的数量 → 跳出循环
-     ↓
-Phase 3: 统一执行 + 报告
-         test-executor → 执行所有累积的 spec
-              ↓ 完成后
-         report-analyzer → 分析 → Linear
+/qa-explore [page-url] [--source <source-code-dir>] [natural language description]
+     |
+Phase 0: Load project context (.env -> config)
+     |
+Phase 1: Initial scan -> Identify initial functional area list (lightweight, only scan State_0)
+     |
+Phase 2: Incremental loop (core logic)
+         for each functional area:
+           a. Deep explore the area (CDP interaction, BFS from seed elements)
+           a2. Dynamic area discovery (append newly revealed areas to the list)
+           b. Generate a mini-baseline for that area
+           c. e2e-orchestrator -> test cases + POM + spec (only for that area)
+           d. Locator verification
+           e. If the user-requested count is reached -> break out of loop
+     |
+Phase 2.5: Cross-area flow discovery
+         Identify cross-area edges + page navigations -> integration test cases
+     |
+Phase 3: Unified execution + reporting
+         test-executor -> execute all accumulated specs
+              | after completion
+         report-analyzer -> analyze -> Linear
 ```
 
-## 用户意图解析
+## User Intent Parsing
 
-从 `$ARGUMENTS` 中解析用户意图，决定探查范围：
+Parse user intent from `$ARGUMENTS` to determine exploration scope:
 
-| 用户输入 | 解析结果 |
-|----------|---------|
-| `（无参数）` | 全量探查，所有区域 |
-| `帮我探索N个用例` | 只探查一个最有价值的区域 + N个用例 |
-| `探索表单` / `探索登录` | `targetArea = "表单"/"登录"`，只探查匹配的区域 |
-| `https://xxx/join-waitlist` | 指定 URL，全量探查该页面 |
-| `https://xxx/join-waitlist N个` | 指定 URL + 限制数量 |
-| `https://xxx/join-waitlist https://xxx/join-waitlist2...` | 指定 多URL 探查多页面的功能关系 全量|
-| `https://xxx/join-waitlist https://xxx/join-waitlist2... N个` | 指定 多URL 探查多页面的功能关系 +限制数量|
+| User Input | Parsed Result |
+|------------|---------------|
+| `(no arguments)` | Full exploration, all areas |
+| `explore N test cases` | Only explore the most valuable area + N test cases |
+| `explore form` / `explore login` | `targetArea = "form"/"login"`, only explore matching areas |
+| `https://xxx/join-waitlist` | Specified URL, full exploration of that page |
+| `https://xxx/join-waitlist N cases` | Specified URL + limit count |
+| `https://xxx/join-waitlist https://xxx/join-waitlist2...` | Multiple URLs, explore cross-page functional relationships, full |
+| `https://xxx/join-waitlist https://xxx/join-waitlist2... N cases` | Multiple URLs, explore cross-page functional relationships + limit count |
 
-解析规则：
-1. 包含 URL → 作为探查 URL
-2. 包含功能关键词（表单/导航/弹窗/Tab 等）→ 设为 `targetArea` 过滤
-3. N个指的生成多少个用例不要过分生成，控制探索时间
+Parsing rules:
+1. Contains URL -> use as exploration URL
+2. Contains functional keywords (form/navigation/modal/Tab etc.) -> set as `targetArea` filter
+3. N cases refers to how many test cases to generate; avoid over-generating to control exploration time
 
 ---
 
-## Phase 0: 加载上下文 + 初始化工作区（强制，最先执行）
+## Phase 0: Load Context + Initialize Workspace (mandatory, execute first)
 
-### Step 1 — 读取 .env + 构建 projectContext
+### Step 1 — Read .env + Build projectContext
 
 ```
-Read(".env")  # valition_agent 根目录
-Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # 技术栈（仅读源码理解业务）
+Read(".env")  # valition_agent root directory
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # tech stack (read source code only to understand business)
 ```
 
-读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
+Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
 
-从**本项目 .env** 提取所有配置：
-- `QA_WORKSPACE_DIR` — 目标项目根目录
-- `baseURL` — `PLAYWRIGHT_BASE_URL`，回退到 `PREVIEW_URL`
-- `authSetup` — `E2E_TEST_EMAIL` 有值 → 需要登录态
+Extract all config from **this project's .env**:
+- `QA_WORKSPACE_DIR` — target project root directory
+- `baseURL` — `PLAYWRIGHT_BASE_URL`, fallback to `PREVIEW_URL`
+- `authSetup` — `E2E_TEST_EMAIL` has value -> requires auth state
 - `testCredentials` — `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD`
-- `techStack` — 来自源码目录 CLAUDE.md
+- `techStack` — from source directory CLAUDE.md
 
-### Step 2 — 初始化工作区（空文件夹兼容，已初始化则全部跳过）
+### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
-检查 `$QA_WORKSPACE_DIR`，不存在或为空时执行初始化：不存在要创建 `$QA_WORKSPACE_DIR`
+Check `$QA_WORKSPACE_DIR`; if it doesn't exist or is empty, perform initialization: create `$QA_WORKSPACE_DIR` if it doesn't exist
 
-#### 2a. 复制 .env（不存在时）
+#### 2a. Copy .env (if not present)
 
-将本项目 `.env` 中 Playwright 相关变量写入 `$QA_WORKSPACE_DIR/.env`：
+Write Playwright-related variables from this project's `.env` into `$QA_WORKSPACE_DIR/.env`:
 
 ```
-PLAYWRIGHT_BASE_URL=<从本项目 .env 取>
-PLAYWRIGHT_HEADLESS=<从本项目 .env 取>
-E2E_TEST_EMAIL=<从本项目 .env 取>
-E2E_TEST_PASSWORD=<从本项目 .env 取>
+PLAYWRIGHT_BASE_URL=<from this project's .env>
+PLAYWRIGHT_HEADLESS=<from this project's .env>
+E2E_TEST_EMAIL=<from this project's .env>
+E2E_TEST_PASSWORD=<from this project's .env>
 ```
 
-> dotenv 在 playwright.config.ts 和 global-setup.ts 中加载此文件。
+> dotenv loads this file in playwright.config.ts and global-setup.ts.
 
-#### 2b. 目录结构（已存在则跳过）
+#### 2b. Directory Structure (skip if exists)
 
 ```bash
 mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/.auth
 mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-results
 ```
 
-#### 2c. 安装 Playwright（package.json 不存在时）
+#### 2c. Install Playwright (if package.json doesn't exist)
 
 ```bash
 npm init -y && npm install -D @playwright/test dotenv && npx playwright install chromium
 ```
 
-#### 2d. 生成 playwright.config.ts（不存在时）
+#### 2d. Generate playwright.config.ts (if not present)
 
 ```typescript
 import { config } from "dotenv";
@@ -119,6 +123,7 @@ export default defineConfig({
     headless: process.env.PLAYWRIGHT_HEADLESS !== "false",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
+    video: "retain-on-failure",
   },
   projects: [{
     name: "e2e",
@@ -129,9 +134,9 @@ export default defineConfig({
 });
 ```
 
-#### 2e. 生成 fixtures.ts（不存在时）
+#### 2e. Generate fixtures.ts (if not present)
 
-**有 E2E_TEST_EMAIL** → 带 auth 的完整版：
+**With E2E_TEST_EMAIL** -> full version with auth:
 
 ```typescript
 import { test as base, expect, type Page, type BrowserContext } from "@playwright/test";
@@ -162,7 +167,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 export { expect };
 ```
 
-**无 E2E_TEST_EMAIL** → 简单版：
+**Without E2E_TEST_EMAIL** -> simple version:
 
 ```typescript
 import { test as base, expect } from "@playwright/test";
@@ -170,116 +175,119 @@ export const test = base;
 export { expect };
 ```
 
-> **global-setup.ts 此时不生成**——需要 Phase 1 CDP 探查登录页后，用验证过的真实 selector 才能写。
+> **global-setup.ts is not generated at this point** — it requires Phase 1 CDP exploration of the login page to write with verified real selectors.
 
-### Step 3 — 确定探查 URL
+### Step 3 — Determine Exploration URL
 
-优先级：
-1. 用户传入的 `$ARGUMENTS`（如果是 URL）
-2. 本项目 `.env` 中的 `PLAYWRIGHT_BASE_URL`
-3. 本项目 `.env` 中的 `PREVIEW_URL`
+Priority:
+1. URL passed by user in `$ARGUMENTS`
+2. `PLAYWRIGHT_BASE_URL` from this project's `.env`
+3. `PREVIEW_URL` from this project's `.env`
 
 ---
 
-## Phase 1: 初始扫描 + 区域识别（轻量）
+## Phase 1: Initial Scan + Area Identification (lightweight)
 
-> **规范来源**：先读取 `skills/cdp-explorer/SKILL.md`。
+> **Specification source**: First read `skills/cdp-explorer/SKILL.md`.
 
 ```
 Read("skills/cdp-explorer/SKILL.md")
 ```
 
-### Step 1 — 连接页面 + 登录墙处理
+### Step 1 — Connect to Page + Login Wall Handling
 
-按 cdp-explorer SKILL 执行 **Phase 1（连接）**，然后检测登录墙（Phase 1 Step 3）：
+Execute cdp-explorer SKILL **Phase 1 (Connection)**, then detect login wall (Phase 1 Step 3):
 
-**如果遇到登录页**（整个认证基础设施在此一次性闭环）：
+**If a login page is encountered** (entire auth infrastructure is closed-loop here):
 
-1. **探查登录表单**：用 cdp-explorer 的三层扫描（DOM → 无障碍树 → 截图）发现真实 selector
-   - 记录：邮箱输入 selector、密码输入 selector、提交按钮 selector、登录成功后的 URL 模式、是否分步（先邮箱再密码）等
-2. **CDP 登录**：用发现的 selector + `.env` 中的 `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` 完成登录
-3. **生成 global-setup.ts**（`$QA_WORKSPACE_DIR/tests/e2e/global-setup.ts`，不存在时）：
-   - 用验证过的真实 selector 写入，不靠猜
-   - 包含：12h storageState 缓存、登录流程、写 `.auth/user.json`
-   - 已存在 → 跳过（不覆盖用户自定义的登录逻辑）
-4. **更新 playwright.config.ts**：确保包含 `globalSetup: "./tests/e2e/global-setup.ts"`
-5. **生成 sign-in POM**（`tests/e2e/pages/sign-in.page.ts`）供登录相关 spec 使用
-6. 登录成功后导航到原目标 URL，继续 Step 2
+1. **Explore login form**: Use cdp-explorer's three-layer scan (DOM -> accessibility tree -> screenshot) to discover real selectors
+   - Record: email input selector, password input selector, submit button selector, post-login URL pattern, whether multi-step (email first then password), etc.
+2. **CDP login**: Use discovered selectors + `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` from `.env` to complete login
+3. **Generate global-setup.ts** (`$QA_WORKSPACE_DIR/tests/e2e/global-setup.ts`, if not present):
+   - Write with verified real selectors, no guessing
+   - Includes: 12h storageState cache, login flow, write `.auth/user.json`
+   - If exists -> skip (don't overwrite user-customized login logic)
+4. **Update playwright.config.ts**: Ensure it includes `globalSetup: "./tests/e2e/global-setup.ts"`
+5. **Generate sign-in POM** (`tests/e2e/pages/sign-in.page.ts`) for login-related specs
+6. After successful login, navigate to the original target URL, continue to Step 2
 
-> **闭环**：selector 只有一个来源——CDP 真实探查。同一套 selector 用于：CDP 登录（探查用）、global-setup.ts（Playwright 执行用）、sign-in POM（登录 spec 用）。
+> **Closed-loop**: Selectors have only one source — CDP real exploration. The same set of selectors is used for: CDP login (for exploration), global-setup.ts (for Playwright execution), sign-in POM (for login specs).
 
-**如果不需要登录** → 直接进入 Step 2
+**If login is not required** -> proceed directly to Step 2
 
-### Step 2 — State₀ 扫描
+### Step 2 — State_0 Scan
 
-按 cdp-explorer SKILL Phase 2（初始扫描），**不执行 Phase 3（交互式探查）**。
+Execute cdp-explorer SKILL Phase 2 (Initial Scan), **do not execute Phase 3 (Interactive Exploration)**.
 
-产出：State₀ 的 DOM 结构 + 无障碍树 + 截图。
+Output: State_0 DOM structure + accessibility tree + screenshot.
 
-### Step 3 — 识别功能区域
+### Step 3 — Identify Functional Areas (initial, will grow during Phase 2)
 
-从 State₀ 扫描结果中，将页面拆分为**功能区域**（exploration unit）：
+From the State_0 scan results, identify the **initial** set of functional areas. This is NOT the final list — Phase 2 exploration will dynamically discover and append new areas that only appear after interaction (Modals, expanded panels, lazy-loaded sections, etc.).
 
-| 识别信号 | 区域类型 | 示例 |
-|----------|---------|------|
-| `<form>` / `[role="form"]` / 多个 input 聚集 | 表单区域 | 登录表单、注册表单 |
-| `[role="tab"]` + `[role="tabpanel"]` | Tab 切换区域 | 功能 Tab（核心/招聘） |
-| `[role="navigation"]` / `<nav>` | 导航区域 | 顶部导航栏 |
-| `[aria-haspopup]` / `[role="combobox"]` | 下拉/选择器 | 语言切换 |
-| `button` + 文本含"新建/创建/添加" | 创建型 Modal | 新建任务按钮 |
-| `[role="dialog"]` 已可见 | 当前弹窗 | 当前打开的 Modal |
-| 独立的内容区块（h2 + 内容 + 按钮） | 内容区域 | CTA 区、特性展示区 |
+| Identification Signal | Area Type | Example |
+|----------------------|-----------|---------|
+| `<form>` / `[role="form"]` / clustered inputs | Form area | Login form, registration form |
+| `[role="tab"]` + `[role="tabpanel"]` | Tab switching area | Feature tabs (Core/Recruiting) |
+| `[role="navigation"]` / `<nav>` | Navigation area | Top navigation bar |
+| `[aria-haspopup]` / `[role="combobox"]` | Dropdown/selector | Language switcher |
+| `button` + text contains "new/create/add" | Create-type Modal | New task button |
+| `[role="dialog"]` visible | Current modal | Currently open Modal |
+| Independent content block (h2 + content + button) | Content area | CTA section, feature showcase |
 
-输出一个有序列表，按测试价值排序（表单 > Tab > Modal > 导航 > 下拉 > 内容）：
+Output an ordered list, sorted by test value (form > tab > modal > navigation > dropdown > content):
 
 ```
 areas = [
-  { id: "form-join-waitlist", type: "form", name: "加入等待名单表单", elements: [...], priority: 1 },
-  { id: "tabs-features", type: "tabs", name: "功能 Tab 切换", elements: [...], priority: 2 },
-  { id: "nav-top", type: "navigation", name: "顶部导航", elements: [...], priority: 3 },
-  { id: "combobox-lang", type: "combobox", name: "语言选择器", elements: [...], priority: 4 },
+  { id: "form-join-waitlist", type: "form", name: "Join Waitlist Form", elements: [...], priority: 1 },
+  { id: "tabs-features", type: "tabs", name: "Feature Tab Switching", elements: [...], priority: 2 },
+  { id: "nav-top", type: "navigation", name: "Top Navigation", elements: [...], priority: 3 },
+  { id: "combobox-lang", type: "combobox", name: "Language Selector", elements: [...], priority: 4 },
 ]
 ```
 
-### Step 4 — 过滤 + 排序
+> **Important**: This is the initial seed list. Areas discovered during Phase 2 (e.g., a Modal triggered by clicking a button, a new Tab Panel rendered after switching tabs) will be appended to this list dynamically.
 
-1. 如果用户指定了 `targetArea` → 只保留名称/类型匹配的区域
-2. 按 priority 排序
-3. 如果用户指定了 `maxAreas` → 截断列表
+### Step 4 — Filter + Sort
 
-**此时向用户报告**：
+1. If user specified `targetArea` -> only keep areas matching by name/type
+2. Sort by priority
+3. If user specified `maxAreas` -> truncate list (but dynamically discovered areas may still be appended within this limit)
+
+**Report to user at this point**:
 ```
-发现 N 个功能区域，将按以下顺序探查（计划处理 M 个）：
-1. [表单] 加入等待名单表单 — 5 个交互元素
-2. [Tab] 功能 Tab 切换 — 2 个 tab
+Discovered N functional areas (initial), will explore in the following order (planning to process M):
+1. [Form] Join Waitlist Form — 5 interactive elements
+2. [Tab] Feature Tab Switching — 2 tabs
 3. ...
+Note: Additional areas may be discovered during exploration.
 ```
 
 ---
 
-## Phase 2: 增量循环 — 边探边写
+## Phase 2: Incremental Loop — Explore and Write
 
-**核心理念**：
-- **状态流图是累积的**：整个页面共享一个 `page-baseline-{slug}.json`，每个区域的探查往里**追加**新 state 和 edge
-- **用例生成是增量的**：每个区域探查完后，只把**本轮新增的 states** 传给 orchestrator 生成用例
-- **上下文是可控的**：orchestrator 只看到当前区域的 delta，不需要消化整个页面
+**Core principles**:
+- **State-flow graph is cumulative**: The entire page shares one `page-baseline-{slug}.json`; each area's exploration **appends** new states and edges
+- **Test case generation is incremental**: After each area is explored, only the **newly added states** are passed to the orchestrator for case generation
+- **Context is controllable**: The orchestrator only sees the current area's delta, no need to digest the entire page
 
-### 状态流图文件（全页面共享，增量追加）
+### State-Flow Graph File (shared across page, incrementally appended)
 
-文件路径：`$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{slug}.json`
+File path: `$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{slug}.json`
 
-Phase 1 初始扫描后创建，包含 State₀。后续每个区域探查**追加**新 state 和 edge：
+Created after Phase 1 initial scan, containing State_0. Each subsequent area exploration **appends** new states and edges:
 
 ```json
 {
   "meta": { "url": "...", "title": "...", "mode": "full", "areasCompleted": ["form-join-waitlist"] },
   "states": {
-    "S0": { "name": "初始页面", "trigger": null, "regions": {...} },
-    "S1": { "name": "新建任务 Modal", "trigger": {"action":"click","element":"button:新建","fromState":"S0"}, "sourceArea": "modal-create-task" }
+    "S0": { "name": "Initial page", "trigger": null, "regions": {...} },
+    "S1": { "name": "New Task Modal", "trigger": {"action":"click","element":"button:Create","fromState":"S0"}, "sourceArea": "modal-create-task" }
   },
   "stateGraph": {
     "edges": [
-      { "from": "S0", "action": "click", "element": "button:新建任务", "to": "S1", "sourceArea": "modal-create-task" }
+      { "from": "S0", "action": "click", "element": "button:New Task", "to": "S1", "sourceArea": "modal-create-task" }
     ]
   },
   "areas": {
@@ -290,117 +298,342 @@ Phase 1 初始扫描后创建，包含 State₀。后续每个区域探查**追�
 }
 ```
 
-每个 state/edge 上的 `sourceArea` 字段标记它属于哪个区域，orchestrator 据此提取 delta。
+The `sourceArea` field on each state/edge marks which area it belongs to; the orchestrator uses this to extract the delta.
 
-### 循环流程
+### Architecture: Pipeline with Parallel Generation
+
+> **Two problems solved simultaneously**:
+> 1. **Context explosion**: Each CDP exploration runs in an isolated subagent; raw data doesn't enter the main context
+> 2. **Efficiency**: Test case generation for all areas runs in parallel (no CDP needed, pure AI work)
+>
+> **Key insight**: CDP operations (exploration, locator verification) need the browser → must be serial. AI generation (test cases, POM, spec) doesn't need the browser → can be parallel.
 
 ```
-allSpecs = []
-allPageObjects = []
-baseline = Phase 1 产出的初始 baseline（含 State₀ + areas 列表）
+Phase 2a: Serial CDP exploration (one subagent per area, sequential)
+  area1: CDP explore → write baseline → return summary
+  area2: CDP explore → write baseline → return summary (reads area1's results from file)
+  area3: CDP explore → write baseline → return summary
+  ... (dynamic areas appended here and explored in the same serial loop)
+     ↓ all areas explored, baseline file is complete
+Phase 2b: Parallel test generation (one orchestrator per area, all launched simultaneously)
+  area1: orchestrator → test cases + POM + spec  ←─┐
+  area2: orchestrator → test cases + POM + spec  ←─┤ all running in parallel
+  area3: orchestrator → test cases + POM + spec  ←─┘
+     ↓ all specs generated
+Phase 2c: Serial locator verification (one subagent per POM, sequential)
+  pom1: CDP verify → fix locators → return results
+  pom2: CDP verify → fix locators → return results
+```
+
+### Phase 2a: Serial CDP Exploration
+
+```
+exploredAreas = []
+baseline = Phase 1 output initial baseline (containing State_0 + areas list)
 
 for area in areas:
-  // ── a. 深度探查该区域 ──
-  执行 cdp-explorer Phase 3（交互式探查），范围限定在该区域的元素内：
-  - 只对 area.elements 中的可交互元素执行交互
-  - 发现的新状态 → 编号为 S{n}，标记 sourceArea = area.id
-  - 新 edge 加入 stateGraph，标记 sourceArea = area.id
-  - 回退后继续下一个元素
+  // Launch cdp-explorer subagent (serial — one browser, one page at a time)
+  Launch subagent with CDP tools:
 
-  // ── b. 更新状态流图基线 ──
-  将新发现的 states/edges/forms 追加到 baseline 文件
-  更新 areas[area.id].status = "completed"
-  更新 areas[area.id].stateIds = [本轮新增的 state ID 列表]
-  写回 $QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{slug}.json
-
-  // ── c. 立即生成该区域的用例 + spec ──
-  启动 e2e-orchestrator（sonnet），传入完整 baseline 文件路径，但指定只处理当前区域的 delta：
-
-  prompt 模板：
+  prompt:
   ```
-  你是 e2e-orchestrator。请先读取 agents/e2e-orchestrator.md 了解你的完整职责和步骤。
+  You are a CDP page explorer. First read skills/cdp-explorer/SKILL.md.
 
-  输入：
-  - source: "cdp"
-  - baselineFile: {baselineFile 绝对路径}
-  - areaScope: { id: "{area.id}", name: "{area.name}", type: "{area.type}" }
-  - projectContext:
-      targetProjectDir: {QA_WORKSPACE_DIR}
-      sourceProjectDir: {SOURCE_PROJECT_DIR}
-      baseURL: {PLAYWRIGHT_BASE_URL}
-      authSetup: {true/false，E2E_TEST_EMAIL 是否有值}
-      existingTests: tests/e2e/testcases/
-      techStack: {来自 CLAUDE.md}
-  - existingPageObjects: [已生成的 POM 文件路径列表]
+  Task: Explore one functional area on the current page.
 
-  按 agents/e2e-orchestrator.md 步骤执行，返回产物路径。
-  ```
+  Input:
+  - mode: "full"
+  - baselineFile: {absolute path to page-baseline-{slug}.json}
+  - area: { id: "{area.id}", name: "{area.name}", type: "{area.type}", elements: [...] }
+  - pageUrl: {exploration URL}
+  - nextStateId: {next available state number}
 
-  > 命令层只传数据，不传约束。orchestrator 自己读 SKILL.md 决定：
-  > - authSetup=true → spec 用 authenticatedPage fixture
-  > - POM 已存在 → 追加不重建
-  > - sourceArea 过滤 → 只处理当前区域
+  Steps:
+  1. Read the baseline file to understand existing states (avoid re-exploring)
+  2. Connect to the page (list_pages → select_page, or navigate if needed)
+  3. Execute Phase 3 BFS using area.elements as initial seeds
+     - Allow BFS to discover and interact with NEW elements after interaction
+     - Mark all new states/edges with sourceArea = "{area.id}"
+  4. Dynamic Area Discovery: check for newly revealed functional areas
+     - New Modal/Dialog → discoveredArea { type: "modal" }
+     - New Tab Panel → discoveredArea { type: "tab-panel" }
+     - Expanded menu → discoveredArea { type: "menu" }
+     - Lazy-loaded content → discoveredArea { type: "lazy-content" }
+  5. Write ALL findings to the baseline file (states, edges, forms, areas, coverageReport)
 
-  收集返回的 specs、page_objects 到 allSpecs、allPageObjects
-
-  // ── d. Locator 验证 ──
-  对该区域新增的 locator 执行 CDP verify 模式验证
-  ZERO 或 MULTIPLE → 修正 → 重新验证
-
-  // ── e. 向用户报告进度 ──
-  ```
-  ✅ 区域 1/M [表单] 加入等待名单表单 — 生成 7 条用例
-     spec: tests/e2e/testcases/generated/join-waitlist-form-cdp.test.ts
-     状态流图: S0 → S1(表单提交确认), 共 2 states, 3 edges
+  Return summary:
+  {
+    "areaId": "{area.id}",
+    "newStates": ["S3", "S4"],
+    "newEdges": 5,
+    "discoveredAreas": [{ "id": "modal-create", "type": "modal", "name": "Create Modal" }],
+    "coverageReport": { "interactedElements": 15, "statesDiscovered": 3, "terminationReason": "queue_empty" }
+  }
   ```
 
-  // ── f. 检查是否继续 ──
-  如果已达到 maxAreas → 跳出循环
+  // Process dynamic area discovery
+  If subagent returned discoveredAreas → append to areas list (subsequent iterations will explore them)
+
+  exploredAreas.push({ area, summary: subagent result })
+
+  // Report exploration progress
+  ```
+  Explored 1/M [Form] Join Waitlist Form — 3 states, 5 edges, 15 elements interacted
+  ```
+
+  If maxAreas reached → break
 ```
 
-### 同页面 POM 合并规则
+### Phase 2b: Parallel Test Generation
 
-多个区域属于同一页面时，共享一个 POM 文件：
-- 第一个区域 → 创建 POM（如 `join-waitlist.page.ts`）
-- 后续区域 → 读取已有 POM，追加新的 private 属性 + public getter/方法
-- orchestrator 通过 `existingPageObjects` 参数获知已有 POM
+> After all areas are explored, the baseline file contains the complete state-flow graph. Now launch **all orchestrator agents in parallel** — they only read the baseline file and write to separate output files, no CDP needed.
 
-### 中断恢复
+```
+// Launch ALL orchestrator agents simultaneously (parallel)
+orchestratorAgents = []
 
-如果用户中途打断或下次执行 `/qa-explore`：
-- 读取已有的 `page-baseline-{slug}.json`
-- 检查 `areas[*].status`：`completed` 的跳过，`pending` 的继续
-- 状态流图不丢失，从上次断点继续
+for area in exploredAreas:
+  orchestratorAgents.push(
+    Launch e2e-orchestrator (sonnet) in background:
+
+    prompt:
+    ```
+    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+
+    Input:
+    - source: "cdp"
+    - baselineFile: {baselineFile absolute path}
+    - areaScope: { id: "{area.id}", name: "{area.name}", type: "{area.type}" }
+    - projectContext:
+        targetProjectDir: {QA_WORKSPACE_DIR}
+        sourceProjectDir: {SOURCE_PROJECT_DIR}
+        baseURL: {PLAYWRIGHT_BASE_URL}
+        authSetup: {true/false}
+        existingTests: tests/e2e/testcases/
+        techStack: {from CLAUDE.md}
+    - existingPageObjects: [list of already-generated POM file paths]
+
+    Execute per agents/e2e-orchestrator.md steps, return artifact paths.
+    ```
+  )
+
+// Wait for ALL orchestrators to complete
+results = await all(orchestratorAgents)
+
+// Collect all specs and page objects
+allSpecs = results.flatMap(r => r.specs + r.modified_specs)
+allPageObjects = results.flatMap(r => r.page_objects)
+
+// Report generation progress
+```
+Generated test cases for M areas in parallel:
+  [Form] Join Waitlist Form — 7 cases, spec: join-waitlist-form-cdp.test.ts
+  [Tab] Feature Tabs — 5 cases, spec: feature-tabs-cdp.test.ts
+  [Nav] Top Navigation — 3 cases, spec: nav-top-cdp.test.ts
+```
+```
+
+### Phase 2c: Serial Locator Verification
+
+> Verify all generated locators against the live page. Serial because CDP needs the browser.
+
+```
+for pomFile in allPageObjects:
+  Launch locator-verify subagent with CDP tools:
+
+  prompt:
+  ```
+  You are a locator verifier. Read skills/cdp-explorer/SKILL.md Phase 4 (verify mode).
+
+  Input:
+  - pomFile: {pomFile path}
+  - pageUrl: {exploration URL}
+
+  Steps:
+  1. Connect to the page
+  2. Read POM, extract all locator properties
+  3. For each locator: CDP verify → UNIQUE/ZERO/MULTIPLE → fix if needed → re-verify
+  4. Max 3 fix attempts per locator
+
+  Return: { "verified": N, "fixed": N, "failed": N, "failedLocators": [...] }
+  ```
+```
+
+### Context Budget
+
+| Phase | Execution | Context cost to main command |
+|-------|-----------|------------------------------|
+| 2a. CDP exploration | serial subagents | ~100 tokens × M areas |
+| 2b. Test generation | **parallel** subagents | ~200 tokens × M areas |
+| 2c. Locator verify | serial subagents | ~100 tokens × N POMs |
+| **Total (5 areas)** | | **~2K tokens** |
+
+**Speed improvement**: Phase 2b runs all orchestrators in parallel. If each takes ~3 minutes, 5 areas complete in ~3 minutes instead of ~15 minutes.
+
+### Same-Page POM Merge Rules (Parallel-Safe)
+
+When multiple areas belong to the same page, they share a single POM file. In parallel generation mode (Phase 2b), **concurrent writes to the same POM would cause data loss**. Solution: fragment-then-merge.
+
+**During Phase 2b (parallel generation)**:
+- Each orchestrator writes a **POM fragment file** instead of appending to the shared POM directly
+- Fragment naming: `tests/e2e/pages/{slug}.page.{area-id}.fragment.ts`
+- Each fragment contains only the private properties + public getters/methods for that area
+- No read-modify-write of the shared POM → no write conflicts
+
+**After Phase 2b completes, before Phase 2c (main command merges)**:
+1. Read the base POM file (created by the first area, or existing)
+2. Read all fragment files for the same page: `Glob("tests/e2e/pages/{slug}.page.*.fragment.ts")`
+3. Merge: for each fragment, append its private properties and public methods to the base POM (skip duplicates by property name)
+4. Write the merged POM back to `tests/e2e/pages/{slug}.page.ts`
+5. Delete all fragment files
+6. Update spec imports if needed (fragments used temporary names)
+
+**During serial generation** (single area at a time): orchestrators can directly append to the POM as before — no fragment needed.
+
+### Interruption Recovery + Page Change Detection
+
+If the user runs `/qa-explore` again on a previously explored page:
+
+1. Read the existing `page-baseline-{slug}.json`
+2. **Page change detection** — before resuming, verify the page hasn't changed:
+   - CDP connect to the page → take State₀ snapshot (quick, lightweight)
+   - Compare current State₀ fingerprint with `baseline.states.S0.fingerprint` (stored at last exploration)
+   - **Fingerprint matches** → page unchanged → resume mode:
+     - Check `areas[*].status`: skip `completed` ones, continue `pending` ones
+     - State-flow graph is not lost; resume from the last breakpoint
+   - **Fingerprint differs** → page has changed → re-explore mode:
+     - Log: "Page has changed since last exploration (UI update detected)"
+     - For each `completed` area: re-run CDP exploration subagent to detect what changed
+     - Compare new exploration results with existing baseline states:
+       - Elements added/removed → mark area as `needs_update`
+       - Elements unchanged → keep existing status
+     - For `needs_update` areas: re-generate test cases + update existing specs (same as orchestrator `prdChangeMode: "updated"` logic — keep unchanged tests, update changed ones, add new ones, skip removed ones)
+     - For unchanged areas: skip (existing tests still valid)
+     - For `pending` areas (not yet explored before interruption):
+       - **Discard old baseline data** for these areas (the page has changed, old State₀ elements may no longer exist)
+       - **Re-identify** from current State₀: run area identification again on current DOM
+       - If the pending area still exists on the new page → explore normally (treat as new)
+       - If the pending area no longer exists (element removed by page change) → remove from areas list, log "area {id} no longer present after page update"
+     - Update baseline fingerprint to current State₀
+
+> **Why not just re-explore everything?** Re-exploring all areas from scratch is wasteful if only one area changed (e.g., a button label updated). The fingerprint comparison + per-area re-check finds exactly what changed, minimizing unnecessary regeneration.
+
+> **Fingerprint storage**: Phase 1 State₀ scan must store the fingerprint (from cdp-explorer Step 6) in `baseline.states.S0.fingerprint` for future comparison.
 
 ---
 
-## Phase 3: 统一执行 + 报告
+## Phase 2.5: Cross-Area Flow Discovery (after loop completes, before execution)
 
-所有区域处理完成后（或达到 maxAreas），统一执行测试。
+> **Executor**: The **main command** executes this phase directly (not a subagent). It reads the baseline file (pure JSON analysis, no CDP needed for Step 1 and Step 3). Only Step 2 (page navigation) needs a CDP subagent.
 
-**前置检查**：如果 allSpecs 为空（所有区域已覆盖） → 告知用户"所有用例已有 spec 覆盖" → 结束
+After all areas have been individually explored, the baseline file contains the complete state-flow graph. The main command analyzes it for cross-area flows:
 
-**Agent — test-executor**（sonnet）：
-- 接收 allSpecs 全部文件路径
-- 执行测试 → 产出报告到 `$QA_WORKSPACE_DIR/tests/reports/`
+### Step 1 — Identify cross-area edges (main command, no CDP)
 
-**Agent — report-analyzer**（haiku）：
-- 等 test-executor 完成后启动
-- 分析报告 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+Read `page-baseline-{slug}.json` and scan `stateGraph.edges` for transitions that cross area boundaries:
+- Edge where `sourceArea` of `from` state differs from `sourceArea` of `to` state (e.g., sidebar click → main content update)
+- Edge that causes URL change (compare `states[from].url` vs `states[to].url`)
+- Edge where the target state contains elements belonging to a different area
+
+Output: list of `crossAreaFlows` and `pageNavigationEdges`.
+
+If no cross-area edges found → skip to Phase 3.
+
+### Step 2 — Handle page navigations (CDP subagent, serial)
+
+For edges that cause URL changes (navigation to a different page), launch a **cdp-explorer subagent**:
+
+```
+prompt:
+You are a CDP page explorer. Read skills/cdp-explorer/SKILL.md.
+
+Task: Explore a new page discovered via navigation from the original page.
+
+Input:
+- pageUrl: {URL from the navigation edge target}
+- baselineFile: {baseline file path}
+- parentEdge: { from: "S3", action: "click", element: "nav:Dashboard" }
+
+Steps:
+1. Navigate to pageUrl
+2. Three-layer scan (State₀ of new page)
+3. Identify functional areas on the new page
+4. Write new page states to baseline with crossPage: true marker
+5. Record cross-page edge in stateGraph
+
+Return: { newPageStates: [...], newAreas: [...] }
+```
+
+**Strict 1-hop limit** — prevents infinite recursion:
+```
+For each cross-page navigation edge from the ORIGINAL page:
+  1. Navigate to the target page (1 hop)
+  2. Three-layer scan: State₀ only (NO interactive BFS exploration on the new page)
+  3. Identify initial functional areas on the new page
+  4. Write to baseline with crossPage: true
+  5. Do NOT follow any navigation links discovered on the new page (that would be 2 hops)
+
+If new areas discovered AND remaining maxAreas budget > 0:
+  → Run ONLY these new-page areas through Phase 2a (serial CDP) + Phase 2b (parallel gen)
+  → These areas are explored with BFS on the new page, but any further navigation edges
+    found during this BFS are RECORDED in the baseline only, NOT followed
+  → This guarantees: original page explored fully, 1-hop pages explored for areas, no 2+ hops
+```
+
+### Step 3 — Generate cross-area integration test cases (main command → orchestrator)
+
+For significant cross-area dependencies found in Step 1:
+
+```
+crossAreaFlows = [
+  { steps: ["click sidebar item (area: sidebar)", "verify detail (area: main)", "click action (area: main)", "confirm modal (area: modal)"],
+    involvedAreas: ["sidebar", "main", "modal"] }
+]
+```
+
+Launch orchestrator (sonnet) with:
+```
+Input:
+- source: "cdp"
+- baselineFile: {baseline path}
+- crossAreaFlows: {the flows identified above}
+- projectContext: { ... }
+
+Note: Generate integration test cases that chain multiple POM interactions across areas.
+Each flow becomes one test case that exercises the cross-area dependency end-to-end.
+```
+
+> **Scope control**: Only discover cross-area flows for areas already explored. Do not recursively explore all reachable pages.
 
 ---
 
-## 产出物清单
+## Phase 3: Unified Execution + Reporting
 
-| 文件 | 说明 |
-|------|------|
-| `test-cases/generated/page-baseline-{slug}.json` | CDP 探查: 页面状态流图基线（累积，含所有区域的 states/edges） |
-| `test-cases/generated/{slug}-{area-id}-cdp.md` | 用例生成: 该区域的测试用例 |
-| `test-cases/generated/playwright-handoff-{slug}-{area-id}.json` | 用例生成: Playwright 移交文件 |
-| `test-cases/excel/{slug}-{area-id}-cdp.xlsx` | Excel 导出: 用例表格 |
-| `tests/e2e/pages/{slug}.page.ts` | 脚本生成: Page Object（同页面共享，增量追加） |
-| `tests/e2e/testcases/generated/{slug}-{area-id}-cdp.test.ts` | 脚本生成: Playwright spec |
-| `tests/reports/playwright-results.json` | 测试执行: JSON 报告 |
-| `playwright-report/index.html` | 测试执行: HTML 报告 |
-| `tests/reports/combined/summary.md` | 报告分析: 汇总报告（始终生成） |
-| Linear Issue | 报告分析: 失败用例上报（去重后，全部通过时跳过） |
+After all areas are processed (or maxAreas is reached), execute tests uniformly.
+
+**Pre-check**: If allSpecs is empty (all areas already covered) -> inform user "all test cases already have spec coverage" -> end
+
+**Agent — test-executor** (haiku):
+- Receives all spec file paths from allSpecs
+- Execute tests -> produce reports to `$QA_WORKSPACE_DIR/tests/reports/`
+
+**Agent — report-analyzer** (haiku):
+- Launched after test-executor completes
+- Analyze report -> bug-reporter -> Linear reporting -> summary report -> open HTML report
+
+---
+
+## Artifact Checklist
+
+| File | Description |
+|------|-------------|
+| `test-cases/generated/page-baseline-{slug}.json` | CDP exploration: Page state-flow graph baseline (cumulative, containing all areas' states/edges) |
+| `test-cases/generated/{slug}-{area-id}-cdp.md` | Case generation: Test cases for the area |
+| `test-cases/generated/playwright-handoff-{slug}-{area-id}.json` | Case generation: Playwright handoff file |
+| `test-cases/excel/{slug}-{area-id}-cdp.xlsx` | Excel export: Test case spreadsheet |
+| `tests/e2e/pages/{slug}.page.ts` | Script generation: Page Object (shared per page, incrementally appended) |
+| `tests/e2e/testcases/generated/{slug}-{area-id}-cdp.test.ts` | Script generation: Playwright spec |
+| `tests/reports/playwright-results.json` | Test execution: JSON report |
+| `playwright-report/index.html` | Test execution: HTML report |
+| `tests/reports/combined/summary.md` | Report analysis: Summary report (always generated) |
+| Linear Issue | Report analysis: Failed case reporting (after dedup, skipped when all pass) |

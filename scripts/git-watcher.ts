@@ -392,10 +392,13 @@ function triggerCommand(command: string, args: string = "", changes?: ChangeInfo
   // 标记由 git-watcher 触发，report-analyzer 据此跳过打开浏览器
   prompt += `\n\n_trigger: git-watcher_`;
   if (changes && changes.files.length > 0) {
-    prompt += `\n\n变更文件列表（changelist）：\n${changes.files.map((f) => `- ${f}`).join("\n")}`;
+    prompt += `\n\nChanged file list (changelist):\n${changes.files.map((f) => `- ${f}`).join("\n")}`;
   }
   if (changes?.summary) {
-    prompt += `\n\n代码变更摘要（changeSummary）：\n${changes.summary}`;
+    prompt += `\n\nCode change summary (changeSummary):\n${changes.summary}`;
+  }
+  if (changes?.sourceDir) {
+    prompt += `\n\nPR source directory (prSourceDir): ${changes.sourceDir}`;
   }
   const promptFile = resolve(PROJECT_ROOT, ".claude-prompt.tmp");
   writeFileSync(promptFile, prompt);
@@ -493,13 +496,13 @@ function buildCommentBody(cmdSuccess: boolean, commitSha: string): string {
   const status = passed ? "通过" : "失败";
   const content = report.content;
 
-  const summaryMatch = content.match(/## 执行摘要\s*\n([\s\S]*?)(?=\n## |$)/);
+  const summaryMatch = content.match(/## (?:执行摘要|Execution Summary)\s*\n([\s\S]*?)(?=\n## |$)/);
   const summaryTable = summaryMatch?.[1]?.trim() ?? "";
 
-  const failMatch = content.match(/## 失败用例[\s\S]*?(?=\n## |$)/);
+  const failMatch = content.match(/## (?:失败用例|Failed Test Cases)[\s\S]*?(?=\n## |$)/);
   const failSection = failMatch?.[0]?.trim() ?? "";
 
-  const linearMatch = content.match(/## Linear 上报[\s\S]*?(?=\n## |$)/);
+  const linearMatch = content.match(/## (?:Linear 上报|Linear Reporting)[\s\S]*?(?=\n## |$)/);
   const linearSection = linearMatch?.[0]?.trim() ?? "";
 
   // 隐藏标记嵌入 commit SHA，用于去重
@@ -641,15 +644,7 @@ function check() {
         log(`\n  ── 处理 ${type} #${pr.number}: ${pr.title} ──`);
         log(`  分支: ${pr.headRefName}, commit: ${pr.headRefOid.slice(0, 7)}`);
 
-        // 提前记录状态，防止中途失败后重启重复触发
-        knownPRs[pr.number] = {
-          headRefOid: pr.headRefOid,
-          updatedAt: pr.updatedAt,
-          title: pr.title,
-          body: pr.body,
-        };
-        saveState();
-
+        // 状态在命令执行+评论完成后保存（非提前），确保崩溃后可重新触发
         // 3a. 从 title + body 提取 Linear issue key
         const searchText = `${pr.title}\n${pr.body ?? ""}`;
         const issues = extractLinearIssues(searchText);
@@ -688,6 +683,15 @@ function check() {
 
         // 3e. 给该 PR 发评论（同一 commit 不重复）
         commentOnPRs([pr], passed!);
+
+        // 3f. 命令执行+评论完成后才保存状态（崩溃时下次重启会重新触发该 PR）
+        knownPRs[pr.number] = {
+          headRefOid: pr.headRefOid,
+          updatedAt: pr.updatedAt,
+          title: pr.title,
+          body: pr.body,
+        };
+        saveState();
         log(`  ── PR #${pr.number} 处理完成 ──\n`);
       }
     }

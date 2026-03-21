@@ -180,7 +180,7 @@ mcp__chrome-devtools__evaluate_script
     function scanRegion(container, regionName) {
       // Interactive elements
       // Broad-coverage selector: covers all interactive element types
-      const interactives = Array.from(container.querySelectorAll(
+      const selectorMatched = new Set(container.querySelectorAll(
         'button, [role="button"], a[href], input, textarea, select, ' +
         '[role="tab"], [role="menuitem"], [role="option"], [role="switch"], ' +
         '[role="checkbox"], [role="radio"], [role="slider"], [role="spinbutton"], ' +
@@ -191,7 +191,19 @@ mcp__chrome-devtools__evaluate_script
         '[data-testid], [data-action], [data-toggle], [data-target], [data-bs-toggle], ' +
         '[tabindex]:not([tabindex="-1"]), ' +
         'summary, details, label[for]'
-      )).map(el => ({
+      ));
+
+      // Framework event listener detection (React/Vue/Svelte bind events via addEventListener,
+      // not via HTML attributes — these elements have no [onclick] but are still interactive)
+      // Detect by cursor:pointer style, which frameworks/CSS commonly set on clickable elements
+      const cursorPointerEls = Array.from(container.querySelectorAll('div, span, li, section, article, td, tr'))
+        .filter(el => {
+          if (selectorMatched.has(el)) return false;  // Already captured by selector
+          const style = window.getComputedStyle(el);
+          return style.cursor === 'pointer' && el.offsetParent !== null && el.offsetWidth > 0;
+        });
+
+      const interactives = Array.from(new Set([...selectorMatched, ...cursorPointerEls])).map(el => ({
         tag: el.tagName,
         role: el.getAttribute('role'),
         type: el.getAttribute('type'),
@@ -314,8 +326,18 @@ knownStates = { State₀ }
 priorityQueue = PriorityQueue(all interactive elements in State₀, sorted by priority)
 stateFlowGraph = { nodes: [State₀], edges: [] }
 coverageTracker = { interactedElements: 0, totalInteractiveElements: N }
+startTime = now()
 
-while (priorityQueue is not empty && termination conditions not met) {
+// Termination conditions — exploration stops when ANY of these is met:
+MAX_INTERACTIONS = 100   // Max number of element interactions
+MAX_STATES = 30          // Max number of unique states discovered
+MAX_DURATION_MS = 600000 // Max exploration time: 10 minutes
+
+while (priorityQueue is not empty
+       && coverageTracker.interactedElements < MAX_INTERACTIONS
+       && knownStates.size < MAX_STATES
+       && (now() - startTime) < MAX_DURATION_MS) {
+
   element = priorityQueue.pop()  // Take highest priority
 
   // 1. Only exclude truly destructive actions
@@ -343,10 +365,26 @@ while (priorityQueue is not empty && termination conditions not met) {
   // 6. Update coverage
   coverageTracker.interactedElements++
 
-  // 7. Backtrack to pre-interaction state
+  // 7. Backtrack to pre-interaction state (with verification — see Step 7)
   backtrack()
 }
+
+// After loop: output coverage report
+coverageReport = {
+  terminationReason: priorityQueue.isEmpty ? "queue_empty" :
+                     interactedElements >= MAX_INTERACTIONS ? "max_interactions" :
+                     knownStates.size >= MAX_STATES ? "max_states" : "max_duration",
+  interactedElements: coverageTracker.interactedElements,
+  totalElementsSeen: coverageTracker.totalInteractiveElements,
+  statesDiscovered: knownStates.size,
+  edgesRecorded: stateFlowGraph.edges.length,
+  remainingInQueue: priorityQueue.size,
+  durationMs: now() - startTime
+}
+// Include coverageReport in the baseline output so the caller knows if exploration was exhaustive or truncated
 ```
+
+> **When exploration is truncated** (terminated by limits, not by empty queue): the coverage report shows `remainingInQueue > 0`, indicating unexplored elements. The caller (qa-explore command) should report this to the user: "Exploration reached limit (N interactions / M states / T minutes). X elements remain unexplored. Run again to continue."
 
 ### Step 1 — Identify Interactive Elements and Assign Priorities
 
@@ -761,7 +799,9 @@ mcp__chrome-devtools__evaluate_script
 
 ### Step 5 — State Stability Detection
 
-After each interaction, confirm the DOM has stabilized before scanning:
+After each interaction, confirm the DOM has stabilized before scanning. Must wait for both DOM mutations AND rendering to complete.
+
+> **Why 800ms + 5s**: SPA frameworks (React/Vue) often batch state updates with debounce (300-500ms). CSS transitions commonly take 300ms. The old 500ms/2s thresholds could trigger mid-animation or mid-render. 800ms quiet period + 5s max wait provides better coverage.
 
 ```
 mcp__chrome-devtools__evaluate_script
@@ -770,51 +810,72 @@ mcp__chrome-devtools__evaluate_script
       let timer;
       const observer = new MutationObserver(() => {
         clearTimeout(timer);
-        timer = setTimeout(() => { observer.disconnect(); resolve(true); }, 500);
+        timer = setTimeout(() => {
+          // After DOM settles, wait one more animation frame to ensure rendering is complete
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              observer.disconnect();
+              resolve(true);
+            });
+          });
+        }, 800);  // 800ms quiet period (up from 500ms)
       });
       observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-      timer = setTimeout(() => { observer.disconnect(); resolve(true); }, 2000);
+      // Max wait 5s (up from 2s) — covers slow API responses and long animations
+      timer = setTimeout(() => { observer.disconnect(); resolve(true); }, 5000);
     });
   }
 ```
 
 ### Step 6 — State Equivalence Check
 
-After each interaction, the newly scanned DOM state must be checked for equivalence with known states:
+After each interaction, the newly scanned DOM state must be checked for equivalence with known states.
+
+> **Key principle**: The fingerprint must capture **interaction-relevant state differences**, not just element identity. Two states with the same buttons but different `disabled`/`expanded`/`checked` states are NOT equivalent — they represent different user-facing behaviors.
 
 ```
 mcp__chrome-devtools__evaluate_script
   function: () => {
-    // Extract page state fingerprint: interactive element set + dialog state + URL
+    // Extract page state fingerprint: element identity + interaction states + dialog state + URL
     const interactives = Array.from(document.querySelectorAll(
       'button, [role="button"], a[href], input, textarea, select, [role="tab"], [role="menuitem"], [role="dialog"]'
     )).map(el => {
       const role = el.getAttribute('role') || el.tagName.toLowerCase();
       const name = el.getAttribute('aria-label') || el.getAttribute('name') || el.textContent?.trim().substring(0, 50);
-      return `${role}:${name}`;
+      // Include interaction-relevant states in the fingerprint
+      const disabled = el.disabled || el.getAttribute('aria-disabled') === 'true';
+      const expanded = el.getAttribute('aria-expanded');
+      const checked = el.checked ?? el.getAttribute('aria-checked');
+      const selected = el.selected ?? el.getAttribute('aria-selected');
+      const hasValue = (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') ? (el.value.length > 0) : null;
+      return `${role}:${name}:d=${disabled}:e=${expanded}:c=${checked}:s=${selected}:v=${hasValue}`;
     }).sort().join('|');
 
     const dialogs = document.querySelectorAll('[role="dialog"]:not([hidden]), [aria-modal="true"]');
-    const openDialogCount = Array.from(dialogs).filter(d => d.offsetParent !== null).length;
+    const visibleDialogs = Array.from(dialogs).filter(d => d.offsetParent !== null);
+    const dialogTitles = visibleDialogs.map(d =>
+      d.getAttribute('aria-label') || d.querySelector('h2,h3')?.textContent?.trim() || 'untitled'
+    ).sort().join(',');
 
     return {
       fingerprint: interactives,
       url: location.href,
-      openDialogs: openDialogCount,
-      hash: btoa(interactives).substring(0, 32)  // Simplified fingerprint for quick comparison
+      openDialogs: visibleDialogs.length,
+      dialogTitles,
+      hash: btoa(interactives).substring(0, 48)  // Longer hash for more precise comparison
     };
   }
 ```
 
 Equivalence rules:
 1. Different URL → definitely different states
-2. Same URL + different dialog count → different states
-3. Same URL + same dialogs + matching element fingerprint hash → equivalent state (skip redundant exploration)
-4. Fingerprint similarity > 90% → possibly equivalent, use full fingerprint for precise comparison
+2. Same URL + different dialog count or different dialog titles → different states
+3. Same URL + same dialogs + **exact** fingerprint hash match → equivalent state (skip redundant exploration)
+4. Fingerprint hash differs → definitely different states (due to disabled/expanded/checked/value inclusion, the fingerprint now captures state changes that the old role:name-only fingerprint would miss)
 
 ### Step 7 — Backtrack Strategy
 
-After interaction, must backtrack to the pre-interaction state:
+After interaction, must backtrack to the pre-interaction state. **Before interacting**, save the current state fingerprint (from Step 6) as `preInteractionFingerprint`.
 
 | Interaction Type | Backtrack Method |
 |-----------------|------------------|
@@ -826,7 +887,20 @@ After interaction, must backtrack to the pre-interaction state:
 | Checkbox toggle | click again to restore |
 | Form filled | Clear input field (fill "") |
 
-After backtracking: re-scan DOM to confirm consistency with the pre-interaction state.
+**Backtrack verification** (mandatory after every backtrack):
+1. Wait for stability (Step 5)
+2. Compute current state fingerprint (Step 6)
+3. Compare with `preInteractionFingerprint`:
+   - **Match** → backtrack succeeded, continue to next element in the queue
+   - **Mismatch** → backtrack failed, apply fallback:
+
+**Fallback chain** (try in order until fingerprint matches):
+1. **Try Escape** → press Escape, wait, re-check fingerprint
+2. **Try browser back** → `mcp__chrome-devtools__navigate_page type="back"`, wait, re-check
+3. **Force navigate** → `mcp__chrome-devtools__navigate_page url=<original exploration URL>`, wait, re-check
+4. **If all fail** → log warning "Backtrack failed after fallback chain, current state may be inconsistent", record in baseline as `backtrackFailures[]`, continue exploration from the current state (treat it as a new starting point)
+
+> **Why this matters**: Without backtrack verification, a failed backtrack silently corrupts the exploration. All subsequent interactions happen in the wrong state, producing incorrect state-flow edges and missing elements that would have been reachable from the correct state.
 
 ---
 

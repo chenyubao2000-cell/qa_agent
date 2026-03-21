@@ -1,76 +1,78 @@
 ---
-description: 修复目标项目中失败的 E2E 测试用例（非 skip 的），通过 CDP 探查真实页面 + 修正 locator/断言
+description: Fix failed E2E test cases (non-skipped) in the target project by exploring real pages via CDP + correcting locators/assertions
 allowed-tools: Agent, Bash, Read, Write, Edit, Glob, Grep, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__click, mcp__chrome-devtools__hover, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__wait_for, mcp__chrome-devtools__press_key, mcp__chrome-devtools__fill
 ---
 
-你是测试修复专家。找到目标项目中失败的非 skip E2E 用例，通过 CDP 探查真实页面状态，修正 locator 和断言，直到测试通过。
+You are a test fix expert. Find failed non-skipped E2E cases in the target project, explore real page state via CDP, fix locators and assertions until tests pass (but always respect business logic — don't just make tests pass for the sake of passing; the failure may indicate a real bug).
 
 ```
-/qa-fix-tests [spec文件路径] [--source <源码目录>]
-     ↓
-Phase 0: 加载项目上下文
-     ↓
-Phase 1: 筛选非 skip 用例 → 执行 → 收集失败列表
-     ↓
-Phase 2: 逐个修复（CDP 探查 → 分析错误 → 修正 spec/POM → 单文件验证）
-     ↓
-Phase 3: 全量回归 → 汇总报告
+/qa-fix-tests [spec-file-path] [--source <source-code-dir>]
+     |
+Phase 0: Load project context
+     |
+Phase 1: Filter non-skipped cases -> Execute -> Collect failure list
+     |
+Phase 2: Fix one by one (CDP explore -> Analyze error -> Fix spec/POM -> Single-file verify)
+     |
+Phase 3: Full regression -> Summary report
 ```
 
-## Phase 0: 加载项目上下文
+## Phase 0: Load Project Context
 
 ```
 Read(".env")
 ```
 
-提取 `QA_WORKSPACE_DIR`。
+Extract `QA_WORKSPACE_DIR`.
 
-### 源码目录
+### Source Code Directory
 
-读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
-- **读源码**（查看组件实现、定位 locator）→ 从源码目录读
-- **写文件**（修正的 spec/POM）→ 始终写入 QA_WORKSPACE_DIR
+Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
+- **Read source code** (viewing component implementation, locating locators) -> read from source directory
+- **Write files** (fixed spec/POM) -> always write to QA_WORKSPACE_DIR
 
 ```
-Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # 仅用于理解业务逻辑
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # only for understanding business logic
 ```
 
-所有 Playwright 配置从**本项目 .env** 提取：`baseURL`（PLAYWRIGHT_BASE_URL）、`testCredentials`（E2E_TEST_EMAIL / E2E_TEST_PASSWORD）。
+All Playwright config is extracted from **this project's .env**: `baseURL` (PLAYWRIGHT_BASE_URL), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD).
 
 ---
 
-## Phase 1: 筛选并执行
+## Phase 1: Filter and Execute
 
-### Step 1 — 找出非 skip 的 spec 文件
+### Step 1 — Find non-skipped spec files
 
 ```
 Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
 ```
 
-- 如果结果为空 → 直接告知用户"目标项目中无 spec 文件，请先运行 /qa-explore 或 /qa-run-prd 生成测试" → 结束
+- If result is empty -> inform user "No spec files in target project, please run /qa-explore or /qa-run-prd to generate tests first" -> end
 
-对每个文件，Grep 检查是否**全文件 skip**（`test.describe.skip` 或文件内所有 `test(` 都被 `test.skip(` 替换）：
-- 全文件 skip → 排除
-- 部分 skip 或无 skip → 纳入执行列表
+For each file, Grep to check if **entire file is skipped** (`test.describe.skip` or all `test(` replaced by `test.skip(`):
+- Entire file skipped -> exclude
+- Partially skipped or no skip -> include in execution list
 
-如果 `$ARGUMENTS` 指定了文件路径，只处理指定文件。
+If `$ARGUMENTS` specifies file paths, only process specified files.
 
-### Step 2 — 执行一轮测试
+### Step 2 — Execute one round of tests
+
+> **Note**: This command executes Playwright directly (not via test-executor agent). This is intentional — the fix flow requires rapid iterative fix-verify cycles within the same context, which is incompatible with launching a separate agent per execution round.
 
 ```bash
 cd $QA_WORKSPACE_DIR && PLAYWRIGHT_JSON_OUTPUT_NAME=tests/reports/fix-baseline.json \
-npx playwright test <非skip文件列表> --project=e2e --reporter=json
+npx playwright test <non-skip-file-list> --project=e2e --reporter=json
 ```
 
-### Step 3 — 解析失败列表
+### Step 3 — Parse failure list
 
-读取 `fix-baseline.json`，提取所有 `status: "failed"` 的用例：
+Read `fix-baseline.json`, extract all cases with `status: "failed"`:
 
 ```
 failedTests = [
   {
     file: "tests/e2e/testcases/chat-workspace.test.ts",
-    testName: "工作区页面 · 侧边栏折叠按钮可见",
+    testName: "Workspace page - sidebar collapse button visible",
     error: "locator.click: Error: strict mode violation: getByRole('button', { name: /collapse/i }) resolved to 3 elements",
     screenshot: "test-results/.../test-failed-1.png"
   },
@@ -78,109 +80,198 @@ failedTests = [
 ]
 ```
 
-如果全部通过 → 告知用户"所有非 skip 用例已通过，无需修复" → 结束。
+If all pass -> inform user "All non-skipped cases have passed, no fixes needed" -> end.
 
 ---
 
-## Phase 2: 逐个修复
+## Phase 2: Fix One by One
 
-> **规范来源**：读取 `skills/cdp-explorer/SKILL.md` 和 `skills/playwright-script-generator/SKILL.md`。
+> **Context management**: Each failed file's fix cycle (CDP explore → analyze → fix → verify) runs in an **isolated subagent**. This prevents CDP data from accumulating in the main command context across multiple files (10 files × 3 rounds × CDP data would otherwise explode the context).
 
-对 `failedTests` 按文件分组，逐文件修复：
-
-### Step 1 — 读取失败的 spec 和 POM
+Group `failedTests` by file. For each failed file, launch a **fix-single-file subagent**:
 
 ```
-Read("$QA_WORKSPACE_DIR/<failed spec file>")
-Read("$QA_WORKSPACE_DIR/tests/e2e/pages/<对应 POM>.ts")  # 从 spec 的 import 推断
+For each failed file:
+  Launch subagent with CDP tools + Edit tool, passing:
+
+  prompt:
+  ```
+  You are a test fix expert. Read skills/cdp-explorer/SKILL.md and skills/playwright-script-generator/SKILL.md.
+
+  Task: Fix one failed test file by exploring the real page via CDP.
+
+  CRITICAL PRINCIPLE: Not all failures should be "fixed". A test failure may indicate:
+  (A) Test issue — locator stale, timing, selector ambiguity → FIX the test
+  (B) Application bug — feature genuinely broken, real regression → DO NOT fix, REPORT as bug
+
+  You MUST classify each failure before deciding to fix or report.
+
+  Input:
+  - specFile: {absolute path to failed spec file}
+  - pomFile: {absolute path to corresponding POM, inferred from spec's import}
+  - failures: [{ testName, error, screenshot }]  // failed cases in this file
+  - pageUrl: {URL extracted from spec's page.goto()}
+  - sourceProjectDir: {SOURCE_PROJECT_DIR}  // for understanding business logic
+
+  Steps:
+  1. Connect to page (list_pages → select_page, or navigate if needed)
+  2. Login wall detection per cdp-explorer Phase 1 Step 3
+  3. For each failure, FIRST CLASSIFY, then act:
+
+     === Step 3a: Classify failure type ===
+
+     | Error Pattern | Classification | Reasoning |
+     |--------------|---------------|-----------|
+     | strict mode violation: resolved to N elements | TEST ISSUE | Selector matches too broadly — UI restructured but feature works |
+     | locator resolved to 0 elements, BUT similar element exists with different selector | TEST ISSUE | Element moved/renamed — locator stale |
+     | locator resolved to 0 elements, AND no similar element on page | POSSIBLE BUG | Feature element was removed entirely |
+     | toHaveText expected "X" got "Y", AND "Y" is reasonable business content | TEST ISSUE | Text updated legitimately (e.g., copy change) |
+     | toHaveText expected "X" got "Y", AND "Y" is error/empty/broken | POSSIBLE BUG | Feature is broken, showing error instead of content |
+     | toHaveText expected "X" got "", element exists but empty | POSSIBLE BUG | Data not loading, possible API regression |
+     | button expected enabled but is disabled | POSSIBLE BUG | Feature constraint changed or broken |
+     | button expected visible but hidden | POSSIBLE BUG | Feature removed or access control changed |
+     | Timeout waiting for element | AMBIGUOUS | Could be slow load (test issue) or missing element (bug) |
+     | Target closed / navigation error | TEST ISSUE | Page routing changed |
+
+     === Step 3b: For TEST ISSUE — fix normally ===
+     b1. CDP verify mode: check locator match count
+         - 0 matches → full DOM scan to find correct selector
+         - N matches → DOM scan to find narrowing parent
+     b2. For text changes → confirm new text is valid business content → update assertion
+     b3. Fix POM (Edit tool): replace/narrow locators, add new getters
+     b4. Fix spec (Edit tool): update assertions, add waits
+     b5. Strictly follow POM rules: no bare locators in specs
+
+     === Step 3c: For POSSIBLE BUG — do NOT fix ===
+     c1. Read source code (from sourceProjectDir) to understand the intended behavior
+     c2. Compare: What does the code/PRD say SHOULD happen vs. what actually happens?
+     c3. If source code confirms the current behavior is WRONG → classify as BUG:
+         - Do NOT modify the test assertion (the original assertion is correct)
+         - Record as: { classification: "bug", testName, expectedBehavior, actualBehavior, evidence }
+     c4. If source code confirms the behavior change is INTENTIONAL → reclassify as TEST ISSUE → go to Step 3b
+
+     === Step 3d: For AMBIGUOUS — investigate deeper ===
+     d1. Wait longer (increase timeout to 30s) and retry
+     d2. If element appears → TEST ISSUE (add explicit wait)
+     d3. If element never appears → check source code → BUG or TEST ISSUE
+
+  4. After processing all failures:
+     - For TEST ISSUES fixed: run single-file verification
+     - For BUGs: do NOT run verification (test is supposed to fail; the app needs fixing)
+  5. If test issues still fail after fix → re-analyze (max 3 rounds)
+  6. If still fails after 3 rounds → mark as needs manual intervention
+
+  Return:
+  {
+    "file": "{specFile}",
+    "status": "fixed" | "needs_manual" | "has_bugs",
+    "fixedCount": N,
+    "bugCount": N,
+    "needsManualCount": N,
+    "fixes": [
+      { "testName": "...", "classification": "test_issue", "error": "...", "action": "replaced locator", "result": "fixed" },
+      { "testName": "...", "classification": "bug", "error": "...", "expectedBehavior": "button enabled", "actualBehavior": "button disabled", "evidence": "src/Button.tsx removed onClick handler", "result": "bug_reported" },
+      { "testName": "...", "classification": "test_issue", "error": "...", "action": "...", "result": "needs_manual" }
+    ]
+  }
+  ```
+
+  // Subagent performs all CDP interactions internally (~50-100K tokens).
+  // Only the summary (~200 tokens) enters the main command context.
+  // Spec/POM edits are written to disk by the subagent — persisted regardless of context.
+
+  Collect subagent result into fixResults[]
 ```
-
-### Step 2 — 分析错误类型
-
-| 错误模式 | 修复策略 |
-|----------|----------|
-| `strict mode violation: resolved to N elements` | CDP 探查 → 用父级收窄 locator |
-| `locator.click: Target closed` / `page.goto: Target closed` | 检查导航逻辑、等待条件 |
-| `expect(locator).toBeVisible(): locator resolved to 0 elements` | CDP 探查 → locator 已失效，需重新定位 |
-| `expect(locator).toHaveText("xxx"): expected "yyy"` | CDP 探查 → 确认当前真实文本，更新断言 |
-| `expect(page).toHaveURL("xxx")` | CDP 探查 → 确认实际 URL 路由 |
-| `Timeout waiting for` | CDP 探查 → 检查元素是否存在、是否需要交互触发 |
-
-### Step 3 — CDP 探查真实页面
-
-按 `skills/cdp-explorer/SKILL.md` 的流程：
-
-1. `list_pages` → `select_page`（选择目标页面）
-2. 如果浏览器没有目标页面 → `navigate_page` 导航到 spec 中的 URL
-3. 登录墙检测（Phase 1 Step 3）
-4. 针对失败的 locator，用 verify 模式检查：
-   - 当前页面上该 selector 匹配几个元素？
-   - 如果 0 个 → DOM 探查找到正确的 locator
-   - 如果多个 → DOM 探查确定收窄策略
-5. 对于断言失败 → evaluate_script 获取元素当前真实文本/属性
-
-### Step 4 — 修正 POM 和 spec
-
-根据 CDP 探查结果修正：
-
-**修 POM**（`tests/e2e/pages/*.ts`）：
-- locator 失效 → 替换为 CDP 发现的正确 locator
-- strict mode → 添加父级收窄（`.locator('section.main')` 等）
-- 缺少元素 → 添加新的 private 属性 + public getter
-
-**修 spec**（`tests/e2e/testcases/*.test.ts`）：
-- 断言文本不匹配 → 更新 expected 值
-- URL 不匹配 → 更新 expected URL
-- 等待条件不足 → 添加显式等待
-
-**严格遵守 POM 规则**：spec 中不得出现裸 locator，所有修正通过 POM 完成。
-
-### Step 5 — 单文件验证
-
-每修完一个文件立即验证：
-
-```bash
-cd $QA_WORKSPACE_DIR && npx playwright test <修复的文件> --project=e2e --reporter=list
-```
-
-- 通过 → 标记为 ✅ 已修复，继续下一个文件
-- 仍失败 → 回到 Step 2 重新分析（最多 3 轮）
-- 3 轮仍失败 → 标记为 ⚠️ 需人工介入，记录已尝试的修复和最新错误
 
 ---
 
-## Phase 3: 全量回归
+## Phase 2.5: Bug Escalation (if bugs found)
 
-所有文件修复完成后，执行全量回归：
+After all fix subagents complete, check if any classified failures as application bugs:
+
+```
+detectedBugs = fixResults.filter(r => r.bugCount > 0).flatMap(r =>
+  r.fixes.filter(f => f.classification === "bug")
+)
+
+if detectedBugs.length > 0:
+  // Launch report-analyzer (haiku) to create Linear issues for detected bugs
+  Launch report-analyzer with:
+  prompt:
+  ```
+  You are report-analyzer. Read agents/report-analyzer.md.
+
+  Input:
+  - projectContext: { targetProjectDir: {QA_WORKSPACE_DIR} }
+  - detectedBugs: [
+      { testName, expectedBehavior, actualBehavior, evidence, specFile }
+    ]
+  - source: "qa-fix-tests"
+
+  Task: For each detected bug, create a Linear issue via bug-reporter.
+  These are real application bugs found during test fixing — the test assertions
+  are CORRECT but the application behavior is WRONG.
+  Do NOT treat these as test failures. Treat them as feature regressions.
+  ```
+
+  Report to user:
+  ```
+  Found N application bugs during test fixing:
+  1. [task-create.test.ts] Submit button stays disabled — expected enabled after form fill
+  2. [chat-main.test.ts] Empty chat area — expected message displayed
+  These have been reported to Linear. Tests for these bugs were NOT modified (assertions are correct).
+  ```
+```
+
+---
+
+## Phase 3: Full Regression
+
+After all files are fixed (excluding bug-classified failures), run full regression:
 
 ```bash
-cd $QA_WORKSPACE_DIR && npx playwright test <所有非skip文件> --project=e2e --reporter=json,html
+cd $QA_WORKSPACE_DIR && npx playwright test <all non-skip files> --project=e2e --reporter=json,html
 ```
 
-### 汇总报告
+### Summary Report
 
-输出修复结果：
+Output fix results:
 
 ```
-## 修复报告
+## Fix Report
 
-### 修复前
-- 总用例: N
-- 通过: N
-- 失败: N
+### Before Fix
+- Total cases: N
+- Passed: N
+- Failed: N
 
-### 修复后
-- 总用例: N
-- 通过: N
-- 失败: N
-- 修复成功: N 个用例
-- 需人工介入: N 个用例
+### After Fix
+- Total cases: N
+- Passed: N
+- Failed: N (includes N bugs that SHOULD fail)
+- Successfully fixed (test issues): N cases
+- Bugs detected (not fixed, test preserved): N cases
+- Needs manual intervention: N cases
 
-### 修复详情
+### Test Issues Fixed
 
-| # | 文件 | 用例 | 原始错误 | 修复操作 | 结果 |
-|---|------|------|----------|----------|------|
-| 1 | chat-workspace.test.ts | 侧边栏折叠 | strict mode 3 elements | POM 添加父级收窄 | ✅ |
-| 2 | homepage.test.ts | 导航链接 | 0 elements | POM locator 替换 | ✅ |
-| 3 | chat-main.test.ts | 发送消息 | timeout | ⚠️ 需人工 | |
+| # | File | Case | Error | Action | Result |
+|---|------|------|-------|--------|--------|
+| 1 | chat-workspace.test.ts | Sidebar collapse | strict mode 3 elements | POM parent scope narrowing | Fixed |
+| 2 | homepage.test.ts | Nav link | 0 elements | POM locator replacement | Fixed |
+
+### Application Bugs Detected (tests NOT modified — failures are correct)
+
+| # | File | Case | Expected Behavior | Actual Behavior | Evidence |
+|---|------|------|--------------------|-----------------|----------|
+| 1 | task-create.test.ts | Submit button enabled | Button enabled after form fill | Button stays disabled | src/TaskForm.tsx removed validation logic |
+| 2 | chat-main.test.ts | Message displayed | Message shows in chat | Empty chat area | API returns 500 |
+
+### Needs Manual Review
+
+| # | File | Case | Error | Reason |
+|---|------|------|-------|--------|
+| 1 | dashboard.test.ts | Chart render | Timeout | Cannot determine if test issue or bug after 3 rounds |
 ```
+
+> **Key principle**: Bugs in the "Application Bugs Detected" section mean the **test is correct but the app is broken**. These tests SHOULD fail. Do NOT modify them. Report them to the development team or create Linear issues via `/qa-run-all` to trigger report-analyzer's bug reporting flow.

@@ -1,91 +1,219 @@
 ---
-description: PRD 驱动 E2E 测试流水线
+description: PRD-driven E2E test pipeline
 allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot
 ---
 
-你是 E2E 测试流水线调度者。
+You are an E2E test pipeline orchestrator.
 
 ```
-/qa-run-prd [prd-path] [--source <源码目录>]
-     ↓
-Phase 0: 加载项目上下文（.env → 目标项目配置）
-     ↓
-Phase 1: 读取 PRD（命令层独有）
-     ↓
-Phase 2: 顺序启动 Agent
-         e2e-orchestrator (prd) → 用例 → Excel → spec
-              ↓ 完成后
-         test-executor → 接收 spec → 执行测试 → 产出报告
-              ↓ 完成后
-         report-analyzer → 分析 → bug-reporter → Linear
+/qa-run-prd [prd-path] [--source <source-code-dir>]
+     |
+Phase 0: Load project context (.env -> target project config)
+     |
+Phase 1: Read PRD (command layer exclusive)
+     |
+Phase 2: Sequential agent launch
+         e2e-orchestrator (prd) -> cases -> Excel -> spec
+              | after completion
+         test-executor -> receive spec -> execute tests -> produce reports
+              | after completion
+         report-analyzer -> analyze -> bug-reporter -> Linear
 ```
 
-## Phase 0: 加载上下文 + 初始化工作区（强制，最先执行）
+## Phase 0: Load Context + Initialize Workspace (mandatory, execute first)
 
-读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
-- **读源码**→ 从源码目录读
-- **写文件**（spec/POM/用例/报告）→ 始终写入 QA_WORKSPACE_DIR
+Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
+- **Read source code** -> read from source directory
+- **Write files** (spec/POM/cases/reports) -> always write to QA_WORKSPACE_DIR
 
-读取 `.env` 获取 `QA_WORKSPACE_DIR`、`SOURCE_PROJECT_DIR`、`PREVIEW_URL`、`PLAYWRIGHT_BASE_URL`、`E2E_TEST_EMAIL`、`E2E_TEST_PASSWORD`。
-读取 `$SOURCE_PROJECT_DIR/CLAUDE.md` 获取技术栈（仅用于理解业务逻辑）。
+Read `.env` to get `QA_WORKSPACE_DIR`, `SOURCE_PROJECT_DIR`, `PREVIEW_URL`, `PLAYWRIGHT_BASE_URL`, `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`.
+Read `$SOURCE_PROJECT_DIR/CLAUDE.md` to get tech stack (only for understanding business logic).
 
-**初始化工作区**（空文件夹兼容，已初始化则全部跳过）：
-与 `/qa-explore` Phase 0 Step 2 相同：目录、npm install、playwright.config.ts、fixtures.ts。
+**Initialize workspace** (empty folder compatible, skip all if already initialized):
+Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
 
-> PRD 流程本身无 CDP，但 Locator 验证阶段需要 CDP 导航到页面验证 selector。
-> 如果遇到登录墙，与 `/qa-explore` Phase 1 Step 1 相同处理：探查登录表单 → 生成 global-setup.ts。
+> The PRD flow itself doesn't use CDP, but the Locator verification phase needs CDP to navigate to the page and verify selectors.
+> If a login wall is encountered, handle the same as `/qa-explore` Phase 1 Step 1: explore login form -> generate global-setup.ts.
 
-## Phase 1: 读取 PRD
+## Phase 1: Read PRD + Change Detection
 
-读取 PRD（$ARGUMENTS 或默认 $SOURCE_PROJECT_DIR/docs/prd/）。
+Read PRD ($ARGUMENTS or default $SOURCE_PROJECT_DIR/docs/prd/).
 
-### PRD 分模块策略
+### PRD Module Splitting Strategy
 
-PRD 包含多个功能模块时，按模块拆分后传给 orchestrator：
-- 解析 PRD 的 ## 级标题，每个标题视为一个功能模块
-- orchestrator 接收完整 PRD，但按模块逐个处理（步骤 2 去重 → 步骤 3 生成 → 步骤 5 生成 spec）
-- 每个模块独立产出 spec，某个模块生成失败不影响其他模块
+When PRD contains multiple feature modules, split by module before passing to orchestrator:
+- Parse `##` level headings in the PRD, each heading is treated as a feature module
+- Each module produces specs independently; failure in one module doesn't affect others
 
-## Phase 2: 顺序启动 Agent
+### PRD Change Detection (critical for incremental updates)
 
-**关键约束**：启动 agent 时，prompt 只传入**输入数据**（PRD 内容、source、projectContext），
-**不要**在 prompt 中写具体的代码规范、locator 策略、文件模板。
-agent 必须自行读取 `agents/e2e-orchestrator.md` → `skills/*/SKILL.md` 链路获取规范。
+> **Problem**: If PRD v2 updates the "User Login" module but orchestrator sees existing login.test.ts and skips it, updated requirements are never reflected in tests.
+>
+> **Solution**: Before launching orchestrators, detect which PRD modules have changed since last generation.
 
-**Agent 1 — e2e-orchestrator**（sonnet）：
-
-prompt 模板：
 ```
-你是 e2e-orchestrator。请先读取 agents/e2e-orchestrator.md 了解你的完整职责和步骤。
+1. Read existing test case .md files: Glob("$QA_WORKSPACE_DIR/test-cases/generated/*-prd.md")
+2. For each existing .md, extract the PRD content hash stored in its header comment:
+   // PRD-hash: {sha256 of the PRD module text at generation time}
+3. For each current PRD module, compute its content hash
+4. Compare:
 
-输入：
-- source: "prd"
-- prdFiles: [PRD 文件路径列表]
-- projectContext: { targetProjectDir, baseURL, existingTests, ... }
+   | Current PRD module | Existing .md | Hash match | Action |
+   |--------------------|-------------|:----------:|--------|
+   | Module A (login)   | login-prd.md | Match      | unchanged → pass prdChangeMode: "none" |
+   | Module B (tasks)   | tasks-prd.md | Mismatch   | updated → pass prdChangeMode: "updated" |
+   | Module C (reports) | (none)       | —          | new → pass prdChangeMode: "new" |
+   | (deleted)          | chat-prd.md  | —          | removed → pass prdChangeMode: "removed" |
 
-按 agents/e2e-orchestrator.md 的步骤执行（读 SKILL.md → 生成），返回产物路径。
+5. Pass prdChangeMode per module to the orchestrator
 ```
 
-**检查 orchestrator 返回值**：
-- 如果 `specs` 和 `modified_specs` 均为空 → 跳过 test-executor 和 report-analyzer，告知用户"所有用例已有 spec 覆盖"
-- 否则 → 合并为执行列表，继续启动 test-executor
+Each orchestrator receives `prdChangeMode` telling it how to handle existing tests:
+- `"none"` → skip generation (existing tests are up-to-date)
+- `"new"` → generate from scratch (no existing tests)
+- `"updated"` → **incremental update** (see orchestrator Step 2.5 below)
+- `"removed"` → mark existing tests as skipped/deprecated
 
-**Locator 验证**（命令层执行，orchestrator 完成后）：
+> **Hash storage**: When test-case-generator produces a .md file from PRD, it must include a header comment:
+> ```
+> <!-- PRD-hash: {sha256(module text)} -->
+> ```
+> This enables future change detection without re-reading the full PRD.
 
-PRD 流程不做 CDP 探查，浏览器中可能没有目标页面。验证前需先导航：
+## Phase 2: Pipeline with Parallel Generation
 
-1. 从 orchestrator 返回的 `page_objects` 中提取每个 POM 对应的页面路径（从 POM 的 `goto()` 方法或 spec 的 `page.goto()` 调用推断）
-2. 拼接 `projectContext.baseURL` + 页面路径 → 用 `mcp__chrome-devtools__navigate_page` 打开目标页面
-3. 按 `skills/cdp-explorer/SKILL.md` Phase 1 Step 3 检测并处理登录墙
-4. 从 POM 文件提取所有 locator → cdp-explorer verify 模式逐个验证
-5. 结果为 ZERO 或 MULTIPLE → 修正 POM 中的 locator，重新验证
-6. 全部 UNIQUE 后 → 继续启动 test-executor
-7. 多个 POM 对应不同页面时，逐页面串行验证
+**Key constraint**: When launching agents, the prompt only passes **input data** (PRD content, source, projectContext),
+**do not** include specific code conventions, locator strategies, or file templates in the prompt.
+Agents must read the `agents/e2e-orchestrator.md` -> `skills/*/SKILL.md` chain to get specifications themselves.
 
-**Agent 2 — test-executor**（haiku）：
-- 等 e2e-orchestrator 完成后启动
-- 接收 spec 文件路径 → 执行测试 → 产出报告
+### Step 1 — Parallel test generation (one orchestrator per module, all at once)
 
-**Agent 3 — report-analyzer**（haiku）：
-- 等 test-executor 完成后启动
-- 分析报告 → bug-reporter → Linear 上报 → 汇总报告 → 打开 HTML 报告
+> PRD modules are independent — each can be generated in parallel. No CDP needed at this stage.
+
+```
+orchestratorAgents = []
+removedModules = []
+
+for module in prdModules:
+  if module.prdChangeMode == "none":
+    // PRD unchanged for this module → skip entirely, existing tests are up-to-date
+    continue
+
+  if module.prdChangeMode == "removed":
+    // PRD no longer contains this module → mark existing specs as deprecated
+    removedModules.push(module)
+    continue
+
+  // "new" or "updated" → launch orchestrator
+  orchestratorAgents.push(
+    Launch e2e-orchestrator (sonnet) in background:
+
+    prompt:
+    ```
+    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+
+    Input:
+    - source: "prd"
+    - prdFiles: [PRD file path]
+    - prdModuleScope: "{module heading}"
+    - prdChangeMode: "{module.prdChangeMode}"  // "new" or "updated"
+    - projectContext: { targetProjectDir, baseURL, existingTests, ... }
+
+    Execute per agents/e2e-orchestrator.md steps, return artifact paths.
+    Note: prdChangeMode affects Step 2 dedup behavior — see Step 2.5 for "updated" mode.
+    ```
+  )
+
+// Handle removed modules: add test.describe.skip wrapper to existing specs
+for module in removedModules:
+  // Reliable module → spec mapping via feature-slug stored in .md header
+  // Each generated .md file contains: <!-- PRD-module: {module heading} | feature-slug: {slug} -->
+  // The feature-slug is the same slug used for spec filenames: {slug}-prd.test.ts
+  1. Read the existing .md file for this module (from Phase 1 change detection, already identified)
+  2. Extract feature-slug from .md header: <!-- PRD-module: ... | feature-slug: {slug} -->
+  3. Find spec file: Glob("tests/e2e/testcases/generated/{slug}*.test.ts")
+  4. Find POM file: Glob("tests/e2e/pages/{slug}*.page.ts")
+  5. If spec found:
+     Wrap entire test.describe with test.describe.skip (preserve code, mark as deprecated)
+     Add comment: // DEPRECATED: PRD module "{module heading}" removed in latest version
+     Record in deprecatedSpecs[]
+  6. If spec NOT found → log warning, skip (module may never have generated a spec)
+  7. Mark the .md file with deprecation header: <!-- DEPRECATED: module removed from PRD -->
+
+// Wait for ALL orchestrators to complete (parallel)
+results = await all(orchestratorAgents)
+
+allSpecs = results.flatMap(r => r.specs + r.modified_specs)
+allPageObjects = results.flatMap(r => r.page_objects)
+```
+
+**Check results**:
+- If allSpecs is empty AND removedModules is empty -> inform user "all test cases already have spec coverage, PRD unchanged" -> end
+- If allSpecs is empty AND removedModules is not empty -> inform user "N modules deprecated, no new/updated modules" -> still run test-executor to verify remaining tests pass
+- Otherwise -> continue to Step 2
+
+**CDP Page Exploration + Locator Verification** (after orchestrator completes):
+
+> PRD generates specs from text requirements — the orchestrator has never seen the real page. Before executing tests, we must:
+> 1. Explore the real page to validate that the PRD's assumptions match reality
+> 2. Verify and fix all locators against the live DOM
+>
+> Both steps run in an isolated subagent per page to avoid context accumulation.
+
+For each unique page referenced by orchestrator's returned `page_objects`:
+
+Launch a **prd-page-verify subagent** with CDP tools + Edit tool:
+
+```
+prompt:
+```
+You are a page explorer and locator verifier. Read skills/cdp-explorer/SKILL.md.
+
+Task: Explore a real page and verify/fix all locators from a POM file generated from PRD.
+
+Input:
+- pageUrl: {projectContext.baseURL + page path inferred from POM's goto() method}
+- pomFile: {absolute path to the POM file}
+- specFiles: [{list of spec files that use this POM}]
+- authSetup: {true/false}
+- testCredentials: {if authSetup=true}
+
+Steps:
+1. Navigate to pageUrl (mcp__chrome-devtools__navigate_page)
+2. Login wall detection → handle if needed (fill credentials, generate global-setup.ts if not present)
+3. Three-layer scan (DOM → accessibility tree → screenshot) to understand the real page structure
+4. For each locator in the POM file:
+   a. CDP verify: evaluate selector on live page → count matches
+   b. UNIQUE (1 match) → pass
+   c. ZERO (0 matches) → use the DOM scan results to find the correct selector → Edit POM file
+   d. MULTIPLE (N matches) → use DOM scan to find narrowing parent → Edit POM file
+   e. Max 3 fix attempts per locator
+5. Check if any spec assertions reference content that doesn't exist on the real page:
+   - Text assertions → evaluate_script to confirm real text
+   - URL assertions → confirm actual routing
+   - Fix spec files if assertions are wrong
+6. Record page exploration findings (structure, actual content, discrepancies from PRD assumptions)
+
+Return:
+{
+  "pageUrl": "...",
+  "locatorsVerified": N,
+  "locatorsFixed": N,
+  "locatorsFailed": N,
+  "assertionsFixed": N,
+  "discrepancies": ["PRD says X but page shows Y", ...]
+}
+```
+```
+
+When multiple POMs correspond to different pages, launch one subagent per page (serially, to avoid CDP conflicts).
+
+After all pages verified → continue launching test-executor
+
+**Agent 2 — test-executor** (haiku):
+- Launched after e2e-orchestrator + Locator verification complete
+- Receives merged spec file list: `orchestrator.specs + orchestrator.modified_specs` -> execute tests -> produce reports
+
+**Agent 3 — report-analyzer** (haiku):
+- Launched after test-executor completes
+- Analyze report -> bug-reporter -> Linear reporting -> summary report -> open HTML report

@@ -1,278 +1,386 @@
 ---
-description: 从 Linear issue 生成或更新 E2E 测试用例和脚本
+description: Generate or update E2E test cases and scripts from Linear issues
 allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__linear__get_issue, mcp__linear__search_issues, mcp__linear__update_issue, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__click, mcp__chrome-devtools__hover, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__wait_for, mcp__chrome-devtools__press_key, mcp__chrome-devtools__fill
 ---
 
-你是 Issue 驱动的测试生成者。从 Linear issue 出发，生成针对性的 E2E 测试。
+You are an issue-driven test generator. Starting from Linear issues, generate targeted E2E tests.
 
-## 变更上下文（可选，由 git-watcher 或调用方注入）
+## Change Context (optional, injected by git-watcher or caller)
 
-如果 prompt 中包含以下段落（由 git-watcher 从 PR 自动注入），提取并利用：
+If the prompt contains the following sections (auto-injected by git-watcher from PRs), extract and utilize them:
 
-**变更文件列表**：提取文件路径，用于精准测试范围
-1. **优先覆盖** changelist 中涉及的页面/组件（`.tsx`/`.vue` → 对应的 POM 和 spec）
-2. 针对变更的文件生成**更细粒度**的测试用例（边界条件、回归场景）
-3. 将 changelist 传递给 e2e-orchestrator，作为 `projectContext.changelist`
+**Changed file list**: Extract file paths for precise test scoping
+1. **Prioritize coverage** of pages/components involved in the changelist (`.tsx`/`.vue` -> corresponding POM and spec)
+2. Generate **more granular** test cases for changed files (boundary conditions, regression scenarios)
+3. Pass changelist to e2e-orchestrator as `projectContext.changelist`
 
-**代码变更摘要（changeSummary）**：AI 生成的结构化摘要，包含每个改动点的描述、涉及文件和行号、改动类型。据此：
-1. 生成针对**变更逻辑**的测试用例（如：修改了条件分支 → 测试新旧两种路径）
-2. 识别摘要中涉及的 UI 组件/API 端点，精准定位测试目标
-3. 将摘要传递给 e2e-orchestrator，作为 `projectContext.changeSummary`
+**Code change summary (changeSummary)**: AI-generated structured summary containing descriptions, files and line numbers, and change types for each modification. Based on this:
+1. Generate test cases targeting the **changed logic** (e.g., modified conditional branch -> test both old and new paths)
+2. Identify UI components/API endpoints mentioned in the summary to precisely target tests
+3. Pass summary to e2e-orchestrator as `projectContext.changeSummary`
 
-**PR 源码目录（prSourceDir）**：git-watcher 通过 worktree 创建的 PR 全量代码副本，固定路径 `.qa-worktree-pr`。
-1. **读源码时**从 `prSourceDir` 读（如查看组件实现、理解业务逻辑）
-2. **写文件时**仍写入原 `QA_WORKSPACE_DIR`（spec/POM/用例/报告）
-3. **不要**向 prSourceDir 写入任何文件
-4. 将 prSourceDir 传递给 e2e-orchestrator，作为 `projectContext.prSourceDir`
+**PR source directory (prSourceDir)**: Full PR code copy created by git-watcher via worktree, fixed path `.qa-worktree-pr`.
+1. **Read source code** from `prSourceDir` (e.g., viewing component implementation, understanding business logic)
+2. **Write files** still to the original `QA_WORKSPACE_DIR` (spec/POM/cases/reports)
+3. **Do not** write any files to prSourceDir
+4. Pass prSourceDir to e2e-orchestrator as `projectContext.prSourceDir`
 
 ```
-识别格式：
-变更文件列表（changelist）：
+Identification format:
+Changed file list (changelist):
 - src/components/Chat.tsx
 - src/api/tasks.ts
 - ...
 
-代码变更摘要（changeSummary）：
-1. 【新功能】Chat 组件新增语言切换下拉菜单
-   文件: src/components/Chat.tsx L42-L68
-2. 【bug修复】修复任务列表分页参数未传递的问题
-   文件: src/api/tasks.ts L15, L23-L25
+Code change summary (changeSummary):
+1. [New Feature] Chat component adds language switching dropdown
+   File: src/components/Chat.tsx L42-L68
+2. [Bug Fix] Fix pagination parameter not being passed in task list
+   File: src/api/tasks.ts L15, L23-L25
 
-PR 源码目录（prSourceDir）：D:\code\.qa-worktree-pr
+PR source directory (prSourceDir): D:\code\.qa-worktree-pr
 ```
 
-## Phase 0: 加载上下文 + 初始化工作区（强制，最先执行）
+## Phase 0: Load Context + Initialize Workspace (mandatory, execute first)
 
-### Step 1 — 读取 .env + 构建 projectContext
+### Step 1 — Read .env + Build projectContext
 
 ```
-Read(".env")  # valition_agent 根目录
-Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # 技术栈（仅读源码理解业务）
+Read(".env")  # valition_agent root directory
+Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # tech stack (read source code only to understand business)
 ```
 
-从**本项目 .env** 提取所有配置：`QA_WORKSPACE_DIR`、`PREVIEW_URL`、`PLAYWRIGHT_BASE_URL`、`E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`、`techStack`（源码 CLAUDE.md）。
+Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_URL`, `PLAYWRIGHT_BASE_URL`, `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`, `techStack` (source CLAUDE.md).
 
-### Step 2 — 初始化工作区（空文件夹兼容，已初始化则全部跳过）
+### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
-与 `/qa-explore` Phase 0 Step 2 完全相同：目录、npm install、playwright.config.ts、fixtures.ts。
-global-setup.ts 此时不生成——Phase 2 CDP 探查遇到登录墙时才写（见下方）。
+Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
+global-setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2 (see below).
 
-### Step 3 — 确定导航 URL
+### Step 3 — Determine Navigation URL
 
-issue 中提取的 `pageUrl` 如果是相对路径，拼接 `baseURL`。
+If `pageUrl` extracted from the issue is a relative path, concatenate with `baseURL`.
 
 ---
 
-## 输入
+## Input
 
-`$ARGUMENTS` 支持多种格式，**可批量**：
+`$ARGUMENTS` supports multiple formats, **batch-capable**:
 
 ```
-/qa-from-issue STE-9                     # 单个 issue key
-/qa-from-issue STE-9 STE-10 STE-11      # 多个 issue key（空格分隔）
-/qa-from-issue 790b5957-...              # 单个 issue ID
-/qa-from-issue 下载格式选择               # 搜索关键词（匹配所有结果）
-/qa-from-issue --status backlog          # 按状态批量（处理该状态下的所有 issue）
-/qa-from-issue --all-open                # 所有 Open/Backlog issue
-/qa-from-issue STE-9 --source D:\code\my-project  # 指定源码目录（读源码用，写文件仍写 QA_WORKSPACE_DIR）
+/qa-from-issue STE-9                     # single issue key
+/qa-from-issue STE-9 STE-10 STE-11      # multiple issue keys (space-separated)
+/qa-from-issue 790b5957-...              # single issue ID
+/qa-from-issue download format selection  # search keyword (matches all results)
+/qa-from-issue --status backlog          # batch by status (process all issues under that status)
+/qa-from-issue --all-open                # all Open/Backlog issues
+/qa-from-issue STE-9 --source D:\code\my-project  # specify source directory (for reading source; file writes still go to QA_WORKSPACE_DIR)
 ```
 
-### 源码目录
+### Source Code Directory
 
-读源码的目录优先级：`$ARGUMENTS` 中的 `--source` > prompt 中的 `prSourceDir` > `.env` 中的 `SOURCE_PROJECT_DIR` > `QA_WORKSPACE_DIR`
-- **读源码**（查看组件实现、理解业务逻辑）→ 从源码目录读
-- **写文件**（spec/POM/用例/报告）→ 始终写入 `QA_WORKSPACE_DIR`
+Source code directory priority: `--source` in `$ARGUMENTS` > `prSourceDir` in prompt > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
+- **Read source code** (viewing component implementation, understanding business logic) -> read from source directory
+- **Write files** (spec/POM/cases/reports) -> always write to `QA_WORKSPACE_DIR`
 
-### 批量处理逻辑
+### Batch Processing Logic (Pipeline with Parallel Generation)
 
-1. 解析 $ARGUMENTS，收集所有目标 issue
-2. 按 **pageUrl 分组** — 同一页面的 issue 合并
-3. **逐组串行执行完整流程**：
+1. Parse $ARGUMENTS, collect all target issues
+2. **Group by pageUrl** — issues on the same page are merged
+3. **Pipeline execution**:
    ```
-   for each pageUrl group:
-     Phase 2: CDP 探查（该组共享一次探查）
-     Phase 3: orchestrator → executor → analyzer
-       └─ orchestrator 接收该组所有 issue 的上下文
-   ```
-4. 共享同一 POM（同页面的 issue 复用同一个 Page Object）
-5. 跨页面组之间串行执行，避免 CDP 连接冲突
+   Step 1 — Serial CDP exploration (one subagent per pageUrl group, sequential):
+     for each pageUrl group:
+       CDP targeted exploration → write baseline (subagent, serial due to CDP)
 
-## 单个 Issue 流程
+   Step 2 — Parallel test generation (one orchestrator per pageUrl group, all at once):
+     for each pageUrl group: (launched in parallel)
+       orchestrator → test cases + POM + spec
+
+   Step 3 — Serial locator verification (one subagent per POM, sequential):
+     for each POM:
+       CDP verify → fix locators (subagent, serial due to CDP)
+
+   Step 4 — Unified execution + reporting:
+     test-executor → report-analyzer
+   ```
+4. Share the same POM (issues on the same page reuse the same Page Object)
+5. CDP operations serial (one browser), AI generation parallel (no browser needed)
+
+## Single Issue Flow
 
 ```
 /qa-from-issue STE-9
-     ↓
-Phase 0: 加载项目上下文（.env → 目标项目配置）
-     ↓
-Phase 1: 读取 Issue → 提取测试上下文（命令层独有）
-     ↓
-Phase 2: CDP 定向探查 → 验证 issue 描述的页面状态（命令层独有）
-     ↓
-Phase 3: 串行启动（按顺序执行）
-         e2e-orchestrator (issue) → 用例 → Excel → spec
-              ↓ 完成后
-         test-executor → 接收 spec → 执行测试 → 产出报告
-              ↓ 完成后
-         report-analyzer（传入 sourceIssueKeys + specToIssueMap）→ 分流：
-               ├─ 来源 issue 相关失败 → 评论回写原 issue
-               └─ 新发现的 bug → 去重 + 新建 issue
+     |
+Phase 0: Load project context (.env -> target project config)
+     |
+Phase 1: Read Issue -> Extract test context (command layer exclusive)
+     |
+Phase 2: CDP targeted exploration -> Verify page state described in issue (command layer exclusive)
+     |
+Phase 3: Sequential launch (execute in order)
+         e2e-orchestrator (issue) -> cases -> Excel -> spec
+              | after completion
+         test-executor -> receive spec -> execute tests -> produce reports
+              | after completion
+         report-analyzer (pass sourceIssueKeys + specToIssueMap) -> route:
+               +-- Failures related to source issue -> comment back to original issue
+               +-- Newly discovered bugs -> dedup + create new issue
 ```
 
 ---
 
-## Phase 1: 读取 Issue
+## Phase 1: Read Issue
 
-### Step 1 — 获取 Issue 详情
+### Step 1 — Get Issue Details
 
 ```
 mcp__linear__get_issue  issueId=$ARGUMENTS
 ```
 
-如果传入的是搜索关键词（非 ID/key 格式），先搜索：
+If the input is a search keyword (not ID/key format), search first:
 ```
 mcp__linear__search_issues  query=$ARGUMENTS
 ```
-列出匹配结果，选最相关的一条。
+List matching results, select the most relevant one.
 
-### Step 2 — 提取测试上下文
+### Step 2 — Extract Test Context
 
-从 issue 的 title + description 中提取：
+Extract from the issue's title + description:
 
-| 字段 | 来源 | 示例 |
-|------|------|------|
-| `pageUrl` | description 中的 URL | `/task/YoEjBY4PNBFMwZWz` |
-| `expectedBehavior` | "期望结果" 段落 | 弹出格式选择下拉 |
-| `actualBehavior` | "实际结果" 段落 | 显示 toast "文件信息不完整" |
-| `reproSteps` | "复现步骤" 段落 | 1. 登录 2. 打开任务 3. 点击下载 |
-| `priority` | issue priority | Urgent(1) → P0 |
-| `feature` | issue title 中的模块名 | canvas-download |
-| `existingSpec` | 搜索是否已有对应 spec | tests/e2e/testcases/generated/canvas-download.test.ts |
+| Field | Source | Example |
+|-------|--------|---------|
+| `pageUrl` | URL in description | `/task/YoEjBY4PNBFMwZWz` |
+| `expectedBehavior` | "Expected result" section | Format selection dropdown appears |
+| `actualBehavior` | "Actual result" section | Shows toast "File info incomplete" |
+| `reproSteps` | "Reproduction steps" section | 1. Login 2. Open task 3. Click download |
+| `priority` | issue priority | Urgent(1) -> P0 |
+| `feature` | module name from issue title | canvas-download |
+| `existingSpec` | search for existing spec | tests/e2e/testcases/generated/canvas-download.test.ts |
 
-**缺失字段处理**：
-- `pageUrl` 为空 → 跳过 Phase 2 (CDP 探查)，仅根据 issue 文本描述生成用例（orchestrator source 仍为 "issue"，但不传 cdpBaseline）
-- `reproSteps` 为空 → Phase 2 CDP 探查降级为 full 模式（而非 targeted），探查整个页面
+**Missing field handling**:
+- `pageUrl` is empty -> skip Phase 2 (CDP exploration), generate cases only from issue text description (orchestrator source is still "issue", but no baselineFile is passed)
+- `reproSteps` is empty -> Phase 2 CDP exploration degrades to full mode (instead of targeted), exploring the entire page
 
-### Step 3 — 判断操作类型
+### Step 3 — Determine Operation Type
 
-> 去重审查的详细规则在 `agents/e2e-orchestrator.md` 步骤 2 中统一定义，所有生成流程共享。
-> 此处仅做 issue 特有的快速判断：
+> Detailed dedup review rules are defined uniformly in `agents/e2e-orchestrator.md` Step 2, shared across all generation flows.
+> Only issue-specific quick determination is done here:
 
-从 issue title / description 中提取 test case ID（如 `TC-VF-001`），然后：
-
-```
-Glob("tests/e2e/testcases/generated/*.test.ts")  → 搜索匹配的 test case
-Grep("TC-VF-001", "tests/e2e/testcases/generated/")  → 精确匹配
-```
+Extract test case ID from issue title / description (e.g., `TC-VF-001`), then:
 
 ```
-issue 描述的场景已有完全对应的 test case？
-  ├─ YES → 模式 X: 不新增用例，仅修正已有 test 的 locator / 断言 / 参数化 URL
-  │         （由 e2e-orchestrator 通过 Read/Write/Edit 工具修改 spec 文件；
-  │          locator 验证在命令层通过 CDP 完成后，将验证结果传给 orchestrator）
-  ├─ PARTIAL → 模式 A: 在已有 spec 中补充缺失的测试角度
-  └─ NO  → 模式 B: 新建用例 + POM + spec
+Glob("tests/e2e/testcases/generated/*.test.ts")  -> search for matching test cases
+Grep("TC-VF-001", "tests/e2e/testcases/generated/")  -> exact match
 ```
 
-**模式 X 判定条件**：issue 是已有 test 的失败报告（title 含 test case ID，或 description 含 spec 文件名）
+```
+Does the scenario described in the issue have a fully corresponding test case?
+  +-- YES -> Mode X: Fix existing test (see Mode X Execution below)
+  +-- PARTIAL -> Mode A: Add missing test angles to existing spec
+  +-- NO  -> Mode B: Create new cases + POM + spec
+```
+
+**Mode X criteria**: Issue is a failure report for an existing test (title contains test case ID, or description contains spec filename)
+
+### Mode X Execution (fix existing test, no new cases)
+
+When Mode X is determined, the flow **bypasses orchestrator** and launches a single **fix subagent** that combines CDP exploration + spec/POM fixing:
+
+```
+Launch fix-from-issue subagent with CDP tools + Edit tool:
+
+prompt:
+```
+You are a test fix expert. Read skills/cdp-explorer/SKILL.md.
+
+Task: Fix an existing test that is failing, based on a Linear issue report.
+
+Input:
+- specFile: {absolute path to the existing spec identified in Phase 1 Step 3}
+- pomFile: {absolute path to corresponding POM, inferred from spec's import}
+- issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
+- pageUrl: {issueContext.pageUrl, concatenated with baseURL if relative}
+- authSetup: {true/false}
+- testCredentials: {if authSetup=true}
+
+Steps:
+1. Read the existing spec file and its POM
+2. Connect to the page (list_pages → select_page, or navigate to pageUrl)
+3. Login wall detection → handle if needed
+4. CDP targeted exploration around the issue's target area:
+   - mode: "targeted"
+   - If reproSteps available → follow steps, record state changes
+   - Three-layer scan (DOM → accessibility tree → screenshot)
+5. Compare CDP findings with existing spec/POM:
+   - For each locator in POM → CDP verify: count matches on live page
+   - ZERO matches → DOM scan to find correct selector → Edit POM
+   - MULTIPLE matches → DOM scan for narrowing parent → Edit POM
+   - For each assertion in spec → evaluate_script to get real values
+   - Text/URL mismatches → Edit spec with correct expected values
+6. Run single-file verification:
+   cd $QA_WORKSPACE_DIR && npx playwright test {specFile} --project=e2e --reporter=list
+7. If still fails → re-analyze and fix (max 3 rounds)
+
+Return:
+{
+  "specFile": "{path}",
+  "status": "fixed" | "needs_manual",
+  "locatorsFixed": N,
+  "assertionsFixed": N,
+  "behaviorMatch": { "expected": "...", "actual": "...", "matches": true|false }
+}
+```
+```
+
+After subagent returns:
+- Add `subagentResult.specFile` to `modified_specs` list (convert singular to array: `modified_specs.push(specFile)`)
+- Set `specs = []` (Mode X generates no NEW specs, only modifies existing)
+- If `status: "fixed"` → continue to test-executor with `modified_specs`
+- If `status: "needs_manual"` → report to user, still include in `modified_specs` for test-executor to verify
+- **Skip orchestrator entirely** (no new test cases, no Excel, no handoff)
+- When building `specToIssueMap`, map the Mode X specFile to its source issueKey:
+  `specToIssueMap[specFile] = issueKey`
+
+> **Key difference from Mode A/B**: No orchestrator call. The subagent reads the spec, uses CDP to understand the real page, then directly edits the spec/POM. This is essentially what `/qa-fix-tests` does for a single file, but scoped to the issue's context and running in an isolated subagent.
 
 ---
 
-## Phase 2: CDP 定向探查
+## Phase 2: CDP Targeted Exploration (in isolated subagent)
 
-> **规范来源**：先读取 `skills/cdp-explorer/SKILL.md`，按其定义的流程执行。
+> **Context management**: CDP exploration runs in an isolated subagent to prevent raw DOM/snapshot data from accumulating in the main command context. This is especially important for batch processing (multiple issues = multiple CDP explorations).
 
-读取 Skill 后，以 **targeted 模式** 执行：
+Launch a **cdp-explorer subagent** with CDP tools:
 
 ```
-Read("skills/cdp-explorer/SKILL.md")
+prompt:
+```
+You are a CDP page explorer. First read skills/cdp-explorer/SKILL.md.
 
-执行参数：
+Task: Targeted exploration of a page area related to a Linear issue.
+
+Input:
 - mode: "targeted"
-- pageUrl: Phase 1 提取的 issue pageUrl
-- targetArea: issue 涉及的功能区域（如 "button:下载" 或 ".download-section"）
-- reproSteps: Phase 1 提取的复现步骤
+- pageUrl: {issue pageUrl extracted in Phase 1}
+- targetArea: {functional area referenced by the issue, e.g., "button:download" or ".download-section"}
+- reproSteps: {reproduction steps extracted in Phase 1, if available}
+- expectedBehavior: {from issue}
+- actualBehavior: {from issue}
+- baselineFile: {$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{slug}.json}
+- authSetup: {true/false}
+- testCredentials: {E2E_TEST_EMAIL / E2E_TEST_PASSWORD, if authSetup=true}
+
+Steps:
+1. Connect to page (list_pages → select_page, or navigate to pageUrl)
+2. Login wall handling: detect login page → fill credentials → login → generate global-setup.ts if not present → generate sign-in POM
+3. Initial state three-layer scan (DOM → accessibility tree → screenshot)
+4. Targeted interactive exploration around targetArea:
+   - If targetArea is found on the page → explore around it (cdp-explorer Phase 3 targeted rules)
+   - **If targetArea is NOT found** → degrade to full mode: scan all interactive elements on the page, identify the most likely area matching the issue description, then explore that
+   - If reproSteps available → operate step by step, record state changes at each step
+5. Compare expectedBehavior vs actualBehavior — record discrepancies
+6. Write ALL findings to baselineFile:
+   - States, edges, forms, activation attempts, coverage report
+   - If login was handled, record login selectors used
+
+Return summary:
+{
+  "baselineFile": "{path}",
+  "newStates": ["S1", "S2"],
+  "newEdges": 3,
+  "targetAreaFound": true|false,
+  "degradedToFull": true|false,
+  "behaviorMatch": { "expected": "...", "actual": "...", "matches": true|false }
+}
+```
 ```
 
-按 cdp-explorer SKILL 的 targeted 模式执行：
-1. 连接页面（Phase 1）
-2. **登录墙处理**：与 `/qa-explore` Phase 1 Step 1 相同——CDP 探查登录表单真实 selector → 登录 → 生成 global-setup.ts（不存在时）→ 更新 config → 生成 sign-in POM
-3. 初始状态三层扫描（Phase 2）
-4. 围绕 targetArea 定向交互式探查（Phase 3 targeted 规则）
-5. 如果有 reproSteps → 按步骤逐步操作，记录每步状态变化
-6. 对比 expectedBehavior vs actualBehavior
-7. 将定向探查结果保存到 `$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{feature}.json`（feature 取自 issue title 提取的模块名，非页面 slug）
+> The subagent performs the full CDP exploration. All raw data stays in its context and is released when it finishes. Only the summary (~200 tokens) enters the main command context. All detailed findings are persisted in the baseline JSON file.
 
 ---
 
-## Phase 3: 串行启动 Agent（按顺序执行）
+## Phase 3: Sequential Agent Launch (execute in order)
 
-**关键约束**：启动 agent 时，prompt 只传入**输入数据**（issue 上下文、CDP 探查结果、source、projectContext），
-**不要**在 prompt 中写具体的代码规范、locator 策略、文件模板。
-agent 必须自行读取 `agents/e2e-orchestrator.md` → `skills/*/SKILL.md` 链路获取规范。
+**Key constraint**: When launching agents, the prompt only passes **input data** (issue context, CDP exploration results, source, projectContext),
+**do not** include specific code conventions, locator strategies, or file templates in the prompt.
+Agents must read the `agents/e2e-orchestrator.md` -> `skills/*/SKILL.md` chain to get specifications themselves.
 
-**Agent 1 — e2e-orchestrator**（sonnet）：
+**Agent 1 — e2e-orchestrator** (sonnet):
 
-prompt 模板：
+prompt template:
 ```
-你是 e2e-orchestrator。请先读取 agents/e2e-orchestrator.md 了解你的完整职责和步骤。
+You are e2e-orchestrator. First read agents/e2e-orchestrator.md to understand your full responsibilities and steps.
 
-输入：
+Input:
 - source: "issue"
 - issueKey: <issue-key>
 - issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
-- cdpBaseline: <Phase 2 探查产出的 baseline JSON 路径>
+- baselineFile: <baseline JSON path from Phase 2 exploration>
 - projectContext: { targetProjectDir, baseURL, existingTests, ... }
 
-按 agents/e2e-orchestrator.md 的步骤执行（读 SKILL.md → 生成），返回产物路径。
+Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return artifact paths.
 ```
 
-**检查 orchestrator 返回值**：
-- 如果 `specs` 和 `modified_specs` 均为空 → 跳过 test-executor 和 report-analyzer，直接告知用户
-- 否则 → 合并为执行列表，继续启动 test-executor
+**Check orchestrator return value**:
+- If both `specs` and `modified_specs` are empty -> skip test-executor and report-analyzer, inform user directly
+- Otherwise -> merge into execution list, continue launching test-executor
 
-**Locator 验证**（命令层执行，orchestrator 完成后）：
-1. 读取 orchestrator 返回的 `page_objects` 列表
-2. 从 POM 文件提取所有 locator
-3. 按 `skills/cdp-explorer/SKILL.md` Phase 4 (verify 模式) 验证
-4. ZERO 或 MULTIPLE → 修正后重新验证
-5. 全部 UNIQUE → 继续启动 test-executor
+**Build specToIssueMap** (command layer, after orchestrator returns):
+- For each issue processed in the batch, the orchestrator returns the spec file path(s) it generated
+- Construct the mapping: `{ specFilePath: issueKey }` by pairing each returned spec path with its source issue key
+- For batch processing (multiple issues → one orchestrator call), track which issue's context produced which spec
+- Example: if STE-9 produced `feature-a.test.ts` and STE-10 produced `feature-b.test.ts`:
+  ```json
+  { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9",
+    "tests/e2e/testcases/generated/feature-b.test.ts": "STE-10" }
+  ```
 
-**Agent 2 — test-executor**（sonnet）：
-- 等 orchestrator + Locator 验证完成后启动
-- 接收 spec 文件路径 → 执行测试 → 产出报告
+**Locator verification** (command layer owns both verify AND fix, after orchestrator completes):
+1. Read the `page_objects` list returned by orchestrator
+2. Extract all locators from POM files
+3. For each locator, CDP verify mode: evaluate selector on live page → count matches
+4. UNIQUE (1 match) → pass
+5. ZERO (0 matches) → CDP DOM scan to find correct selector → Edit POM file to replace locator → re-verify
+6. MULTIPLE (N matches) → CDP DOM scan to find narrowing parent → Edit POM file to add parent scope → re-verify
+7. Max 3 fix attempts per locator; if still failing → mark as needs manual review
+8. All UNIQUE → continue launching test-executor
 
-**Agent 3 — report-analyzer**（sonnet）：
-- 等 test-executor 完成后启动
-- **必须传入 sourceIssueKey**，report-analyzer 据此区分回写 vs 新建
-- 分析报告 → 来源 issue 相关失败回写评论 / 新 bug 新建 issue → 汇总报告 → 打开 HTML 报告
+**Agent 2 — test-executor** (haiku):
+- Launched after orchestrator + Locator verification complete
+- Receives merged spec file list: `orchestrator.specs + orchestrator.modified_specs` -> execute tests -> produce reports
 
-prompt 模板：
+**Agent 3 — report-analyzer** (haiku):
+- Launched after test-executor completes
+- **Must pass sourceIssueKey**; report-analyzer uses this to distinguish writeback vs. new creation
+- Analyze report -> write back comments for source issue related failures / create new issues for new bugs -> summary report -> open HTML report
+
+prompt template:
 ```
-你是 report-analyzer。请先读取 agents/report-analyzer.md 了解你的完整职责。
+You are report-analyzer. First read agents/report-analyzer.md to understand your full responsibilities.
 
-输入：
+Input:
 - sourceIssueKeys: [<issue-key-1>, <issue-key-2>, ...]
-- sourceSpecs: [<从这些 issue 生成的 spec 文件路径列表>]
+- sourceSpecs: [<orchestrator.specs + orchestrator.modified_specs merged list>]
 - specToIssueMap: { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9", "tests/e2e/testcases/generated/feature-b.test.ts": "STE-10" }
 - projectContext: { targetProjectDir, ... }
 
-注意：本次由 /qa-from-issue 触发，失败用例需要区分：
-1. sourceSpecs 中的失败 → 通过 specToIssueMap 路由到对应的 sourceIssueKey，回写评论
-2. 其他 spec 的失败 → 正常去重 + 新建 issue
+Note: This run was triggered by /qa-from-issue. Failed cases need to be categorized:
+1. Failures in sourceSpecs -> route to the corresponding sourceIssueKey via specToIssueMap, write back comments
+2. Failures in other specs -> normal dedup + create new issues
 ```
 
 ---
 
-## 产出物
+## Artifacts
 
-| 文件 | 说明 |
-|------|------|
-| `test-cases/generated/{feature}.md` | Phase 3: 测试用例 |
-| `test-cases/excel/{feature}.xlsx` | Phase 3: Excel 用例表格 |
+| File | Description |
+|------|-------------|
+| `test-cases/generated/{feature}.md` | Phase 3: Test cases |
+| `test-cases/excel/{feature}.xlsx` | Phase 3: Excel test case spreadsheet |
 | `tests/e2e/pages/{feature}.ts` | Phase 3: Page Object |
 | `tests/e2e/testcases/generated/{feature}.test.ts` | Phase 3: Playwright spec |
-| `tests/reports/playwright-results.json` | Phase 4: JSON 报告 |
-| `playwright-report/index.html` | Phase 4: HTML 报告 |
-| `tests/reports/combined/summary.md` | Phase 5: 汇总报告（始终生成） |
-| Linear issue（原） | Phase 6: 回写测试文件路径 + 执行结果 |
-| Linear issue（新） | Phase 5: 失败用例上报（去重后） |
+| `tests/reports/playwright-results.json` | Phase 4: JSON report |
+| `playwright-report/index.html` | Phase 4: HTML report |
+| `tests/reports/combined/summary.md` | Phase 5: Summary report (always generated) |
+| Linear issue (original) | Phase 6: Write back test file paths + execution results |
+| Linear issue (new) | Phase 5: Failed case reporting (after dedup) |
