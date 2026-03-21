@@ -1,9 +1,14 @@
 ---
 name: linear-bug-report
 description: Formats failed test cases and reports them to Linear. Supports creating new issues and appending comments. Activated when the task involves "report bugs" or "Linear Issues".
+model: claude-haiku-4-5
 ---
 
 # Linear Bug Reporting Specification
+
+## Language
+
+All issue titles, descriptions, and comments MUST be written in **Chinese (简体中文)**.
 
 ## Trigger Condition
 
@@ -19,7 +24,7 @@ Called by the report-analyzer agent after discovering failed test cases and pass
 ## Issue Creation Specification (Create Mode)
 
 ### Title Format
-`[Auto] {Test Case Name} — {Error Summary (≤50 chars)}`
+`[Auto] {测试用例名称} — {错误摘要(≤50字)}`
 
 ### Priority Mapping
 | Test Case Priority | Linear Priority |
@@ -37,26 +42,26 @@ Called by the report-analyzer agent after discovering failed test cases and pass
 ### Description Template
 
 ```markdown
-## Problem Description
-{Error message summary}
+## 问题描述
+{错误信息摘要}
 
-## Steps to Reproduce
-{Test steps, from the When section of the test case}
+## 复现步骤
+{测试步骤，来自用例的 When 部分}
 
-## Expected Result
-{The Then section of the test case}
+## 期望结果
+{用例的 Then 部分}
 
-## Actual Result
-{Actual error message / assertion failure details}
+## 实际结果
+{实际错误信息 / 断言失败详情}
 
-## Environment Info
-- Preview URL: {PREVIEW_URL}
-- Execution Time: {ISO timestamp}
-- Test Type: {e2e / unit}
-- Test File: {spec file path}
+## 环境信息
+- 预览地址: {PREVIEW_URL}
+- 执行时间: {ISO timestamp}
+- 测试类型: {e2e / unit}
+- 测试文件: {spec file path}
 
-## Attachments
-{Failure screenshot path (E2E) or error stack trace (Unit)}
+## 附件
+{失败截图路径（E2E）或错误堆栈（Unit）}
 ```
 
 ## Comment Specification (Comment Mode)
@@ -64,16 +69,16 @@ Called by the report-analyzer agent after discovering failed test cases and pass
 ### Comment Template
 
 ```markdown
-## 🔴 Automated Test Failure
+## 🔴 自动化测试失败
 
-**Test Case**: {Test case name}
-**Error**: {Error message}
-**Screenshot**: {Screenshot path or "None"}
-**Spec**: {Spec file path}
-**Execution Time**: {ISO timestamp}
+**测试用例**: {测试用例名称}
+**错误**: {错误信息}
+**截图**: {截图路径 或 "无"}
+**Spec 文件**: {spec 文件路径}
+**执行时间**: {ISO timestamp}
 ```
 
-Multiple failures are merged into a single comment, separated by `---`.
+多个失败合并为一条评论，用 `---` 分隔。
 
 ## Deduplication Logic
 

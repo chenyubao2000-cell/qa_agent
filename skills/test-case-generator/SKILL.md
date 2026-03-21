@@ -16,6 +16,10 @@ agents: [claude-code, cursor, github-copilot, windsurf, codex, aider, continue, 
 
 You are an expert QA engineer specializing in systematic test case generation from user stories and acceptance criteria. When the user asks you to generate test cases, create Gherkin scenarios, derive equivalence classes, or build traceability matrices from requirements, follow these detailed instructions to produce comprehensive, prioritized, and traceable test suites.
 
+## Output Language
+
+All test case output (case titles, preconditions, steps, expected results, test data) MUST be written in **Chinese (简体中文)**. Only keep technical identifiers in English: Case IDs (TC-xxx-001), priority labels (P0/P1/P2), and code-level references (CSS selectors, URLs, API paths).
+
 ## Supported Input Sources
 
 Before generating test cases, identify which input type(s) the user has provided and apply the corresponding extraction process:
@@ -598,21 +602,31 @@ Starting from the inferred user stories, follow the complete test case generatio
 
 3. **Excel** — Regenerate, adding the corresponding sheet with an orange tab color (to distinguish from the blue tabs used by requirements-document-driven sheets)
 
-4. **playwright-handoff.json** — Add new entries, where all entries' `uiElements` directly use real selectors extracted from the baseline:
+4. **playwright-handoff.json** — Add new entries. Each entry **must** include all fields required by playwright-script-generator (`title`, `assertions`, `preconditions`), in addition to CDP-specific fields. The `uiElements` directly use real selectors extracted from the baseline:
    ```json
    {
      "id": "TC-CDP-001",
      "storyId": "cdp-<page-slug>",
      "source": "cdp",
+     "title": "User can log in with valid credentials",
+     "priority": "P0-critical",
+     "preconditions": ["User is on the login page"],
      "pageUrl": "https://...",
      "snapshotDate": "2026-03-18",
      "fromState": "S0",
      "uiElements": [
        { "role": "textbox", "name": "Email", "action": "fill", "value": "user@example.com",
          "locatorHint": "getByRole('textbox', { name: 'Email' })" }
-     ]
+     ],
+     "assertions": [
+       { "type": "url", "expected": "/dashboard" },
+       { "type": "visible", "selector": "heading", "name": "Welcome" }
+     ],
+     "tags": ["cdp-inferred", "authentication"],
+     "timeout": null
    }
    ```
+   > **Important**: CDP mode handoff entries must have the same required fields as requirements mode (`title`, `priority`, `preconditions`, `assertions`). The `title` is inferred from the user story derived in Step 3. The `assertions` are inferred from the acceptance criteria. Without these fields, playwright-script-generator cannot generate valid `test()` and `expect()` blocks.
 
 5. **traceability-matrix.json** — criterionId format is `CDP-<pageSlug>-<sequence>`, requirementSection is filled with `<page URL>`
 
@@ -643,121 +657,589 @@ Identical to the requirements document mode — invoke the `playwright-script-ge
 
 ## Core Principles
 
-0. **Deduplicate before generating** -- Before generating any new test case, **must** check existing artifacts to avoid duplicates:
-   - Scan `test-cases/generated/*.md` for existing case IDs (e.g. `TC-SIDEBAR-001`)
-   - Scan `tests/e2e/testcases/**/*.test.ts` for existing test names and case IDs (via Grep)
-   - For each candidate test case, compare its **verification target** (what it asserts) against existing cases — if an existing case already covers the same scenario, skip it
-   - Only generate cases for **genuinely new** scenarios not covered by any existing case or spec
-   - If all candidates are duplicates, output "All test cases already exist, skipping generation" and stop
+The complete workflow follows this sequence: **Scope check → Parse → Design → Merge & Deduplicate → Output**.
+
+### Phase A: Collect Existing Coverage (before design)
+
+> **Deduplication hierarchy**: The primary deduplication is performed by the **e2e-orchestrator** (agents/e2e-orchestrator.md Step 2) before this skill is invoked. The orchestrator scans existing artifacts, determines what is new/partial/covered, and only passes genuinely needed work to this skill. This skill's Phase A serves as a **defensive fallback** — if the orchestrator didn't pre-filter (e.g., when called standalone), this phase catches duplicates.
+
+0. **Scan existing artifacts to build a coverage index** -- Before starting design, collect what already exists. This index is used later in Phase C for deduplication, **not** for skipping design:
+   - Scan `test-cases/generated/*.md` for existing case IDs and verification targets
+   - Scan `tests/e2e/testcases/**/*.test.ts` for existing test names, case IDs, and assertions
+   - Build an index: `{ caseId, feature, verificationTarget, locators }` per existing case
+   - **Do not skip any module at this stage** — even if a module has existing cases, it may have gaps that the design methods will uncover. The decision to skip or supplement is made in Phase C after design is complete
+
+### Phase B: Parse & Design (apply methods)
+
 1. **Parse before generating** -- Before writing any test case, fully parse the user story format ("As a... I want... So that...") and extract every testable acceptance criterion. Missing this step leads to incomplete coverage.
-2. **Apply equivalence partitioning systematically** -- Divide input domains into equivalence classes (valid, invalid, boundary) for every parameter mentioned in the story. Each class needs at least one representative test case.
-3. **Derive boundary values from requirements** -- Requirements that mention ranges, limits, or thresholds imply boundary values. Extract and test at the boundary, one below, and one above.
+2. **Apply equivalence partitioning systematically** -- Divide input domains into valid equivalence classes and invalid equivalence classes for every parameter mentioned in the story. A single test case may cover multiple valid classes, but must cover only one invalid class.
+3. **Derive boundary values as a supplement to equivalence partitioning** -- Boundary value analysis is independent from equivalence partitioning (Method 2). Requirements that mention ranges, limits, or thresholds imply boundary values. Test at the boundary, one below, and one above.
 4. **Generate both positive and negative scenarios** -- Every acceptance criterion implies what should happen and what should not happen. Generate explicit negative test cases for every positive scenario.
-5. **Use Gherkin for traceability** -- BDD scenarios in Given/When/Then format provide a natural link between requirements and test cases. Every scenario should trace back to a specific acceptance criterion.
-6. **Prioritize by risk, not by order** -- Not all test cases have equal value. Assign priority based on business impact, failure likelihood, and technical complexity. High-risk scenarios run first.
-7. **Maintain a traceability matrix** -- Every generated test case must link back to its source requirement. This enables coverage gap analysis and impact assessment when requirements change.
-8. **Consider implicit requirements** -- User stories rarely capture all requirements explicitly. Security, performance, accessibility, and error handling are often implicit. Generate test cases for these cross-cutting concerns.
+5. **Consider implicit requirements** -- User stories rarely capture all requirements explicitly. Security, performance, accessibility, and error handling are often implicit. Generate test cases for these cross-cutting concerns.
+6. **Test data self-sufficiency (mandatory for every test case)** -- Each test case must be **completely self-contained**: it creates its own preconditions, executes, verifies, and cleans up. No test may depend on another test's output or execution order.
+
+   **Why**: Tests must be able to run independently and in parallel (`fullyParallel: true`). If test "Delete Task" depends on test "Create Task" having run first, parallel execution breaks, and a single test failure cascades to unrelated tests.
+
+   **Rules for every test case**:
+   - **Setup (preconditions)**: Explicitly state what data must be created BEFORE the test action. E.g., "Delete Task" test must include precondition: "Create a task named 'Test-{timestamp}' via API or UI"
+   - **Teardown (postconditions)**: State what cleanup is needed AFTER the test to avoid polluting subsequent tests. E.g., "Create Task" test must include postcondition: "Delete the created task to restore initial state"
+   - **No shared mutable state**: Tests must NOT rely on a specific task/record existing from a previous test. Each test creates its own test data
+   - **Idempotent**: Running the same test twice in a row must produce the same result
+
+   **Common dependency patterns and how to handle them**:
+
+   | Test Scenario | Wrong (dependent) | Right (self-sufficient) |
+   |--------------|-------------------|------------------------|
+   | Delete a task | Precondition: "Task exists" (from Create test) | Precondition: "Through UI create task 'Test-Del-{timestamp}'". Teardown: none (task deleted by test itself) |
+   | Edit a task | Precondition: "Task exists" (from Create test) | Precondition: "Through UI create task 'Test-Edit-{timestamp}'". Teardown: "Through UI delete task 'Test-Edit-{timestamp}'" |
+   | View task detail | Precondition: "Task exists" (from Create test) | Precondition: "Through UI create task 'Test-View-{timestamp}'". Teardown: "Through UI delete task 'Test-View-{timestamp}'" |
+   | Filter by status | Precondition: "Multiple tasks with different statuses" | Precondition: "Through UI create 3 tasks with statuses: open, in-progress, done". Teardown: "Through UI delete all 3 tasks" |
+
+   > **UI setup strategy**: This is a UI automation platform — setup and teardown are done through UI interactions (via POM methods), not API calls. The setup steps should reuse existing POM methods (e.g., `tasksPage.createTask()`) to keep setup code stable and maintainable. Setup operations use the same POM as the test itself.
+
+### Phase C: Merge & Deduplicate (after design)
+
+6. **Merge all method outputs, deduplicate, and determine action** -- After all 6 design methods have produced their case sets, merge them and compare against the Phase A coverage index:
+   - **Internal dedup**: same input + same operation + same expected result across methods = duplicate, keep one
+   - **Resolve conflicts**: different methods producing contradictory expected results → investigate and keep the correct one
+   - **Consolidate**: multiple valid equivalence classes covered by separate cases → merge into fewer cases where possible
+   - **Compare against existing cases**: for each new case, compare its **verification target** against the Phase A index:
+     - Existing case covers the same scenario with same assertions → mark as duplicate, remove
+     - Existing case covers the same scenario but with weaker/incomplete assertions → mark as **supplement** — generate the new case to strengthen coverage
+     - No existing case covers this scenario → mark as **new** — generate normally
+   - If after all comparisons every new case is a duplicate, output "All test cases already exist, skipping generation" and stop
+
+### Phase D: Output
+
+7. **Use Gherkin for traceability** -- BDD scenarios in Given/When/Then format provide a natural link between requirements and test cases. Every scenario should trace back to a specific acceptance criterion.
+8. **Prioritize by risk, not by order** -- Not all test cases have equal value. Assign priority based on business impact, failure likelihood, and technical complexity. High-risk scenarios run first.
+9. **Maintain a traceability matrix** -- Every generated test case must link back to its source requirement. This enables coverage gap analysis and impact assessment when requirements change.
 
 ## Test Case Design Methodology (Mandatory — must be applied before generating any set of test cases)
 
 > **Mandatory rule**: Before generating test cases for any feature, you must check each of the following 6 methods for applicability. Mark inapplicable methods as `N/A`; applicable methods must produce corresponding test cases. It is forbidden to write only the "happy path" and stop.
 
+### Enforcement: Method Coverage Sections (mandatory in output .md)
+
+The final test case .md file **must** contain explicit section headers for all 6 methods. This is the enforcement mechanism — the orchestrator validates that all sections are present before accepting the output.
+
+```markdown
+## Method 1: Equivalence Partitioning
+[cases or N/A with reason]
+
+## Method 2: Boundary Value Analysis
+[cases or N/A with reason]
+
+## Method 3: Cause-Effect Graph / Decision Table
+[cases or N/A with reason]
+
+## Method 4: State Transition Testing
+[cases or N/A with reason]
+
+## Method 5: Scenario Method
+[cases or N/A with reason]
+
+## Method 6: Error Guessing
+[cases or N/A with reason]
+
+## Merged Test Case List
+[final deduplicated cases from all applicable methods]
+```
+
+**Validation rules** (checked by orchestrator after generation):
+1. All 6 `## Method N:` sections must be present in the output .md
+2. Each section must contain either test cases OR `N/A` with a reason (empty sections are rejected)
+3. `## Merged Test Case List` must be present as the final consolidated output
+4. If a method is marked `N/A`, the reason must explain why (e.g., "N/A — no numeric ranges in this feature, boundary analysis not applicable")
+5. At least 3 of the 6 methods must produce actual test cases (not all N/A)
+
 ### Method 1: Equivalence Partitioning
 
-Divide each input parameter into valid equivalence classes and invalid equivalence classes, with at least one representative value per class.
+Equivalence partitioning divides input parameters into equivalence classes, categorized as valid equivalence classes and invalid equivalence classes.
 
-```
-Input: Username (2-20 characters)
-├─ Valid class: "AB" (2 chars), "test_user" (9 chars), "a"x20 (20 chars)
-├─ Invalid class - too short: "" (0 chars), "a" (1 char)
-├─ Invalid class - too long: "a"x21 (21 chars)
-└─ Invalid class - illegal characters: "<script>", "user name" (contains space)
-```
+- **Valid equivalence classes**: Sets of reasonable, meaningful input data per the program specification. Valid equivalence classes verify whether the program implements the functions defined in the specification.
+- **Invalid equivalence classes**: Sets of unreasonable, meaningless input data per the program specification. Invalid equivalence classes verify whether the program effectively rejects content outside the functions defined in the specification.
+- Select a few representative values from each equivalence class as test data and design test cases. The representative data from each equivalence class is equivalent in testing effect to all other data in that class.
+- **Important rule**: A single test case may cover multiple valid equivalence classes, but a single test case must cover only one invalid equivalence class.
+
+**Using equivalence partitioning requires the following steps:**
+
+#### Step 1: Partition input parameters into equivalence classes
+
+Follow these principles when partitioning:
+
+- When the input condition specifies a set of values or a condition that must be met, establish one valid equivalence class and one invalid equivalence class.
+- When the input condition is a boolean, establish one valid equivalence class and one invalid equivalence class. A boolean is a two-value enumeration type with only two states: true and false.
+- When a set of values is specified for input data (assume n values), and the program processes each value differently, establish n valid equivalence classes and 1 invalid equivalence class. For example, if the input condition states the character must be one of Chinese, English, or Arabic — take one value from each of these 3 character types as 3 valid equivalence classes, and any character outside these 3 types as the invalid equivalence class.
+- When the input data must follow specific rules, establish one valid equivalence class (follows the rules) and several invalid equivalence classes (violates the rules from different angles).
+- When elements of an already-partitioned equivalence class are known to be processed differently by the program, further subdivide that equivalence class into smaller classes.
+
+Format: [Input Condition] [Valid Equivalence Class] [ID] [Invalid Equivalence Class] [ID]
+
+#### Step 2: Convert equivalence classes into test cases
+
+Build an equivalence class table using [Input Condition] [Valid Equivalence Class] [Invalid Equivalence Class], displayed in Markdown format, listing all partitioned equivalence classes. Assign a unique ID to each equivalence class.
+
+- When designing a test case to cover valid equivalence classes, make the test case cover as many uncovered valid equivalence classes as possible. Repeat until all valid equivalence classes are covered. Cover all situations and output as many cases as possible.
+- Design a new test case that covers only one uncovered invalid equivalence class. Repeat until all invalid equivalence classes are covered. Output test cases in Markdown table format.
+- Output following these steps:
+  - Step 1: \<step 1 reasoning\>
+  - Step 2: \<step 2 reasoning\>
+  - Test cases: \<response to customer\>
+
+#### Step 3: Output test cases as Markdown table
+
+Format: [Case ID] [Valid/Invalid Equivalence Class] [Case Level] [Case Name] [Input Conditions] [Operations] [Expected Result] [Related Step 1 Condition Combination IDs]
+
+Think step by step.
+
+**Example: Username field (2-20 characters, letters/digits/underscores only)**
+
+Step 1: Partition equivalence classes
+
+| Input Condition | Valid Equivalence Class | ID | Invalid Equivalence Class | ID |
+|----------------|------------------------|-----|--------------------------|-----|
+| Length range [2, 20] | 2-20 chars (e.g., "test_user") | V1 | 0 chars (empty) | I1 |
+| | | | 1 char (e.g., "a") | I2 |
+| | | | 21+ chars (e.g., "a"x21) | I3 |
+| Character type: letters/digits/underscores | Letters only (e.g., "abcdef") | V2 | Contains spaces (e.g., "user name") | I4 |
+| | Digits only (e.g., "12345") | V3 | Contains HTML special chars (e.g., "\<script\>") | I5 |
+| | Mixed letters+digits+underscore (e.g., "test_01") | V4 | Contains Chinese chars (e.g., "用户名") | I6 |
+
+Step 2: Design test cases — cover multiple valid classes per case; one invalid class per case
+
+| Case ID | Valid/Invalid | Case Level | Case Name | Input Conditions | Operations | Expected Result | Condition IDs |
+|---------|-------------|------------|-----------|-----------------|------------|-----------------|---------------|
+| TC-EP-001 | Valid | P1 | Valid username with mixed chars | Username = "test_01" (8 chars, letters+digits+underscore) | Enter username, submit | Registration succeeds | V1, V4 |
+| TC-EP-002 | Valid | P2 | Valid username letters only | Username = "abcdef" (6 chars, letters only) | Enter username, submit | Registration succeeds | V1, V2 |
+| TC-EP-003 | Valid | P2 | Valid username digits only | Username = "12345" (5 chars, digits only) | Enter username, submit | Registration succeeds | V1, V3 |
+| TC-EP-004 | Invalid | P1 | Empty username | Username = "" (0 chars) | Enter username, submit | Error: "Username is required" | I1 |
+| TC-EP-005 | Invalid | P1 | Username too short | Username = "a" (1 char) | Enter username, submit | Error: "Username must be at least 2 characters" | I2 |
+| TC-EP-006 | Invalid | P1 | Username too long | Username = "a"x21 (21 chars) | Enter username, submit | Error: "Username must not exceed 20 characters" | I3 |
+| TC-EP-007 | Invalid | P2 | Username with spaces | Username = "user name" | Enter username, submit | Error: "Username contains invalid characters" | I4 |
+| TC-EP-008 | Invalid | P2 | Username with HTML special chars | Username = "\<script\>" | Enter username, submit | Error: "Username contains invalid characters" | I5 |
+| TC-EP-009 | Invalid | P2 | Username with Chinese chars | Username = "用户名" | Enter username, submit | Error: "Username contains invalid characters" | I6 |
 
 **Applicable scenarios**: All scenarios with input (forms, search, API parameters).
 
 ### Method 2: Boundary Value Analysis
 
-For parameters with range constraints, test the boundary and values at boundary +/- 1.
+Boundary value analysis is a supplement to equivalence partitioning, focusing on the boundary values of input and output equivalence classes.
 
-```
-Constraint: Password 8-64 characters
-├─ Lower bound: 7 (invalid), 8 (valid), 9 (valid)
-├─ Upper bound: 63 (valid), 64 (valid), 65 (invalid)
-└─ Special boundary: 0 (empty), 1 (minimum non-empty)
-```
+It is based on the experience that a large number of errors tend to occur at the boundaries of input or output ranges, rather than in the middle of the range.
+
+Boundary value analysis requires testers to select input data at equivalence class boundaries, as well as data just beyond the boundaries.
+
+Boundary value analysis is applicable to scenarios with continuous input values, such as numeric ranges, date ranges, string length limits, etc.
+
+**Using boundary value analysis requires the following steps:**
+
+#### Step 1: Identify boundary parameters
+
+Identify all input parameters and output results in the system that have boundary characteristics.
+
+#### Step 2: Identify valid and invalid boundaries
+
+For each input parameter and output result, identify valid and invalid boundaries:
+
+- For range type [min, max] inputs:
+  - Minimum value (min), just below minimum (min-1), just above minimum (min+1)
+  - Maximum value (max), just below maximum (max-1), just above maximum (max+1)
+- For set or list type inputs:
+  - Empty set/list, set/list with only one element, set/list with maximum allowed elements, set/list exceeding maximum allowed count
+- For string type inputs:
+  - Empty string, minimum length string, maximum length string, string exceeding maximum length
+
+#### Step 3: Design test cases by combining boundary value conditions
+
+Combine boundary value conditions to design test cases, ensuring coverage of critical boundary situations. Cover all situations and output as many cases as possible.
+
+Output following these steps:
+- Step 1: \<step 1 reasoning\>
+- Step 2: \<step 2 reasoning\>
+- Step 3: \<step 3 reasoning\>
+- Test cases: \<response to customer\>
+
+#### Step 4: Output test cases as Markdown table
+
+Format: [Case ID] [Case Level] [Case Name] [Input Conditions] [Operations] [Expected Result]
+
+Think step by step.
+
+**Example: Password field (8-64 characters)**
+
+Step 1: Identify boundary parameters — Password length has range constraint [8, 64].
+
+Step 2: Identify valid and invalid boundaries:
+- Lower bound: 7 (invalid, min-1), 8 (valid, min), 9 (valid, min+1)
+- Upper bound: 63 (valid, max-1), 64 (valid, max), 65 (invalid, max+1)
+- Special boundary: 0 (empty), 1 (minimum non-empty)
+
+Step 3: Design test cases combining boundary conditions:
+
+| Case ID | Case Level | Case Name | Input Conditions | Operations | Expected Result |
+|---------|------------|-----------|-----------------|------------|-----------------|
+| TC-BV-001 | P0 | Password empty | Password = "" (0 chars) | Enter password, submit | Error: "Password is required" |
+| TC-BV-002 | P2 | Password 1 char | Password = "a" (1 char) | Enter password, submit | Error: "Password must be at least 8 characters" |
+| TC-BV-003 | P0 | Password below minimum | Password = "Abcdef7" (7 chars) | Enter password, submit | Error: "Password must be at least 8 characters" |
+| TC-BV-004 | P0 | Password at minimum | Password = "Abcdefg8" (8 chars) | Enter password, submit | Registration succeeds |
+| TC-BV-005 | P2 | Password above minimum | Password = "Abcdefgh9" (9 chars) | Enter password, submit | Registration succeeds |
+| TC-BV-006 | P2 | Password below maximum | Password = "a"x63 (63 chars) | Enter password, submit | Registration succeeds |
+| TC-BV-007 | P0 | Password at maximum | Password = "a"x64 (64 chars) | Enter password, submit | Registration succeeds |
+| TC-BV-008 | P0 | Password above maximum | Password = "a"x65 (65 chars) | Enter password, submit | Error: "Password must not exceed 64 characters" |
 
 **Applicable scenarios**: Scenarios with numeric ranges, length limits, quantity limits, or time ranges.
 
-### Method 3: Decision Table / Cause-Effect Graph
+### Method 3: Cause-Effect Graph / Decision Table
 
-When multiple conditions combine to affect the result, use a decision table to exhaustively enumerate key combinations.
+The cause-effect graph method identifies causes (input conditions) and effects (output results or program state changes) from requirements.
 
-```
-Conditions: User login status (Y/N) x Membership level (Regular/VIP) x Product stock (In/Out)
+By analyzing relationships between input conditions (combination relationships, constraint relationships, etc.) and the relationships between input conditions and output results, a cause-effect graph is drawn, then converted into a decision table to design test cases.
 
-| Logged in | Membership | Stock | Expected result |
-|-----------|------------|-------|-----------------|
-| N         | -          | -     | Redirect to login page |
-| Y         | Regular    | In    | Normal purchase, original price |
-| Y         | VIP        | In    | Normal purchase, discounted price |
-| Y         | Regular    | Out   | Show out-of-stock notice |
-| Y         | VIP        | Out   | Show out-of-stock notice + restock notification option |
-```
+The cause-effect graph method is primarily applicable when input conditions have mutual constraints or when output results depend on combinations of input conditions.
+
+When using the cause-effect graph method, focus on analyzing all mutual constraint and combination relationships between input conditions. The dependency of output results on input conditions determines which input condition combinations produce which output results.
+
+**4 relationships between causes and effects** (input conditions and output results): Identity, NOT, OR, AND.
+
+**5 relationships between causes** (input conditions): Exclusive, Inclusive, Unique, Requires, Masks.
+
+**Using the cause-effect graph method requires the following steps:**
+
+#### Step 1: Analyze components and draw the cause-effect graph
+
+Analyze the various components and modules in the system designed based on business logic. These components and modules are the factors in the cause-effect graph. Use the cause-effect graph to describe the causal relationships between factors in the system — primarily the relationships between components and modules. Draw the cause-effect graph.
+
+#### Step 2: Build the decision table
+
+Based on the causal relationships identified from the cause-effect graph, build and output the decision table.
+
+#### Step 3: Convert the decision table into test cases
+
+Convert each factor in the decision table into what it represents in the original business under test, then output test cases with one row per test case. Test cases should cover all inputs, conditions, and scenarios to ensure comprehensive system testing. Confirm that test case coverage logic is complete and non-redundant. Cover all situations and output as many cases as possible.
+
+Output following these steps:
+- Step 1: \<step 1 reasoning\>
+- Step 2: \<step 2 reasoning\>
+- Step 3: \<step 3 reasoning\>
+- Test cases: \<response to customer\>
+
+#### Step 4: Output test cases as Markdown table
+
+Format: [Case ID] [Case Level] [Case Name] [Input Conditions] [Operations] [Expected Result]
+
+Think step by step.
+
+**Example: Product purchase page — login status x membership x stock**
+
+Step 1: Analyze factors and draw cause-effect graph
+- Causes (input conditions): C1 = User logged in, C2 = VIP membership, C3 = Product in stock
+- Effects (output results): E1 = Redirect to login, E2 = Purchase at original price, E3 = Purchase at discounted price, E4 = Show out-of-stock notice, E5 = Show restock notification option
+- Relationships: C1→NOT→E1 (identity-NOT); C1 AND C3 AND NOT C2→E2 (AND); C1 AND C3 AND C2→E3 (AND); C1 AND NOT C3→E4 (AND); C1 AND C2 AND NOT C3→E5 (AND)
+- Constraint: C2 requires C1 (Requires relationship — must be logged in to have membership)
+
+Step 2: Build decision table
+
+| Rule | C1 (Logged in) | C2 (VIP) | C3 (In stock) | E1 (Redirect login) | E2 (Original price) | E3 (Discounted price) | E4 (Out-of-stock notice) | E5 (Restock notification) |
+|------|---------------|----------|---------------|---------------------|---------------------|----------------------|--------------------------|--------------------------|
+| R1 | N | - | - | Y | N | N | N | N |
+| R2 | Y | N | Y | N | Y | N | N | N |
+| R3 | Y | Y | Y | N | N | Y | N | N |
+| R4 | Y | N | N | N | N | N | Y | N |
+| R5 | Y | Y | N | N | N | N | Y | Y |
+
+Step 3: Convert decision table into test cases
+
+| Case ID | Case Level | Case Name | Input Conditions | Operations | Expected Result |
+|---------|------------|-----------|-----------------|------------|-----------------|
+| TC-CE-001 | P0 | Not logged in, attempt purchase | User not logged in | Click "Buy" button | Redirect to login page |
+| TC-CE-002 | P0 | Regular user purchases in-stock product | Logged in, Regular membership, product in stock | Click "Buy" button | Purchase succeeds at original price |
+| TC-CE-003 | P0 | VIP user purchases in-stock product | Logged in, VIP membership, product in stock | Click "Buy" button | Purchase succeeds at discounted price |
+| TC-CE-004 | P1 | Regular user views out-of-stock product | Logged in, Regular membership, product out of stock | Click "Buy" button | Show out-of-stock notice |
+| TC-CE-005 | P1 | VIP user views out-of-stock product | Logged in, VIP membership, product out of stock | Click "Buy" button | Show out-of-stock notice + restock notification option |
 
 **Applicable scenarios**: Multi-condition combinations (permissions x status x role), complex business rules, toggle combinations.
 
 ### Method 4: State Transition Testing
 
-Identify the object's state machine, verify each valid transition and invalid transition.
+The state transition method designs test cases based on system states and their transition relationships.
+
+The state transition method treats the system as composed of a finite number of states, with the system transitioning between these states according to specific conditions.
+
+The state transition method is particularly suitable for systems with clearly defined states, such as workflow systems, state machine systems, etc.
+
+**Using the state transition method requires the following steps:**
+
+#### Step 1: Identify all states
+
+Determine all states of the system, including initial states, intermediate states, and terminal states.
+
+#### Step 2: Identify transition events
+
+Identify all events or conditions that cause state transitions.
+
+#### Step 3: Build the state transition diagram or table
+
+Establish a state transition diagram or state transition table, clearly defining the transition relationships between states.
+
+#### Step 4: Design test cases covering the following paths
+
+- All states are covered at least once.
+- All transitions are covered at least once.
+- Typical state sequences (common business flows) are covered.
+- Illegal state transitions (verifying system constraints and safeguards).
+
+Cover all situations and output as many cases as possible.
+
+Output following these steps:
+- Step 1: \<step 1 reasoning\>
+- Step 2: \<step 2 reasoning\>
+- Step 3: \<step 3 reasoning\>
+- Step 4: \<step 4 reasoning\>
+- Test cases: \<response to customer\>
+
+#### Step 5: Output test cases as Markdown table
+
+Format: [Case ID] [Case Level] [Case Name] [Input Conditions] [Operations] [Expected Result]
+
+Think step by step.
+
+**Example: Task state machine**
+
+Step 1: Identify all states
+- Initial state: Created
+- Intermediate states: In Progress, Aborted
+- Terminal state: Completed
+
+Step 2: Identify transition events
+- "Start" action: Created → In Progress
+- "Complete" action: In Progress → Completed
+- "Abort" action: In Progress → Aborted
+- "Restart" action: Aborted → In Progress
 
 ```
-Task state machine:
+State transition diagram:
   [Created] → [In Progress] → [Completed]
                 ↓                 ↑
            [Aborted] ←───────────┘
-
-Valid transitions: Created→In Progress, In Progress→Completed, In Progress→Aborted
-Invalid transitions: Completed→Created (not allowed), Aborted→In Progress (not allowed)
 ```
+
+Step 3: Build state transition table
+
+| Current State | Event | Next State | Valid? |
+|--------------|-------|------------|--------|
+| Created | Start | In Progress | Yes |
+| Created | Complete | - | No |
+| Created | Abort | - | No |
+| In Progress | Complete | Completed | Yes |
+| In Progress | Abort | Aborted | Yes |
+| In Progress | Start | - | No |
+| Completed | Start | - | No |
+| Completed | Abort | - | No |
+| Aborted | Restart | In Progress | Yes |
+| Aborted | Complete | - | No |
+
+Step 4: Design test cases
+
+| Case ID | Case Level | Case Name | Input Conditions | Operations | Expected Result |
+|---------|------------|-----------|-----------------|------------|-----------------|
+| TC-ST-001 | P0 | Normal flow: Created to In Progress | Task in Created state | Click "Start" | Task transitions to In Progress |
+| TC-ST-002 | P0 | Normal flow: In Progress to Completed | Task in In Progress state | Click "Complete" | Task transitions to Completed |
+| TC-ST-003 | P0 | Normal flow: In Progress to Aborted | Task in In Progress state | Click "Abort" | Task transitions to Aborted |
+| TC-ST-004 | P1 | Recovery: Aborted to In Progress | Task in Aborted state | Click "Restart" | Task transitions to In Progress |
+| TC-ST-005 | P1 | Full lifecycle: Created→In Progress→Completed | Task in Created state | Start → Complete | Task reaches Completed state |
+| TC-ST-006 | P1 | Abort-recovery lifecycle | Task in Created state | Start → Abort → Restart → Complete | Task reaches Completed state |
+| TC-ST-007 | P1 | Invalid: Complete from Created | Task in Created state | Attempt to complete directly | Operation rejected, state remains Created |
+| TC-ST-008 | P1 | Invalid: Abort from Created | Task in Created state | Attempt to abort directly | Operation rejected, state remains Created |
+| TC-ST-009 | P2 | Invalid: Start from Completed | Task in Completed state | Attempt to start | Operation rejected, state remains Completed |
+| TC-ST-010 | P2 | Invalid: Abort from Completed | Task in Completed state | Attempt to abort | Operation rejected, state remains Completed |
+| TC-ST-011 | P2 | Invalid: Complete from Aborted | Task in Aborted state | Attempt to complete directly | Operation rejected, state remains Aborted |
 
 **Applicable scenarios**: Stateful objects (tasks, orders, tickets), workflow engines, UI component states (loading/done/error).
 
-### Method 5: Process Flow Analysis
+### Method 5: Scenario Method (Process Flow Analysis)
 
-Start from the user operation flow, covering the normal path + exception branches + rollback paths.
+The scenario method simulates different scenarios from requirements to cover all functional points and business flows, thereby designing test cases.
 
-```
-Share task flow:
-  1. Click share button → dialog opens
-  2. Click "Create share link" → generate link → display link + copy button
-  3. Click copy → clipboard has link → toast shows "Copied"
+The scenario method primarily involves identifying basic flows and alternative flows. The basic flow is the correct business process, simulating the user's correct business operations. The alternative flow is the incorrect business process, simulating the user's incorrect business operations.
 
-Exception branches:
-  2a. Network failure → show error message
-  3a. Share link already exists → show "Remove share" option
+A basic flow has only one starting point and one ending point. The basic flow is the main process; alternative flows are sub-processes. An alternative flow can originate from the basic flow or from other alternative flows. The endpoint of an alternative flow can be a process exit or a return to another flow's entry point. When alternative flows converge, which merges into which depends on traffic volume — i.e., the likelihood of the flow occurring.
 
-Rollback paths:
-  Any step → click close/ESC → dialog closes, no side effects
-```
+When designing different scenarios, follow the principle that every alternative flow is covered, with exactly one loop coverage.
+
+**Using the scenario method requires the following steps:**
+
+#### Step 1: Identify all basic flows and alternative flows
+
+#### Step 2: Combine flows into test scenarios
+
+#### Step 3: Convert scenarios into test cases
+
+Output test cases with one row per test case. Confirm that test case coverage logic is complete and non-redundant. Cover all situations and output as many cases as possible.
+
+Output following these steps:
+- Step 1: \<step 1 reasoning\>
+- Step 2: \<step 2 reasoning\>
+- Step 3: \<step 3 reasoning\>
+- Test cases: \<response to customer\>
+
+#### Step 4: Output test cases as Markdown table
+
+Format: [Case ID] [Case Level] [Case Name] [Input Conditions] [Operations] [Expected Result]
+
+Think step by step.
+
+**Example: Share task flow**
+
+Step 1: Identify flows
+- Basic flow: Click share button → dialog opens → Click "Create share link" → generate link → display link + copy button → Click copy → clipboard has link → toast shows "Copied"
+- Alternative flow 1 (from basic flow step 2): Network failure → show error message → return to dialog
+- Alternative flow 2 (from basic flow step 2): Share link already exists → show "Remove share" option
+- Alternative flow 3 (from any step): Click close/ESC → dialog closes, no side effects
+
+Step 2: Combine into test scenarios
+- Scenario 1: Basic flow (complete normal sharing)
+- Scenario 2: Basic flow step 1-2 + Alternative flow 1 (network failure)
+- Scenario 3: Basic flow step 1 + Alternative flow 2 (link already exists)
+- Scenario 4: Basic flow step 1 + Alternative flow 3 (cancel at dialog)
+- Scenario 5: Basic flow step 1-2 + Alternative flow 3 (cancel after link created)
+
+Step 3: Design test cases
+
+| Case ID | Case Level | Case Name | Input Conditions | Operations | Expected Result |
+|---------|------------|-----------|-----------------|------------|-----------------|
+| TC-SF-001 | P0 | Normal share flow | Task exists, no existing share link | Click share → Create share link → Copy link | Link copied to clipboard, toast shows "Copied" |
+| TC-SF-002 | P1 | Network failure during link creation | Task exists, network disconnected | Click share → Create share link | Error message displayed, dialog remains open |
+| TC-SF-003 | P1 | Share link already exists | Task exists, share link already created | Click share | Dialog shows existing link + "Remove share" option |
+| TC-SF-004 | P2 | Cancel sharing at dialog | Task exists | Click share → Click close/ESC | Dialog closes, no side effects |
+| TC-SF-005 | P2 | Cancel after link creation | Task exists, link just created | Click share → Create link → Click close | Dialog closes, share link remains valid |
 
 **Applicable scenarios**: Multi-step operation flows, wizard-style interactions, complete CRUD lifecycle.
 
 ### Method 6: Error Guessing
 
-Based on experience and common bug patterns, supplement edge cases not covered by methods 1-5.
+Error guessing is a test case design method based on experience and intuition, where the tester leverages their understanding of the program under test and past testing experience to "guess" where errors are most likely to occur, and then designs targeted test cases.
 
-```
-Common bug patterns:
-- Concurrent operations: Two tabs simultaneously renaming the same task
-- Special characters: Task name containing <>&"'/ and other HTML special characters
-- Empty state: UI behavior when there are no tasks
-- Long text overflow: Truncation/wrapping when task name is very long
-- Rapid repeated operations: Double-clicking the submit button in quick succession
-- Network interruption and recovery: Operations during disconnection → state consistency after recovery
-```
+Error guessing is a supplement to methods 1-5. After applying the previous 5 methods, error guessing is used to identify edge cases and defect-prone areas that systematic methods may have missed.
+
+Error guessing relies on the tester's accumulated experience with common bug patterns, including but not limited to: concurrency issues, special character handling, empty/null states, boundary overflow, repeated operations, network exceptions, permission edge cases, and data consistency.
+
+**Using error guessing requires the following steps:**
+
+#### Step 1: Identify error-prone areas
+
+Based on experience and common bug patterns, list the areas in the system under test that are most likely to contain defects. Common error-prone categories include:
+
+- **Concurrency/race conditions**: Multiple users or tabs operating on the same resource simultaneously
+- **Special input handling**: Special characters, HTML entities, SQL injection strings, emoji, unicode
+- **Empty/null/zero states**: Empty lists, null values, zero quantities, first-time use scenarios
+- **Overflow and extremes**: Excessively long text, very large numbers, maximum capacity
+- **Repeated/rapid operations**: Double-click submit, rapid repeated requests, back-button resubmission
+- **Network and environment exceptions**: Network disconnection, timeout, slow network, reconnection recovery
+- **Permission and access edge cases**: Expired sessions, concurrent permission changes, unauthorized access attempts
+- **Data consistency**: Cross-module data synchronization, cache-database consistency, concurrent modification conflicts
+
+#### Step 2: Design targeted test cases for each error-prone area
+
+For each identified error-prone area, design specific test cases with clear input conditions, operations, and expected results. Focus on scenarios that are likely to expose real defects. Cover all identified error-prone areas and output as many cases as possible.
+
+Output following these steps:
+- Step 1: \<step 1 reasoning\>
+- Step 2: \<step 2 reasoning\>
+- Test cases: \<response to customer\>
+
+#### Step 3: Output test cases as Markdown table
+
+Format: [Case ID] [Case Level] [Case Name] [Input Conditions] [Operations] [Expected Result]
+
+Think step by step.
+
+**Example: Task management system**
+
+Step 1: Identify error-prone areas
+- Concurrency: Multiple tabs editing the same task simultaneously
+- Special input: Task name with HTML special characters
+- Empty state: No tasks in the system, first-time user experience
+- Overflow: Extremely long task name exceeding UI design assumptions
+- Repeated operation: Rapid double-click on the submit button
+- Network exception: Network interruption during task editing, then reconnection
+- Permission edge case: Task permission revoked while user is editing
+- Data consistency: Task renamed in one tab, stale name shown in another tab
+
+Step 2: Design test cases targeting each error-prone area
+
+| Case ID | Case Level | Case Name | Input Conditions | Operations | Expected Result |
+|---------|------------|-----------|-----------------|------------|-----------------|
+| TC-EG-001 | P1 | Concurrent rename in two tabs | Same task open in two browser tabs | Rename to "Name-A" in tab A, then rename to "Name-B" in tab B | Last write wins; both tabs eventually show "Name-B"; no data corruption |
+| TC-EG-002 | P1 | Special characters in task name | Task creation form open | Enter task name `<script>alert(1)</script>&"'` and submit | Task created successfully; name displayed with HTML escaped, no XSS |
+| TC-EG-003 | P2 | Empty state — no tasks | New account, zero tasks | Navigate to task list page | Show empty state UI with illustration and "Create your first task" prompt |
+| TC-EG-004 | P2 | Long text overflow in task name | Task creation form open | Enter task name with 500+ characters and submit | Name truncated or wrapped properly; no layout break; full name visible on detail page |
+| TC-EG-005 | P1 | Rapid double-click submit | Task creation form filled with valid data | Double-click submit button within 100ms | Only one task created; no duplicate; button disabled after first click |
+| TC-EG-006 | P1 | Network interruption during edit | Task editing in progress, unsaved changes exist | Disconnect network → continue editing → reconnect | Unsaved changes preserved; data syncs correctly after reconnection; no data loss |
+| TC-EG-007 | P1 | Permission revoked during editing | User has edit permission, task edit form open | Admin revokes user's edit permission while user is editing → user clicks save | Save rejected with permission error message; no partial data written |
+| TC-EG-008 | P2 | Stale data in another tab | Same task open in two tabs | Rename task in tab A → switch to tab B without refresh | Tab B shows stale name; upon next interaction or refresh, tab B updates to latest name |
 
 **Applicable scenarios**: Supplement for all scenarios, especially edge cases not covered by the previous 5 methods.
+
+### Final Markdown Output Format (Mandatory)
+
+> After applying all 6 methods, merging, and deduplicating (per Phase C of Core Principles), the final test case .md file **must** use the following format. This is the contract between test-case-generator and `excel-case-export/scripts/generate-excel.js`.
+
+**File path**: `test-cases/generated/{feature}.md`
+
+**Format**: Each test case uses the structured field format (`**TC-ID**: title` + field list). The method-specific tables from the design process are intermediate reasoning artifacts — the final .md must use this format:
+
+```markdown
+# {Feature Name}
+
+## Positive Scenarios
+
+**TC-{MOD}-001**: {Case title}
+- **Priority**: P0
+- **Preconditions**: {Given — setup state}
+- **Operations**: {When — user actions, numbered if multi-step}
+- **Expected Result**: {Then — observable outcome with business semantics}
+- **Test Data**: {Specific values used}
+
+**TC-{MOD}-002**: {Case title}
+- **Priority**: P1
+- **Preconditions**: ...
+- **Operations**: ...
+- **Expected Result**: ...
+- **Test Data**: ...
+
+## Negative Scenarios
+
+**TC-{MOD}-003**: {Case title}
+- **Priority**: P1
+- **Preconditions**: ...
+- **Operations**: ...
+- **Expected Result**: {Error message or rejection behavior}
+- **Test Data**: {Invalid input values}
+
+## Boundary Scenarios
+
+**TC-{MOD}-004**: {Case title}
+- **Priority**: P1
+- **Preconditions**: ...
+- **Operations**: ...
+- **Expected Result**: ...
+- **Test Data**: {Boundary values}
+```
+
+**Field mapping to Excel** (consumed by `generate-excel.js`):
+
+| Markdown Field | Excel Column | Parsed By |
+|---------------|-------------|-----------|
+| `**TC-{MOD}-{SEQ}**:` pattern | A (Case ID) | Regex: `\*\*([A-Z]+-\w+-\d+)\*\*:` |
+| `- **Priority**:` | D (Priority) | Key match: "优先级" or "Priority" |
+| `- **Preconditions**:` | E (Preconditions) | Key match: "前置条件" or "Preconditions" |
+| `- **Operations**:` | F (Steps) | Key match: "操作" or "Operations" |
+| `- **Expected Result**:` | G (Expected Result) | Key match: "预期结果" or "Expected Result" |
+| `- **Test Data**:` | H (Test Data) | Key match: "测试数据" or "Test Data" |
+| `## section heading` | I (Test Type) | "Positive"/"Negative"/"Boundary" inferred from section |
+
+> **Note**: The Markdown table outputs from the 6 design methods (shown in their examples) are also parseable by `generate-excel.js` as a fallback. But the structured field format above is the **primary** output format.
 
 ### Assertion Quality Standards (Mandatory)
 
@@ -1097,6 +1579,10 @@ Equivalence partitioning divides input domains into classes where all values in 
 
 import { InputParameter, ParsedCriterion } from './story-parser';
 
+// NOTE: 'boundary' type is retained here for code compatibility with Method 2 (Boundary Value Analysis).
+// Per the methodology, equivalence partitioning (Method 1) produces only 'valid'/'invalid' classes,
+// while boundary values (Method 2) are an independent, supplementary method.
+// In this implementation they share the same interface for simplicity.
 export interface EquivalenceClass {
   parameterId: string;
   parameterName: string;
@@ -1225,7 +1711,8 @@ export function generateFeatureFile(story: ParsedStory): string {
     lines.push(...generatePositiveScenario(criterion));
     lines.push('');
 
-    // Negative scenarios from equivalence classes
+    // Negative scenarios from equivalence classes (Method 1: Equivalence Partitioning)
+    // Note: per methodology, each negative test case covers exactly one invalid equivalence class
     const eqClasses = generateEquivalenceClasses(criterion);
     const invalidClasses = eqClasses.filter((ec) => ec.type === 'invalid');
 
@@ -1234,7 +1721,9 @@ export function generateFeatureFile(story: ParsedStory): string {
       lines.push('');
     }
 
-    // Boundary scenarios
+    // Boundary scenarios (Method 2: Boundary Value Analysis — independent from equivalence partitioning)
+    // Boundary values are generated alongside equivalence classes for code simplicity,
+    // but methodologically they are a separate, supplementary technique
     const boundaryClasses = eqClasses.filter((ec) => ec.type === 'boundary');
     if (boundaryClasses.length > 0) {
       lines.push(...generateBoundaryScenarioOutline(criterion, boundaryClasses));
@@ -1921,7 +2410,7 @@ After all test cases are generated, **always** produce a `playwright-handoff.jso
 
 ### Step 1 — Write playwright-handoff.json
 
-Save to `tests/generated/playwright-handoff.json`. Each entry maps one Gherkin scenario to the data Playwright needs:
+Save to `test-cases/generated/playwright-handoff-{feature}.json`. Each entry maps one Gherkin scenario to the data Playwright needs:
 
 ```json
 [
@@ -1929,32 +2418,45 @@ Save to `tests/generated/playwright-handoff.json`. Each entry maps one Gherkin s
     "id": "TC-001",
     "storyId": "US-101",
     "criterionId": "AC-101-1",
-    "title": "Successful login with valid credentials",
+    "title": "Delete task removes it from task list",
     "priority": "P0-critical",
     "scenarioType": "positive",
-    "preconditions": ["User is on the login page"],
-    "action": "User submits valid email and password",
-    "expectedOutcome": "User is redirected to /dashboard",
+    "setup": [
+      { "type": "navigate", "url": "/tasks" },
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createTask", "data": { "name": "Test-Del-{timestamp}" } }
+    ],
+    "preconditions": ["A task named 'Test-Del-{timestamp}' exists in the task list"],
+    "action": "User clicks delete button on the task and confirms",
+    "expectedOutcome": "Task is removed from the list",
     "uiElements": [
-      { "role": "textbox", "name": "Email",    "action": "fill",  "value": "user@example.com" },
-      { "role": "textbox", "name": "Password", "action": "fill",  "value": "ValidPass123!" },
-      { "role": "button",  "name": "Sign in",  "action": "click", "value": null }
+      { "role": "button",  "name": "Delete",  "action": "click", "value": null },
+      { "role": "button",  "name": "Confirm", "action": "click", "value": null }
     ],
     "assertions": [
-      { "type": "url",     "expected": "/dashboard" },
-      { "type": "visible", "selector": "heading", "name": "Welcome" }
+      { "type": "hidden", "selector": "text", "name": "Test-Del-{timestamp}" }
     ],
-    "tags": ["authentication", "smoke"],
+    "teardown": [],
+    "tags": ["task-management", "crud"],
     "timeout": null
   }
 ]
 ```
 
 **Field rules:**
+- `setup[]` — Steps to create test data BEFORE the test action via UI. Each entry:
+  - `type`: `"ui"` (UI interaction via POM method) | `"navigate"` (go to page)
+  - `action`: `"create"` | `"update"` | `"navigate"`
+  - `resource`: what to create (e.g., `"task"`, `"user"`, `"project"`)
+  - `pomMethod`: POM method name to call (e.g., `"createTask"`)
+  - `data`: creation data (passed to POM method)
+- `teardown[]` — Steps to clean up AFTER the test via UI. Same structure as `setup[]` but with `action: "delete"`
+  - Empty `[]` when the test itself performs cleanup (e.g., delete test cleans up by nature)
+- `preconditions[]` — Human-readable description of what setup creates (for documentation)
 - `uiElements[].role` — use ARIA roles: `textbox`, `button`, `link`, `checkbox`, `combobox`, `heading`
 - `uiElements[].action` — one of: `fill`, `click`, `select`, `check`, `uncheck`, `hover`, `press`
 - `assertions[].type` — one of: `url`, `visible`, `hidden`, `text`, `value`, `count`, `enabled`, `disabled`
 - `timeout` — default `null` (uses config default); set to `600000` (10 minutes) for test cases involving AI processing or long-running async waits
+- `{timestamp}` — playwright-script-generator replaces with `Date.now()` in generated code
 - For equivalence-class / boundary scenarios, include one entry per class with `value` set to the representative value
 - For negative scenarios, set `assertions` to the expected error state (e.g. `{ "type": "visible", "selector": "alert" }`)
 
@@ -1962,197 +2464,18 @@ Save to `tests/generated/playwright-handoff.json`. Each entry maps one Gherkin s
 
 After writing `playwright-handoff.json`, tell the user:
 
-> ✅ Test cases written to `tests/generated/playwright-handoff.json`.
+> ✅ Test cases written to `test-cases/generated/playwright-handoff-{feature}.json`.
 > Now running `/playwright-script-generator` to implement these as Playwright `.spec.ts` files.
 
 Then immediately apply the `playwright-script-generator` skill, passing the handoff file as the input source.
 
 ---
 
-## Excel Manual Test Case Export
+## Excel Export
 
-After generating test cases, **always** simultaneously produce an Excel file for manual testing. Each functional module corresponds to a separate Sheet, making it easy for testers to execute by module.
-
-### Output Specification
-
-**File path**: `tests/generated/test-cases.xlsx`
-
-**Column definitions for each Sheet:**
-
-| Column | Field name | Description |
-|---|---|---|
-| A | Case ID | TC-001, TC-002, ... |
-| B | Case title | One-sentence description of the test purpose |
-| C | Priority | P0 / P1 / P2 |
-| D | Case type | Positive / Negative / Boundary |
-| E | Preconditions | Given section, multiple items separated by line breaks |
-| F | Test steps | When section, numbered by step (1. 2. 3.) |
-| G | Expected results | Then section, multiple assertions separated by line breaks |
-| H | Requirement source | Corresponding requirements document section/ID |
-| I | Execution status | Left blank (filled manually: Pass/Fail/Blocked/Skipped) |
-| J | Actual result | Left blank (filled manually) |
-| K | Remarks | Left blank |
-
-**Sheet naming rules**: Use the functional module name (e.g., `Canvas Preview`, `Canvas Download`, `View All Files`); truncate names exceeding 31 characters (Excel limitation).
-
-**Styling requirements**:
-- First row is the header, background color `#2E75B6` (blue), white bold font
-- P0 rows: column A cell filled with `#FFE0E0` (light red)
-- P1 rows: column A cell filled with `#FFF2CC` (light yellow)
-- P2 rows: no special fill
-- All columns have auto-width enabled (based on maximum content width, max 60)
-- Freeze first row (freeze panes)
-- Row height auto-adjusts (wrap text)
-
-### Generation Script (Python + openpyxl)
-
-Call the following Python script to generate Excel. The script writes directly from in-memory test case data, no need to write a JSON file first.
-
-When generating Excel, construct the following data structure then call the script:
-
-```python
-# tests/generated/export_excel.py
-# Usage: python tests/generated/export_excel.py
-# Can also be imported as a module: from export_excel import export_test_cases_to_excel
-
-import openpyxl
-from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
-import os
-
-def export_test_cases_to_excel(sheets_data: dict, output_path: str) -> None:
-    """
-    sheets_data: {
-      "Sheet Name": [
-        {
-          "id": "TC-001",
-          "title": "...",
-          "priority": "P0",
-          "type": "Positive",
-          "preconditions": "...",
-          "steps": "1. ...\n2. ...",
-          "expected": "...",
-          "req_ref": "3.2.1",
-        },
-        ...
-      ],
-      ...
-    }
-    output_path: Excel file save path
-    """
-    wb = openpyxl.Workbook()
-    wb.remove(wb.active)  # Remove default Sheet
-
-    HEADER_FILL  = PatternFill("solid", fgColor="2E75B6")
-    P0_FILL      = PatternFill("solid", fgColor="FFE0E0")
-    P1_FILL      = PatternFill("solid", fgColor="FFF2CC")
-    HEADER_FONT  = Font(bold=True, color="FFFFFF", size=11)
-    WRAP_ALIGN   = Alignment(wrap_text=True, vertical="top")
-    THIN_BORDER  = Border(
-        left=Side(style="thin"), right=Side(style="thin"),
-        top=Side(style="thin"), bottom=Side(style="thin")
-    )
-
-    HEADERS = ["Case ID", "Case Title", "Priority", "Case Type",
-               "Preconditions", "Test Steps", "Expected Results", "Requirement Source",
-               "Execution Status", "Actual Result", "Remarks"]
-    COL_WIDTHS = [12, 40, 8, 10, 30, 50, 40, 14, 10, 20, 20]
-
-    for sheet_name, cases in sheets_data.items():
-        ws = wb.create_sheet(title=sheet_name[:31])
-
-        # Header
-        for col_idx, (header, width) in enumerate(zip(HEADERS, COL_WIDTHS), start=1):
-            cell = ws.cell(row=1, column=col_idx, value=header)
-            cell.fill   = HEADER_FILL
-            cell.font   = HEADER_FONT
-            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-            cell.border = THIN_BORDER
-            ws.column_dimensions[get_column_letter(col_idx)].width = width
-
-        ws.freeze_panes = "A2"
-        ws.row_dimensions[1].height = 20
-
-        # Data rows
-        for row_idx, case in enumerate(cases, start=2):
-            priority = case.get("priority", "")
-            row_fill = P0_FILL if priority == "P0" else (P1_FILL if priority == "P1" else None)
-
-            values = [
-                case.get("id", ""),
-                case.get("title", ""),
-                priority,
-                case.get("type", ""),
-                case.get("preconditions", ""),
-                case.get("steps", ""),
-                case.get("expected", ""),
-                case.get("req_ref", ""),
-                "",   # Execution Status (filled manually)
-                "",   # Actual Result (filled manually)
-                "",   # Remarks (filled manually)
-            ]
-
-            for col_idx, value in enumerate(values, start=1):
-                cell = ws.cell(row=row_idx, column=col_idx, value=value)
-                cell.alignment = WRAP_ALIGN
-                cell.border    = THIN_BORDER
-                if row_fill and col_idx == 1:
-                    cell.fill = row_fill
-
-            ws.row_dimensions[row_idx].height = 40
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    wb.save(output_path)
-    print(f"Excel saved to: {output_path}")
-
-
-if __name__ == "__main__":
-    # Sample data; in actual use, replace with test case data parsed from feature files or memory
-    sample = {
-        "Sample Feature": [
-            {
-                "id": "TC-001",
-                "title": "User successfully logs in with valid credentials",
-                "priority": "P0",
-                "type": "Positive",
-                "preconditions": "User is registered\nUser is on the login page",
-                "steps": "1. Enter valid email\n2. Enter correct password\n3. Click login button",
-                "expected": "Redirect to homepage\nWelcome message displayed at top",
-                "req_ref": "FR-2.1",
-            }
-        ]
-    }
-    export_test_cases_to_excel(sample, "tests/generated/test-cases.xlsx")
-```
-
-### Invocation Timing
-
-After completing Gherkin feature file generation, immediately:
-
-1. Convert all scenarios from feature files into the `sheets_data` structure above (each feature -> one Sheet)
-2. Fill Given content into "Preconditions", When content (multi-step numbered) into "Test Steps", Then content into "Expected Results"
-3. Expand each Example row from Scenario Outlines into an independent test case row
-4. **Only write** `tests/generated/test_cases_data.json` (pure data, overwritten each time)
-5. Check if `tests/utils/export_excel.py` exists:
-   - **Exists** -> Execute directly: `python tests/utils/export_excel.py`
-   - **Does not exist** -> First-time initialization: write the tool script below to `tests/utils/export_excel.py`, then execute
-6. Inform the user: `Test case Excel generated: tests/generated/test-cases.xlsx, N Sheets total, M test cases`
-
-> `tests/utils/export_excel.py` is a **one-time initialization tool script** that is permanently reused after being written — **do not rewrite it each time**.
-
-### Field Mapping Rules
-
-| Gherkin element | Excel field |
-|---|---|
-| `@TC-xxx` tag | Case ID |
-| `Scenario:` title | Case title |
-| `@P0` / `@P1` / `@P2` tag | Priority |
-| `@positive` / `@negative` / `@boundary` tag | Case type (Positive/Negative/Boundary) |
-| `Given` steps (concatenated) | Preconditions |
-| `When` + `And` (action parts) | Test steps (numbered) |
-| `Then` + `And` (assertion parts) | Expected results |
-| `Scenario Outline` + `Examples` | Each row expanded as an independent test case, title appended with parameter values |
-| Requirement source comment / reqRef | Requirement source |
+> **Single source of truth**: Excel export is handled by `skills/excel-case-export/SKILL.md` using `generate-excel.js` (Node.js/exceljs).
+> See that Skill for table structure, styling, column mapping, and invocation commands.
+> Do not use any other Excel export method.
 
 ---
 
@@ -2170,7 +2493,7 @@ Requirements document (.md / Figma / Pencil)
   ├── [2] tests/generated/test_cases_data.json        — Excel data source (regenerated each time)
   ├── [3] tests/generated/test-cases.xlsx             — Manual test Excel (produced by script execution)
   ├── [4] tests/generated/traceability/traceability-matrix.json
-  ├── [5] tests/generated/playwright-handoff.json     — Automation handoff file
+  ├── [5] test-cases/generated/playwright-handoff-{feature}.json     — Automation handoff file
   ├── [6] tests/e2e/**/*.spec.ts                      — Playwright automated test cases
   └── [7] tests/pages/*.page.ts                       — Page Objects (when UI changes)
 
@@ -2261,7 +2584,7 @@ Update date: 2026-03-14
 | tests/generated/features/view-all-files.feature | Regenerated |
 | tests/generated/features/file-share.feature | Created |
 | tests/generated/test-cases.xlsx | Regenerated (3 Sheets updated) |
-| tests/generated/playwright-handoff.json | Updated |
+| test-cases/generated/playwright-handoff-{feature}.json | Updated |
 | tests/e2e/canvas/download.spec.ts | Regenerated |
 | tests/e2e/canvas/view-all-files.spec.ts | Regenerated |
 | tests/e2e/canvas/file-share.spec.ts | Created |

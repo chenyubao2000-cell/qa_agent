@@ -16,14 +16,20 @@ test-executor ── run tests ── produce reports
 
 ## Caller Context (Optional)
 
-The caller can pass the following context, which affects the reporting strategy in Step 2:
+The caller can pass the following context, which affects the reporting strategy:
 
 | Field | Source | Description |
 |-------|--------|-------------|
-| `sourceIssueKeys` | `/qa-from-issue` | List of original Linear issue keys that triggered this test run |
+| `sourceIssueKeys` | `/qa-from-issue` | List of original Linear issue keys that triggered this test run. Used in Step 2 to route failures back to source issues |
 | `sourceSpecs` | `/qa-from-issue` | List of spec file paths generated from those issues |
+| `specToIssueMap` | `/qa-from-issue` | Map of `{ specFilePath: issueKey }`. Used to determine which issue a failing spec belongs to |
+| `changeSummary` | `/qa-run-all` (git-watcher) | AI-generated structured summary of code changes. Used to distinguish "regression caused by this change" vs "pre-existing failure" |
+| `relatedIssueKeys` | `/qa-run-all` (git-watcher) | List of Linear issue keys associated with the PR. Used to annotate failure reports with related issue context |
+| `headless` | `/qa-run-all` (git-watcher) | When `true`, skip opening the HTML report in the browser (Step 5). Default: `false` |
+| `detectedBugs` | `/qa-fix-tests` | List of application bugs found during test fixing. Each entry: `{ testName, expectedBehavior, actualBehavior, evidence, specFile }`. These are real regressions (not test issues). When processing, **transform** each entry to bug-reporter's expected format: `{ name: testName, error: "Expected: {expectedBehavior}, Actual: {actualBehavior}", pipeline: "e2e", file: specFile, screenshot: null, priority: "P1", feature: (infer from specFile name), action: "create", targetIssueId: null }` |
+| `source` | `/qa-fix-tests` | When value is `"qa-fix-tests"`, skip report file reading (Step 1) and go directly to bug creation from `detectedBugs` list (after transforming to bug-reporter format) |
 
-When not provided (`/qa-explore`, `/qa-run-all`, `/qa-run-prd`), all failed test cases go through the unified deduplication + creation flow.
+When none of these are provided (`/qa-explore`, `/qa-run-prd`), all failed test cases go through the unified deduplication + creation flow.
 
 ## Report Files
 
@@ -68,9 +74,9 @@ If there are no failed test cases:
 
 Appended content template:
 ---
-## All Automated Tests Passed
-**Execution time**: {timestamp} | **Total test cases**: {total} | **All passed**: {passed}/{total}
-**Spec files**: {spec file paths}
+## 自动化测试全部通过
+**执行时间**: {timestamp} | **用例总数**: {total} | **全部通过**: {passed}/{total}
+**Spec 文件**: {spec file paths}
 ```
 
 ### 2.1 Routing Logic
@@ -120,48 +126,65 @@ Input: deduplicated list of failed test cases (each annotated with action=create
 Write/update `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`:
 
 ```markdown
-# QA Test Summary Report
+# QA 测试汇总报告
 
-Generated at: {timestamp}
+生成时间: {timestamp}
 
-## Execution Summary
+## 执行概览
 
-| Pipeline | Total | Passed | Failed | Skipped | Duration | Status |
-|----------|-------|--------|--------|---------|----------|--------|
-| E2E      | N     | N      | N      | N       | Xs       | PASS/FAIL |
-| Unit     | N     | N      | N      | N       | Xs       | PASS/FAIL |
+| 流水线 | 总计 | 通过 | 失败 | 跳过 | 耗时 | 状态 |
+|--------|------|------|------|------|------|------|
+| E2E    | N    | N    | N    | N    | Xs   | 通过/失败 |
+| Unit   | N    | N    | N    | N    | Xs   | 通过/失败 |
 
-## Test Case Details
+## 用例明细
 
-| # | Pipeline | Test Case | Status | Duration | Error Summary |
-|---|----------|-----------|--------|----------|---------------|
-| 1 | E2E     | {name}    | PASS/FAIL | Xs    | {error or —}  |
+| # | 流水线 | 测试用例 | 状态 | 耗时 | 错误摘要 |
+|---|--------|----------|------|------|----------|
+| 1 | E2E    | {name}   | 通过/失败 | Xs | {error 或 —} |
 
-## Failed Test Cases (If Any)
+## 失败用例（如有）
 
-| # | Test Case | Error Summary | Screenshot |
-|---|-----------|---------------|------------|
-| 1 | {name}    | {error}       | {screenshot path or —} |
+| # | 测试用例 | 错误摘要 | 截图 |
+|---|----------|----------|------|
+| 1 | {name}   | {error}  | {截图路径 或 —} |
 
-(When all pass: "No failed test cases")
+（全部通过时显示："无失败用例"）
 
-## Linear Reporting
+## Linear 上报
 
-- Write-back to source Issues: N entries (appended to description, /qa-from-issue scenario)
-- New Bugs created: N
-- Appended records (existing Open): N
-- Skipped (existing Open with no changes): N
-- Issue links: {urls}
+- 回写源 Issue: N 条（追加到描述，/qa-from-issue 场景）
+- 新建 Bug: N
+- 追加记录（已有 Open）: N
+- 跳过（已有 Open 无变化）: N
+- Issue 链接: {urls}
 
-(When all pass: "All passed, Linear reporting skipped")
+（全部通过时显示："全部通过，跳过 Linear 上报"）
 ```
 
 ## Step 5: Open HTML Report
 
+If `headless` is `true` (git-watcher triggered): **skip** opening the browser. Only output the report file path.
+
+Otherwise:
 ```bash
 start http://localhost:9323
 ```
 
 ## Return
 
-Return summary information to the command layer.
+Return structured summary to the command layer:
+
+```json
+{
+  "total": 11,
+  "passed": 10,
+  "failed": 1,
+  "skipped": 0,
+  "summary_file": "tests/reports/combined/summary.md",
+  "html_report": "playwright-report/index.html",
+  "linear_issues_created": ["STE-42"],
+  "linear_issues_updated": ["STE-9"],
+  "linear_issues_skipped": 0
+}
+```
