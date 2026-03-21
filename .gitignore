@@ -9,3 +9,4 @@ scripts/ci/state.json
 package-lock.json
 .cursorindexingignore
 .pr-state.json
+.pr-state*.json

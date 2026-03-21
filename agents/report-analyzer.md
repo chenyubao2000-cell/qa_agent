@@ -115,7 +115,7 @@ For failed test cases in the "create" list, perform deduplication checks:
 > **Note: Linear MCP has no comment API**; all write-backs are appended to the description via get_issue + update_issue.
 
 Start the **bug-reporter agent** (`agents/bug-reporter.md`, haiku) to batch process all failed test cases.
-bug-reporter internally follows the format specification in **linear-bug-report skill** (`skills/linear-bug-report/SKILL.md`) to create Issues.
+bug-reporter internally follows its own format specification to create Issues.
 
 Input: deduplicated list of failed test cases (each annotated with action=create or action=append; source issue write-back items include targetIssueId) + LINEAR_PROJECT_ID and LINEAR_TEAM_ID from .env
 

@@ -1,6 +1,6 @@
-# QA 平台插件
+# QA 自动化测试平台
 
-基于 Claude Code 的 QA 自动化测试插件。一次开发，多项目复用。
+基于 Claude Code 的 QA 自动化测试平台。通用 QA 能力集中管理，多项目复用。
 
 ## 功能
 
@@ -14,14 +14,7 @@
 
 ## 快速开始
 
-### 1. 安装
-
-```bash
-# 在目标项目根目录运行
-bash /path/to/qa-platform-plugin/scripts/install.sh
-```
-
-### 2. 配置
+### 1. 配置
 
 编辑 `.env`：
 
@@ -39,7 +32,7 @@ E2E_TEST_EMAIL=test@example.com
 E2E_TEST_PASSWORD=xxx
 ```
 
-### 3. 命令
+### 2. 命令
 
 | 命令 | 用途 | 生成 | 执行 | 报告 |
 |------|------|:----:|:----:|:----:|
@@ -50,7 +43,7 @@ E2E_TEST_PASSWORD=xxx
 | `/qa-run-all` | 执行已有测试 | 否 | 是 | 是 |
 | `/qa-fix-tests` | 修复失败的测试 | 仅修复 | 是 | 否 |
 
-### 4. CI 监控
+### 3. CI 监控
 
 ```bash
 npx tsx scripts/git-watcher.ts
@@ -95,15 +88,14 @@ Agent 层（串行流水线，非并行）
 ## 项目结构
 
 ```
-qa-platform-plugin/
-├── .claude/commands/     6 个 Slash Command + 1 个暂停
+qa-platform/
+├── .claude/commands/     6 个 Slash Command
 │   ├── qa-explore          页面探查 → E2E 测试
 │   ├── qa-from-issue       Issue 驱动测试
 │   ├── qa-run-prd          PRD 驱动流水线
 │   ├── qa-gen-cases        仅生成用例
 │   ├── qa-run-all          执行 + 报告
-│   ├── qa-fix-tests        修复失败测试
-│   └── qa-run-unit         单元测试（暂停）
+│   └── qa-fix-tests        修复失败测试
 ├── agents/               4 个 Agent
 │   ├── e2e-orchestrator    生成引擎 (sonnet)
 │   ├── test-executor       测试执行器 (haiku)
@@ -115,11 +107,8 @@ qa-platform-plugin/
 │   ├── excel-case-export         Excel 导出
 │   └── playwright-script-generator  Playwright 脚本生成
 ├── scripts/
-│   ├── git-watcher.ts      PR 监控守护进程
-│   └── install.sh          一键安装脚本
+│   └── git-watcher.ts      PR 监控守护进程
 ├── hooks/                会话钩子
-├── mcp-templates/        MCP 配置模板
-├── project-template/     新项目接入模板
 └── docs/                 架构文档
 ```
 
