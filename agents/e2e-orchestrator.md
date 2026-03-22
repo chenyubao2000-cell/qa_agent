@@ -373,14 +373,52 @@ After generation is complete, return artifact paths and hand off to the downstre
 
 > **`specToIssueMap`** (issue mode only): Maps each generated/modified spec file path to its source Linear issue key. When the orchestrator is called with `source: "issue"`, it **must** populate this field so the command layer can route test failures back to the correct issue via report-analyzer. For `source: "prd"` or `source: "cdp"`, this field is omitted or empty.
 
-### Post-Return File Verification (caller responsibility)
+### Post-Return File Verification (caller responsibility — MANDATORY GATE)
 
-> **All callers** (qa-explore, qa-from-issue, qa-run-prd, qa-gen-cases) MUST verify that files listed in the return value actually exist on disk after the orchestrator/subagent returns. Subagents run in isolated contexts — if a Write call fails silently, the return claims success but no file was written.
+> **All callers** (qa-explore, qa-from-issue, qa-run-prd, qa-gen-cases) MUST execute this verification checklist after EACH orchestrator returns. **Pipeline MUST STOP if any check fails** — do NOT proceed to test-executor or Excel export with missing artifacts. Subagents run in isolated contexts — if a Write call fails silently, the return claims success but no file was written.
 
 ```
-For each path in return.test_cases + return.handoff + return.specs + return.page_objects:
-  1. Check file exists (Read or Glob)
-  2. If NOT found → log ERROR, retry or report to user
-  3. For .md files: verify contains "## Merged Test Case List" + at least 1 "**TC-" entry
-  4. For .test.ts files: verify contains at least 1 "test(" entry
+MANDATORY VERIFICATION CHECKLIST (execute in order, STOP on first failure):
+
+── Step V1: .md file verification ──
+For each path in return.test_cases:
+  1. Glob(path) → file must exist
+  2. Read(path) → must contain "## Merged Test Case List"
+  3. Read(path) → must contain at least 1 "**TC-" pattern (actual test cases)
+  4. If ANY check fails → ERROR: ".md file missing or malformed: {path}"
+     → Retry: re-launch orchestrator for this module/area (max 1 retry)
+     → If retry also fails → STOP pipeline, report to user
+
+── Step V2: handoff file verification ──
+For each path in return.handoff:
+  1. Glob(path) → file must exist
+  2. Read(path) → must be valid JSON array with length > 0
+  3. Count handoff entries == count TC entries in corresponding .md (1:1 mapping)
+  4. If ANY check fails → ERROR: "Handoff missing or count mismatch: {path}"
+     → Regenerate per orchestrator Step 4.5 (max 1 retry)
+     → If retry also fails → STOP pipeline, report to user
+
+── Step V3: spec file verification (skip for qa-gen-cases) ──
+For each path in return.specs + return.modified_specs:
+  1. Glob(path) → file must exist
+  2. Read(path) → must contain at least 1 "test(" pattern
+  3. Read(path) → must contain "import" statement (POM or fixtures import)
+  4. If ANY check fails → ERROR: "Spec file missing or malformed: {path}"
+     → STOP pipeline, report to user (spec regeneration requires re-running orchestrator)
+
+── Step V4: POM file verification (skip for qa-gen-cases) ──
+For each path in return.page_objects:
+  1. Glob(path) → file must exist
+  2. Read(path) → must contain "export class" pattern
+  3. If ANY check fails → ERROR: "POM file missing: {path}"
+     → STOP pipeline, report to user
+
+── Step V5: cross-artifact consistency ──
+  1. Each spec file must import from a POM that exists in return.page_objects
+  2. Each spec file header must reference a handoff file that exists in return.handoff
+  3. If ANY check fails → WARNING (log but continue, downstream tools may still work)
+
+Only after ALL checks pass → proceed to Excel export and test execution.
 ```
+
+> **Why STOP instead of continue?** Running test-executor with missing specs produces misleading "0 tests" results. Running Excel export with missing .md produces empty spreadsheets. Running locator verification with missing POMs wastes CDP time. Stopping early gives the user a clear error instead of silent partial results.

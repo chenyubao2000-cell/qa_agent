@@ -345,17 +345,20 @@ Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return
 - If both `specs` and `modified_specs` are empty -> skip test-executor and report-analyzer, inform user directly
 - Otherwise -> merge into execution list, continue
 
-**Validate Handoff Files** (mandatory gate, after ALL orchestrators complete):
+**MANDATORY VERIFICATION GATE** (after ALL orchestrators complete):
+
+Execute the Post-Return File Verification checklist from `agents/e2e-orchestrator.md` (Steps V1-V5). Pipeline **STOPS** if any check fails.
 
 ```
-For each spec in allSpecs:
-  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{slug}.json
-  1. Check handoff file exists: Glob(handoffPath)
-  2. If NOT found → ERROR: "Handoff not generated for {spec}", regenerate per e2e-orchestrator Step 4.5
-  3. If found → read .md Merged TC count, compare with handoff entry count
-  4. If mismatch → regenerate handoff with 1:1 mapping from Merged table
+For EACH orchestrator result, verify:
+  V1: .md files exist + contain "## Merged Test Case List" + at least 1 "**TC-"
+  V2: handoff JSON exists + valid JSON array + entry count matches .md TC count
+  V3: spec files exist + contain "test(" + contain "import"
+  V4: POM files exist + contain "export class"
+  V5: cross-artifact consistency (spec imports match POM, spec header references handoff)
 
-Only proceed after all validations pass.
+If ANY verification fails → STOP, report error to user, do NOT proceed to test-executor.
+Only proceed after ALL checks pass.
 ```
 
 **Build specToIssueMap** (command layer, after orchestrator returns):

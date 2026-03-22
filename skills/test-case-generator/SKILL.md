@@ -2506,11 +2506,45 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
 - `preconditions[]` — Human-readable description of what setup creates (for documentation)
 - `uiElements[].role` — use ARIA roles: `textbox`, `button`, `link`, `checkbox`, `combobox`, `heading`
 - `uiElements[].action` — one of: `fill`, `click`, `select`, `check`, `uncheck`, `hover`, `press`
+- `uiElements[].dataType` — (optional, for `fill` action only) declares the semantic data type this field expects. When present, playwright-script-generator uses it to resolve a concrete inline value instead of using the `value` field. Format: `"{category}.{type}"`. When `dataType` is set, `value` should be `null` (script-generator resolves it).
+- `uiElements[].dataVariant` — (required when `dataType` is set) specifies the data variant: `"valid"`, `"invalid"`, `"boundary"`, or type-specific variants like `"strong"`, `"weak"`, `"long:500"`, `"xss"`, `"png"`, `"pdf"`, `"oversized"`, etc.
 - `assertions[].type` — one of: `url`, `visible`, `hidden`, `text`, `value`, `count`, `enabled`, `disabled`
 - `timeout` — default `null` (uses config default); set to `600000` (10 minutes) for test cases involving AI processing or long-running async waits
 - `{timestamp}` — playwright-script-generator replaces with `Date.now()` in generated code
 - For equivalence-class / boundary scenarios, include one entry per class with `value` set to the representative value
 - For negative scenarios, set `assertions` to the expected error state (e.g. `{ "type": "visible", "selector": "alert" }`)
+
+**dataType inference rules** — when generating handoff entries with `action: "fill"`, infer `dataType` from the field's semantic meaning:
+
+| Field semantic (from label/name/placeholder) | dataType | dataVariant (positive) | dataVariant (negative) |
+|----------------------------------------------|----------|----------------------|----------------------|
+| Phone / mobile / 手机号 / 电话 | `contact.mobile` | `valid` | `invalid` |
+| Email / 邮箱 / 电子邮件 | `contact.email` | `valid` | `invalid` |
+| Name / 姓名 / 用户名 | `identity.name` | `valid` | `long:200` |
+| ID card / 身份证 / 证件号 | `identity.idCard` | `valid` | `invalid` |
+| Password / 密码 | `account.password` | `strong` | `weak` |
+| Verification code / 验证码 | `account.captcha` | `valid` | `invalid` |
+| Amount / price / 金额 / 价格 | `finance.amount` | `valid` | `boundary:0` |
+| Bank card / 银行卡 | `finance.bankCard` | `valid` | `invalid` |
+| Address / 地址 | `contact.address` | `valid` | `long:500` |
+| Date / time / 日期 / 时间 | `datetime.date` | `past` or `future` | `invalid` |
+| File upload / 上传 (input[type=file]) | `file.image` or `file.document` | `png` / `pdf` / `csv` | `oversized` / `empty` |
+| Free text / description / 描述 / 备注 | `text.random` | `valid` | `xss` / `sqlInject` / `long:5000` / `emoji` |
+
+> **When to set dataType**: For every `fill` action in positive AND negative test cases. Positive cases use valid variants, negative/boundary cases use invalid/edge variants. This ensures playwright-script-generator can resolve appropriate concrete values for each scenario type.
+>
+> **When NOT to set dataType**: For `click`, `select`, `check`, `hover`, `press` actions — these don't input text data. Also skip for fields where the exact value is dictated by business logic (e.g., a specific product SKU that must match a database record).
+
+**Example with dataType:**
+```json
+{
+  "uiElements": [
+    { "role": "textbox", "name": "手机号", "action": "fill", "dataType": "contact.mobile", "dataVariant": "valid", "value": null },
+    { "role": "textbox", "name": "密码", "action": "fill", "dataType": "account.password", "dataVariant": "strong", "value": null },
+    { "role": "button", "name": "注册", "action": "click", "value": null }
+  ]
+}
+```
 
 ### Step 2 — Invoke playwright-script-generator
 

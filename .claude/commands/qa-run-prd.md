@@ -143,17 +143,25 @@ for module in removedModules:
 // Wait for ALL orchestrators to complete (parallel)
 results = await all(orchestratorAgents)
 
+// ══ MANDATORY VERIFICATION GATE ══
+// Execute the Post-Return File Verification checklist from agents/e2e-orchestrator.md
+// (Steps V1-V5). Pipeline STOPS if any check fails.
+//
+// For EACH orchestrator result, verify:
+//   V1: .md files exist + contain "## Merged Test Case List" + at least 1 "**TC-"
+//   V2: handoff JSON exists + valid JSON array + entry count matches .md TC count
+//   V3: spec files exist + contain "test(" + contain "import"
+//   V4: POM files exist + contain "export class"
+//   V5: cross-artifact consistency (spec imports match POM, spec header references handoff)
+//
+// If ANY verification fails → STOP, report error to user, do NOT proceed.
+
+// Collect all verified artifacts
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
 allPageObjects = results.flatMap(r => r.page_objects)
 
-// Validate handoff files (mandatory gate)
-for spec in allSpecs:
-  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{slug}.json
-  if handoff NOT found → regenerate per e2e-orchestrator Step 4.5
-  if handoff entry count != Merged TC count → regenerate with 1:1 mapping
-
 // Export Excel: merge all .md into one file (one Sheet per module)
-// Only after ALL orchestrators complete + handoff validated
+// Only executes AFTER verification gate passes
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
   --output $QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx

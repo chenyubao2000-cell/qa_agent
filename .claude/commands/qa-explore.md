@@ -89,7 +89,7 @@ E2E_TEST_PASSWORD=<from this project's .env>
 #### 2b. Directory Structure (skip if exists)
 
 ```bash
-mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/.auth
+mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/.auth tests/e2e/test-data/files
 mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-results
 ```
 
@@ -174,6 +174,32 @@ export { expect };
 ```
 
 > **global-setup.ts is not generated at this point** — it requires Phase 1 CDP exploration of the login page to write with verified real selectors.
+
+#### 2f. Copy static test data files (if not present)
+
+Copy test data fixture files from qa-platform to the target project. Only copy files that don't already exist (preserve user customizations):
+
+```
+Source: <qa-platform-dir>/tests/e2e/fixtures/files/*
+Target: $QA_WORKSPACE_DIR/tests/e2e/test-data/files/
+
+Files: sample.png, sample.jpg, sample.pdf, sample.csv, sample.xlsx, sample.txt, empty.txt, oversized-6mb.bin
+```
+
+```bash
+# Copy each static file only if it doesn't exist in target
+for f in <qa-platform-dir>/tests/e2e/fixtures/files/*; do
+  target="$QA_WORKSPACE_DIR/tests/e2e/test-data/files/$(basename $f)"
+  [ ! -f "$target" ] && cp "$f" "$target"
+done
+
+# Generate oversized test file dynamically (not stored in repo due to size)
+if [ ! -f "$QA_WORKSPACE_DIR/tests/e2e/test-data/files/oversized-6mb.bin" ]; then
+  node -e "require('fs').writeFileSync('$QA_WORKSPACE_DIR/tests/e2e/test-data/files/oversized-6mb.bin', Buffer.alloc(6*1024*1024, 0x41))"
+fi
+```
+
+> These files are referenced by generated specs when handoff entries use `file.*` dataTypes (see `skills/playwright-script-generator/SKILL.md` §0d). Without them, file upload tests will fail with "file not found". The oversized file is generated dynamically to avoid bloating the qa-platform repository.
 
 ### Step 3 — Determine Exploration URL
 
@@ -418,17 +444,25 @@ for area in exploredAreas:
 // Wait for ALL orchestrators to complete
 results = await all(orchestratorAgents)
 
-// Collect all specs and page objects
+// ══ MANDATORY VERIFICATION GATE ══
+// Execute the Post-Return File Verification checklist from agents/e2e-orchestrator.md
+// (Steps V1-V5). Pipeline STOPS if any check fails.
+//
+// For EACH orchestrator result, verify:
+//   V1: .md files exist + contain "## Merged Test Case List" + at least 1 "**TC-"
+//   V2: handoff JSON exists + valid JSON array + entry count matches .md TC count
+//   V3: spec files exist + contain "test(" + contain "import"
+//   V4: POM files exist + contain "export class"
+//   V5: cross-artifact consistency (spec imports match POM, spec header references handoff)
+//
+// If ANY verification fails → STOP, report error to user, do NOT proceed.
+
+// Collect all verified artifacts
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
 allPageObjects = results.flatMap(r => r.page_objects)
 
-// Validate handoff files (mandatory gate)
-for spec in allSpecs:
-  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{slug}.json
-  if handoff NOT found → regenerate per e2e-orchestrator Step 4.5
-  if handoff entry count != Merged TC count → regenerate with 1:1 mapping
-
 // Export Excel: merge all .md into one file (one Sheet per area)
+// Only executes AFTER verification gate passes
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
   --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
