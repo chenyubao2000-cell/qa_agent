@@ -36,9 +36,9 @@ E2E_TEST_PASSWORD=xxx
 
 | 命令 | 用途 | 生成 | 执行 | 报告 |
 |------|------|:----:|:----:|:----:|
-| `/qa-explore [url]` | 探查页面，生成 E2E 测试 | 是 | 是 | 是 |
+| `/qa-explore [url]` | 探查页面，生成 E2E 测试 | 是 | 是 | 否 |
 | `/qa-from-issue STE-9` | 从 Linear Issue 生成测试 | 是 | 是 | 是 |
-| `/qa-run-prd [路径]` | 从 PRD 文档生成测试 | 是 | 是 | 是 |
+| `/qa-run-prd [路径]` | 从 PRD 文档生成测试 | 是 | 修复 | 否 |
 | `/qa-gen-cases [路径]` | 仅生成用例 + Excel | 仅用例 | 否 | 否 |
 | `/qa-run-all` | 执行已有测试 | 否 | 是 | 是 |
 | `/qa-fix-tests` | 修复失败的测试 | 仅修复 | 是 | 否 |
@@ -55,9 +55,9 @@ npx tsx scripts/git-watcher.ts
 
 ```
 入口层
-  ├── /qa-explore        CDP 页面 → 串行探查 → 并行生成 → 验证 → 执行 → 报告
+  ├── /qa-explore        CDP 页面 → 串行探查 → 并行生成 → 验证 → 执行（不上报 Linear）
   ├── /qa-from-issue     Linear Issue → CDP 定向探查 → 并行生成 → 验证 → 执行 → 报告
-  ├── /qa-run-prd        PRD 文档 → 并行生成 → CDP 验证 → 执行 → 报告
+  ├── /qa-run-prd        PRD 文档 → 并行生成 → CDP 验证 → /qa-fix-tests 修复
   ├── /qa-gen-cases      PRD 文档 → 生成用例 + Excel（不生成脚本，不执行）
   ├── /qa-run-all        执行已有 spec → 报告（不生成）
   ├── /qa-fix-tests      CDP 探查 → 修复 locator/断言 → 验证（不生成）

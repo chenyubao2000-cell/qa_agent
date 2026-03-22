@@ -75,29 +75,45 @@ PR source directory (prSourceDir): D:\code\.qa-worktree-pr
 - `--suite regression` → suite = "regression" (P0 + P1)
 - `--suite full` or no --suite → suite = "full" (all tests)
 
-**Agent 1 — test-executor** (haiku):
-- mode: `full`
-- suite: {parsed suite parameter} (passed to test-executor for --grep filtering)
-- If $ARGUMENTS specifies file paths, only run those; otherwise run all
-- Produce JSON + HTML reports to `$QA_WORKSPACE_DIR/tests/reports/`
-
 ### Headless Mode Detection
 
-If the prompt contains `_trigger: git-watcher_`, pass `headless: true` when launching report-analyzer, so it skips opening the browser.
+If the prompt contains `_trigger: git-watcher_`, set `headless: true` for report-analyzer (skip opening browser).
 
-**Agent 2 — report-analyzer** (haiku):
-- Read reports -> analyze -> bug-reporter -> Linear reporting -> summary report
-- If changeSummary available -> pass to report-analyzer to distinguish "this regression" vs "existing failure"
-- If relatedIssueKeys available -> pass to report-analyzer for failure attribution
-- If headless -> pass to report-analyzer to skip opening the browser
+### Agent 1 — test-executor (haiku)
 
-prompt template:
+Launch test-executor agent:
+
+```
+You are test-executor. First read agents/test-executor.md to understand your full responsibilities.
+
+Input:
+- mode: "full"
+- suite: "{parsed suite parameter, default full}"
+- specFiles: [{if $ARGUMENTS specifies file paths, list them; otherwise omit to run all}]
+- projectDir: "$QA_WORKSPACE_DIR"
+
+Execute per agents/test-executor.md steps, return report paths and summary.
+```
+
+- Produce JSON + HTML reports to `$QA_WORKSPACE_DIR/tests/reports/`
+
+### Agent 2 — report-analyzer (haiku)
+
+Launched after test-executor completes.
+
 ```
 You are report-analyzer. First read agents/report-analyzer.md to understand your full responsibilities.
 
 Input:
-- projectContext: { targetProjectDir, ... }
-- changeSummary: <code change summary, if available>
-- relatedIssueKeys: [<list of related Linear issue keys, if available>]
-- headless: <true if triggered by git-watcher>
+- projectContext: { targetProjectDir: "$QA_WORKSPACE_DIR", ... }
+- changeSummary: {code change summary from git-watcher, if available; otherwise omit}
+- relatedIssueKeys: [{list of related Linear issue keys from git-watcher, if available; otherwise omit}]
+- headless: {true if _trigger: git-watcher_, otherwise false}
+
+Execute per agents/report-analyzer.md steps:
+1. Read test reports from $QA_WORKSPACE_DIR/tests/reports/
+2. Parse results → route failed cases → deduplicate
+3. Launch bug-reporter (agents/bug-reporter.md) for Linear issue creation/append
+4. Generate summary report
+5. Open HTML report (unless headless)
 ```

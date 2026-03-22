@@ -36,7 +36,7 @@ PR 监控（独立流程）：
 手动命令：
 ├── /qa-explore    → CDP 页面探查 → 生成 + 执行（不汇报 Linear）
 ├── /qa-from-issue → Linear issue → 生成 + 执行 + 汇报 Linear
-├── /qa-run-prd    → PRD 文档 → 生成 + 执行 + 汇报 Linear
+├── /qa-run-prd    → PRD 文档 → 生成 + /qa-fix-tests 修复（不汇报 Linear）
 ├── /qa-gen-cases  → PRD 文档 → 仅生成用例 + Excel
 ├── /qa-fix-tests  → CDP 探查 → 修复失败测试
 └── /qa-run-all    → 直接执行 spec → report-analyzer

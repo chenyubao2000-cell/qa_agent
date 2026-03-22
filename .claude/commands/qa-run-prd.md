@@ -15,9 +15,7 @@ Phase 1: Read PRD (command layer exclusive)
 Phase 2: Sequential agent launch
          e2e-orchestrator (prd) -> cases -> Excel -> spec
               | after completion
-         test-executor -> receive spec -> execute tests -> produce reports
-              | after completion
-         report-analyzer -> analyze -> bug-reporter -> Linear
+         /qa-fix-tests -> CDP explore -> fix locators/assertions -> verify
 ```
 
 ## Phase 0: Load Context + Initialize Workspace (mandatory, execute first)
@@ -232,12 +230,19 @@ Return:
 
 When multiple POMs correspond to different pages, launch one subagent per page (serially, to avoid CDP conflicts).
 
-After all pages verified → continue launching test-executor
+After all pages verified → continue to fix-tests phase
 
-**Agent 2 — test-executor** (haiku):
-- Launched after e2e-orchestrator + Locator verification complete
-- Receives merged spec file list: `orchestrator.specs + orchestrator.modified_specs` -> execute tests -> produce reports
+### Step 3 — Fix tests via /qa-fix-tests
 
-**Agent 3 — report-analyzer** (haiku):
-- Launched after test-executor completes
-- Analyze report -> bug-reporter -> Linear reporting -> summary report -> open HTML report
+> PRD-generated specs almost never pass on first run. Instead of wasting time on test-executor → report-analyzer,
+> go directly to the fix loop which includes execution + CDP-based repair.
+
+```
+allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
+
+// Launch /qa-fix-tests targeting only the newly generated specs
+// This will: execute → identify failures → CDP explore → fix locators/assertions → verify
+Execute /qa-fix-tests with arguments: {allGeneratedSpecs joined by space}
+```
+
+> After qa-fix-tests completes, the user can run `/qa-run-all` for full regression + Linear reporting if needed.
