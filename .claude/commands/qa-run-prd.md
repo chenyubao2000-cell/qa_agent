@@ -148,7 +148,7 @@ allPageObjects = results.flatMap(r => r.page_objects)
 
 // Validate handoff files (mandatory gate)
 for spec in allSpecs:
-  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{feature}.json
+  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{slug}.json
   if handoff NOT found → regenerate per e2e-orchestrator Step 4.5
   if handoff entry count != Merged TC count → regenerate with 1:1 mapping
 

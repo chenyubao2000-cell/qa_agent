@@ -329,7 +329,7 @@ Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return
 
 ```
 For each spec in allSpecs:
-  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{feature}.json
+  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{slug}.json
   1. Check handoff file exists: Glob(handoffPath)
   2. If NOT found → ERROR: "Handoff not generated for {spec}", regenerate per e2e-orchestrator Step 4.5
   3. If found → read .md Merged TC count, compare with handoff entry count

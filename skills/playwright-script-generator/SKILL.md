@@ -156,7 +156,11 @@ export class TasksPage {
 
 ## 1. Consuming Handoff from test-case-generator
 
-When invoked after `test-case-generator`, check for the handoff JSON file. The path is passed by the caller — typically `$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-{slug}.json` (or `playwright-handoff-{slug}-{area-id}.json` when called per area from `/qa-explore`). If it exists, use it as the **sole source of truth** — do not ask the user to describe tests again.
+When invoked after `test-case-generator`, check for the handoff JSON file at `$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-{slug}.json`.
+
+**Handoff is MANDATORY — not optional.**
+- If handoff exists → use it as the **sole source of truth**, 1:1 mapping to test() blocks
+- If handoff does NOT exist → **STOP with error**: `"ERROR: playwright-handoff-{slug}.json not found. Cannot generate spec without handoff. The orchestrator Step 4.5 should have ensured it exists."` Do NOT fall back to reading .md text. Do NOT attempt to generate specs from .md alone.
 
 ### 1.1 Mapping Rules
 

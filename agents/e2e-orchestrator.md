@@ -181,20 +181,25 @@ prdChangeMode: "updated" → Incremental update (this section)
    - Read the existing spec's test block
    - Regenerate the test case from the updated PRD requirement (using test-case-generator)
    - Update the spec: replace the old test block with the new one (via Edit tool)
+   - **Update handoff**: replace the corresponding entry in `playwright-handoff-{slug}.json` with the new assertions/steps/uiElements
    - Update the POM if locators/methods changed
    - Record in `modified_specs`
 
 5. For each "Add" action:
    - Generate new test case (using test-case-generator)
    - Append to existing spec file (not create a new file)
+   - **Append handoff**: add new entry to `playwright-handoff-{slug}.json`
    - Append to existing POM if new locators needed
    - Record in `specs`
 
 6. For each "Deprecate" action:
    - Wrap the test block with `test.skip()` in the spec
+   - **Remove handoff**: delete the corresponding entry from `playwright-handoff-{slug}.json`
    - Record in `modified_specs`
 
 7. Update the PRD hash in the .md file header: `<!-- PRD-hash: {new hash} -->`
+
+> **Handoff sync rule**: Every action that modifies .md or spec MUST also update handoff.json. The three files (.md, handoff, spec) must always be in sync. Handoff is the contract; spec is the implementation.
 
 > **Important**: "Updated" mode NEVER deletes code. Deprecated tests are wrapped in `test.skip()`, not removed. This preserves history and allows manual review.
 
@@ -204,7 +209,8 @@ Read `skills/test-case-generator/SKILL.md` and execute according to the correspo
 - prd → requirements document mode
 - cdp / issue → CDP live page mode
 - **Only generate test cases that Step 2 determined as "missing"**; do not regenerate already covered ones
-- Output: test-cases/generated/{feature}.md + test-cases/generated/playwright-handoff-{feature}.json
+- Output: test-cases/generated/{slug}.md + test-cases/generated/playwright-handoff-{slug}.json
+- **Handoff is MANDATORY**: test-case-generator MUST produce handoff.json in ALL modes (PRD, CDP, issue). Each TC in Merged table = one handoff entry. If handoff is not produced, Step 4.5 will block the pipeline.
 - **PRD mode**: The .md file header must include module tracking metadata:
   ```
   <!-- PRD-hash: {sha256(module text)} | PRD-module: {module heading} | feature-slug: {feature} -->
@@ -264,8 +270,7 @@ while attempt < MAX_ATTEMPTS:
 After Step 3 completes, verify the handoff JSON file exists:
 
 ```
-handoffPath = test-cases/generated/playwright-handoff-{feature}.json
-  (or playwright-handoff-{slug}-{area-id}.json when areaScope is present)
+handoffPath = test-cases/generated/playwright-handoff-{slug}.json
 
 if handoff file does NOT exist:
   → Re-read skills/test-case-generator/SKILL.md "Handoff to playwright-script-generator" section

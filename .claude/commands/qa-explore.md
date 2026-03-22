@@ -426,7 +426,7 @@ allPageObjects = results.flatMap(r => r.page_objects)
 
 // Validate handoff files (mandatory gate)
 for spec in allSpecs:
-  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{feature}.json
+  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{slug}.json
   if handoff NOT found → regenerate per e2e-orchestrator Step 4.5
   if handoff entry count != Merged TC count → regenerate with 1:1 mapping
 
@@ -645,7 +645,7 @@ After all areas are processed (or maxAreas is reached), execute tests uniformly.
 |------|-------------|
 | `test-cases/generated/page-baseline-{slug}.json` | CDP exploration: Page state-flow graph baseline (cumulative, containing all areas' states/edges) |
 | `test-cases/generated/{slug}-{area-id}-cdp.md` | Case generation: Test cases for the area |
-| `test-cases/generated/playwright-handoff-{slug}-{area-id}.json` | Case generation: Playwright handoff file |
+| `test-cases/generated/playwright-handoff-{slug}.json` | Case generation: Playwright handoff file (one per area, slug includes area id) |
 | `test-cases/excel/{slug}-{area-id}-cdp.xlsx` | Excel export: Test case spreadsheet |
 | `tests/e2e/pages/{slug}.page.ts` | Script generation: Page Object (shared per page, incrementally appended) |
 | `tests/e2e/testcases/generated/{slug}-{area-id}-cdp.test.ts` | Script generation: Playwright spec |

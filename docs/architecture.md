@@ -302,7 +302,7 @@ $QA_WORKSPACE_DIR/
 │   ├── generated/
 │   │   ├── page-baseline-{slug}.json              CDP 状态流图
 │   │   ├── {slug}-{area-id}-cdp.md                 用例文档
-│   │   └── playwright-handoff-{slug}-{area-id}.json Playwright 移交
+│   │   └── playwright-handoff-{slug}.json            Playwright 移交
 │   └── excel/
 │       └── {slug}-{area-id}-cdp.xlsx               Excel 表格
 ├── tests/e2e/

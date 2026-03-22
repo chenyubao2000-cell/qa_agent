@@ -602,7 +602,7 @@ Starting from the inferred user stories, follow the complete test case generatio
 
 3. **Excel** — Regenerate, adding the corresponding sheet with an orange tab color (to distinguish from the blue tabs used by requirements-document-driven sheets)
 
-4. **playwright-handoff.json** — Add new entries. Each entry **must** include all fields required by playwright-script-generator (`title`, `assertions`, `preconditions`), in addition to CDP-specific fields. The `uiElements` directly use real selectors extracted from the baseline:
+4. **playwright-handoff-{slug}.json** — **MANDATORY in ALL modes (PRD, CDP, issue)**. Add new entries. Each TC in the Merged Test Case List = exactly one handoff entry (1:1, no merging). Each entry **must** include all fields required by playwright-script-generator (`title`, `assertions`, `preconditions`), in addition to CDP-specific fields. The `uiElements` directly use real selectors extracted from the baseline:
    ```json
    {
      "id": "TC-CDP-001",
@@ -2406,11 +2406,11 @@ public class StoryParser {
 
 ## Handoff to Playwright E2E
 
-After all test cases are generated, **always** produce a `playwright-handoff.json` file and then invoke the `playwright-script-generator` skill to implement them as runnable Playwright tests.
+After all test cases are generated, **ALWAYS** produce a `playwright-handoff-{slug}.json` file. This is **MANDATORY in ALL modes** (PRD, CDP, issue). Without handoff, playwright-script-generator will refuse to generate specs.
 
-### Step 1 — Write playwright-handoff.json
+### Step 1 — Write playwright-handoff-{slug}.json
 
-Save to `test-cases/generated/playwright-handoff-{feature}.json`. Each entry maps one Gherkin scenario to the data Playwright needs:
+Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the Merged Test Case List = exactly one handoff entry** (strict 1:1, NO merging). Each entry maps one test case to the data Playwright needs:
 
 ```json
 [

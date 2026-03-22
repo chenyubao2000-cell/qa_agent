@@ -109,14 +109,25 @@ For each failed file:
   Input:
   - specFile: {absolute path to failed spec file}
   - pomFile: {absolute path to corresponding POM, inferred from spec's import}
+  - handoffFile: {absolute path to corresponding handoff JSON, inferred from spec filename: test-cases/generated/playwright-handoff-{slug}.json}
   - failures: [{ testName, error, screenshot }]  // failed cases in this file
   - pageUrl: {URL extracted from spec's page.goto()}
   - sourceProjectDir: {SOURCE_PROJECT_DIR}  // for understanding business logic
 
   Steps:
+  0. **Read handoff as source of truth**:
+     Read handoffFile. For each failed test, find the matching handoff entry by TC ID.
+     The handoff entry defines WHAT the test should verify (assertions, expected behavior).
+     Your job is to make the test PASS by fixing HOW it verifies (locators, waits, selectors),
+     NOT by changing WHAT it verifies. If the handoff says "expect heading 'Welcome'",
+     you fix the locator to find the heading, you do NOT change the assertion to match
+     whatever text happens to be on the page.
+
+     If handoffFile does NOT exist → log warning, proceed with spec-only analysis (degraded mode).
+
   1. Connect to page (list_pages → select_page, or navigate if needed)
   2. Login wall detection per cdp-explorer Phase 1 Step 3
-  3. For each failure, FIRST CLASSIFY, then act:
+  3. For each failure, FIRST CLASSIFY (using handoff assertions as reference), then act:
 
      === Step 3a: Classify failure type ===
 
@@ -137,10 +148,11 @@ For each failed file:
      b1. CDP verify mode: check locator match count
          - 0 matches → full DOM scan to find correct selector
          - N matches → DOM scan to find narrowing parent
-     b2. For text changes → confirm new text is valid business content → update assertion
-     b3. Fix POM (Edit tool): replace/narrow locators, add new getters
-     b4. Fix spec (Edit tool): update assertions, add waits
-     b5. Strictly follow POM rules: no bare locators in specs
+     b2. Fix POM (Edit tool): replace/narrow locators, add new getters
+     b3. Fix spec (Edit tool): add waits, fix timing issues
+     b4. **Do NOT change business assertions** (what the test checks). Only change technical implementation (how it locates/waits). The handoff defines WHAT; you fix HOW.
+     b5. If real page content has legitimately changed (e.g., copy update) AND handoff assertion is now wrong → this is an UPDATE scenario, not a fix. Update the handoff entry's assertion first, then update the spec to match.
+     b6. Strictly follow POM rules: no bare locators in specs
 
      === Step 3c: For POSSIBLE BUG — do NOT fix ===
      c1. Read source code (from sourceProjectDir) to understand the intended behavior
