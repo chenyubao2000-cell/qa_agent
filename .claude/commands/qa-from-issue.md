@@ -199,6 +199,7 @@ Task: Fix an existing test that is failing, based on a Linear issue report.
 Input:
 - specFile: {absolute path to the existing spec identified in Phase 1 Step 3}
 - pomFile: {absolute path to corresponding POM, inferred from spec's import}
+- handoffFile: {absolute path to handoff JSON — read from spec header comment `// handoff:`, fallback: infer from slug}
 - issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
 - pageUrl: {issueContext.pageUrl, concatenated with baseURL if relative}
 - authSetup: {true/false}
@@ -238,7 +239,8 @@ After subagent returns:
 - Set `specs = []` (Mode X generates no NEW specs, only modifies existing)
 - If `status: "fixed"` → continue to test-executor with `modified_specs`
 - If `status: "needs_manual"` → report to user, still include in `modified_specs` for test-executor to verify
-- **Skip orchestrator entirely** (no new test cases, no Excel, no handoff)
+- **Skip orchestrator entirely** (no new test cases, no Excel)
+- **Sync handoff**: if spec assertions were changed during fix, read the corresponding `playwright-handoff-{slug}.json`, update the matching entry's assertions to reflect the fix, then write back. This keeps handoff in sync with the fixed spec.
 - When building `specToIssueMap`, map the Mode X specFile to its source issueKey:
   `specToIssueMap[specFile] = issueKey`
 

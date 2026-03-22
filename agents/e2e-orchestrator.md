@@ -143,7 +143,14 @@ existingTests = [
 
 ### 2.3 Match Against Current Input
 
-Compare the feature modules / pages / issues identified in Step 1 against existing test cases one by one:
+Compare the feature modules / pages / issues identified in Step 1 against existing test cases one by one.
+
+**Matching key** (in priority order):
+1. **Page URL** — if existing test covers the same URL → potential match
+2. **Functional area type** — form, navigation, tab, modal etc. on the same URL → same feature
+3. **Assertion overlap** — if ≥50% assertions test the same elements → fully covered
+
+Do NOT rely on feature name string matching alone (`sign-in` ≠ `login` but they're the same feature if on the same URL).
 
 | Match Result | Action |
 |----------|------|
@@ -153,9 +160,11 @@ Compare the feature modules / pages / issues identified in Step 1 against existi
 
 ### 2.4 Deduplication Rules
 
+- **TC ID must be globally unique**: Format `TC-{SOURCE}-{FEATURE}-{3-digit}`, e.g., `TC-CDP-NAV-001`, `TC-PRD-LOGIN-003`, `TC-ISS-VF-002`. The source prefix prevents collision across commands.
 - **Same assertion** (same page + same locator + same expect) must not appear in two test cases
 - **Only URL differs** but verification logic is identical → parameterize with `for...of` or `test.each`, do not split into multiple tests
 - **Issue is a failure report for an existing test** → do not add new test cases, only update the actual result record of the existing test
+- **Cross-source matching**: When comparing features, use **page URL + functional area type** as the primary matching key (not feature name alone). `sign-in` and `login` on the same URL are the same feature.
 
 ### 2.5 PRD Update Mode (when `prdChangeMode: "updated"`)
 
@@ -200,6 +209,7 @@ prdChangeMode: "updated" → Incremental update (this section)
 6. For each "Deprecate" action:
    - Wrap the test block with `test.skip()` in the spec
    - **Remove handoff**: delete the corresponding entry from `playwright-handoff-{slug}.json`
+   - **Cross-source check**: search for specs from OTHER sources (CDP, issue) that cover the same feature (by URL + area type). If found, also mark them as deprecated (test.skip) to keep consistent state.
    - Record in `modified_specs`
 
 7. Update the PRD hash in the .md file header: `<!-- PRD-hash: {new hash} -->`
