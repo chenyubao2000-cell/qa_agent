@@ -48,6 +48,7 @@ Read the report JSON and iterate over all test cases:
 - Extract entries with status = "failed"
 - Record the corresponding pipeline type (e2e / unit)
 - **For E2E failures, screenshot paths must be extracted**: find entries with `name: "screenshot"` in the `attachments` array
+- **Read screenshots**: For each screenshot path, use `Read(path)` to view the image. Claude can see the screenshot and describe the error state (e.g., "page shows 404", "button is disabled", "empty content area"). This description is passed to bug-reporter for the Linear issue, since Linear cannot access local file paths.
 
 ```json
 {
@@ -145,9 +146,9 @@ Write/update `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`:
 
 ## 失败用例（如有）
 
-| # | 测试用例 | 错误摘要 | 截图 |
-|---|----------|----------|------|
-| 1 | {name}   | {error}  | {截图路径 或 —} |
+| # | 测试用例 | 错误摘要 | 截图描述 |
+|---|----------|----------|----------|
+| 1 | {name}   | {error}  | {Read 截图后描述错误 UI 状态，如"页面显示 404"；无截图则 —} |
 
 （全部通过时显示："无失败用例"）
 

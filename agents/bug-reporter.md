@@ -65,8 +65,12 @@ Create an Issue via the Linear MCP `createIssue` method.
 - 测试类型: {e2e / unit}
 - 测试文件: {file path}
 
-## 附件
-{失败截图路径（E2E）或错误堆栈}
+## 截图
+{如果 screenshot 路径存在且文件可读：Read(screenshot path) 读取图片，Claude 会看到图片内容，将关键错误 UI 用文字描述写在这里（如："页面显示空白，按钮不可见"）。同时附上本地路径供开发者查看：`screenshot: {path}`}
+{如果 screenshot 为 null 或文件不存在："无截图"}
+
+## 错误堆栈
+{error stack trace（前 20 行）}
 ```
 
 ### action = "append" (Append Execution Record to Existing Issue Description)
@@ -89,7 +93,7 @@ Used in two scenarios:
 ## 🔴 自动化测试失败 — {timestamp}
 **测试用例**: {测试用例名称}
 **错误**: {错误信息}
-**截图**: {截图路径 或 "无"}
+**截图**: {如果截图文件存在：Read 图片后描述错误 UI 状态 + 附本地路径；否则 "无"}
 **Spec 文件**: {spec 文件路径}
 ```
 
