@@ -152,6 +152,34 @@ export class TasksPage {
 - The `pomMethod` field in each setup/teardown entry maps directly to a POM method name
 - `{timestamp}` placeholders are replaced with `Date.now()` in generated code
 
+**7. Setup validation (MANDATORY before generating each test):**
+
+Before generating each `test()` block, check whether the test action requires pre-existing state:
+
+```
+For each handoff entry:
+  1. Does the test action operate on existing data? (download/edit/delete/preview/view)
+     → YES: setup[] MUST NOT be empty. If empty → STOP and flag error:
+       "ERROR: TC-{id} tests '{action}' but handoff setup[] is empty.
+        Cannot generate a self-sufficient test without setup steps.
+        The test-case-generator must provide setup operations."
+     → Generate setup code from setup[] entries before the test action
+
+  2. Does the test action create new data? (create/upload/submit)
+     → setup[] can be minimal (just navigate)
+     → teardown[] should clean up the created data
+
+  3. Is setup[] missing or undefined in the handoff?
+     → Infer setup from preconditions[] text:
+       - "已打开文件" → infer: navigate to /task, create task, wait for file, open canvas
+       - "任务已完成" → infer: navigate to /task, create task, wait for completion
+       - "用户已登录" → handled by authenticatedPage fixture, no explicit setup needed
+     → Generate the inferred setup code with a comment:
+       // ── Setup (inferred from preconditions, handoff setup[] was empty) ──
+```
+
+> **Why this matters**: A test that does `goto()` then immediately clicks "Download" will always fail because there's no file in Canvas. The setup steps are what make the test self-sufficient. If the handoff doesn't provide them, the spec generator must either infer them or refuse to generate a broken test.
+
 ---
 
 ## 0d. Test Data Resolution (Mandatory when handoff contains `dataType`)
