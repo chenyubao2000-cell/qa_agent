@@ -326,16 +326,49 @@ function parseFormatA(md, module) {
 
     // 解析用例字段
     // 兼容两种格式：- **key**: value（冒号在外）和 - **key:** value（冒号在内）
-    const fieldMatch = line.match(/- \*\*(.+?)(?::\*\*|\*\*:)\s*(.+)/)
+    const fieldMatch = line.match(/- \*\*(.+?)(?::\*\*|\*\*:)\s*(.*)/)
     if (fieldMatch) {
       const [, key, val] = fieldMatch
       const k = key.toLowerCase()
-      if (k.includes('优先级') || k.includes('priority') || k.includes('level')) currentCase.priority = val.trim()
-      else if (k.includes('前置条件') || k.includes('given') || k.includes('precondition') || k.includes('input condition')) currentCase.given = val.trim()
-      else if (k.includes('操作') || k.includes('when') || k.includes('operation') || k.includes('step')) currentCase.when = val.trim()
-      else if (k.includes('预期结果') || k.includes('then') || k.includes('expected')) currentCase.then = val.trim()
-      else if (k.includes('测试数据') || k.includes('test data')) currentCase.testData = val.trim()
-      else if (k.includes('suite') || k.includes('类型') || k.includes('type')) currentCase.type = val.trim()
+      let field = null
+      if (k.includes('优先级') || k.includes('priority') || k.includes('level')) field = 'priority'
+      else if (k.includes('前置条件') || k.includes('given') || k.includes('precondition') || k.includes('input condition')) field = 'given'
+      else if (k.includes('操作') || k.includes('when') || k.includes('operation') || k.includes('step')) field = 'when'
+      else if (k.includes('预期结果') || k.includes('then') || k.includes('expected')) field = 'then'
+      else if (k.includes('测试数据') || k.includes('test data')) field = 'testData'
+      else if (k.includes('suite') || k.includes('类型') || k.includes('type')) field = 'type'
+
+      if (field) {
+        currentCase[field] = val.trim()
+        // 多行值支持：如果值为空或以换行列表开头，收集后续缩进行
+        if (!val.trim()) {
+          const multiLines = []
+          while (i + 1 < lines.length) {
+            const nextLine = lines[i + 1]
+            // 后续行必须是缩进的（空格开头）且不是新字段/新TC
+            if (/^\s+([\d]+\.|[-*])/.test(nextLine)) {
+              multiLines.push(nextLine.trim())
+              i++
+            } else {
+              break
+            }
+          }
+          if (multiLines.length > 0) {
+            currentCase[field] = multiLines.join(' ')
+          }
+        }
+      }
+      continue
+    }
+    // 续行：当前行是缩进的编号列表，追加到上一个字段
+    if (currentCase && /^\s+([\d]+\.|[-*])/.test(line)) {
+      // 找到最后一个有值的字段并追加
+      for (const f of ['when', 'then', 'given']) {
+        if (currentCase[f]) {
+          currentCase[f] += ' ' + line.trim()
+          break
+        }
+      }
     }
   }
   if (currentCase) cases.push(currentCase)
