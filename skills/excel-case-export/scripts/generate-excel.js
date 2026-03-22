@@ -243,7 +243,17 @@ function parseFormatA(md, module) {
   let currentCase = null
   let currentSection = ''
 
-  for (const line of lines) {
+  // 优先只解析 "## Merged Test Case List" 之后的内容（与 parseMarkdownTable 一致）
+  let startLine = 0
+  for (let j = 0; j < lines.length; j++) {
+    if (/^##\s.*Merged/i.test(lines[j].trim())) {
+      startLine = j + 1
+      break
+    }
+  }
+
+  for (let i = startLine; i < lines.length; i++) {
+    const line = lines[i]
     // 检测用例开始：**TC-xxx-nnn**: 标题
     const tcMatch = line.match(/\*\*([A-Z]+-\w+-\d+)\*\*:\s*(.+)/)
     if (tcMatch) {
