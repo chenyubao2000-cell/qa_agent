@@ -197,7 +197,9 @@ For each failed file:
 
 ---
 
-## Phase 2.5: Bug Escalation (if bugs found)
+## Phase 2.5: Bug Summary (report only, no Linear escalation)
+
+> **qa-fix-tests does NOT report to Linear.** Its job is fixing scripts. If bugs are found, inform the user and let them decide whether to run `/qa-run-all` for formal reporting.
 
 After all fix subagents complete, check if any classified failures as application bugs:
 
@@ -207,31 +209,14 @@ detectedBugs = fixResults.filter(r => r.bugCount > 0).flatMap(r =>
 )
 
 if detectedBugs.length > 0:
-  // Launch report-analyzer (haiku) to create Linear issues for detected bugs
-  Launch report-analyzer with:
-  prompt:
-  ```
-  You are report-analyzer. Read agents/report-analyzer.md.
-
-  Input:
-  - projectContext: { targetProjectDir: {QA_WORKSPACE_DIR} }
-  - detectedBugs: [
-      { testName, expectedBehavior, actualBehavior, evidence, specFile }
-    ]
-  - source: "qa-fix-tests"
-
-  Task: For each detected bug, create a Linear issue via bug-reporter.
-  These are real application bugs found during test fixing — the test assertions
-  are CORRECT but the application behavior is WRONG.
-  Do NOT treat these as test failures. Treat them as feature regressions.
-  ```
-
+  // Do NOT launch report-analyzer. Only inform the user.
   Report to user:
   ```
-  Found N application bugs during test fixing:
+  Found N possible application bugs during test fixing (NOT reported to Linear):
   1. [task-create.test.ts] Submit button stays disabled — expected enabled after form fill
   2. [chat-main.test.ts] Empty chat area — expected message displayed
-  These have been reported to Linear. Tests for these bugs were NOT modified (assertions are correct).
+  Tests for these bugs were NOT modified (assertions are correct per handoff).
+  To formally report these bugs to Linear, run /qa-run-all.
   ```
 ```
 
