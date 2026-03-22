@@ -798,6 +798,33 @@ The final test case .md file **must** contain explicit section headers for all 6
 [final deduplicated cases from all applicable methods]
 ```
 
+**Merged TC output format** (each TC must follow this structure for Excel export compatibility):
+
+```markdown
+**TC-{SOURCE}-{FEATURE}-{NNN}**: {用例标题}
+- **优先级:** P0 | P1 | P2
+- **测试类型:** {产出该用例的设计方法}
+- **前置条件:** {前置条件描述，无则写"无"}
+- **操作步骤:** {编号步骤，用空格分隔}
+- **预期结果:** {预期行为描述}
+- **测试数据:** {dataType 标记或具体值，无则省略此行}
+```
+
+> **Field requirements**: 优先级、测试类型、前置条件、操作步骤、预期结果为**必填**字段。测试数据为可选（无数据输入的 TC 可省略）。
+>
+> **测试类型**是指产出该用例的**设计方法**（对应 6 个 Method 章节），不是场景分类。取值必须为以下之一：
+>
+> | 测试类型值 | 对应章节 | 典型场景 |
+> |-----------|---------|---------|
+> | 等价类划分 | Method 1: Equivalence Partitioning | 有效/无效输入分类（合法邮箱 vs 非法格式） |
+> | 边界值分析 | Method 2: Boundary Value Analysis | 长度上限、数值边界（密码最短/最长） |
+> | 因果图 | Method 3: Cause-Effect Graph | 多条件组合（邮箱空 + 密码空 = 按钮禁用） |
+> | 状态迁移 | Method 4: State Transition Testing | 状态流转（邮箱步骤 → 密码步骤 → 登录成功） |
+> | 场景法 | Method 5: Scenario Method | 完整业务流程（happy path 从头到尾） |
+> | 错误猜测 | Method 6: Error Guessing | 经验驱动（XSS、SQL 注入、特殊字符） |
+>
+> Merged 去重时，如果一个 TC 由多个方法同时产出，取**最先产出它的方法**。
+
 **Validation rules** (checked by orchestrator after generation):
 1. All 6 `## Method N:` sections must be present in the output .md
 2. Each section must contain either test cases OR `N/A` with a reason (empty sections are rejected)
@@ -1244,27 +1271,20 @@ Step 2: Design test cases targeting each error-prone area
 ```markdown
 # {Feature Name}
 
-## Positive Scenarios
+## Merged Test Case List
 
-**TC-{MOD}-001**: {Case title}
-- **Priority**: P0
-- **Preconditions**: {Given — setup state}
-- **Operations**: {When — user actions, numbered if multi-step}
-- **Expected Result**: {Then — observable outcome with business semantics}
-- **Test Data**: {Specific values used}
+**TC-{SOURCE}-{FEATURE}-{NNN}**: {用例标题}
+- **优先级:** P0
+- **测试类型:** {设计方法：等价类划分 | 边界值分析 | 因果图 | 状态迁移 | 场景法 | 错误猜测}
+- **前置条件:** {前置条件描述，无则写"无"}
+- **操作步骤:** {编号步骤}
+- **预期结果:** {预期行为描述}
+- **测试数据:** {dataType 标记或具体值，无则省略}
 
-**TC-{MOD}-002**: {Case title}
-- **Priority**: P1
-- **Preconditions**: ...
-- **Operations**: ...
-- **Expected Result**: ...
-- **Test Data**: ...
-
-## Negative Scenarios
-
-**TC-{MOD}-003**: {Case title}
-- **Priority**: P1
-- **Preconditions**: ...
+**TC-{SOURCE}-{FEATURE}-{NNN}**: {用例标题}
+- **优先级:** P1
+- **测试类型:** ...
+- **前置条件:** ...
 - **Operations**: ...
 - **Expected Result**: {Error message or rejection behavior}
 - **Test Data**: {Invalid input values}

@@ -24,6 +24,38 @@ const PRIORITY_COLORS = {
   P2: 'FFFFEB3B'
 }
 
+// ============================================================
+// dataType 解析器：把 "dataType: contact.email(valid)" 翻译成人可读文本
+// 映射表与 skills/playwright-script-generator/SKILL.md §0d 保持一致
+// ============================================================
+const DATA_TYPE_LABELS = {
+  'contact.mobile':   { label: '手机号', valid: '13856781234', invalid: '1234' },
+  'contact.email':    { label: '邮箱',   valid: 'test_xxx@test.com', invalid: 'not-an-email' },
+  'contact.address':  { label: '地址',   valid: '上海市浦东新区测试路42号' },
+  'identity.name':    { label: '姓名',   valid: '测试用户_xxx' },
+  'identity.idCard':  { label: '身份证', valid: '310101199001011234', invalid: '12345678' },
+  'account.password': { label: '密码',   strong: 'Aa1@xK9mPq2n', weak: '123456' },
+  'account.captcha':  { label: '验证码', valid: 'a3Kd', invalid: '' },
+  'finance.amount':   { label: '金额',   valid: '128.50', 'boundary:0': '0' },
+  'finance.bankCard': { label: '银行卡', valid: '6222021234567890', invalid: '1234' },
+  'datetime.date':    { label: '日期',   past: '2026-02-20', future: '2026-03-28', invalid: 'not-a-date' },
+  'text.random':      { label: '文本',   valid: '这是一段测试文本', xss: '<script>alert(1)</script>', sqlInject: "'; DROP TABLE users; --", emoji: '😀🎉测试', 'long:500': '(500字随机文本)' },
+  'file.image':       { label: '图片文件', png: 'sample.png', jpg: 'sample.jpg' },
+  'file.document':    { label: '文档文件', pdf: 'sample.pdf', csv: 'sample.csv', xlsx: 'sample.xlsx', oversized: 'oversized-6mb.bin', empty: 'empty.txt' },
+}
+
+function resolveTestData(rawTestData) {
+  if (!rawTestData || !rawTestData.includes('dataType')) return rawTestData
+
+  // Parse patterns like: dataType: contact.email(valid) + account.password(strong)
+  return rawTestData.replace(/(\w+\.\w+)\(([^)]+)\)/g, (match, type, variant) => {
+    const entry = DATA_TYPE_LABELS[type]
+    if (!entry) return match
+    const resolved = entry[variant] || entry.valid || match
+    return `${entry.label}: ${resolved}`
+  }).replace(/dataType:\s*/g, '')
+}
+
 function addSheet(workbook, sheetName, testCases) {
   const sheet = workbook.addWorksheet(sheetName)
 
@@ -35,7 +67,7 @@ function addSheet(workbook, sheetName, testCases) {
   for (const tc of testCases) {
     const row = sheet.addRow([
       tc.id, tc.module, tc.title, tc.priority,
-      tc.given, tc.when, tc.then, tc.testData,
+      tc.given, tc.when, tc.then, resolveTestData(tc.testData),
       tc.type, '', ''
     ])
     const priorityCell = row.getCell(4)
@@ -273,19 +305,28 @@ function parseFormatA(md, module) {
     }
 
     if (!currentCase) {
-      // 检测章节（## 正向流程 / ## 异常流程 / ## 边界场景）
+      // 检测章节 — 支持场景分类（正向/异常/边界）和设计方法名
       const sectionMatch = line.match(/^## (.+)/)
       if (sectionMatch) {
         const s = sectionMatch[1].trim()
+        // 场景分类
         if (s.includes('正向') || s.includes('Positive')) currentSection = '正向'
         else if (s.includes('异常') || s.includes('Negative') || s.includes('Invalid')) currentSection = '异常'
         else if (s.includes('边界') || s.includes('Boundary')) currentSection = '边界'
+        // 设计方法名（Method 1-6）
+        else if (s.includes('Equivalence') || s.includes('等价类')) currentSection = '等价类划分'
+        else if (s.includes('Boundary Value') || s.includes('边界值')) currentSection = '边界值分析'
+        else if (s.includes('Cause-Effect') || s.includes('因果图') || s.includes('Decision')) currentSection = '因果图'
+        else if (s.includes('State Transition') || s.includes('状态迁移')) currentSection = '状态迁移'
+        else if (s.includes('Scenario') || s.includes('场景')) currentSection = '场景法'
+        else if (s.includes('Error Guessing') || s.includes('错误猜测')) currentSection = '错误猜测'
       }
       continue
     }
 
     // 解析用例字段
-    const fieldMatch = line.match(/- \*\*(.+?)\*\*:\s*(.+)/)
+    // 兼容两种格式：- **key**: value（冒号在外）和 - **key:** value（冒号在内）
+    const fieldMatch = line.match(/- \*\*(.+?)(?::\*\*|\*\*:)\s*(.+)/)
     if (fieldMatch) {
       const [, key, val] = fieldMatch
       const k = key.toLowerCase()
@@ -294,6 +335,7 @@ function parseFormatA(md, module) {
       else if (k.includes('操作') || k.includes('when') || k.includes('operation') || k.includes('step')) currentCase.when = val.trim()
       else if (k.includes('预期结果') || k.includes('then') || k.includes('expected')) currentCase.then = val.trim()
       else if (k.includes('测试数据') || k.includes('test data')) currentCase.testData = val.trim()
+      else if (k.includes('suite') || k.includes('类型') || k.includes('type')) currentCase.type = val.trim()
     }
   }
   if (currentCase) cases.push(currentCase)
