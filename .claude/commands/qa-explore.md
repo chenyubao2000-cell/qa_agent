@@ -113,12 +113,21 @@ export default defineConfig({
   ...(fs.existsSync("./tests/e2e/global-setup.ts") ? { globalSetup: "./tests/e2e/global-setup.ts" } : {}),
   timeout: 60_000,
   fullyParallel: true,
+  retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: [["json", { outputFile: "tests/reports/playwright-results.json" }], ["html", { open: "never" }]],
+  outputDir: "./test-results",
+  reporter: [
+    ["json", { outputFile: "tests/reports/playwright-results.json" }],
+    ["html", { open: "never" }],
+  ],
+  expect: {
+    timeout: 10_000,
+  },
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     viewport: { width: 1280, height: 720 },
     headless: process.env.PLAYWRIGHT_HEADLESS !== "false",
+    locale: "zh-CN",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "retain-on-failure",
@@ -131,6 +140,15 @@ export default defineConfig({
   }],
 });
 ```
+
+> **配置说明**:
+> - `reporter`: 始终输出 JSON（供 report-analyzer 消费）+ HTML（供人工查看）。test-executor 命令行也会覆盖此设置以确保双输出
+> - `headless`: 由环境变量控制，默认 true。目标项目 config 可能硬编码 false，test-executor 的 `--reporter` 覆盖不影响 headless，需要通过 .env 的 `PLAYWRIGHT_HEADLESS` 控制
+> - `retries`: CI 环境重试 1 次，减少 flaky 误报；本地不重试，快速暴露问题
+> - `trace` + `video`: 失败时保留，用于排查。`on-first-retry` 不如 `retain-on-failure`（不需要 retry 也能留证据）
+> - `locale`: 中文应用设为 `zh-CN`，确保日期格式、文本排序等与真实用户一致
+> - `outputDir`: 显式指定，避免产物散落
+> - `expect.timeout`: 默认 5s 对远程环境偏短，设为 10s
 
 #### 2e. Generate fixtures.ts (if not present)
 
