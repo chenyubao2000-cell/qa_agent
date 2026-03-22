@@ -131,12 +131,9 @@ Tasks:
      - New requirement → add new case
      - Requirement removed → mark case as DEPRECATED
    - Update PRD-hash in header
-4. Call excel-case-export script to export Excel (all cases merged into one file, one Sheet per module)
-   - Command: node skills/excel-case-export/scripts/generate-excel.js --input-dir $targetProjectDir/test-cases/generated --output $targetProjectDir/test-cases/excel/{prd-name}-all-cases.xlsx
-   - Output: $targetProjectDir/test-cases/excel/{prd-name}-all-cases.xlsx
 
 Important constraints:
-- Only generate case documents (.md) and Excel (.xlsx)
+- Only generate case documents (.md)
 - Do not generate Playwright scripts (.test.ts)
 - Do not generate Page Objects (.page.ts)
 - Do not generate handoff JSON
@@ -162,18 +159,21 @@ After the subagent returns, the main command MUST verify that files were actuall
    - If file NOT found → ERROR: "Subagent reported success but file not written: {path}"
    - Retry: re-launch subagent with explicit instruction to use Write tool
 
-2. For the Excel file:
-   - Check file exists
-   - If NOT found → re-run excel-case-export script directly in main command:
-     node skills/excel-case-export/scripts/generate-excel.js --input-dir {outputDir}/test-cases/generated --output {excelPath}
-
-3. For each .md file, validate:
+2. For each .md file, validate:
    - Contains "## Merged Test Case List" section (method enforcement check)
    - Contains at least 1 "**TC-" pattern (has actual cases)
    - If validation fails → report to user, do not silently succeed
 ```
 
 > **Why this is needed**: Subagents run in isolated contexts. If a subagent's Write call fails silently (permission, path issue), the subagent may report success while no file was written. This verification catches that.
+
+### Excel Export (command layer, after all subagents complete + verification pass)
+
+```bash
+node skills/excel-case-export/scripts/generate-excel.js \
+  --input-dir $OUTPUT_DIR/test-cases/generated \
+  --output $OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx
+```
 
 ## Artifacts
 

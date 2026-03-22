@@ -255,34 +255,38 @@ while attempt < MAX_ATTEMPTS:
       The caller receives empty specs → skips test-executor → reports the error to user
 ```
 
-## Step 4: Export Excel (automatic, no user prompt)
+## Step 4: Excel Export — SKIP (handled by command layer)
 
-> Test cases are already generated in Chinese by the test-case-generator skill (Output Language rule). No translation step needed.
+> **Excel export is NOT the orchestrator's responsibility.** The command layer calls `generate-excel.js --input-dir` once AFTER all orchestrators complete, producing a single merged Excel. This avoids: (1) duplicate exports during parallel area generation, (2) per-area Excel files that need re-merging, (3) write conflicts between parallel orchestrators.
 
-### Export Excel
+## Step 4.5: Validate Handoff File (mandatory gate before Step 5)
 
-Read `skills/excel-case-export/SKILL.md` and execute according to the skill specification.
+After Step 3 completes, verify the handoff JSON file exists:
 
-**When `areaScope` is present** (incremental mode from `/qa-explore`):
-- Export only the current area's .md file (not the entire directory), to avoid regenerating previous areas' Excel:
-```bash
-node skills/excel-case-export/scripts/generate-excel.js \
-  --input $QA_WORKSPACE_DIR/test-cases/generated/{slug}-{areaScope.id}-cdp.md \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-{areaScope.id}-cdp.xlsx
+```
+handoffPath = test-cases/generated/playwright-handoff-{feature}.json
+  (or playwright-handoff-{slug}-{area-id}.json when areaScope is present)
+
+if handoff file does NOT exist:
+  → Re-read skills/test-case-generator/SKILL.md "Handoff to playwright-script-generator" section
+  → Read the generated .md file (Merged Test Case List)
+  → Generate the handoff JSON now:
+    - Each TC in the Merged table → one handoff entry (1:1 mapping, NO merging)
+    - Extract: id, title, priority, preconditions, steps (→ uiElements), expected result (→ assertions)
+    - Write to handoffPath
+  → Verify file exists after writing
+
+if handoff file exists but entry count < Merged TC count:
+  → Log warning: "Handoff has {N} entries but Merged table has {M} TCs — regenerating"
+  → Regenerate handoff from Merged table (same 1:1 rule)
 ```
 
-**When `areaScope` is absent** (full mode from `/qa-run-prd`, `/qa-from-issue`):
-- Merge all .md files into one Excel (one Sheet per .md):
-```bash
-node skills/excel-case-export/scripts/generate-excel.js \
-  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/{feature}-all-cases.xlsx
-```
+> **Why this gate exists**: Without the handoff file, playwright-script-generator falls back to "reading the .md text" and makes its own decisions about which TCs to merge — resulting in fewer test() blocks than TCs. The handoff file is the contract: each entry = one test().
 
 ## Step 5: Generate E2E Scripts
 
 Read `skills/playwright-script-generator/SKILL.md` and execute according to the skill specification.
-- Input: test cases from Step 3 + handoff.json
+- Input: handoff.json (validated in Step 4.5) — each entry becomes exactly one test() block
 - Output: tests/e2e/pages/{feature}.ts + tests/e2e/testcases/generated/{feature}.test.ts
 - Existing spec → append test cases (do not duplicate existing cases)
 - Existing POM → append locators / methods (do not duplicate existing properties)

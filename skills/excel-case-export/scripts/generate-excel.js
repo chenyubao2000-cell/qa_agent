@@ -152,7 +152,17 @@ function parseMarkdownTable(md, module) {
   const lines = md.split('\n')
   let headerMap = null  // index → field name
 
-  for (let i = 0; i < lines.length; i++) {
+  // 优先只解析 "## Merged Test Case List" 之后的内容
+  // 如果没有 Merged 标记，则解析全部（兼容旧格式）
+  let startLine = 0
+  for (let j = 0; j < lines.length; j++) {
+    if (/^##\s.*Merged/i.test(lines[j].trim())) {
+      startLine = j + 1
+      break
+    }
+  }
+
+  for (let i = startLine; i < lines.length; i++) {
     const line = lines[i].trim()
     if (!line.startsWith('|') || !line.endsWith('|')) continue
 

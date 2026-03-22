@@ -145,6 +145,11 @@ results = await all(orchestratorAgents)
 
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
 allPageObjects = results.flatMap(r => r.page_objects)
+
+// Export Excel: merge all .md into one file (one Sheet per module)
+node skills/excel-case-export/scripts/generate-excel.js \
+  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+  --output $QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx
 ```
 
 **Check results**:

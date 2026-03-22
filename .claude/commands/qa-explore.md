@@ -424,12 +424,18 @@ results = await all(orchestratorAgents)
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
 allPageObjects = results.flatMap(r => r.page_objects)
 
+// Export Excel: merge all .md into one file (one Sheet per area)
+node skills/excel-case-export/scripts/generate-excel.js \
+  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+  --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
+
 // Report generation progress
 ```
 Generated test cases for M areas in parallel:
   [Form] Join Waitlist Form — 7 cases, spec: join-waitlist-form-cdp.test.ts
   [Tab] Feature Tabs — 5 cases, spec: feature-tabs-cdp.test.ts
   [Nav] Top Navigation — 3 cases, spec: nav-top-cdp.test.ts
+Combined Excel: test-cases/excel/{slug}-all-cases.xlsx
 ```
 ```
 

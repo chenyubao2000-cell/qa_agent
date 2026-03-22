@@ -323,7 +323,14 @@ Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return
 
 **Check orchestrator return value**:
 - If both `specs` and `modified_specs` are empty -> skip test-executor and report-analyzer, inform user directly
-- Otherwise -> merge into execution list, continue launching test-executor
+- Otherwise -> merge into execution list, continue
+
+**Export Excel** (after orchestrator completes, before locator verification):
+```bash
+node skills/excel-case-export/scripts/generate-excel.js \
+  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+  --output $QA_WORKSPACE_DIR/test-cases/excel/all-cases.xlsx
+```
 
 **Build specToIssueMap** (command layer, after orchestrator returns):
 - For each issue processed in the batch, the orchestrator returns the spec file path(s) it generated

@@ -160,6 +160,8 @@ When invoked after `test-case-generator`, check for the handoff JSON file. The p
 
 ### 1.1 Mapping Rules
 
+**Strict 1:1 mapping**: Each handoff entry generates exactly one `test()` block. **NEVER merge multiple entries into one test()**, even if they test similar scenarios. The test title must include the TC ID (e.g., `test("TC-001 ...")`). This ensures TC count in .md = test() count in spec = Excel row count.
+
 **Group by `storyId`** → one `test.describe` block per story. For each entry, generate one `test()` block.
 
 **uiElements → Playwright locators (role-first):**
