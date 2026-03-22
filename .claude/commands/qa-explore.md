@@ -26,10 +26,8 @@ Phase 2: Incremental loop (core logic)
 Phase 2.5: Cross-area flow discovery
          Identify cross-area edges + page navigations -> integration test cases
      |
-Phase 3: Unified execution + reporting
-         test-executor -> execute all accumulated specs
-              | after completion
-         report-analyzer -> analyze -> Linear
+Phase 3: Unified execution (no Linear reporting)
+         test-executor -> execute all accumulated specs -> local report only
 ```
 
 ## User Intent Parsing
@@ -623,19 +621,30 @@ Each flow becomes one test case that exercises the cross-area dependency end-to-
 
 ---
 
-## Phase 3: Unified Execution + Reporting
+## Phase 3: Unified Execution (no Linear reporting)
 
 After all areas are processed (or maxAreas is reached), execute tests uniformly.
+
+> **qa-explore does NOT report to Linear.** Its purpose is exploration + generation + validation. If tests fail, the user should run `/qa-fix-tests` to fix them, then `/qa-run-all` to formally execute + report. This avoids flooding Linear with issues from first-generation spec failures (locator mismatches etc.).
 
 **Pre-check**: If allSpecs is empty (all areas already covered) -> inform user "all test cases already have spec coverage" -> end
 
 **Agent — test-executor** (haiku):
 - Receives all spec file paths from allSpecs
 - Execute tests -> produce reports to `$QA_WORKSPACE_DIR/tests/reports/`
+- Open HTML report: `start http://localhost:9323` (or `npx playwright show-report`)
 
-**Agent — report-analyzer** (haiku):
-- Launched after test-executor completes
-- Analyze report -> bug-reporter -> Linear reporting -> summary report -> open HTML report
+**No report-analyzer.** Only output local summary:
+```
+## Exploration Complete
+
+Explored {N} areas, generated {M} test cases, {K} specs.
+Test results: {passed}/{total} passed.
+HTML report: playwright-report/index.html
+
+If tests fail, run /qa-fix-tests to fix locator issues.
+When ready for formal testing + Linear reporting, run /qa-run-all.
+```
 
 ---
 

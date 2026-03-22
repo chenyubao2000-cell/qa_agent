@@ -34,9 +34,9 @@ PR 监控（独立流程）：
   scripts/git-watcher.ts → 监听 PR 变更 → 评论同步
 
 手动命令：
-├── /qa-explore    → CDP 页面探查 → 顺序启动 Agent
-├── /qa-from-issue → Linear issue → 顺序启动 Agent
-├── /qa-run-prd    → PRD 文档 → 顺序启动 Agent
+├── /qa-explore    → CDP 页面探查 → 生成 + 执行（不汇报 Linear）
+├── /qa-from-issue → Linear issue → 生成 + 执行 + 汇报 Linear
+├── /qa-run-prd    → PRD 文档 → 生成 + 执行 + 汇报 Linear
 ├── /qa-gen-cases  → PRD 文档 → 仅生成用例 + Excel
 ├── /qa-fix-tests  → CDP 探查 → 修复失败测试
 └── /qa-run-all    → 直接执行 spec → report-analyzer
