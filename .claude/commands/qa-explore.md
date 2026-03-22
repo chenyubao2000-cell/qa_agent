@@ -523,7 +523,7 @@ If the user runs `/qa-explore` again on a previously explored page:
      - Compare new exploration results with existing baseline states:
        - Elements added/removed → mark area as `needs_update`
        - Elements unchanged → keep existing status
-     - For `needs_update` areas: re-generate test cases + update existing specs (same as orchestrator `prdChangeMode: "updated"` logic — keep unchanged tests, update changed ones, add new ones, skip removed ones)
+     - For `needs_update` areas: re-generate test cases + update existing specs + **update handoff entries** (same as orchestrator `prdChangeMode: "updated"` logic — keep unchanged tests, update changed ones, add new ones, skip removed ones. Handoff must stay in sync with .md and spec.)
      - For unchanged areas: skip (existing tests still valid)
      - For `pending` areas (not yet explored before interruption):
        - **Discard old baseline data** for these areas (the page has changed, old State₀ elements may no longer exist)

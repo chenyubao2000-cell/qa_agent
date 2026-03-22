@@ -109,7 +109,7 @@ For each failed file:
   Input:
   - specFile: {absolute path to failed spec file}
   - pomFile: {absolute path to corresponding POM, inferred from spec's import}
-  - handoffFile: {absolute path to corresponding handoff JSON, inferred from spec filename: test-cases/generated/playwright-handoff-{slug}.json}
+  - handoffFile: {absolute path to corresponding handoff JSON — read from spec file header comment `// handoff: ...`, fallback: infer from spec filename → test-cases/generated/playwright-handoff-{slug}.json}
   - failures: [{ testName, error, screenshot }]  // failed cases in this file
   - pageUrl: {URL extracted from spec's page.goto()}
   - sourceProjectDir: {SOURCE_PROJECT_DIR}  // for understanding business logic
