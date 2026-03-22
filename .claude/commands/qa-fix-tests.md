@@ -55,14 +55,20 @@ For each file, Grep to check if **entire file is skipped** (`test.describe.skip`
 
 If `$ARGUMENTS` specifies file paths, only process specified files.
 
-### Step 2 — Execute one round of tests
+### Step 2 — Execute one round of tests (via test-executor)
 
-> **Note**: This command executes Playwright directly (not via test-executor agent). This is intentional — the fix flow requires rapid iterative fix-verify cycles within the same context, which is incompatible with launching a separate agent per execution round.
+Launch **test-executor** agent to run baseline tests:
 
-```bash
-cd $QA_WORKSPACE_DIR && PLAYWRIGHT_JSON_OUTPUT_NAME=tests/reports/fix-baseline.json \
-npx playwright test <non-skip-file-list> --project=e2e --reporter=json
 ```
+Launch test-executor (haiku):
+  prompt: Execute the following spec files and produce JSON report.
+  Input:
+  - specFiles: <non-skip-file-list>
+  - reportOutput: tests/reports/fix-baseline.json
+  - projectDir: $QA_WORKSPACE_DIR
+```
+
+> **Consistency**: All commands use test-executor for test execution, ensuring unified report format, output paths, and configuration.
 
 ### Step 3 — Parse failure list
 
@@ -222,12 +228,17 @@ if detectedBugs.length > 0:
 
 ---
 
-## Phase 3: Full Regression
+## Phase 3: Full Regression (via test-executor)
 
 After all files are fixed (excluding bug-classified failures), run full regression:
 
-```bash
-cd $QA_WORKSPACE_DIR && npx playwright test <all non-skip files> --project=e2e --reporter=json,html
+```
+Launch test-executor (haiku):
+  prompt: Execute full regression on all non-skipped spec files.
+  Input:
+  - specFiles: <all non-skip files>
+  - reportOutput: tests/reports/fix-regression.json
+  - projectDir: $QA_WORKSPACE_DIR
 ```
 
 ### Summary Report
