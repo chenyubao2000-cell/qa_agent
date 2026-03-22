@@ -338,13 +338,6 @@ For each spec in allSpecs:
 Only proceed after all validations pass.
 ```
 
-**Export Excel** (after ALL orchestrators complete + handoff validated):
-```bash
-node skills/excel-case-export/scripts/generate-excel.js \
-  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/all-cases.xlsx
-```
-
 **Build specToIssueMap** (command layer, after orchestrator returns):
 - For each issue processed in the batch, the orchestrator returns the spec file path(s) it generated
 - Construct the mapping: `{ specFilePath: issueKey }` by pairing each returned spec path with its source issue key
@@ -363,7 +356,15 @@ node skills/excel-case-export/scripts/generate-excel.js \
 5. ZERO (0 matches) → CDP DOM scan to find correct selector → Edit POM file to replace locator → re-verify
 6. MULTIPLE (N matches) → CDP DOM scan to find narrowing parent → Edit POM file to add parent scope → re-verify
 7. Max 3 fix attempts per locator; if still failing → mark as needs manual review
-8. All UNIQUE → continue launching test-executor
+8. All UNIQUE → continue
+
+**Export Excel** (after locator verification, before test execution):
+```bash
+node skills/excel-case-export/scripts/generate-excel.js \
+  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+  --output $QA_WORKSPACE_DIR/test-cases/excel/all-cases.xlsx
+```
+Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/all-cases.xlsx")` → if missing, ERROR
 
 **Agent 2 — test-executor** (haiku):
 - Launched after orchestrator + Locator verification complete

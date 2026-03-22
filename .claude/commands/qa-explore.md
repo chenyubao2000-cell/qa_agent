@@ -424,10 +424,20 @@ results = await all(orchestratorAgents)
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
 allPageObjects = results.flatMap(r => r.page_objects)
 
+// Validate handoff files (mandatory gate)
+for spec in allSpecs:
+  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{feature}.json
+  if handoff NOT found → regenerate per e2e-orchestrator Step 4.5
+  if handoff entry count != Merged TC count → regenerate with 1:1 mapping
+
 // Export Excel: merge all .md into one file (one Sheet per area)
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
   --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
+
+// Verify Excel output exists
+if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
+  ERROR: "Excel export failed — file not written"
 
 // Report generation progress
 ```
