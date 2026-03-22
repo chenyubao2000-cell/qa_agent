@@ -6,7 +6,7 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit
 You are a test executor. Do not generate cases, export Excel, or generate specs — only execute existing tests and report.
 
 ```
-/qa-run-all [spec-file-path] [--source <source-code-dir>]
+/qa-run-all [spec-file-path] [--suite smoke|regression|full] [--source <source-code-dir>]
      |
 Phase 0: Load project context (.env -> target project config)
      |
@@ -70,8 +70,14 @@ Related Linear Issues (for failure attribution): STE-123, STE-456
 PR source directory (prSourceDir): D:\code\.qa-worktree-pr
 ```
 
+**Parse suite parameter from $ARGUMENTS**:
+- `--suite smoke` → suite = "smoke" (only @smoke tagged tests = P0)
+- `--suite regression` → suite = "regression" (P0 + P1)
+- `--suite full` or no --suite → suite = "full" (all tests)
+
 **Agent 1 — test-executor** (haiku):
-- Skip e2e-orchestrator, directly execute existing specs
+- mode: `full`
+- suite: {parsed suite parameter} (passed to test-executor for --grep filtering)
 - If $ARGUMENTS specifies file paths, only run those; otherwise run all
 - Produce JSON + HTML reports to `$QA_WORKSPACE_DIR/tests/reports/`
 

@@ -202,14 +202,51 @@ When invoked after `test-case-generator`, check for the handoff JSON file at `$Q
 | `count` | `await expect(locator).toHaveCount(expected)` |
 | `enabled` / `disabled` | `await expect(locator).toBeEnabled()` / `.toBeDisabled()` |
 
-**priority → tags:**
+**Tag system (two dimensions, both MUST be applied to every test):**
 
-| Priority | Tag |
-|---|---|
-| `P0-critical` | `@smoke @critical` |
-| `P1-high` | `@regression` |
-| `P2-medium` | `@regression` |
-| `P3-low` | `@extended` |
+**Dimension 1 — Priority (from handoff `priority` field):**
+
+| Priority | Tag | 含义 |
+|---|---|---|
+| P0 | `@P0` | 核心主流程，必须通过 |
+| P1 | `@P1` | 重要功能和异常路径 |
+| P2 | `@P2` | 边缘场景和体验优化 |
+
+**Dimension 2 — Suite type (derived from priority):**
+
+| Suite | 包含 | 使用场景 |
+|---|---|---|
+| `@smoke` | P0 only | 快速验证核心功能（CI、部署后） |
+| `@regression` | P0 + P1 | 回归测试（PR 合并前） |
+| `@full` | P0 + P1 + P2 | 全量测试（发版前） |
+
+**Mapping rules:**
+- P0 → `{ tag: ['@P0', '@smoke', '@regression', '@full'] }`
+- P1 → `{ tag: ['@P1', '@regression', '@full'] }`
+- P2 → `{ tag: ['@P2', '@full'] }`
+
+**Implementation**: Use Playwright's `tag` option on `test()`, NOT in the test title:
+
+```typescript
+// ✅ Correct — tags in test options
+test('TC-CDP-NAV-001 点击登录链接跳转至 /task', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page }) => {
+  // ...
+});
+
+// ❌ Wrong — tags in test title string
+test('TC-CDP-NAV-001 点击登录链接 @smoke @P0', async ({ page }) => {
+  // ...
+});
+```
+
+**Execution examples:**
+```bash
+npx playwright test --grep @smoke          # 只跑 P0 冒烟
+npx playwright test --grep @regression     # 跑 P0 + P1 回归
+npx playwright test --grep @full           # 跑全部
+npx playwright test --grep @P1             # 只跑 P1
+npx playwright test --grep "@P0"           # 只跑 P0（不含 P1/P2）
+```
 
 **Equivalence-class or boundary-value entries** (same `criterionId`, different `value`): generate parametrized tests, not duplicate blocks. Note: equivalence partitioning (Method 1) and boundary value analysis (Method 2) are independent methods but produce entries in the same format.
 

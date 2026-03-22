@@ -54,8 +54,18 @@ Checks:
 
 ```bash
 PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/{reportFile} \
-cd $QA_WORKSPACE_DIR && npx playwright test <spec file list> --project=e2e --reporter=json,html
+cd $QA_WORKSPACE_DIR && npx playwright test <spec file list> --project=e2e --reporter=json,html {suiteFilter}
 ```
+
+**Suite filter** (optional, from caller's `suite` parameter):
+
+| suite | --grep | 范围 | 场景 |
+|-------|--------|------|------|
+| `smoke` | `--grep @smoke` | P0 only | CI、部署后快速验证 |
+| `regression` | `--grep @regression` | P0 + P1 | PR 合并前回归 |
+| `full` | (不加 --grep) | 全部 | 发版前全量 |
+| `P0` / `P1` / `P2` | `--grep @P0` 等 | 单级别 | 按需筛选 |
+| 不传 | (不加 --grep) | 全部 | 默认跑全部 |
 
 Report file naming by mode:
 - `full` → `playwright-results.json`
@@ -64,7 +74,7 @@ Report file naming by mode:
 - `changed` → `fix-regression.json`
 
 If mode is `full` and no file list is specified, run all tests.
-If mode is `single`, pass `--grep` or single file path for maximum speed.
+If mode is `single`, pass single file path for maximum speed.
 
 ### Step 3: Collect Results
 
