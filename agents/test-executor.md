@@ -52,6 +52,8 @@ Checks:
 
 ### Step 2: Run Tests
 
+> **Reporter override**: Always use `--reporter=json,html` on the command line. This **overrides** the target project's `playwright.config.ts` reporter setting, ensuring both JSON (for report-analyzer) and HTML (for user review) reports are always generated. Never omit `--reporter` — the target project's config may only output HTML or JUnit, which is insufficient for our pipeline.
+
 ```bash
 PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/{reportFile} \
 cd $QA_WORKSPACE_DIR && npx playwright test <spec file list> --project=e2e --reporter=json,html {suiteFilter}

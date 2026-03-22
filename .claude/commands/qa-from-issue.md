@@ -231,7 +231,8 @@ Steps:
    - For each assertion in spec → evaluate_script to get real values
    - Text/URL mismatches → Edit spec with correct expected values
 6. Run single-file verification:
-   cd $QA_WORKSPACE_DIR && npx playwright test {specFile} --project=e2e --reporter=list
+   PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/fix-verify.json \
+   cd $QA_WORKSPACE_DIR && npx playwright test {specFile} --project=e2e --reporter=json,html
 7. If still fails → re-analyze and fix (max 3 rounds)
 
 Return:

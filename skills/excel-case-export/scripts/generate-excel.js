@@ -255,7 +255,7 @@ function parseFormatA(md, module) {
   for (let i = startLine; i < lines.length; i++) {
     const line = lines[i]
     // 检测用例开始：**TC-xxx-nnn**: 标题
-    const tcMatch = line.match(/\*\*([A-Z]+-\w+-\d+)\*\*:\s*(.+)/)
+    const tcMatch = line.match(/\*\*(TC[\w-]+-\d+)\*\*:\s*(.+)/)
     if (tcMatch) {
       if (currentCase) cases.push(currentCase)
       currentCase = {
