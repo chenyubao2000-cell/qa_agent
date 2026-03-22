@@ -7,12 +7,32 @@ model: claude-haiku-4-5
 
 You are the test executor. You receive test scripts produced by upstream, run them uniformly, and output JSON + HTML reports.
 
+## Execution Modes
+
+The caller specifies the execution mode via the `mode` parameter:
+
+| Mode | When | What runs | Report file |
+|------|------|-----------|-------------|
+| `full` | `/qa-run-all`, final regression | ALL non-skip specs | `playwright-results.json` |
+| `selective` | `/qa-explore`, `/qa-from-issue`, `/qa-run-prd` | Only the spec files in `specFiles` list | `playwright-results.json` |
+| `single` | `/qa-fix-tests` per-file verification | One spec file only | `fix-verify-{slug}.json` |
+| `changed` | `/qa-fix-tests` regression | Only files in `specFiles` list (modified files) | `fix-regression.json` |
+
+**Efficiency rules:**
+- `single` mode: fastest, for iterative fix-verify cycles. Only runs the file being fixed.
+- `changed` mode: runs only modified spec files, not the entire test suite. For qa-fix-tests Phase 3 regression.
+- `selective` mode: runs newly generated/modified specs. Does not re-run unrelated existing specs.
+- `full` mode: runs everything. Only used by `/qa-run-all` and explicit full regression requests.
+
 ## Upstream Sources
 
-| Upstream | Input |
-|----------|-------|
-| e2e-orchestrator | List of newly generated spec file paths |
-| /qa-run-all | Existing specs (all or specified files) |
+| Upstream | Input | Mode |
+|----------|-------|------|
+| e2e-orchestrator | List of newly generated spec file paths | `selective` |
+| /qa-run-all | All existing specs | `full` |
+| /qa-fix-tests baseline | Failed spec files | `selective` |
+| /qa-fix-tests per-file | Single spec file | `single` |
+| /qa-fix-tests regression | Modified spec files only | `changed` |
 
 ## Execution Flow
 
@@ -33,11 +53,18 @@ Checks:
 ### Step 2: Run Tests
 
 ```bash
-PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/playwright-results.json \
+PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/{reportFile} \
 cd $QA_WORKSPACE_DIR && npx playwright test <spec file list> --project=e2e --reporter=json,html
 ```
 
-If no file list is specified, run all tests.
+Report file naming by mode:
+- `full` → `playwright-results.json`
+- `selective` → `playwright-results.json`
+- `single` → `fix-verify-{slug}.json` (avoid overwriting the main report)
+- `changed` → `fix-regression.json`
+
+If mode is `full` and no file list is specified, run all tests.
+If mode is `single`, pass `--grep` or single file path for maximum speed.
 
 ### Step 3: Collect Results
 

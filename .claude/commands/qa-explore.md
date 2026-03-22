@@ -630,7 +630,8 @@ After all areas are processed (or maxAreas is reached), execute tests uniformly.
 **Pre-check**: If allSpecs is empty (all areas already covered) -> inform user "all test cases already have spec coverage" -> end
 
 **Agent — test-executor** (haiku):
-- Receives all spec file paths from allSpecs
+- mode: `selective` — only run newly generated specs, not the entire test suite
+- specFiles: allSpecs (only this session's generated specs)
 - Execute tests -> produce reports to `$QA_WORKSPACE_DIR/tests/reports/`
 - Open HTML report: `start http://localhost:9323` (or `npx playwright show-report`)
 

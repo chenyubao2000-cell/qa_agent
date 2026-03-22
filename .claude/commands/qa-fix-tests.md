@@ -55,20 +55,19 @@ For each file, Grep to check if **entire file is skipped** (`test.describe.skip`
 
 If `$ARGUMENTS` specifies file paths, only process specified files.
 
-### Step 2 — Execute one round of tests (via test-executor)
+### Step 2 — Execute baseline tests (via test-executor, selective mode)
 
-Launch **test-executor** agent to run baseline tests:
+Launch **test-executor** agent to identify failures:
 
 ```
 Launch test-executor (haiku):
-  prompt: Execute the following spec files and produce JSON report.
   Input:
+  - mode: "selective"
   - specFiles: <non-skip-file-list>
-  - reportOutput: tests/reports/fix-baseline.json
   - projectDir: $QA_WORKSPACE_DIR
 ```
 
-> **Consistency**: All commands use test-executor for test execution, ensuring unified report format, output paths, and configuration.
+> **Efficiency**: Only runs non-skipped files. If user specified specific files in arguments, the list is even smaller.
 
 ### Step 3 — Parse failure list
 
@@ -174,7 +173,7 @@ For each failed file:
      d3. If element never appears → check source code → BUG or TEST ISSUE
 
   4. After processing all failures:
-     - For TEST ISSUES fixed: run single-file verification
+     - For TEST ISSUES fixed: run single-file verification via test-executor (mode: "single", specFiles: [specFile])
      - For BUGs: do NOT run verification (test is supposed to fail; the app needs fixing)
   5. If test issues still fail after fix → re-analyze (max 3 rounds)
   6. If still fails after 3 rounds → mark as needs manual intervention
@@ -228,18 +227,23 @@ if detectedBugs.length > 0:
 
 ---
 
-## Phase 3: Full Regression (via test-executor)
+## Phase 3: Regression on Modified Files (via test-executor, changed mode)
 
-After all files are fixed (excluding bug-classified failures), run full regression:
+After all files are fixed, run regression **only on modified files** (not the entire test suite):
 
 ```
+modifiedFiles = fixResults
+  .filter(r => r.status === "fixed")
+  .map(r => r.file)
+
 Launch test-executor (haiku):
-  prompt: Execute full regression on all non-skipped spec files.
   Input:
-  - specFiles: <all non-skip files>
-  - reportOutput: tests/reports/fix-regression.json
+  - mode: "changed"
+  - specFiles: modifiedFiles  // only the files that were actually fixed
   - projectDir: $QA_WORKSPACE_DIR
 ```
+
+> **Efficiency**: If 3 files were fixed out of 50, only re-run those 3 — not all 50. Full regression across all specs is the job of `/qa-run-all`, not `/qa-fix-tests`.
 
 ### Summary Report
 
