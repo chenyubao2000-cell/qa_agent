@@ -325,7 +325,20 @@ Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return
 - If both `specs` and `modified_specs` are empty -> skip test-executor and report-analyzer, inform user directly
 - Otherwise -> merge into execution list, continue
 
-**Export Excel** (after orchestrator completes, before locator verification):
+**Validate Handoff Files** (mandatory gate, after ALL orchestrators complete):
+
+```
+For each spec in allSpecs:
+  handoffPath = infer from spec filename → test-cases/generated/playwright-handoff-{feature}.json
+  1. Check handoff file exists: Glob(handoffPath)
+  2. If NOT found → ERROR: "Handoff not generated for {spec}", regenerate per e2e-orchestrator Step 4.5
+  3. If found → read .md Merged TC count, compare with handoff entry count
+  4. If mismatch → regenerate handoff with 1:1 mapping from Merged table
+
+Only proceed after all validations pass.
+```
+
+**Export Excel** (after ALL orchestrators complete + handoff validated):
 ```bash
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \

@@ -175,6 +175,13 @@ node skills/excel-case-export/scripts/generate-excel.js \
   --output $OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx
 ```
 
+**Verify Excel output**:
+```
+if NOT Glob("$OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
+  ERROR: "Excel export failed — file not written"
+  Retry: re-run generate-excel.js
+```
+
 ## Artifacts
 
 | File | Description |
