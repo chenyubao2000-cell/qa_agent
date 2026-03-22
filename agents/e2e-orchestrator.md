@@ -73,7 +73,7 @@ The caller (qa-explore / qa-from-issue / qa-run-prd) passes a `projectContext` o
 | Field | Source | Purpose |
 |------|------|------|
 | `targetProjectDir` | QA_WORKSPACE_DIR from .env | **Write files**: output path for artifacts (spec/POM/test cases/Excel) |
-| `sourceProjectDir` | SOURCE_PROJECT_DIR from .env (defaults to targetProjectDir) | **Read source code**: view component implementations, understand business logic |
+| `sourceProjectDir` | Resolved by command layer per priority: `--source` arg > `prSourceDir` > `SOURCE_PROJECT_DIR` in .env > `QA_WORKSPACE_DIR` | **Read source code**: view component implementations, understand business logic |
 | `techStack` | CLAUDE.md in source code directory | Code style and import paths for generated code |
 | `baseURL` | PLAYWRIGHT_BASE_URL from this project's .env | baseURL in specs |
 | `authSetup` | Whether E2E_TEST_EMAIL exists in this project's .env | Has value → requires auth state; no value → public page |
@@ -363,19 +363,22 @@ After generation is complete, return artifact paths and hand off to the downstre
   "source": "prd|cdp|issue",
   "skipped": ["TC-VF-001 (already covered, only fixed locators)"],
   "test_cases": ["test-cases/generated/xxx.md"],
-  "excel": ["test-cases/excel/xxx.xlsx"],
-  "page_objects": ["tests/e2e/pages/xxx.ts"],
+  "handoff": ["test-cases/generated/playwright-handoff-xxx.json"],
+  "page_objects": ["tests/e2e/pages/xxx.page.ts"],
   "specs": ["tests/e2e/testcases/generated/xxx.test.ts"],
-  "modified_specs": ["tests/e2e/testcases/generated/existing.test.ts"]
+  "modified_specs": ["tests/e2e/testcases/generated/existing.test.ts"],
+  "specToIssueMap": { "tests/e2e/testcases/generated/xxx.test.ts": "STE-9" }
 }
 ```
+
+> **`specToIssueMap`** (issue mode only): Maps each generated/modified spec file path to its source Linear issue key. When the orchestrator is called with `source: "issue"`, it **must** populate this field so the command layer can route test failures back to the correct issue via report-analyzer. For `source: "prd"` or `source: "cdp"`, this field is omitted or empty.
 
 ### Post-Return File Verification (caller responsibility)
 
 > **All callers** (qa-explore, qa-from-issue, qa-run-prd, qa-gen-cases) MUST verify that files listed in the return value actually exist on disk after the orchestrator/subagent returns. Subagents run in isolated contexts — if a Write call fails silently, the return claims success but no file was written.
 
 ```
-For each path in return.test_cases + return.specs + return.page_objects + return.excel:
+For each path in return.test_cases + return.handoff + return.specs + return.page_objects:
   1. Check file exists (Read or Glob)
   2. If NOT found → log ERROR, retry or report to user
   3. For .md files: verify contains "## Merged Test Case List" + at least 1 "**TC-" entry

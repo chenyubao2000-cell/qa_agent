@@ -133,18 +133,20 @@ Tasks:
    - Update PRD-hash in header
 
 Important constraints:
-- Only generate case documents (.md)
+- Only generate case documents (.md) and handoff JSON
 - Do not generate Playwright scripts (.test.ts)
 - Do not generate Page Objects (.page.ts)
-- Do not generate handoff JSON
 - Do not modify any files under the target project's tests/ directory
 - Do not execute tests, analyze reports, or report to Linear
+
+> **Why generate handoff?** The handoff JSON is a mandatory output of test-case-generator SKILL (1:1 mapping with Merged TC List). Generating it here prepares for future `/qa-run-prd` runs — the orchestrator can skip case generation and directly consume the existing handoff for spec generation.
 
 Return artifact paths:
 {
   "source": "prd",
   "prdChangeMode": "new|updated",
   "test_cases": ["test-cases/generated/xxx-prd.md"],
+  "handoff": ["test-cases/generated/playwright-handoff-xxx.json"],
   "excel": ["test-cases/excel/xxx-prd.xlsx"]
 }
 ```
@@ -187,6 +189,7 @@ if NOT Glob("$OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
 | File | Description |
 |------|-------------|
 | `test-cases/generated/{feature}-prd.md` | Markdown test case document |
+| `test-cases/generated/playwright-handoff-{slug}.json` | Playwright handoff (1:1 TC mapping, for future spec generation) |
 | `test-cases/excel/{feature}-prd.xlsx` | Excel test case spreadsheet |
 
-Only these two file types are produced, no other files.
+Only these three file types are produced, no scripts or test files.

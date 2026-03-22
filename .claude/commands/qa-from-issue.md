@@ -167,21 +167,32 @@ Extract from the issue's title + description:
 > Detailed dedup review rules are defined uniformly in `agents/e2e-orchestrator.md` Step 2, shared across all generation flows.
 > Only issue-specific quick determination is done here:
 
-Extract test case ID from issue title / description (e.g., `TC-VF-001`), then:
+Determine operation mode via explicit if-else:
 
 ```
-Glob("tests/e2e/testcases/generated/*.test.ts")  -> search for matching test cases
-Grep("TC-VF-001", "tests/e2e/testcases/generated/")  -> exact match
+Step 3a — Search for existing spec match:
+  tcId = extract TC ID from issue title/description (regex: /TC-\w+-\d+/)
+  specFilename = extract .test.ts filename from issue description (regex: /[\w-]+\.test\.ts/)
+
+  if tcId found:
+    Grep(tcId, "$QA_WORKSPACE_DIR/tests/e2e/testcases/generated/")
+    → matchedSpec = first file containing this TC ID
+  elif specFilename found:
+    Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/generated/{specFilename}")
+    → matchedSpec = matched file (if exists)
+  else:
+    matchedSpec = null
+
+Step 3b — Determine mode:
+  if matchedSpec exists AND issue describes a test failure (error message, screenshot, "failed", "broken"):
+    → Mode X: Fix existing test (bypass orchestrator, launch fix subagent)
+  elif matchedSpec exists AND issue describes a NEW scenario not covered by the existing spec:
+    → Mode A: Append new test angles to existing spec (orchestrator with existing spec context)
+  else:
+    → Mode B: Create new cases + POM + spec (orchestrator from scratch)
 ```
 
-```
-Does the scenario described in the issue have a fully corresponding test case?
-  +-- YES -> Mode X: Fix existing test (see Mode X Execution below)
-  +-- PARTIAL -> Mode A: Add missing test angles to existing spec
-  +-- NO  -> Mode B: Create new cases + POM + spec
-```
-
-**Mode X criteria**: Issue is a failure report for an existing test (title contains test case ID, or description contains spec filename)
+> **Key distinction**: Mode X = "existing test is broken, fix it". Mode A = "existing spec exists but doesn't cover this scenario, add to it". Mode B = "no existing spec, create everything".
 
 ### Mode X Execution (fix existing test, no new cases)
 
@@ -281,8 +292,15 @@ Steps:
    - **If targetArea is NOT found** → degrade to full mode: scan all interactive elements on the page, identify the most likely area matching the issue description, then explore that
    - If reproSteps available → operate step by step, record state changes at each step
 5. Compare expectedBehavior vs actualBehavior — record discrepancies
-6. Write ALL findings to baselineFile:
-   - States, edges, forms, activation attempts, coverage report
+6. Write findings to baselineFile using **merge strategy**:
+   - If baselineFile already exists (from a previous /qa-explore or /qa-from-issue run):
+     - **Read existing** states, edges, areas first
+     - **Append** new states (use next available state ID, never overwrite existing)
+     - **Append** new edges (skip duplicates by `from+action+element` key)
+     - **Update** area status for the targeted area only
+     - **Preserve** all other areas' data untouched
+   - If baselineFile does not exist → create new file with initial structure
+   - Always record: states, edges, forms, activation attempts, coverage report
    - If login was handled, record login selectors used
 
 Return summary:
@@ -341,10 +359,10 @@ Only proceed after all validations pass.
 ```
 
 **Build specToIssueMap** (command layer, after orchestrator returns):
-- For each issue processed in the batch, the orchestrator returns the spec file path(s) it generated
-- Construct the mapping: `{ specFilePath: issueKey }` by pairing each returned spec path with its source issue key
-- For batch processing (multiple issues → one orchestrator call), track which issue's context produced which spec
-- Example: if STE-9 produced `feature-a.test.ts` and STE-10 produced `feature-b.test.ts`:
+- Read `specToIssueMap` directly from the orchestrator's return value (the orchestrator populates this field in issue mode)
+- Merge mappings from all orchestrator results: `specToIssueMap = Object.assign({}, ...results.map(r => r.specToIssueMap))`
+- For Mode X (fix existing): add the mapping manually: `specToIssueMap[specFile] = issueKey`
+- Example:
   ```json
   { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9",
     "tests/e2e/testcases/generated/feature-b.test.ts": "STE-10" }
@@ -398,10 +416,11 @@ Note: This run was triggered by /qa-from-issue. Failed cases need to be categori
 
 | File | Description |
 |------|-------------|
-| `test-cases/generated/{feature}.md` | Phase 3: Test cases |
-| `test-cases/excel/{feature}.xlsx` | Phase 3: Excel test case spreadsheet |
-| `tests/e2e/pages/{feature}.ts` | Phase 3: Page Object |
-| `tests/e2e/testcases/generated/{feature}.test.ts` | Phase 3: Playwright spec |
+| `test-cases/generated/{slug}-{source}.md` | Phase 3: Test cases |
+| `test-cases/generated/playwright-handoff-{slug}.json` | Phase 3: Playwright handoff |
+| `test-cases/excel/{slug}-{source}.xlsx` | Phase 3: Excel test case spreadsheet |
+| `tests/e2e/pages/{slug}.page.ts` | Phase 3: Page Object |
+| `tests/e2e/testcases/generated/{slug}-{area-id}-{source}.test.ts` | Phase 3: Playwright spec |
 | `tests/reports/playwright-results.json` | Phase 4: JSON report |
 | `playwright-report/index.html` | Phase 4: HTML report |
 | `tests/reports/combined/summary.md` | Phase 5: Summary report (always generated) |

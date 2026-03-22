@@ -23,7 +23,7 @@ qa-platform/
 命令层顺序启动 Agent：
   e2e-orchestrator (sonnet) → 用例 → Excel → spec（生成层）
      ↓ 完成后
-  test-executor (sonnet)    → 执行测试 → 产出报告（执行层）
+  test-executor (haiku)     → 执行测试 → 产出报告（执行层）
      ↓ 完成后
   report-analyzer (haiku)   → 分析报告 → bug-reporter → Linear（报告层）
 
@@ -54,14 +54,20 @@ PR 监控（独立流程）：
 ## 约定
 
 - 各项目维护 3 个文件：`.env`、`CLAUDE.md`、`docs/prd/*.md`
-- AI 生成文件存放路径：
-  - 用例文档：`test-cases/generated/*.md`
-  - Excel 用例：`test-cases/excel/*.xlsx`
-  - Page Object：`tests/e2e/pages/*.ts`
-  - Playwright spec：`tests/e2e/testcases/generated/*.test.ts`
-  - 测试报告：`tests/reports/` + `playwright-report/`
+- AI 生成文件存放路径及命名规则：
+  - 用例文档：`test-cases/generated/{slug}-[{area-id}-]{source}.md`
+  - Handoff JSON：`test-cases/generated/playwright-handoff-{slug}.json`
+  - Excel 用例：`test-cases/excel/{slug}-[{area-id}-]{source}.xlsx`
+  - Page Object：`tests/e2e/pages/{slug}.page.ts`
+  - Playwright spec：`tests/e2e/testcases/generated/{slug}-[{area-id}-]{source}.test.ts`
+  - 测试报告：`tests/reports/` (JSON) + `playwright-report/` (HTML)
+  - Baseline：`test-cases/generated/page-baseline-{slug}.json`
+- 文件名 `{area-id}` 规则：
+  - `/qa-explore`（area 粒度）：含 area-id，如 `login-form-join-cdp.test.ts`
+  - `/qa-from-issue`、`/qa-run-prd`（feature 粒度）：不含 area-id，如 `login-issue.test.ts`
+  - `{source}` 取值：`cdp` | `prd` | `issue`
 - 所有测试流水线输出统一 JSON 格式（见设计文档第九章）
-- Subagent 模型选择：协调类用 opus，执行类用 sonnet
+- Subagent 模型选择：协调类用 sonnet，执行类用 haiku
 - 去重通过扫描已有 spec 完成，已覆盖的模块跳过重新生成
 
 ## 依赖

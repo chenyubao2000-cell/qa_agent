@@ -158,6 +158,8 @@ export class TasksPage {
 
 When invoked after `test-case-generator`, check for the handoff JSON file at `$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-{slug}.json`.
 
+> **Handoff schema reference**: The complete handoff entry structure is defined in `skills/test-case-generator/SKILL.md` § "Handoff to Playwright E2E". Each entry contains: `id`, `storyId`, `criterionId`, `title`, `priority`, `scenarioType`, `setup[]`, `preconditions[]`, `action`, `expectedOutcome`, `uiElements[]`, `assertions[]`, `teardown[]`, `tags[]`, `timeout`.
+
 **Handoff is MANDATORY — not optional.**
 - If handoff exists → use it as the **sole source of truth**, 1:1 mapping to test() blocks
 - If handoff does NOT exist → **STOP with error**: `"ERROR: playwright-handoff-{slug}.json not found. Cannot generate spec without handoff. The orchestrator Step 4.5 should have ensured it exists."` Do NOT fall back to reading .md text. Do NOT attempt to generate specs from .md alone.
