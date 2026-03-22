@@ -154,31 +154,43 @@ export class TasksPage {
 
 **7. Setup validation (MANDATORY before generating each test):**
 
-Before generating each `test()` block, check whether the test action requires pre-existing state:
+Before generating each `test()` block, classify the test action and validate setup accordingly:
 
 ```
 For each handoff entry:
-  1. Does the test action operate on existing data? (download/edit/delete/preview/view)
-     → YES: setup[] MUST NOT be empty. If empty → STOP and flag error:
-       "ERROR: TC-{id} tests '{action}' but handoff setup[] is empty.
-        Cannot generate a self-sufficient test without setup steps.
-        The test-case-generator must provide setup operations."
-     → Generate setup code from setup[] entries before the test action
 
-  2. Does the test action create new data? (create/upload/submit)
-     → setup[] can be minimal (just navigate)
-     → teardown[] should clean up the created data
+  Step 1 — Classify the test action type:
+    | Action keywords in handoff | Type | setup[] required? |
+    |---------------------------|------|:-----------------:|
+    | create, add, new, register, upload, submit | Create | No (navigate only) |
+    | view, detail, preview, read, open, search | Read | YES |
+    | edit, update, modify, rename, change, toggle | Update | YES |
+    | delete, remove, cancel, revoke | Delete | YES |
+    | download, export, save as | Download | YES |
+    | list, filter, sort, paginate | List/Filter | YES |
+    | navigate, goto, redirect, back | Navigate | No |
+    | check, verify, validate, disabled, enabled | Validate | No |
 
-  3. Is setup[] missing or undefined in the handoff?
-     → Infer setup from preconditions[] text:
-       - "已打开文件" → infer: navigate to /task, create task, wait for file, open canvas
-       - "任务已完成" → infer: navigate to /task, create task, wait for completion
-       - "用户已登录" → handled by authenticatedPage fixture, no explicit setup needed
-     → Generate the inferred setup code with a comment:
-       // ── Setup (inferred from preconditions, handoff setup[] was empty) ──
+  Step 2 — Validate setup:
+    If type requires setup (Read/Update/Delete/Download/List):
+      a. setup[] exists and has entries → generate setup code from entries
+      b. setup[] is empty/missing → attempt to infer from preconditions[]:
+         - Extract action verbs and target objects from preconditions text
+         - Map to POM methods: "创建X" → createX(), "打开X" → openX(), "上传X" → uploadX()
+         - Generate inferred setup with warning comment:
+           // ── Setup (inferred from preconditions, handoff setup[] was empty) ──
+      c. Both setup[] and preconditions[] are empty/missing → flag error:
+         "ERROR: TC-{id} is a {type} operation but has no setup or preconditions.
+          Cannot generate self-sufficient test. Fix the handoff."
+
+  Step 3 — Generate teardown:
+    If type is Create → generate teardown to delete created data
+    If type is Delete → no teardown needed (test itself is the cleanup)
+    If type is Read/Update/Download/List → generate teardown to delete setup-created data
+    If teardown[] exists in handoff → use it; otherwise infer from setup (reverse operations)
 ```
 
-> **Why this matters**: A test that does `goto()` then immediately clicks "Download" will always fail because there's no file in Canvas. The setup steps are what make the test self-sufficient. If the handoff doesn't provide them, the spec generator must either infer them or refuse to generate a broken test.
+> **Why this matters**: A test that does `goto()` then immediately operates on data that doesn't exist will always fail. The action type classification ensures every test has appropriate setup. This rule is universal — it applies to any project, any domain (e-commerce orders, CRM contacts, CMS articles, file management, etc.).
 
 ---
 

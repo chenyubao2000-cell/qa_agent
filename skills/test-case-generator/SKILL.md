@@ -749,29 +749,36 @@ The complete workflow follows this sequence: **Scope check → Parse → Design 
 
    > **UI setup strategy**: This is a UI automation platform — setup and teardown are done through UI interactions (via POM methods), not API calls. The setup steps should reuse existing POM methods (e.g., `tasksPage.createTask()`) to keep setup code stable and maintainable. Setup operations use the same POM as the test itself.
 
-   **Extended dependency patterns (file/content operations)**:
+   **通用 CRUD 及衍生操作的 setup/teardown 模式**:
 
-   | Test Scenario | Wrong (assumes data exists) | Right (self-sufficient setup) |
-   |--------------|---------------------------|------------------------------|
-   | Preview file in Canvas | "文件已在Canvas中打开" | Setup: "1. 创建新任务 2. 输入prompt让AI生成文档 3. 等待文件生成完成 4. 点击文件在Canvas中打开" |
-   | Download file | "Canvas中已打开文件" | Setup: "1. 创建新任务 2. 输入prompt让AI生成文档 3. 等待文件生成完成 4. 在Canvas中打开文件" |
-   | View all files | "任务已完成且有文件" | Setup: "1. 创建新任务 2. 输入prompt让AI生成文档 3. 等待任务完成" |
-   | Upload file input | "用户在input框" | Setup: "1. 创建新任务 2. 点击上传文件按钮 3. 选择本地测试文件" |
-   | Edit/rename item | "项目已存在" | Setup: "1. 通过UI创建项目 'Test-Edit-{timestamp}'" Teardown: "删除该项目" |
-   | Delete item | "项目已存在" | Setup: "1. 通过UI创建项目 'Test-Del-{timestamp}'" Teardown: none (deleted by test) |
-   | Download specific format | "特定格式文件已生成" | Setup: "1. 创建任务 2. 生成指定格式文件 3. 打开Canvas" |
+   每个测试操作都属于以下某种类型。根据类型判断是否需要 setup 和 teardown：
+
+   | 操作类型 | 是否需要 setup？ | setup 内容 | teardown |
+   |---------|:---------------:|-----------|----------|
+   | **Create** (创建/新增/注册/上传) | 仅导航 | 导航到目标页面 | 删除创建的数据 |
+   | **Read** (查看/详情/预览/搜索) | ✅ 必须 | 先通过 UI 创建目标数据 | 删除创建的数据 |
+   | **Update** (编辑/修改/重命名/状态变更) | ✅ 必须 | 先通过 UI 创建目标数据 | 删除创建的数据 |
+   | **Delete** (删除/移除/取消) | ✅ 必须 | 先通过 UI 创建目标数据 | 无需（测试本身就是删除） |
+   | **Download** (下载/导出/保存) | ✅ 必须 | 先通过 UI 创建/上传目标文件 | 删除创建的数据 |
+   | **List/Filter** (列表/筛选/排序/分页) | ✅ 必须 | 先创建多条满足筛选条件的数据 | 删除所有创建的数据 |
+   | **Navigate** (导航/跳转/返回) | 仅导航 | 导航到起点页面 | 无需 |
+   | **Validate** (校验/验证/禁用状态) | 仅导航 | 导航到目标页面 | 无需 |
+
+   **判断规则**：如果测试动作的目标对象（文件/记录/项目/订单/...）不是由测试本身创建的，就必须在 setup 中先创建它。
 
    **Precondition writing rules**:
-   - 前置条件必须是**可执行的 UI 操作序列**，不能是笼统描述
-   - ❌ 错误：`"已打开文件Canvas预览"` — 谁打开的？怎么打开的？
-   - ✅ 正确：`"1. 导航到/task 2. 点击New Task 3. 输入'生成一份PDF文档' 4. 等待文件生成 5. 点击文件打开Canvas"`
+   - 前置条件必须是**可执行的 UI 操作序列**，不能是笼统的状态描述
+   - ❌ 错误：`"数据已存在"` `"文件已打开"` `"用户在详情页"` — 不可执行，无法翻译为代码
+   - ✅ 正确：`"1. 导航到列表页 2. 点击新建按钮 3. 填写表单 4. 提交 5. 确认创建成功"` — 每步可翻译为 POM 方法
    - 每一步必须对应一个 POM 方法调用，playwright-script-generator 会把它翻译为代码
 
    **Handoff `setup[]` field rules**:
-   - `setup[]` 必须包含完整的前置操作链，每个条目是一个可执行步骤
-   - 如果测试操作依赖某个状态（文件已打开/任务已创建），setup 必须包含到达该状态的全部步骤
+   - `setup[]` 必须包含完整的前置操作链，每个条目对应一个 UI 操作
+   - 每个条目格式：`{ "type": "ui"|"navigate", "action": "create"|"navigate"|"wait", "pomMethod": "方法名", "data": {} }`
+   - 如果测试操作依赖某个状态，setup 必须包含到达该状态的**全部步骤**
    - `teardown[]` 必须包含清理操作（除非测试本身就是删除操作）
    - setup/teardown 的 `pomMethod` 必须在 POM 中有对应方法
+   - **空 setup[] 只允许用于 Create/Navigate/Validate 类操作**；Read/Update/Delete/Download/List 类操作的 setup[] 不能为空
 
 ### Phase C: Merge & Deduplicate (after design)
 
