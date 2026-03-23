@@ -14,17 +14,20 @@ Phase 0: Load project context (.env -> config)
      |
 Phase 1: Initial scan -> Identify initial functional area list (lightweight, only scan State_0)
      |
-Phase 2: Incremental loop (core logic)
+Phase 2a: Serial CDP exploration (one subagent per area, sequential)
          for each functional area:
            a. Deep explore the area (CDP interaction, BFS from seed elements)
            a2. Dynamic area discovery (append newly revealed areas to the list)
-           b. Generate a mini-baseline for that area
-           c. e2e-orchestrator -> test cases + POM + spec (only for that area)
-           d. Locator verification
-           e. If the user-requested count is reached -> break out of loop
+           b. Write findings to baseline
      |
-Phase 2.5: Cross-area flow discovery
-         Identify cross-area edges + page navigations -> integration test cases
+Phase 2a.5: Cross-area flow discovery (after ALL CDP exploration, before generation)
+         Analyze baseline stateGraph for cross-area edges + page navigations
+         → append cross-area flows to generation queue
+     |
+Phase 2b: Parallel test generation (one orchestrator per area + cross-area, all at once)
+         e2e-orchestrator -> test cases + POM + spec
+     |
+Phase 2c: Serial locator verification
      |
 Phase 3: Unified execution (no Linear reporting)
          test-executor -> execute all accumulated specs -> local report only
@@ -507,9 +510,49 @@ for area in areas:
   // 未处理的动态区域记录在 baseline 中（status: "pending"），下次 /qa-explore 可继续
 ```
 
+### Phase 2a.5: Cross-Area Flow Discovery (after ALL CDP exploration, before generation)
+
+> **时机**：所有区域 CDP 探查完成后、用例生成前执行。此时 baseline 已有完整的 stateGraph，
+> 可以分析跨区域流程并加入生成队列，让 Phase 2b 一次性并行生成所有用例（区域内 + 跨区域）。
+>
+> **执行者**：主命令层直接分析 baseline JSON（无需 CDP）。仅 Step 2（跨页导航探查）需要 CDP 子 Agent。
+
+#### Step 1 — Identify cross-area edges (main command, no CDP)
+
+Read `page-baseline-{slug}.json` and scan `stateGraph.edges` for transitions that cross area boundaries:
+- Edge where `sourceArea` of `from` state differs from `sourceArea` of `to` state
+- Edge that causes URL change (compare `states[from].url` vs `states[to].url`)
+- Edge where the target state contains elements belonging to a different area
+
+Output: `crossAreaFlows` + `pageNavigationEdges`. If none found → skip to Phase 2b.
+
+#### Step 2 — Handle page navigations (CDP subagent, serial, 1-hop limit)
+
+For URL-changing edges, launch cdp-explorer subagent:
+- Navigate to target page (1 hop only)
+- State₀ scan only (no BFS)
+- Write to baseline with `crossPage: true`
+- Do NOT follow links on the new page (prevents infinite recursion)
+
+#### Step 3 — Queue cross-area flows for Phase 2b
+
+```
+crossAreaFlows = [
+  { steps: ["click sidebar (area: sidebar)", "verify detail (area: main)"],
+    involvedAreas: ["sidebar", "main"] }
+]
+// These flows are passed to an additional orchestrator in Phase 2b
+// alongside per-area orchestrators, all running in parallel
+```
+
+> **Scope control**: Only discover flows for areas already explored. Do not recursively explore all reachable pages.
+
+---
+
 ### Phase 2b: Parallel Test Generation
 
-> After all areas are explored, the baseline file contains the complete state-flow graph. Now launch **all orchestrator agents in parallel** — they only read the baseline file and write to separate output files, no CDP needed.
+> After all areas are explored AND cross-area flows identified, launch **all orchestrator agents in parallel**.
+> This includes: one orchestrator per area + one orchestrator for cross-area integration tests (if any).
 
 ```
 // Launch ALL orchestrator agents simultaneously (parallel)
@@ -542,7 +585,22 @@ for area in exploredAreas:
     ```
   )
 
-// Wait for ALL orchestrators to complete
+// If Phase 2a.5 found cross-area flows, add a cross-area orchestrator (runs in parallel with area orchestrators)
+if crossAreaFlows.length > 0:
+  orchestratorAgents.push(
+    Launch e2e-orchestrator (sonnet) in background:
+    prompt: """
+    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+    Input:
+    - source: "cdp"
+    - baselineFile: {baselineFile}
+    - crossAreaFlows: {crossAreaFlows from Phase 2a.5}
+    - projectContext: { ...same as above... }
+    Note: Generate integration test cases that chain multiple POM interactions across areas.
+    """
+  )
+
+// Wait for ALL orchestrators to complete (area + cross-area, all parallel)
 results = await all(orchestratorAgents)
 
 // ══ MANDATORY VERIFICATION GATE ══
@@ -668,91 +726,6 @@ If the user runs `/qa-explore` again on a previously explored page:
 > **Why not just re-explore everything?** Re-exploring all areas from scratch is wasteful if only one area changed (e.g., a button label updated). The fingerprint comparison + per-area re-check finds exactly what changed, minimizing unnecessary regeneration.
 
 > **Fingerprint storage**: Phase 1 State₀ scan must store the fingerprint (from cdp-explorer Step 6) in `baseline.states.S0.fingerprint` for future comparison.
-
----
-
-## Phase 2.5: Cross-Area Flow Discovery (after loop completes, before execution)
-
-> **Executor**: The **main command** executes this phase directly (not a subagent). It reads the baseline file (pure JSON analysis, no CDP needed for Step 1 and Step 3). Only Step 2 (page navigation) needs a CDP subagent.
-
-After all areas have been individually explored, the baseline file contains the complete state-flow graph. The main command analyzes it for cross-area flows:
-
-### Step 1 — Identify cross-area edges (main command, no CDP)
-
-Read `page-baseline-{slug}.json` and scan `stateGraph.edges` for transitions that cross area boundaries:
-- Edge where `sourceArea` of `from` state differs from `sourceArea` of `to` state (e.g., sidebar click → main content update)
-- Edge that causes URL change (compare `states[from].url` vs `states[to].url`)
-- Edge where the target state contains elements belonging to a different area
-
-Output: list of `crossAreaFlows` and `pageNavigationEdges`.
-
-If no cross-area edges found → skip to Phase 3.
-
-### Step 2 — Handle page navigations (CDP subagent, serial)
-
-For edges that cause URL changes (navigation to a different page), launch a **cdp-explorer subagent**:
-
-```
-prompt:
-You are a CDP page explorer. Read skills/cdp-explorer/SKILL.md.
-
-Task: Explore a new page discovered via navigation from the original page.
-
-Input:
-- pageUrl: {URL from the navigation edge target}
-- baselineFile: {baseline file path}
-- parentEdge: { from: "S3", action: "click", element: "nav:Dashboard" }
-
-Steps:
-1. Navigate to pageUrl
-2. Three-layer scan (State₀ of new page)
-3. Identify functional areas on the new page
-4. Write new page states to baseline with crossPage: true marker
-5. Record cross-page edge in stateGraph
-
-Return: { newPageStates: [...], newAreas: [...] }
-```
-
-**Strict 1-hop limit** — prevents infinite recursion:
-```
-For each cross-page navigation edge from the ORIGINAL page:
-  1. Navigate to the target page (1 hop)
-  2. Three-layer scan: State₀ only (NO interactive BFS exploration on the new page)
-  3. Identify initial functional areas on the new page
-  4. Write to baseline with crossPage: true
-  5. Do NOT follow any navigation links discovered on the new page (that would be 2 hops)
-
-If new areas discovered AND remaining maxAreas budget > 0:
-  → Run ONLY these new-page areas through Phase 2a (serial CDP) + Phase 2b (parallel gen)
-  → These areas are explored with BFS on the new page, but any further navigation edges
-    found during this BFS are RECORDED in the baseline only, NOT followed
-  → This guarantees: original page explored fully, 1-hop pages explored for areas, no 2+ hops
-```
-
-### Step 3 — Generate cross-area integration test cases (main command → orchestrator)
-
-For significant cross-area dependencies found in Step 1:
-
-```
-crossAreaFlows = [
-  { steps: ["click sidebar item (area: sidebar)", "verify detail (area: main)", "click action (area: main)", "confirm modal (area: modal)"],
-    involvedAreas: ["sidebar", "main", "modal"] }
-]
-```
-
-Launch orchestrator (sonnet) with:
-```
-Input:
-- source: "cdp"
-- baselineFile: {baseline path}
-- crossAreaFlows: {the flows identified above}
-- projectContext: { ... }
-
-Note: Generate integration test cases that chain multiple POM interactions across areas.
-Each flow becomes one test case that exercises the cross-area dependency end-to-end.
-```
-
-> **Scope control**: Only discover cross-area flows for areas already explored. Do not recursively explore all reachable pages.
 
 ---
 
