@@ -61,24 +61,24 @@ cd $QA_WORKSPACE_DIR && npx playwright test <spec file list> {projectFilter} --r
 
 **Project filter** (based on playwright.config.ts project configuration):
 
-| APP_LANGUAGES | projectFilter | 说明 |
+| APP_LANGUAGES | projectFilter | Description |
 |--------------|--------------|------|
-| 未设置 | `--project=e2e` | 单语言，project 名为 "e2e" |
-| `en,zh` | 不传 `--project`（跑全部） | 多语言，Playwright 自动发现 e2e-en、e2e-zh |
-| 用户指定 `--project=e2e-en` | `--project=e2e-en` | 只跑指定语言 |
+| Not set | `--project=e2e` | Single language, project name is "e2e" |
+| `en,zh` | Omit `--project` (run all) | Multi-language, Playwright auto-discovers e2e-en, e2e-zh |
+| User specifies `--project=e2e-en` | `--project=e2e-en` | Run only the specified language |
 
-> **关键**：当 APP_LANGUAGES 有值时，config 里的 project 名为 `e2e-{lang}`（如 `e2e-en`、`e2e-zh`），
-> 不是 `e2e`。如果硬编码 `--project=e2e` 会导致 0 个测试被执行。
+> **Key point**: When APP_LANGUAGES is set, the project names in the config are `e2e-{lang}` (e.g., `e2e-en`, `e2e-zh`),
+> not `e2e`. Hardcoding `--project=e2e` will result in 0 tests being executed.
 
 **Suite filter** (optional, from caller's `suite` parameter):
 
-| suite | --grep | 范围 | 场景 |
+| suite | --grep | Scope | Use case |
 |-------|--------|------|------|
-| `smoke` | `--grep @smoke` | P0 only | CI、部署后快速验证 |
-| `regression` | `--grep @regression` | P0 + P1 | PR 合并前回归 |
-| `full` | (不加 --grep) | 全部 | 发版前全量 |
-| `P0` / `P1` / `P2` | `--grep @P0` 等 | 单级别 | 按需筛选 |
-| 不传 | (不加 --grep) | 全部 | 默认跑全部 |
+| `smoke` | `--grep @smoke` | P0 only | CI, post-deploy quick verification |
+| `regression` | `--grep @regression` | P0 + P1 | Pre-merge regression |
+| `full` | (no --grep) | All | Pre-release full run |
+| `P0` / `P1` / `P2` | `--grep @P0` etc. | Single level | On-demand filtering |
+| Not passed | (no --grep) | All | Default: run all |
 
 Report file naming by mode:
 - `full` → `playwright-results.json`

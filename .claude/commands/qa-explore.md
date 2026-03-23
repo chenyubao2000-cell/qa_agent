@@ -70,7 +70,7 @@ Extract all config from **this project's .env**:
 - `testCredentials` — `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD`
 - `techStack` — from source directory CLAUDE.md
 - `appLanguages` — `APP_LANGUAGES` from .env (comma-separated, e.g., "en,zh"), default: single project mode
-- `i18nMessagesDir` — `I18N_MESSAGES_DIR` from .env (i18n 消息文件的**源路径**，用于复制到目标项目), default: null
+- `i18nMessagesDir` — `I18N_MESSAGES_DIR` from .env (**source path** of i18n message files, used to copy to target project), default: null
 - `defaultLocale` — first language in APP_LANGUAGES, or infer from source project
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
@@ -100,16 +100,16 @@ mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-resul
 #### 2b-1. Copy i18n Messages (when APP_LANGUAGES is set, skip if messages/ already exists)
 
 ```bash
-# 将源项目的 i18n 消息文件复制到 $QA_WORKSPACE_DIR/messages/
-# 这样 fixtures.ts 使用本地相对路径引用，不依赖源码位置
+# Copy i18n message files from source project to $QA_WORKSPACE_DIR/messages/
+# This way fixtures.ts uses local relative paths, independent of source code location
 if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -f "$QA_WORKSPACE_DIR/messages/en.json" ]; then
   cp "$I18N_MESSAGES_DIR"/*.json "$QA_WORKSPACE_DIR/messages/"
   echo "Copied i18n messages to $QA_WORKSPACE_DIR/messages/"
 fi
 ```
 
-> **为什么复制而非引用**：生成的 fixtures.ts 用 `import from '../messages/en.json'`（本地相对路径），
-> 不依赖 SOURCE_PROJECT_DIR 在测试运行时可达。复制一次，后续执行自包含。
+> **Why copy instead of reference**: The generated fixtures.ts uses `import from '../messages/en.json'` (local relative path),
+> independent of SOURCE_PROJECT_DIR being reachable at test runtime. Copy once, subsequent executions are self-contained.
 
 #### 2c. Install Playwright (if package.json doesn't exist)
 
@@ -171,21 +171,21 @@ export default defineConfig({
         testMatch: "**/testcases/**/*.test.ts",
         use: { ...devices["Desktop Chrome"] },
       }],
-  // ── NEXT_LOCALE cookie 说明 ──
-  // cookie 值使用短码（"en", "zh"）匹配 next-intl 的 locale 配置
-  // Playwright 的 locale 字段使用标准码（"en-US", "zh-CN"）用于浏览器行为（日期格式等）
-  // 两者不需要完全一致：cookie 控制 app 语言，locale 控制浏览器行为
+  // ── NEXT_LOCALE cookie explanation ──
+  // cookie value uses short codes ("en", "zh") matching next-intl's locale config
+  // Playwright's locale field uses standard codes ("en-US", "zh-CN") for browser behavior (date formats, etc.)
+  // The two don't need to match exactly: cookie controls app language, locale controls browser behavior
 });
 ```
 
-> **配置说明**:
-> - `reporter`: 始终输出 JSON（供 report-analyzer 消费）+ HTML（供人工查看）。test-executor 命令行也会覆盖此设置以确保双输出
-> - `headless`: 由环境变量控制，默认 true。目标项目 config 可能硬编码 false，test-executor 的 `--reporter` 覆盖不影响 headless，需要通过 .env 的 `PLAYWRIGHT_HEADLESS` 控制
-> - `retries`: CI 环境重试 1 次，减少 flaky 误报；本地不重试，快速暴露问题
-> - `trace` + `video`: 失败时保留，用于排查。`on-first-retry` 不如 `retain-on-failure`（不需要 retry 也能留证据）
-> - `locale`: 动态推断——有 APP_LANGUAGES 时用首语言，无则默认 `en-US`。各语言 project 独立设置 locale。
-> - `outputDir`: 显式指定，避免产物散落
-> - `expect.timeout`: 默认 5s 对远程环境偏短，设为 10s
+> **Configuration notes**:
+> - `reporter`: Always outputs JSON (consumed by report-analyzer) + HTML (for manual review). test-executor command line also overrides this setting to ensure dual output
+> - `headless`: Controlled by environment variable, defaults to true. Target project config may hardcode false; test-executor's `--reporter` override doesn't affect headless — control via `.env`'s `PLAYWRIGHT_HEADLESS`
+> - `retries`: Retry once in CI to reduce flaky false positives; no retries locally for fast failure exposure
+> - `trace` + `video`: Retained on failure for debugging. `on-first-retry` is inferior to `retain-on-failure` (preserves evidence without requiring a retry)
+> - `locale`: Dynamically inferred — uses first language when APP_LANGUAGES is set, defaults to `en-US` otherwise. Each language project sets locale independently.
+> - `outputDir`: Explicitly specified to prevent artifacts from scattering
+> - `expect.timeout`: Default 5s is too short for remote environments, set to 10s
 
 #### 2e. Generate fixtures.ts (if not present)
 
@@ -224,7 +224,7 @@ export { expect };
 
 ```typescript
 // ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
-// messages/ 目录由 Phase 0 Step 2b-1 从源项目复制到 QA_WORKSPACE_DIR/messages/
+// messages/ directory copied from source project to QA_WORKSPACE_DIR/messages/ by Phase 0 Step 2b-1
 import enMessages from '../messages/en.json';
 import zhMessages from '../messages/zh.json';
 // ... import additional locales as needed from APP_LANGUAGES
@@ -250,11 +250,11 @@ i18n: [async ({}, use, testInfo) => {
 }, { scope: 'worker' }],
 ```
 
-> **Import 路径**: fixtures.ts 位于 `tests/e2e/fixtures.ts`，messages 在 `$QA_WORKSPACE_DIR/messages/`，
-> 所以 import 路径是 `'../messages/{locale}.json'`（固定，不依赖源项目结构）。
-> Phase 0 Step 2b-1 已将消息文件从源项目复制到 `$QA_WORKSPACE_DIR/messages/`。
-> 如果 `messages/` 目录不存在或为空 → ERROR: "messages 目录不存在，请检查 I18N_MESSAGES_DIR 配置"
-> 如果 APP_LANGUAGES is NOT set → 不生成 i18n fixture（向后兼容）。
+> **Import path**: fixtures.ts is located at `tests/e2e/fixtures.ts`, messages at `$QA_WORKSPACE_DIR/messages/`,
+> so the import path is `'../messages/{locale}.json'` (fixed, independent of source project structure).
+> Phase 0 Step 2b-1 has already copied message files from the source project to `$QA_WORKSPACE_DIR/messages/`.
+> If `messages/` directory does not exist or is empty → ERROR: "messages directory not found, check I18N_MESSAGES_DIR configuration"
+> If APP_LANGUAGES is NOT set → do not generate i18n fixture (backward compatible).
 
 **Without E2E_TEST_EMAIL** -> simple version:
 
@@ -501,19 +501,19 @@ for area in areas:
 
   If maxAreas reached → break
 
-  // maxAreas 限制说明：
-  // maxAreas 限制的是 **总处理数量**（初始 + 动态发现的合计）
-  // 例如 maxAreas=5：初始 3 个区域 + 动态发现 2 个 = 恰好 5 个，停止
-  // 动态发现的区域不享有额外配额，避免无限膨胀
-  // 未处理的动态区域记录在 baseline 中（status: "pending"），下次 /qa-explore 可继续
+  // maxAreas limit explanation:
+  // maxAreas limits the **total processed count** (initial + dynamically discovered combined)
+  // Example: maxAreas=5: 3 initial areas + 2 dynamically discovered = exactly 5, stop
+  // Dynamically discovered areas do not get extra quota, preventing infinite expansion
+  // Unprocessed dynamic areas are recorded in baseline (status: "pending"), next /qa-explore can continue
 ```
 
 ### Phase 2a.5: Cross-Area Flow Discovery (after ALL CDP exploration, before generation)
 
-> **时机**：所有区域 CDP 探查完成后、用例生成前执行。此时 baseline 已有完整的 stateGraph，
-> 可以分析跨区域流程并加入生成队列，让 Phase 2b 一次性并行生成所有用例（区域内 + 跨区域）。
+> **Timing**: Executed after all area CDP exploration completes and before test case generation. At this point the baseline has a complete stateGraph,
+> allowing analysis of cross-area flows to add to the generation queue, so Phase 2b can generate all cases in parallel (per-area + cross-area) in one pass.
 >
-> **执行者**：主命令层直接分析 baseline JSON（无需 CDP）。仅 Step 2（跨页导航探查）需要 CDP 子 Agent。
+> **Executor**: Main command layer directly analyzes baseline JSON (no CDP needed). Only Step 2 (cross-page navigation exploration) requires a CDP subagent.
 
 #### Step 1 — Identify cross-area edges (main command, no CDP)
 
@@ -649,9 +649,9 @@ Combined Excel: test-cases/excel/{slug}-all-cases.xlsx
 
 **Speed improvement**: Phase 2b runs all orchestrators in parallel. If each takes ~3 minutes, 5 areas complete in ~3 minutes instead of ~15 minutes.
 
-> **为什么不在 qa-explore 里做 Locator 验证？**
-> Locator 验证 + 修复 + 执行 + 回归统一由 `/qa-fix-tests` 负责（Phase 3）。
-> 原因同 qa-run-prd：qa-fix-tests 是验证+修复的超集，避免重复 CDP 探查。
+> **Why not do locator verification in qa-explore?**
+> Locator verification + fix + execution + regression are all handled by `/qa-fix-tests` (Phase 3).
+> Same reasoning as qa-run-prd: qa-fix-tests is a superset of verification+fix, avoiding redundant CDP exploration.
 
 ### Same-Page POM Merge Rules (Parallel-Safe)
 
@@ -707,10 +707,10 @@ If the user runs `/qa-explore` again on a previously explored page:
 
 ## Phase 3: Delegate to /qa-fix-tests (no Linear reporting)
 
-> **职责分离**：qa-explore 只负责探查 + 生成。Locator 验证 + 修复 + 执行统一由 `/qa-fix-tests` 完成。
-> 这与 qa-run-prd 的模式一致：生成完就交给 fix-tests。
+> **Separation of concerns**: qa-explore only handles exploration + generation. Locator verification + fix + execution are all handled by `/qa-fix-tests`.
+> This is consistent with the qa-run-prd pattern: after generation, hand off to fix-tests.
 >
-> qa-explore 不上报 Linear。需要正式上报时运行 `/qa-run-all`。
+> qa-explore does not report to Linear. Run `/qa-run-all` when formal reporting is needed.
 
 **Pre-check**: If allSpecs is empty (all areas already covered) -> inform user "all test cases already have spec coverage" -> end
 

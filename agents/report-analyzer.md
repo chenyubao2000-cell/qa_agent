@@ -55,10 +55,10 @@ Read the report JSON and iterate over all test cases:
 
 **Screenshot reading rules** (performance and reliability):
 1. **Limit**: Read at most **1 screenshot per failed test case** (the first attachment with `name: "screenshot"`)
-2. **Missing file**: If the screenshot path doesn't exist (auto-cleanup or moved), use description: "截图不可用（文件已清理）"
+2. **Missing file**: If the screenshot path doesn't exist (auto-cleanup or moved), use description: "Screenshot unavailable (file cleaned up)"
 3. **Description length**: Truncate screenshot description to **200 characters** max. Focus on the visible error state, not pixel details.
-4. **Timeout**: If `Read(path)` takes > 5 seconds, skip the screenshot and note: "截图读取超时"
-5. **Total budget**: For a test run with many failures (> 20), only read screenshots for the **first 10 failures**. Remaining failures use: "截图已省略（失败数量过多）"
+4. **Timeout**: If `Read(path)` takes > 5 seconds, skip the screenshot and note: "Screenshot read timed out"
+5. **Total budget**: For a test run with many failures (> 20), only read screenshots for the **first 10 failures**. Remaining failures use: "Screenshot omitted (too many failures)"
 
 These rules prevent report-analyzer from spending excessive time reading large screenshots or hanging on missing files.
 
@@ -73,9 +73,9 @@ When the test suite was executed with multiple Playwright projects (e.g., `e2e-e
    | zh   | 77   | 70   | 7    | 0    |
    ```
 3. **Failure deduplication**: A test that fails in BOTH languages counts as 1 bug (not 2).
-   - Same TC ID fails in en + zh → 1 Linear issue, annotated "双语均失败"
-   - TC fails in zh only → 1 Linear issue, annotated "仅中文失败（可能是 i18n 翻译问题）"
-   - TC fails in en only → 1 Linear issue, annotated "仅英文失败"
+   - Same TC ID fails in en + zh → 1 Linear issue, annotated "Both languages failed"
+   - TC fails in zh only → 1 Linear issue, annotated "Chinese only failure (possible i18n translation issue)"
+   - TC fails in en only → 1 Linear issue, annotated "English only failure"
 4. **Bug-reporter context**: Pass `failedLanguages: ["en", "zh"]` to bug-reporter for each failure
 
 ```json
