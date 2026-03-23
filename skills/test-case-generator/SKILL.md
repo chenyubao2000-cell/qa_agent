@@ -2552,6 +2552,22 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
   - `resource`: what to create (e.g., `"task"`, `"user"`, `"project"`)
   - `pomMethod`: POM method name to call (e.g., `"createTask"`)
   - `data`: creation data (passed to POM method)
+  - `scope`: (optional) `"test"` (default) or `"worker"`.
+    Set to `"worker"` when ALL of the following are true:
+    1. The setup involves AI processing keywords (same keywords as timeout auto-detection above)
+    2. The estimated setup time > 30 seconds
+    3. The setup data is read-only for subsequent tests (not mutated by individual test cases)
+
+    When `scope: "worker"`, playwright-script-generator generates a **worker-scope fixture** in `fixtures.ts` instead of inline `beforeAll`. This creates the data once per Playwright worker and shares it across all tests in that worker, avoiding redundant expensive setup.
+
+    Example:
+    ```json
+    {
+      "setup": [
+        { "type": "ui", "action": "Create a recruiting task and wait for completion", "scope": "worker" }
+      ]
+    }
+    ```
 - `teardown[]` — Steps to clean up AFTER the test via UI. Same structure as `setup[]` but with `action: "delete"`
   - Empty `[]` when the test itself performs cleanup (e.g., delete test cleans up by nature)
 - `preconditions[]` — Human-readable description of what setup creates (for documentation)
@@ -2560,7 +2576,19 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
 - `uiElements[].dataType` — (optional, for `fill` action only) declares the semantic data type this field expects. When present, playwright-script-generator uses it to resolve a concrete inline value instead of using the `value` field. Format: `"{category}.{type}"`. When `dataType` is set, `value` should be `null` (script-generator resolves it).
 - `uiElements[].dataVariant` — (required when `dataType` is set) specifies the data variant: `"valid"`, `"invalid"`, `"boundary"`, or type-specific variants like `"strong"`, `"weak"`, `"long:500"`, `"xss"`, `"png"`, `"pdf"`, `"oversized"`, etc.
 - `assertions[].type` — one of: `url`, `visible`, `hidden`, `text`, `value`, `count`, `enabled`, `disabled`
-- `timeout` — default `null` (uses config default); set to `600000` (10 minutes) for test cases involving AI processing or long-running async waits
+- `timeout` — default `null` (uses config default). **Auto-detection rule**: When generating each handoff entry, scan its `setup[]`, `preconditions[]`, and `action` text for AI/async keywords. If any match is found, automatically set `timeout: 600000`:
+
+  | Keyword pattern (case-insensitive, in setup[].action or preconditions[]) | Reason |
+  |--------------------------------------------------------------------------|--------|
+  | send message, submit prompt, enter prompt, 发消息, 提交 | Triggers AI task execution |
+  | wait for completion, task completed, 等待完成, 任务完成 | Long async wait |
+  | create task, new task, 创建任务, 新建任务 | AI task creation |
+  | file generation, generate file, 生成文件, 文件转换 | File processing |
+  | Agent execution, agent task, Agent 执行 | Agent runtime |
+
+  If NO keyword matches → `timeout: null` (config default 60s).
+  If ANY keyword matches → `timeout: 600000` (10 minutes).
+  This eliminates the manual burden on the generator — timeout is automatically inferred from context.
 - `{timestamp}` — playwright-script-generator replaces with `Date.now()` in generated code
 - For equivalence-class / boundary scenarios, include one entry per class with `value` set to the representative value
 - For negative scenarios, set `assertions` to the expected error state (e.g. `{ "type": "visible", "selector": "alert" }`)

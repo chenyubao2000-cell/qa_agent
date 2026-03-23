@@ -374,17 +374,44 @@ npx playwright test --grep "@P0"           # 只跑 P0（不含 P1/P2）
 
 **timeout field**: When a handoff entry contains `"timeout": 600000`, insert `test.setTimeout(600_000);` at the top of the generated `test()` block. If `null` or absent, do not insert.
 
+**Timeout auto-detection safety net** (mandatory post-generation check):
+After generating each spec file, scan for long-wait patterns:
+1. Grep the spec for: `waitForSelector.*timeout.*[3-9]\d{4}`, `waitForResponse`, `expect.poll`, `waitFor.*[6-9]\d{4}`, `sendMessage`, `createTask`, `waitForTask`, `Task completed`
+2. For each `test()` block containing any of these patterns AND missing `test.setTimeout()`:
+   → Auto-insert `test.setTimeout(600_000);` as the first statement inside the test body
+3. For each `test.beforeAll()` containing these patterns AND the parent describe missing `test.describe.configure({ timeout })`:
+   → Insert `test.describe.configure({ timeout: 600_000 });` at the top of the describe body
+4. Log: "Auto-set timeout for {testName} — contains AI/long-wait pattern without explicit setTimeout"
+
+This catches cases where the handoff's timeout field was null but the generated code still has long waits.
+
 ### 1.2 Handoff Source Determines Locator Strategy
 
 ```
 source = "prd" (PRD-driven, also matches "requirements"):
-  1. Read uiElements → verify each locator via CDP/source code → fix → write spec
+  1. **Mandatory source code scan** before generating locators:
+     a. Grep "$sourceProjectDir" for data-testid:
+        Grep "data-testid" --glob "*.tsx,*.jsx,*.vue" → count results
+     b. If 0 matches → project does NOT use data-testid:
+        - **NEVER** use getByTestId or [data-testid="..."] in POM
+        - Locator priority: getByRole > getByLabel > getByPlaceholder > getByText > CSS
+     c. If >0 matches → project uses data-testid:
+        - For each uiElement, Grep source for specific component's data-testid
+        - Found → use getByTestId; not found → fall back to getByRole
+        - Locator priority: getByTestId (when found in source) > getByRole > getByLabel > CSS
+     d. Store `hasTestIds: boolean` in generation context
+  2. Read uiElements → generate locators using determined strategy → write spec
+  3. CDP verification (by command layer) will catch remaining mismatches
 
 source = "cdp":
   1. Use locatorHint directly (already extracted from real DOM) → write spec
   2. Spec file name uses -cdp suffix, test.describe prefixed with [CDP]
   3. File header comment: // Source: CDP snapshot — <pageUrl> — <date>
-  4. If requirement docs are supplemented later, CDP spec should be replaced, not merged
+  4. If locatorProfile.hasTestIds is present in baseline → use it to skip testid Grep
+
+source = "issue":
+  1. Same as "cdp" when baselineFile is available
+  2. Fallback to "prd" strategy when no baseline
 ```
 
 ### 1.3 Example: handoff → spec
@@ -550,6 +577,43 @@ test('After creating a task, redirects to task detail page', async ({ authentica
 - When prerequisite data creation takes a long time (e.g., Agent tasks > 30s), you must use `test.describe.serial` + `beforeAll` (create only once) rather than recreating for each test case
 - Set a reasonable timeout when creating data in `beforeAll` (e.g., `test.setTimeout(180_000)`); Agent tasks typically take 1-2 minutes
 
+**Pattern D — Worker-scope fixture for expensive shared data (cross-describe sharing):**
+
+When multiple test.describe blocks all need the same expensive setup (e.g., creating an AI task that takes 2+ minutes), use a **worker-scope fixture** in `fixtures.ts` to create data once per worker and share across all tests:
+
+```typescript
+// fixtures.ts — worker-scope fixture
+testDataContext: [async ({ browser }, use) => {
+  const ctx = await browser.newContext({ storageState: AUTH_FILE });
+  const page = await ctx.newPage();
+  await page.goto('/task');
+  await page.getByRole('textbox', { name: /please enter/i }).fill('Create a recruiting task');
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await page.waitForSelector('text=Task completed', { timeout: 300_000 });
+  const data = { taskUrl: page.url() };
+  await ctx.close();
+  await use(data);
+}, { scope: 'worker' }],
+```
+
+```typescript
+// In spec — consumed directly, no beforeAll needed
+test('Canvas preview works', async ({ authenticatedPage, testDataContext }) => {
+  await authenticatedPage.goto(testDataContext.taskUrl);
+  // ... assertions ...
+});
+```
+
+**When to use worker-scope vs beforeAll:**
+| Criterion | beforeAll (Pattern A) | worker-scope fixture (Pattern D) |
+|-----------|----------------------|----------------------------------|
+| Setup cost | < 30 seconds | > 30 seconds (AI tasks, file processing) |
+| Sharing scope | Within one test.describe | Across all tests in the same worker |
+| Data mutation | Tests may modify data | Tests only read data (read-only shared) |
+| Handoff signal | `setup[].scope` absent or `"test"` | `setup[].scope = "worker"` |
+
+**Handoff integration**: When the handoff's `setup[]` contains `{ "scope": "worker" }`, generate the setup as a worker-scope fixture instead of inline `beforeAll`.
+
 ---
 
 After generating all `test()` blocks, **extract every locator into a Page Object class** — no locator string should appear directly in spec files.
@@ -593,17 +657,56 @@ Grep "aria-label|role=" --glob "*.tsx,*.jsx"
 **CDP verification** (no source code / need to verify real rendering):
 Follow **Phase 4: Locator Verification (verify mode)** in `skills/cdp-explorer/SKILL.md`.
 
-### 2.3 Locator Priority
+### 2.3 Locator Priority (Context-Dependent)
 
-> The complete locator priority definition is in the "Locator Priority" section of `skills/cdp-explorer/SKILL.md`; this is a quick reference.
+> Priority depends on `hasTestIds` (from §1.2 source scan) and the source mode.
 
-**Language-agnostic priority (after CDP discovery / multilingual scenarios):**
-`data-testid` > CSS class > `aria-label` > `role+name` > plain text
+**When `hasTestIds = true` (source code uses data-testid):**
+`getByTestId` (when specific testid found in source) > `getByRole` > `getByLabel` > `getByPlaceholder` > `getByText` > CSS
 
-**Semantic priority (single language, confirmed no discrepancies):**
-`getByRole` > `getByLabel` > `getByPlaceholder` > `getByText` > `getByTestId` > CSS
+**When `hasTestIds = false` (no data-testid in source — default for PRD mode until verified):**
+`getByRole` > `getByLabel` > `getByPlaceholder` > `getByText` > CSS
+> **NEVER** use `getByTestId` or `[data-testid="..."]` — they will always fail.
 
-**When conflicts arise**: if multilingual/i18n exists or CDP vs headless text differs → always prefer language-agnostic locators.
+**CDP source (source = "cdp"):**
+Use `locatorHint` from baseline directly. If baseline contains `locatorProfile.hasTestIds`, use it as context. The CDP DOM scan already captured actual selectors.
+
+**When conflicts arise**: If multilingual/i18n exists (projectContext.appLanguages is set) or CDP vs headless text differs → prefer language-agnostic locators (`getByRole` with `name` from i18n, or CSS class).
+
+### 2.3.1 i18n-Aware Locators (Multi-Language Testing)
+
+When `projectContext.appLanguages` is configured (e.g., `"en,zh"`), POM must use i18n for all text-based locators:
+
+**POM constructor pattern:**
+```typescript
+type I18n = { t: (key: string) => string; locale: string };
+
+export class CanvasPage {
+  constructor(private readonly page: Page, private readonly i18n?: I18n) {}
+
+  // Language-agnostic (preferred — no i18n needed)
+  getDownloadButton() { return this.page.locator('button[title="Download file"]'); }
+
+  // i18n-aware (when text is the only differentiator)
+  getMaximizeButton() {
+    return this.i18n
+      ? this.page.getByRole('button', { name: this.i18n.t('canvas.maximize') })
+      : this.page.getByRole('button', { name: /Maximize|最大化/i });
+  }
+}
+```
+
+**Rules:**
+1. POM constructor: `constructor(page: Page, i18n?: I18n)` — i18n is optional for backward compatibility
+2. Locators that match by structure (role, CSS, testid): no i18n needed
+3. Locators that match by text (getByText, getByLabel, button name): use `this.i18n.t('key')` with regex fallback
+4. Specs instantiate POM with i18n: `const canvas = new CanvasPage(page, i18n);`
+5. i18n keys come from handoff's `uiElements[].i18nKey` field (populated by CDP explorer or inferred from source i18n messages)
+
+**i18n key discovery** (during POM generation):
+1. If `projectContext.i18nMessagesDir` is available: Read the default locale messages JSON, reverse-lookup each UI text to find its i18n key
+2. If handoff entry has `i18nKey` field: use it directly
+3. If neither available: use bilingual regex fallback (`/English|中文/i`)
 
 ### 2.4 Common Locator Scenarios
 
@@ -921,7 +1024,7 @@ report-analyzer → bug-reporter → Linear Issue — the entire pipeline depend
 3. **Tag annotations** for selective execution: `{ tag: ['@smoke'] }`
 4. **Soft assertions** for non-blocking checks: `await expect.soft(locator).toHaveText('...')`
 5. **Parameterized tests** using loops + arrays, do not copy-paste
-6. **Set timeout defaults at the config level**; however, for test cases involving AI processing or long-running async tasks (e.g., `waitForTaskCompleted`), you **must** add `test.setTimeout(600_000)` (10 minutes) at the test level, since the config default timeout is insufficient for these time-consuming operations
+6. **Timeout enforcement (MANDATORY)**: For test cases involving AI processing or long-running async tasks (e.g., `sendMessage`, `createTask`, `waitForTaskCompleted`, `waitForSelector` with timeout > 30s), you **must** add `test.setTimeout(600_000)` (10 minutes) at the test level. This is a **hard requirement** enforced by post-generation validation (§1.1 timeout auto-detection), not a suggestion. Missing timeouts will be auto-injected with a warning.
 7. **Trace viewer debugging**: `pnpm exec playwright show-trace trace.zip`
 8. **fullyParallel: true** but ensure test isolation
 9. **afterEach cleanup** of test data

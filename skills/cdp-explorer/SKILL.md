@@ -1048,6 +1048,13 @@ Save to `$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{page-slug}.json`:
     { "draggable": "task-card", "dropZones": ["column-todo", "column-done"] }
   ],
 
+  "locatorProfile": {
+    "hasTestIds": true,
+    "testIdCount": 42,
+    "hasAriaLabels": true,
+    "dominantStrategy": "testid"
+  },
+
   "summary": {
     "totalStates": 12,
     "totalInteractives": 234,
@@ -1095,15 +1102,21 @@ During execution:
 
 ---
 
-## Language Difference Handling
+### Language Difference Handling (i18n-Aware Exploration)
 
-CDP connects to local Chrome (which may be in Chinese), while Playwright headless defaults to English.
+CDP connects to the browser which may display in any language. When `projectContext.appLanguages` is set:
 
-**Mandatory rules:**
-1. The `text` field in DOM scan results records **actual page text** (which may be in Chinese)
-2. When generating locators, prioritize **language-agnostic attributes**: `data-testid` > CSS class > `aria-label`
-3. If text matching is necessary → record both Chinese and English text (if inferable)
-4. In the baseline JSON, annotate `lang: "zh-CN"` or the detected language
+1. **Detect current page language**: `evaluate(() => document.documentElement.lang || document.cookie.match(/NEXT_LOCALE=(\w+)/)?.[1] || 'unknown')`
+2. **Record both text and i18n key**: For each interactive element, if `projectContext.i18nMessagesDir` is available:
+   a. Read the default locale messages JSON from source
+   b. Reverse-lookup the element's displayed text to find the i18n key
+   c. Store both in the baseline:
+   ```json
+   { "text": "Download file", "i18nKey": "canvas.downloadFile", "localeDetected": "en" }
+   ```
+3. If i18n messages are NOT available: record only the displayed text + detected locale, annotate `i18nAware: false`
+4. When generating locators, prioritize **language-agnostic attributes**: CSS class > `aria-label` > `data-testid` (if present)
+5. If text matching is necessary → store the i18n key for downstream POM generation to resolve at runtime via `i18n.t('key')`
 
 ---
 
@@ -1151,6 +1164,10 @@ When exploration ends, record the termination reason in the baseline's `explorat
 3. `aria-label` — Usable when hardcoded in English
 4. `role` + `name` — Be aware of headless language differences
 5. Plain text — Most susceptible to language impact
+
+> **Conditional data-testid**: `data-testid` is listed first ONLY if the CDP scan actually discovered elements with this attribute. If no elements in the scan have `testId` populated, the effective priority becomes:
+> `CSS class` > `aria-label` > `role+name` > plain text
+> The `locatorProfile` field in the baseline output (see Phase 5) records whether data-testid was found.
 
 **Semantic priority (single language, confirmed no differences):**
 

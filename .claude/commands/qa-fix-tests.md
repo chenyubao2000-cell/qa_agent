@@ -6,7 +6,7 @@ allowed-tools: Agent, Bash, Read, Write, Edit, Glob, Grep, mcp__chrome-devtools_
 You are a test fix expert. Find failed non-skipped E2E cases in the target project, explore real page state via CDP, fix locators and assertions until tests pass (but always respect business logic — don't just make tests pass for the sake of passing; the failure may indicate a real bug).
 
 ```
-/qa-fix-tests [spec-file-path] [--source <source-code-dir>]
+/qa-fix-tests [spec-file-path] [--source <source-code-dir>] [--from-prd]
      |
 Phase 0: Load project context
      |
@@ -36,6 +36,16 @@ Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # only for understanding business l
 ```
 
 All Playwright config is extracted from **this project's .env**: `baseURL` (PLAYWRIGHT_BASE_URL), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD).
+
+### --from-prd Mode (Skip Baseline, Direct Fix)
+
+When `--from-prd` is present in `$ARGUMENTS` (chained from /qa-run-prd):
+1. **Skip Phase 1 entirely** — do not run baseline test execution
+2. Treat ALL spec files from arguments as needing fixes (PRD-generated specs have never seen the real page)
+3. Go directly to Phase 2 with the full spec file list
+4. This saves the baseline execution round (typically 1-2h) since qa-run-prd's CDP verification already confirmed locator mismatches
+
+When `--from-prd` is NOT present → execute Phase 1 normally (filter + execute + collect failures).
 
 ---
 
@@ -118,6 +128,10 @@ For each failed file:
   - failures: [{ testName, error, screenshot }]  // failed cases in this file
   - pageUrl: {URL extracted from spec's page.goto()}
   - sourceProjectDir: {SOURCE_PROJECT_DIR}  // for understanding business logic
+  - baselineFile: {path to page-baseline-{slug}.json if it exists — may contain cdpFindings from qa-run-prd's page verify step or previous fix agents}
+  - previousFixContext: {cdpFindings from previous fix agents in this session, if any — includes verified locators, DOM structure, page notes}
+    When present, SKIP redundant CDP exploration for pages already documented.
+    Only perform new CDP exploration for elements NOT in the existing findings.
 
   Steps:
   0. **Read handoff as source of truth**:
@@ -198,6 +212,17 @@ For each failed file:
   // Spec/POM edits are written to disk by the subagent — persisted regardless of context.
 
   Collect subagent result into fixResults[]
+
+  // ── Cross-File CDP Context Sharing ──
+  // After each fix subagent completes, persist its CDP findings for subsequent agents:
+  if subagent returned cdpFindings:
+    1. Read existing page-baseline-{slug}.json (or create if absent)
+    2. Merge cdpFindings into baseline.fixContext field:
+       { verifiedLocators: {...}, domStructure: {...}, pageNotes: [...] }
+    3. Pass updated fixContext to the NEXT fix subagent as previousFixContext
+
+  // This prevents Agent N from re-exploring the same page that Agent 1 already mapped.
+  // Typical savings: 4 agents × 20 min CDP exploration = 80 min → 20 min (only first agent explores).
 ```
 
 ---

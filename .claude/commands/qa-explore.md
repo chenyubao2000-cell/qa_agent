@@ -68,6 +68,9 @@ Extract all config from **this project's .env**:
 - `authSetup` — `E2E_TEST_EMAIL` has value -> requires auth state
 - `testCredentials` — `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD`
 - `techStack` — from source directory CLAUDE.md
+- `appLanguages` — `APP_LANGUAGES` from .env (comma-separated, e.g., "en,zh"), default: single project mode
+- `i18nMessagesDir` — `I18N_MESSAGES_DIR` from .env (path relative to sourceProjectDir, e.g., "apps/mira-work/i18n/messages"), default: null
+- `defaultLocale` — first language in APP_LANGUAGES, or infer from source project
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
@@ -132,12 +135,27 @@ export default defineConfig({
     trace: "retain-on-failure",
     video: "retain-on-failure",
   },
-  projects: [{
-    name: "e2e",
-    testDir: "./tests/e2e",
-    testMatch: "**/testcases/**/*.test.ts",
-    use: { ...devices["Desktop Chrome"] },
-  }],
+  // ── i18n multi-language projects ──
+  // When APP_LANGUAGES is set (e.g., "en,zh"), generate one project per language.
+  // Each project sets locale + NEXT_LOCALE cookie to switch app language.
+  // When APP_LANGUAGES is not set, generate a single "e2e" project (default behavior).
+  projects: process.env.APP_LANGUAGES
+    ? process.env.APP_LANGUAGES.split(',').map(lang => ({
+        name: `e2e-${lang.trim()}`,
+        testDir: "./tests/e2e",
+        testMatch: "**/testcases/**/*.test.ts",
+        use: {
+          ...devices["Desktop Chrome"],
+          locale: lang.trim() === 'zh' ? 'zh-CN' : lang.trim(),
+          extraHTTPHeaders: { 'Cookie': `NEXT_LOCALE=${lang.trim()}` },
+        },
+      }))
+    : [{
+        name: "e2e",
+        testDir: "./tests/e2e",
+        testMatch: "**/testcases/**/*.test.ts",
+        use: { ...devices["Desktop Chrome"] },
+      }],
 });
 ```
 
@@ -182,6 +200,15 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
 export { expect };
 ```
+
+> **i18n fixture** (generated when APP_LANGUAGES is set):
+> When APP_LANGUAGES is configured, add an `i18n` worker-scope fixture that loads
+> the target project's i18n message files and provides a `t(key)` resolver.
+> The fixture reads messages from `$SOURCE_PROJECT_DIR/$I18N_MESSAGES_DIR/{locale}.json`.
+> Specs use it as: `test('...', async ({ authenticatedPage, i18n }) => { ... })`.
+> POM classes accept `i18n` as optional parameter: `new CanvasPage(page, i18n)`.
+>
+> If APP_LANGUAGES is NOT set → do not generate the i18n fixture (backward compatible).
 
 **Without E2E_TEST_EMAIL** -> simple version:
 
@@ -453,6 +480,8 @@ for area in exploredAreas:
         authSetup: {true/false}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
+        appLanguages: {APP_LANGUAGES or null}
+        i18nMessagesDir: {I18N_MESSAGES_DIR or null}
     - existingPageObjects: [list of already-generated POM file paths]
 
     Execute per agents/e2e-orchestrator.md steps, return artifact paths.

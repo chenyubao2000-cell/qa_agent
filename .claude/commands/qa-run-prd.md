@@ -228,6 +228,20 @@ Return:
 ```
 ```
 
+// ── Persist CDP findings to baseline ──
+// So that downstream qa-fix-tests can reuse the page exploration:
+1. Read or create page-baseline-{slug}.json in $QA_WORKSPACE_DIR/test-cases/generated/
+2. Write subagent's exploration results into baseline.cdpFindings:
+   {
+     "scanTimestamp": "{ISO timestamp}",
+     "pageUrl": "{pageUrl}",
+     "domStructure": { /* from three-layer scan */ },
+     "verifiedLocators": { /* selector → UNIQUE/ZERO/MULTIPLE */ },
+     "discrepancies": ["PRD says X but page shows Y", ...],
+     "locatorProfile": { "hasTestIds": bool, "dominantStrategy": "role"|"css"|"testid" }
+   }
+3. This allows qa-fix-tests to skip redundant CDP exploration
+
 When multiple POMs correspond to different pages, launch one subagent per page (serially, to avoid CDP conflicts).
 
 After all pages verified → continue to fix-tests phase
@@ -242,7 +256,7 @@ allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
 
 // Launch /qa-fix-tests targeting only the newly generated specs
 // This will: execute → identify failures → CDP explore → fix locators/assertions → verify
-Execute /qa-fix-tests with arguments: {allGeneratedSpecs joined by space}
+Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
 ```
 
 > After qa-fix-tests completes, the user can run `/qa-run-all` for full regression + Linear reporting if needed.
