@@ -55,7 +55,7 @@ Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_UR
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
 Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
-> 包括 i18n fixture 生成：当 APP_LANGUAGES 配置时，按 qa-explore Phase 0 Step 2e 规范生成 i18n fixture。
+> Including i18n fixture generation: when APP_LANGUAGES is configured, generate i18n fixture per qa-explore Phase 0 Step 2e specification.
 
 global-setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2 (see below).
 
@@ -420,22 +420,22 @@ node skills/excel-case-export/scripts/generate-excel.js \
 
 Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx")` → if missing, ERROR
 
-### Step 2 — Delegate to /qa-fix-tests (Locator 验证 + 修复 + 执行)
+### Step 2 — Delegate to /qa-fix-tests (Locator verification + fix + execution)
 
-> **职责分离**：qa-from-issue 只负责 CDP 探查 + 生成。
-> Locator 验证 + 修复 + 执行统一由 `/qa-fix-tests` 完成（与 qa-explore、qa-run-prd 一致）。
+> **Separation of concerns**: qa-from-issue only handles CDP exploration + generation.
+> Locator verification + fix + execution are all handled by `/qa-fix-tests` (consistent with qa-explore and qa-run-prd).
 
 ```
 allGeneratedSpecs = orchestrator.specs + orchestrator.modified_specs
 
-// 委托 qa-fix-tests：CDP 验证 + 修复 + 执行 + 回归
+// Delegate to qa-fix-tests: CDP verify + fix + execute + regression
 Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
 ```
 
 ### Step 3 — Linear Reporting (after fix-tests completes)
 
-> qa-from-issue 是唯一需要上报 Linear 的生成入口。
-> fix-tests 完成后，启动 report-analyzer 分析报告并上报。
+> qa-from-issue is the only generation entry point that reports to Linear.
+> After fix-tests completes, launch report-analyzer to analyze reports and submit.
 
 **Agent — report-analyzer** (haiku):
 - Launched after qa-fix-tests completes

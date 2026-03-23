@@ -30,8 +30,8 @@ Read `$SOURCE_PROJECT_DIR/CLAUDE.md` to get tech stack (only for understanding b
 **Initialize workspace** (empty folder compatible, skip all if already initialized):
 Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
 
-> qa-run-prd 本身不使用 CDP。所有 CDP 工作（locator 验证、登录墙处理、页面探查）
-> 统一由下游 `/qa-fix-tests` 负责。这避免了重复 CDP 探查（qa-run-prd 探一次 + fix-tests 再探一次）。
+> qa-run-prd itself does not use CDP. All CDP work (locator verification, login wall handling, page exploration)
+> is uniformly handled by downstream `/qa-fix-tests`. This avoids redundant CDP exploration (qa-run-prd exploring once + fix-tests exploring again).
 
 ## Phase 1: Read PRD + Change Detection
 
@@ -182,14 +182,14 @@ if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
 
 ### Step 2 — Fix tests via /qa-fix-tests
 
-> PRD 生成的 spec 从未见过真实页面，locator 基本都是错的。
-> **所有 CDP 工作（页面探查、locator 验证、登录墙处理、断言修复）统一由 qa-fix-tests 负责。**
-> qa-run-prd 不做任何 CDP 操作，职责清晰：生成 → 交给修复。
+> PRD-generated specs have never seen the real page — locators are almost always wrong.
+> **All CDP work (page exploration, locator verification, login wall handling, assertion fixing) is uniformly handled by qa-fix-tests.**
+> qa-run-prd does not perform any CDP operations. Clear separation of concerns: generate → hand off to fix.
 >
-> 为什么不在 qa-run-prd 里做 CDP 验证？
-> 1. qa-fix-tests 会做完整的 CDP 探查 + 修复 + 验证循环，能力是 page-verify 的超集
-> 2. 去掉 page-verify 省 ~20 分钟 CDP 重复探查
-> 3. qa-fix-tests 的跨文件 CDP 共享机制（fixContext）比独立 page-verify 更高效
+> Why not do CDP verification in qa-run-prd?
+> 1. qa-fix-tests performs the full CDP exploration + fix + verification cycle, a superset of page-verify
+> 2. Removing page-verify saves ~20 minutes of redundant CDP exploration
+> 3. qa-fix-tests' cross-file CDP sharing mechanism (fixContext) is more efficient than standalone page-verify
 
 ```
 allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
@@ -197,9 +197,9 @@ allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
 // Launch /qa-fix-tests targeting only the newly generated specs
 // This will: execute → identify failures → CDP explore → fix locators/assertions → verify
 Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
-// 示例：
+// Example:
 // Execute /qa-fix-tests with arguments: --from-prd tests/e2e/testcases/generated/login-prd.test.ts tests/e2e/testcases/generated/tasks-prd.test.ts
-// qa-fix-tests 解析规则：--from-prd 标记跳过 baseline，.test.ts 路径作为待修复文件列表
+// qa-fix-tests parsing rules: --from-prd flag skips baseline, .test.ts paths serve as the list of files to fix
 ```
 
 > After qa-fix-tests completes, the user can run `/qa-run-all` for full regression + Linear reporting if needed.

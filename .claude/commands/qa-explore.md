@@ -717,10 +717,10 @@ If the user runs `/qa-explore` again on a previously explored page:
 ```
 allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
 
-// 委托 qa-fix-tests：CDP 验证 + 修复 locator/断言 + 执行 + 回归
+// Delegate to qa-fix-tests: CDP verify + fix locators/assertions + execute + regression
 Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
-// 注：虽然来源是 CDP 不是 PRD，但 --from-prd 的语义是"跳过 baseline 执行，直接修复"
-// CDP 生成的 spec 同样需要 locator 修复（CDP 基线的 locator 可能因 headless/headed 差异不准确）
+// Note: although the source is CDP not PRD, --from-prd semantics mean "skip baseline execution, fix directly"
+// CDP-generated specs also need locator fixing (CDP baseline locators may be inaccurate due to headless/headed differences)
 ```
 
 ```

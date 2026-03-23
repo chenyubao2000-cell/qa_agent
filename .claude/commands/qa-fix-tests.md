@@ -63,13 +63,13 @@ When `--from-prd` is NOT present → execute Phase 1 normally (filter + execute 
 
 ### --upgrade-i18n Mode (Upgrade Existing Specs to Multi-Language)
 
-**场景**：先用单语言（如英文）探查生成了 spec/POM，后来设了 `APP_LANGUAGES=en,zh` 要支持多语言。
-已有的 POM 用硬编码英文（`getByRole('button', { name: 'Download file' })`），不兼容中文环境。
+**Scenario**: Initially explored and generated spec/POM in a single language (e.g., English), then later set `APP_LANGUAGES=en,zh` to support multi-language.
+Existing POMs use hardcoded English (`getByRole('button', { name: 'Download file' })`), incompatible with Chinese environment.
 
 When `--upgrade-i18n` is present in `$ARGUMENTS`:
-1. **Skip Phase 1**（不执行测试）
-2. **Skip Phase 2**（不做 CDP 修复）
-3. **执行 i18n 升级流程**：
+1. **Skip Phase 1** (no test execution)
+2. **Skip Phase 2** (no CDP fixes)
+3. **Execute i18n upgrade flow**:
 
 ```
 For each spec file (from arguments or Glob all):
@@ -91,17 +91,17 @@ For each spec file (from arguments or Glob all):
      c. If NOT found → keep original (language-agnostic or regex already)
 
   **Locator conflict resolution**:
-  - Language-agnostic locators (CSS class, `[title="..."]`, `[data-testid="..."]`) → **不升级**，保持原样
-    这些 locator 不依赖语言，i18n 化反而降低稳定性
-  - getByRole with hardcoded English name → **升级** 为 i18n.t()
-  - getByText with hardcoded text → **升级** 为 i18n.t()
-  - 已有 i18n.t() 的 → **跳过**（已升级）
-  - 已有双语 regex（/English|中文/i）→ **升级** 为 i18n.t()（更精确）
+  - Language-agnostic locators (CSS class, `[title="..."]`, `[data-testid="..."]`) → **do not upgrade**, keep as-is
+    These locators are language-independent; converting to i18n would reduce stability
+  - getByRole with hardcoded English name → **upgrade** to i18n.t()
+  - getByText with hardcoded text → **upgrade** to i18n.t()
+  - Already has i18n.t() → **skip** (already upgraded)
+  - Already has bilingual regex (/English|Chinese/i) → **upgrade** to i18n.t() (more precise)
 
-  **错误处理**:
-  - i18n 消息文件不存在 → ERROR: "I18N_MESSAGES_DIR 指向的 {path}/{locale}.json 不存在，请检查 .env 配置"，终止升级
-  - i18n JSON 解析失败 → ERROR: "消息文件格式错误: {path}"，终止升级
-  - 反查命中率 < 30% → WARNING: "仅 {N}% 的文本 locator 匹配到 i18n key，建议检查 I18N_MESSAGES_DIR 是否正确"，继续执行
+  **Error handling**:
+  - i18n message file does not exist → ERROR: "I18N_MESSAGES_DIR target {path}/{locale}.json not found, check .env configuration", abort upgrade
+  - i18n JSON parse failure → ERROR: "Message file format error: {path}", abort upgrade
+  - Reverse-lookup hit rate < 30% → WARNING: "Only {N}% of text locators matched an i18n key, consider checking if I18N_MESSAGES_DIR is correct", continue execution
 
   6. Update POM constructor: add `i18n?: I18n` parameter if not already present
   7. Update spec: add `i18n` destructuring from fixture, pass to POM constructor
@@ -116,18 +116,18 @@ For each spec file (from arguments or Glob all):
      This ensures next /qa-run-prd incremental update has i18nKey data.
 ```
 
-4. **更新 fixtures.ts**：如果 i18n fixture 不存在，按 qa-explore Phase 0 Step 2e 的规范生成
-5. **更新 playwright.config.ts**：如果没有多 project，按 qa-explore Phase 0 Step 2d 的规范重新生成
-6. **验证**：对每个升级的 spec 分别跑 `--project=e2e-en` 和 `--project=e2e-zh` 验证
+4. **Update fixtures.ts**: If i18n fixture does not exist, generate per qa-explore Phase 0 Step 2e specification
+5. **Update playwright.config.ts**: If multi-project is not configured, regenerate per qa-explore Phase 0 Step 2d specification
+6. **Verify**: For each upgraded spec, run `--project=e2e-en` and `--project=e2e-zh` separately to verify
 
 ```
 /qa-fix-tests --upgrade-i18n
-  → 升级全部 spec/POM 为 i18n 模式
+  → Upgrade all spec/POM to i18n mode
 /qa-fix-tests --upgrade-i18n tests/e2e/testcases/generated/canvas-preview-prd.test.ts
-  → 只升级指定文件
+  → Upgrade only the specified file
 ```
 
-> **保留已有修复**：upgrade-i18n 不删除文件，只替换文本模式。之前 CDP 修好的 locator（如 `button[title="Download file"]`）不受影响（title 属性是语言无关的）。只有 getByText/getByRole name 等文本匹配的 locator 会被升级。
+> **Preserves existing fixes**: upgrade-i18n does not delete files, only replaces text patterns. Previously CDP-fixed locators (e.g., `button[title="Download file"]`) are unaffected (title attribute is language-agnostic). Only text-matching locators like getByText/getByRole name are upgraded.
 
 ---
 
