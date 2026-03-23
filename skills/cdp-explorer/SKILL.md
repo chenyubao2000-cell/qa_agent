@@ -229,6 +229,8 @@ mcp__chrome-devtools__evaluate_script
         class: el.className?.toString().substring(0, 200),
         visible: el.offsetParent !== null || el.offsetWidth > 0,
         rect: (() => { const r = el.getBoundingClientRect(); return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) }; })(),
+        i18nKey: null,       // populated by Step 3.5 i18n reverse-lookup, e.g. "canvas.downloadFile"
+        i18nAware: false,    // set to true after i18n key reverse-lookup is attempted
         region: regionName
       }));
 
@@ -290,6 +292,23 @@ mcp__chrome-devtools__evaluate_script
     };
   }
 ```
+
+### Step 3.5 — i18n key reverse-lookup (when `projectContext.i18nMessagesDir` is available)
+
+After collecting all interactive elements and their displayed text:
+1. Load `$sourceProjectDir/$i18nMessagesDir/{detectedLocale}.json`
+2. Build flat value→key map: flatten nested JSON to dot-path keys
+   ```javascript
+   // { "canvas": { "downloadFile": "Download file" } }
+   // → { "Download file": "canvas.downloadFile" }
+   ```
+3. For each element with non-empty `text`:
+   a. Look up text in flat map → set element.i18nKey if found
+   b. Try trimmed/lowercased match → set if found
+   c. No match → element.i18nKey = null
+4. Record in baseline: `"i18nReverseLookup": { "attempted": N, "matched": M }`
+
+This enriches the baseline so that downstream test-case-generator and playwright-script-generator can reference i18n keys instead of hardcoded text.
 
 ### Layer 2 — Accessibility Tree (Hierarchy + Semantic State)
 

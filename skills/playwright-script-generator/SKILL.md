@@ -703,10 +703,64 @@ export class CanvasPage {
 4. Specs instantiate POM with i18n: `const canvas = new CanvasPage(page, i18n);`
 5. i18n keys come from handoff's `uiElements[].i18nKey` field (populated by CDP explorer or inferred from source i18n messages)
 
+**Spec code generation pattern** (when appLanguages is set):
+
+Every generated spec MUST:
+1. Import `i18n` from fixtures: `import { test, expect, type I18n } from '../../fixtures';`
+   (The i18n fixture is auto-generated in fixtures.ts when APP_LANGUAGES is configured)
+2. Destructure `i18n` in every test() block: `test('...', async ({ authenticatedPage: page, i18n }) => { ... })`
+3. Pass `i18n` to POM constructors: `const canvas = new CanvasPage(page, i18n);`
+
+Example generated spec:
+```typescript
+import { test, expect } from '../../fixtures';
+import { CanvasPage } from '../../pages/canvas.page';
+
+test.describe('Canvas Preview', () => {
+  test('download button visible', async ({ authenticatedPage: page, i18n }) => {
+    const canvas = new CanvasPage(page, i18n);
+    await page.goto('/task/abc');
+    // i18n-aware assertion — resolves to "Download file" (en) or "下载文件" (zh)
+    await expect(canvas.getDownloadButton()).toBeVisible();
+  });
+});
+```
+
+When `appLanguages` is NOT set (backward compatibility):
+- Do NOT import i18n from fixtures
+- Do NOT pass i18n to POM constructors: `const canvas = new CanvasPage(page);`
+- POM's `i18n?` parameter receives undefined → falls back to regex
+
 **i18n key discovery** (during POM generation):
 1. If `projectContext.i18nMessagesDir` is available: Read the default locale messages JSON, reverse-lookup each UI text to find its i18n key
 2. If handoff entry has `i18nKey` field: use it directly
 3. If neither available: use bilingual regex fallback (`/English|中文/i`)
+
+**POM locator generation from handoff i18nKey:**
+
+When generating POM locators from handoff entries:
+1. If `uiElement.i18nKey` is present AND `projectContext.appLanguages` is set:
+   ```typescript
+   // Generated POM getter
+   getDownloadButton() {
+     return this.i18n
+       ? this.page.getByRole('button', { name: this.i18n.t('canvas.downloadFile') })
+       : this.page.getByRole('button', { name: /Download file|下载文件/i });
+   }
+   ```
+2. If `uiElement.i18nKey` is null (not found in messages):
+   ```typescript
+   // Fallback: bilingual regex from handoff name + reverse-translated name
+   getDownloadButton() {
+     return this.page.getByRole('button', { name: /Download file/i });
+   }
+   ```
+3. For assertions with i18nKey:
+   ```typescript
+   // In spec
+   await expect(canvas.getToast()).toHaveText(i18n.t('toast.downloadSuccess'));
+   // Resolves to "Download successful" (en) or "下载成功" (zh)
+   ```
 
 ### 2.4 Common Locator Scenarios
 
@@ -847,6 +901,23 @@ export class LoginPage extends BasePage {
 ```
 
 For multilingual scenarios use regex: `getByRole('button', { name: /sign in|登录/i })`
+
+**i18n type definition** (exported from fixtures.ts when APP_LANGUAGES is set):
+```typescript
+export type I18n = { t: (key: string) => string; locale: string };
+```
+
+POM files import this type:
+```typescript
+import type { I18n } from '../fixtures';
+
+export class CanvasPage {
+  constructor(private readonly page: Page, private readonly i18n?: I18n) {}
+  // ...
+}
+```
+
+This ensures POM → fixtures type dependency is clean and circular imports are avoided.
 
 ---
 

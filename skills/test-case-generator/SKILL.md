@@ -2575,7 +2575,27 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
 - `uiElements[].action` — one of: `fill`, `click`, `select`, `check`, `uncheck`, `hover`, `press`
 - `uiElements[].dataType` — (optional, for `fill` action only) declares the semantic data type this field expects. When present, playwright-script-generator uses it to resolve a concrete inline value instead of using the `value` field. Format: `"{category}.{type}"`. When `dataType` is set, `value` should be `null` (script-generator resolves it).
 - `uiElements[].dataVariant` — (required when `dataType` is set) specifies the data variant: `"valid"`, `"invalid"`, `"boundary"`, or type-specific variants like `"strong"`, `"weak"`, `"long:500"`, `"xss"`, `"png"`, `"pdf"`, `"oversized"`, etc.
+- `uiElements[].i18nKey` — (optional) The i18n message key corresponding to this element's user-visible text.
+  Populated when `projectContext.i18nMessagesDir` is available:
+  1. Read messages JSON from `$sourceProjectDir/$i18nMessagesDir/{defaultLocale}.json`
+  2. For each uiElement with a text-based `name` (button label, heading text, placeholder):
+     a. Search the messages JSON for a value matching the name text
+     b. If found → set `i18nKey` to the dot-path key (e.g., "canvas.downloadFile")
+     c. If not found → leave `i18nKey` as null (downstream uses regex fallback)
+  3. When `i18nMessagesDir` is NOT available → all i18nKey values are null
+
+  Example:
+  ```json
+  { "role": "button", "name": "Download file", "i18nKey": "canvas.downloadFile", "action": "click" }
+  ```
 - `assertions[].type` — one of: `url`, `visible`, `hidden`, `text`, `value`, `count`, `enabled`, `disabled`
+- `assertions[].i18nKey` — (optional) For text assertions (type: "text", "heading", "label"), the i18n key of the expected text.
+  When present, playwright-script-generator uses `i18n.t(key)` instead of hardcoded text.
+
+  Example:
+  ```json
+  { "type": "text", "expected": "Download successful", "i18nKey": "toast.downloadSuccess" }
+  ```
 - `timeout` — default `null` (uses config default). **Auto-detection rule**: When generating each handoff entry, scan its `setup[]`, `preconditions[]`, and `action` text for AI/async keywords. If any match is found, automatically set `timeout: 600000`:
 
   | Keyword pattern (case-insensitive, in setup[].action or preconditions[]) | Reason |
@@ -2624,6 +2644,16 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
   ]
 }
 ```
+
+**i18n key reverse-lookup** (when `projectContext.i18nMessagesDir` is set):
+After populating each handoff entry's uiElements and assertions, perform reverse-lookup:
+1. Load `$sourceProjectDir/$i18nMessagesDir/{defaultLocale}.json` (use first language in appLanguages as default)
+2. Build a flat map: { "Download file": "canvas.downloadFile", "Maximize": "canvas.maximize", ... }
+3. For each uiElement.name and assertion.expected:
+   a. Exact match in flat map → set i18nKey
+   b. Case-insensitive match → set i18nKey
+   c. No match → leave i18nKey null
+4. This is a best-effort lookup. Missing keys are acceptable — downstream handles null gracefully via regex fallback.
 
 ### Step 2 — Invoke playwright-script-generator
 

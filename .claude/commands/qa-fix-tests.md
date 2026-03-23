@@ -142,6 +142,13 @@ For each failed file:
   - failures: [{ testName, error, screenshot }]  // failed cases in this file
   - pageUrl: {URL extracted from spec's page.goto()}
   - sourceProjectDir: {SOURCE_PROJECT_DIR}  // for understanding business logic
+  - appLanguages: {APP_LANGUAGES from .env, if set}
+  - i18nMessagesDir: {I18N_MESSAGES_DIR from .env, if set}
+    When set, the fix agent should:
+    1. Detect the current page language via CDP
+    2. When fixing text-based locators, prefer i18n.t('key') pattern over hardcoded text
+    3. When fixing assertions, use i18n.t('key') if the expected text maps to a known i18n key
+    4. Read messages JSON to understand the correct expected text for the current language
   - baselineFile: {path to page-baseline-{slug}.json if it exists — may contain cdpFindings from qa-run-prd's page verify step or previous fix agents}
   - previousFixContext: {cdpFindings from previous fix agents in this session, if any — includes verified locators, DOM structure, page notes}
     When present, SKIP redundant CDP exploration for pages already documented.
