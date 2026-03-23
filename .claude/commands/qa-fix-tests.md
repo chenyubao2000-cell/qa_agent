@@ -74,7 +74,7 @@ When `--upgrade-i18n` is present in `$ARGUMENTS`:
 ```
 For each spec file (from arguments or Glob all):
   1. Read the spec's corresponding POM file (inferred from import)
-  2. Read i18n messages JSON from $SOURCE_PROJECT_DIR/$I18N_MESSAGES_DIR/{defaultLocale}.json
+  2. Read i18n messages JSON from $QA_WORKSPACE_DIR/messages/{defaultLocale}.json
   3. Build flat value→key map: { "Download file": "canvas.downloadFile", "Maximize": "canvas.maximize", ... }
   4. Scan POM for all hardcoded text patterns:
      - getByRole('button', { name: 'Download file' })
@@ -211,7 +211,7 @@ For each failed file:
   - pageUrl: {URL extracted from spec's page.goto()}
   - sourceProjectDir: {SOURCE_PROJECT_DIR}  // for understanding business logic
   - appLanguages: {APP_LANGUAGES from .env, if set}
-  - i18nMessagesDir: {I18N_MESSAGES_DIR from .env, if set}
+  - i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
     When set, the fix agent should:
     1. Detect the current page language via CDP
     2. When fixing text-based locators, prefer i18n.t('key') pattern over hardcoded text

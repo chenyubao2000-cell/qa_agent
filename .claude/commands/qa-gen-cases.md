@@ -28,7 +28,7 @@ Read `.env` to get `QA_WORKSPACE_DIR` (default artifact output directory) and `S
 
 Also extract (if present):
 - `APP_LANGUAGES` — comma-separated language codes for multi-language testing
-- `I18N_MESSAGES_DIR` — path to i18n message JSON files relative to sourceProjectDir
+- `I18N_MESSAGES_DIR` — i18n 消息文件源路径（Phase 0 复制到 QA_WORKSPACE_DIR/messages/）
 
 ```
 Read(".env")
@@ -124,7 +124,7 @@ Input:
     targetProjectDir: {OUTPUT_DIR}
     sourceProjectDir: {SOURCE_PROJECT_DIR}
     appLanguages: {APP_LANGUAGES or null}
-    i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+    i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
 
 Tasks:
 1. Ensure output directories exist: mkdir -p $targetProjectDir/test-cases/generated $targetProjectDir/test-cases/excel

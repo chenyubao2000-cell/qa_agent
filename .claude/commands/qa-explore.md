@@ -462,7 +462,7 @@ for area in areas:
   - pageUrl: {exploration URL}
   - nextStateId: {next available state number}
   - appLanguages: {APP_LANGUAGES or null}
-  - i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+  - i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
     When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
 
   Steps:
@@ -535,7 +535,7 @@ for area in exploredAreas:
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
         appLanguages: {APP_LANGUAGES or null}
-        i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+        i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
     - existingPageObjects: [list of already-generated POM file paths]
 
     Execute per agents/e2e-orchestrator.md steps, return artifact paths.

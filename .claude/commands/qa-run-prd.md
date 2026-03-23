@@ -121,7 +121,7 @@ for module in prdModules:
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
         appLanguages: {APP_LANGUAGES or null}
-        i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+        i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
 
     Execute per agents/e2e-orchestrator.md steps, return artifact paths.
     Note: prdChangeMode affects Step 2 dedup behavior — see Step 2.5 for "updated" mode.

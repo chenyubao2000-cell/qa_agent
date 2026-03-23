@@ -304,7 +304,7 @@ Input:
 - authSetup: {true/false}
 - testCredentials: {E2E_TEST_EMAIL / E2E_TEST_PASSWORD, if authSetup=true}
 - appLanguages: {APP_LANGUAGES or null}
-- i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+- i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
   When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
 
 Steps:
@@ -377,7 +377,7 @@ Input:
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
         appLanguages: {APP_LANGUAGES or null}
-        i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+        i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
 
 Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return artifact paths.
 ```
