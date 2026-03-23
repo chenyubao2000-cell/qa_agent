@@ -236,6 +236,15 @@ For each failed file:
 
   1. Connect to page (list_pages → select_page, or navigate if needed)
   2. Login wall detection per cdp-explorer Phase 1 Step 3
+     **If login wall detected AND global-setup.ts does NOT exist**:
+     a. Use cdp-explorer three-layer scan to discover login form selectors (email, password, submit)
+     b. CDP login with testCredentials from .env
+     c. Generate `$QA_WORKSPACE_DIR/tests/e2e/global-setup.ts` with verified real selectors
+        (same as qa-explore Phase 1 Step 1: 12h storageState cache, write .auth/user.json)
+     d. Update playwright.config.ts to include `globalSetup` if missing
+     e. Generate sign-in POM if not present
+     This ensures Playwright can authenticate in subsequent test-executor runs (Phase 3).
+     If global-setup.ts already exists → skip (don't overwrite user-customized login logic).
   3. For each failure, FIRST CLASSIFY (using handoff assertions as reference), then act:
 
      === Step 3a: Classify failure type ===
