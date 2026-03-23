@@ -25,6 +25,7 @@ Read(".env")
 Only need to extract:
 - `QA_WORKSPACE_DIR` — read specs, write reports
 - `LINEAR_*` — pass through to report-analyzer (bug reporting)
+- `APP_LANGUAGES` — if set, Playwright config has per-language projects (e.g., `e2e-en`, `e2e-zh`). test-executor must handle project selection.
 
 Not needed: SOURCE_PROJECT_DIR (no source reading), PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in global-setup).
 No initialization — only runs existing specs; workspace must have been initialized by `/qa-explore` or similar commands.
@@ -94,6 +95,18 @@ Input:
 
 Execute per agents/test-executor.md steps, return report paths and summary.
 ```
+
+**Multi-language project selection** (when `APP_LANGUAGES` is set):
+- Default: run ALL language projects. Playwright automatically discovers `e2e-en`, `e2e-zh` etc.
+  ```bash
+  npx playwright test --reporter=json,html  # runs all projects
+  ```
+- With `--project` argument: run specific language only.
+  ```bash
+  npx playwright test --project=e2e-en --reporter=json,html  # English only
+  ```
+- The test-executor agent receives the project list implicitly via playwright.config.ts.
+  No special handling needed — Playwright's multi-project execution handles language switching automatically (each project has its own locale + NEXT_LOCALE cookie).
 
 - Produce JSON + HTML reports to `$QA_WORKSPACE_DIR/tests/reports/`
 

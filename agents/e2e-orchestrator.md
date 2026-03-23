@@ -228,6 +228,7 @@ Read `skills/test-case-generator/SKILL.md` and execute according to the correspo
 - **Only generate test cases that Step 2 determined as "missing"**; do not regenerate already covered ones
 - Output: test-cases/generated/{slug}.md + test-cases/generated/playwright-handoff-{slug}.json
 - **Handoff is MANDATORY**: test-case-generator MUST produce handoff.json in ALL modes (PRD, CDP, issue). Each TC in Merged table = one handoff entry. If handoff is not produced, Step 4.5 will block the pipeline.
+- **i18n context**: When `projectContext.appLanguages` is set, pass `appLanguages` and `i18nMessagesDir` to test-case-generator. The skill uses these to populate `uiElements[].i18nKey` and `assertions[].i18nKey` in the handoff JSON via i18n reverse-lookup.
 - **PRD mode**: The .md file header must include module tracking metadata:
   ```
   <!-- PRD-hash: {sha256(module text)} | PRD-module: {module heading} | feature-slug: {feature} -->

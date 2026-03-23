@@ -26,6 +26,10 @@ Parse from `$ARGUMENTS`:
 
 Read `.env` to get `QA_WORKSPACE_DIR` (default artifact output directory) and `SOURCE_PROJECT_DIR` (PRD/source code directory).
 
+Also extract (if present):
+- `APP_LANGUAGES` — comma-separated language codes for multi-language testing
+- `I18N_MESSAGES_DIR` — path to i18n message JSON files relative to sourceProjectDir
+
 ```
 Read(".env")
 ```
@@ -116,6 +120,8 @@ Input:
 - projectContext:
     targetProjectDir: {OUTPUT_DIR}
     sourceProjectDir: {SOURCE_PROJECT_DIR}
+    appLanguages: {APP_LANGUAGES or null}
+    i18nMessagesDir: {I18N_MESSAGES_DIR or null}
 
 Tasks:
 1. Ensure output directories exist: mkdir -p $targetProjectDir/test-cases/generated $targetProjectDir/test-cases/excel
