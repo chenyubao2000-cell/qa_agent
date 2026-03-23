@@ -99,12 +99,11 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `prSourceDir` in pr
      for each pageUrl group: (launched in parallel)
        orchestrator → test cases + POM + spec
 
-   Step 3 — Serial locator verification (one subagent per POM, sequential):
-     for each POM:
-       CDP verify → fix locators (subagent, serial due to CDP)
+   Step 3 — Delegate to /qa-fix-tests (verify + fix + execute):
+     /qa-fix-tests --from-prd → locator fix → regression
 
-   Step 4 — Unified execution + reporting:
-     test-executor → report-analyzer
+   Step 4 — Linear reporting:
+     report-analyzer → bug-reporter → Linear
    ```
 4. Share the same POM (issues on the same page reuse the same Page Object)
 5. CDP operations serial (one browser), AI generation parallel (no browser needed)
@@ -123,11 +122,11 @@ Phase 2: CDP targeted exploration -> Verify page state described in issue (comma
 Phase 3: Sequential launch (execute in order)
          e2e-orchestrator (issue) -> cases -> Excel -> spec
               | after completion
-         test-executor -> receive spec -> execute tests -> produce reports
+         /qa-fix-tests --from-prd -> CDP verify + fix + execute
               | after completion
-         report-analyzer (pass sourceIssueKeys + specToIssueMap) -> route:
-               +-- Failures related to source issue -> comment back to original issue
-               +-- Newly discovered bugs -> dedup + create new issue
+         report-analyzer -> route failures:
+               +-- source issue spec failures -> write back to original issue
+               +-- other failures -> dedup + create new issue
 ```
 
 ---
@@ -383,7 +382,7 @@ Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return
 ```
 
 **Check orchestrator return value**:
-- If both `specs` and `modified_specs` are empty -> skip test-executor and report-analyzer, inform user directly
+- If both `specs` and `modified_specs` are empty -> skip qa-fix-tests and report-analyzer, inform user directly
 - Otherwise -> merge into execution list, continue
 
 **MANDATORY VERIFICATION GATE** (after ALL orchestrators complete):
@@ -412,39 +411,36 @@ Only proceed after ALL checks pass.
     "tests/e2e/testcases/generated/feature-b.test.ts": "STE-10" }
   ```
 
-**Locator verification** (command layer owns both verify AND fix, after orchestrator completes):
-1. Read the `page_objects` list returned by orchestrator
-2. Extract all locators from POM files
-3. For each locator, CDP verify mode: evaluate selector on live page → count matches
-4. UNIQUE (1 match) → pass
-5. ZERO (0 matches) → CDP DOM scan to find correct selector → Edit POM file to replace locator → re-verify
-6. MULTIPLE (N matches) → CDP DOM scan to find narrowing parent → Edit POM file to add parent scope → re-verify
-7. Max 3 fix attempts per locator; if still failing → mark as needs manual review
-8. All UNIQUE → continue
-
-**Export Excel** (after locator verification, before test execution):
+**Export Excel** (after orchestrator completes + verification gate passes):
 ```bash
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
   --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
 ```
-// Excel 命名规范：{identifier}-all-cases.xlsx
-// qa-explore: {page-slug}-all-cases.xlsx
-// qa-from-issue: {issue-slug}-all-cases.xlsx
-// qa-run-prd: {prd-name}-all-cases.xlsx
-// qa-gen-cases: {prd-name}-all-cases.xlsx
 
 Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx")` → if missing, ERROR
 
-**Agent 2 — test-executor** (haiku):
-- Launched after orchestrator + Locator verification complete
-- Receives merged spec file list: `orchestrator.specs + orchestrator.modified_specs` -> execute tests -> produce reports
-- appLanguages: {APP_LANGUAGES or null} — test-executor 据此决定 projectFilter
+### Step 2 — Delegate to /qa-fix-tests (Locator 验证 + 修复 + 执行)
 
-**Agent 3 — report-analyzer** (haiku):
-- Launched after test-executor completes
+> **职责分离**：qa-from-issue 只负责 CDP 探查 + 生成。
+> Locator 验证 + 修复 + 执行统一由 `/qa-fix-tests` 完成（与 qa-explore、qa-run-prd 一致）。
+
+```
+allGeneratedSpecs = orchestrator.specs + orchestrator.modified_specs
+
+// 委托 qa-fix-tests：CDP 验证 + 修复 + 执行 + 回归
+Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
+```
+
+### Step 3 — Linear Reporting (after fix-tests completes)
+
+> qa-from-issue 是唯一需要上报 Linear 的生成入口。
+> fix-tests 完成后，启动 report-analyzer 分析报告并上报。
+
+**Agent — report-analyzer** (haiku):
+- Launched after qa-fix-tests completes
+- Reads test reports produced by qa-fix-tests' test-executor
 - **Must pass sourceIssueKey**; report-analyzer uses this to distinguish writeback vs. new creation
-- Analyze report -> write back comments for source issue related failures / create new issues for new bugs -> summary report -> open HTML report
 
 prompt template:
 ```
@@ -452,9 +448,10 @@ You are report-analyzer. First read agents/report-analyzer.md to understand your
 
 Input:
 - sourceIssueKeys: [<issue-key-1>, <issue-key-2>, ...]
-- sourceSpecs: [<orchestrator.specs + orchestrator.modified_specs merged list>]
-- specToIssueMap: { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9", "tests/e2e/testcases/generated/feature-b.test.ts": "STE-10" }
+- sourceSpecs: [{allGeneratedSpecs}]
+- specToIssueMap: { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9", ... }
 - projectContext: { targetProjectDir, ... }
+- appLanguages: {APP_LANGUAGES or null}
 
 Note: This run was triggered by /qa-from-issue. Failed cases need to be categorized:
 1. Failures in sourceSpecs -> route to the corresponding sourceIssueKey via specToIssueMap, write back comments

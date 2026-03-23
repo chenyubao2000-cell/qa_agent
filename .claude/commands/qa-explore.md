@@ -27,10 +27,8 @@ Phase 2a.5: Cross-area flow discovery (after ALL CDP exploration, before generat
 Phase 2b: Parallel test generation (one orchestrator per area + cross-area, all at once)
          e2e-orchestrator -> test cases + POM + spec
      |
-Phase 2c: Serial locator verification
-     |
-Phase 3: Unified execution (no Linear reporting)
-         test-executor -> execute all accumulated specs -> local report only
+Phase 3: Delegate to /qa-fix-tests (CDP verify + fix + execute, no Linear)
+         /qa-fix-tests --from-prd -> locator fix -> regression -> local report
 ```
 
 ## User Intent Parsing
@@ -640,42 +638,20 @@ Combined Excel: test-cases/excel/{slug}-all-cases.xlsx
 ```
 ```
 
-### Phase 2c: Serial Locator Verification
-
-> Verify all generated locators against the live page. Serial because CDP needs the browser.
-
-```
-for pomFile in allPageObjects:
-  Launch locator-verify subagent with CDP tools:
-
-  prompt:
-  ```
-  You are a locator verifier. Read skills/cdp-explorer/SKILL.md Phase 4 (verify mode).
-
-  Input:
-  - pomFile: {pomFile path}
-  - pageUrl: {exploration URL}
-
-  Steps:
-  1. Connect to the page
-  2. Read POM, extract all locator properties
-  3. For each locator: CDP verify → UNIQUE/ZERO/MULTIPLE → fix if needed → re-verify
-  4. Max 3 fix attempts per locator
-
-  Return: { "verified": N, "fixed": N, "failed": N, "failedLocators": [...] }
-  ```
-```
-
 ### Context Budget
 
 | Phase | Execution | Context cost to main command |
 |-------|-----------|------------------------------|
 | 2a. CDP exploration | serial subagents | ~100 tokens × M areas |
+| 2a.5 Cross-area | main command (no subagent) | ~50 tokens |
 | 2b. Test generation | **parallel** subagents | ~200 tokens × M areas |
-| 2c. Locator verify | serial subagents | ~100 tokens × N POMs |
-| **Total (5 areas)** | | **~2K tokens** |
+| **Total (5 areas)** | | **~1.5K tokens** |
 
 **Speed improvement**: Phase 2b runs all orchestrators in parallel. If each takes ~3 minutes, 5 areas complete in ~3 minutes instead of ~15 minutes.
+
+> **为什么不在 qa-explore 里做 Locator 验证？**
+> Locator 验证 + 修复 + 执行 + 回归统一由 `/qa-fix-tests` 负责（Phase 3）。
+> 原因同 qa-run-prd：qa-fix-tests 是验证+修复的超集，避免重复 CDP 探查。
 
 ### Same-Page POM Merge Rules (Parallel-Safe)
 
@@ -729,30 +705,29 @@ If the user runs `/qa-explore` again on a previously explored page:
 
 ---
 
-## Phase 3: Unified Execution (no Linear reporting)
+## Phase 3: Delegate to /qa-fix-tests (no Linear reporting)
 
-After all areas are processed (or maxAreas is reached), execute tests uniformly.
-
-> **qa-explore does NOT report to Linear.** Its purpose is exploration + generation + validation. If tests fail, the user should run `/qa-fix-tests` to fix them, then `/qa-run-all` to formally execute + report. This avoids flooding Linear with issues from first-generation spec failures (locator mismatches etc.).
+> **职责分离**：qa-explore 只负责探查 + 生成。Locator 验证 + 修复 + 执行统一由 `/qa-fix-tests` 完成。
+> 这与 qa-run-prd 的模式一致：生成完就交给 fix-tests。
+>
+> qa-explore 不上报 Linear。需要正式上报时运行 `/qa-run-all`。
 
 **Pre-check**: If allSpecs is empty (all areas already covered) -> inform user "all test cases already have spec coverage" -> end
 
-**Agent — test-executor** (haiku):
-- mode: `selective` — only run newly generated specs, not the entire test suite
-- specFiles: allSpecs (only this session's generated specs)
-- appLanguages: {APP_LANGUAGES or null} — test-executor 据此决定 projectFilter
-- Execute tests -> produce reports to `$QA_WORKSPACE_DIR/tests/reports/`
-- Open HTML report: `start http://localhost:9323` (or `npx playwright show-report`)
+```
+allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
 
-**No report-analyzer.** Only output local summary:
+// 委托 qa-fix-tests：CDP 验证 + 修复 locator/断言 + 执行 + 回归
+Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
+// 注：虽然来源是 CDP 不是 PRD，但 --from-prd 的语义是"跳过 baseline 执行，直接修复"
+// CDP 生成的 spec 同样需要 locator 修复（CDP 基线的 locator 可能因 headless/headed 差异不准确）
+```
+
 ```
 ## Exploration Complete
 
 Explored {N} areas, generated {M} test cases, {K} specs.
-Test results: {passed}/{total} passed.
-HTML report: playwright-report/index.html
-
-If tests fail, run /qa-fix-tests to fix locator issues.
+qa-fix-tests will verify locators, fix issues, and run tests.
 When ready for formal testing + Linear reporting, run /qa-run-all.
 ```
 
