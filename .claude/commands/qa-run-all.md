@@ -122,6 +122,7 @@ Input:
 - projectContext: { targetProjectDir: "$QA_WORKSPACE_DIR", ... }
 - changeSummary: {code change summary from git-watcher, if available; otherwise omit}
 - relatedIssueKeys: [{list of related Linear issue keys from git-watcher, if available; otherwise omit}]
+- appLanguages: {APP_LANGUAGES or null}
 - headless: {true if _trigger: git-watcher_, otherwise false}
 
 Execute per agents/report-analyzer.md steps:

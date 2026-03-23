@@ -100,6 +100,13 @@ mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-resul
 #### 2b-1. Copy i18n Messages (when APP_LANGUAGES is set, skip if messages/ already exists)
 
 ```bash
+# Validate I18N_MESSAGES_DIR exists before copying
+if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -d "$I18N_MESSAGES_DIR" ]; then
+  echo "ERROR: I18N_MESSAGES_DIR directory not found: $I18N_MESSAGES_DIR"
+  echo "Please check .env configuration"
+  exit 1
+fi
+
 # Copy i18n message files from source project to $QA_WORKSPACE_DIR/messages/
 # This way fixtures.ts uses local relative paths, independent of source code location
 if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -f "$QA_WORKSPACE_DIR/messages/en.json" ]; then

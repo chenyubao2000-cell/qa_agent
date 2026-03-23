@@ -249,6 +249,8 @@ Return:
 
 After subagent returns:
 - Add `subagentResult.specFile` to `modified_specs` list (convert singular to array: `modified_specs.push(specFile)`)
+  // Build specToIssueMap for Mode X (orchestrator was bypassed, must build manually)
+  specToIssueMap[fixSubagentResult.specFile] = issueKey;
 - Set `specs = []` (Mode X generates no NEW specs, only modifies existing)
 - If `status: "fixed"` → continue to test-executor with `modified_specs`
 - If `status: "needs_manual"` → report to user, still include in `modified_specs` for test-executor to verify
@@ -265,6 +267,7 @@ After subagent returns:
         - Update the handoff entry's `assertions[]` to match
      c. If the fix subagent added new waits or locator changes: no handoff update needed (handoff tracks WHAT, not HOW)
   4. Write updated handoff JSON back to disk
+  5. **Verify handoff write**: Glob(handoffPath) — if file not found → ERROR: "Handoff sync failed, file not written: {handoffPath}", retry Write
   This keeps handoff in sync with the fixed spec for future /qa-run-prd incremental updates.
 
   **Responsibility boundary**:
