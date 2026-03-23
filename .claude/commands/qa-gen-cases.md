@@ -165,6 +165,12 @@ After the subagent returns, the main command MUST verify that files were actuall
    - Contains "## Merged Test Case List" section (method enforcement check)
    - Contains at least 1 "**TC-" pattern (has actual cases)
    - If validation fails → report to user, do not silently succeed
+
+3. For each handoff path in the return value:
+   - Check file exists: Glob(path)
+   - If file NOT found → ERROR: "Subagent reported success but handoff not written: {path}"
+   - Retry: re-launch subagent with explicit instruction to use Write tool
+   - If file exists: validate it is a valid JSON array with at least 1 entry
 ```
 
 > **Why this is needed**: Subagents run in isolated contexts. If a subagent's Write call fails silently (permission, path issue), the subagent may report success while no file was written. This verification catches that.

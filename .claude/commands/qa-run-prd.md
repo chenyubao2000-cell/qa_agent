@@ -115,7 +115,13 @@ for module in prdModules:
     - prdFiles: [PRD file path]
     - prdModuleScope: "{module heading}"
     - prdChangeMode: "{module.prdChangeMode}"  // "new" or "updated"
-    - projectContext: { targetProjectDir, baseURL, existingTests, ... }
+    - projectContext:
+        targetProjectDir: {QA_WORKSPACE_DIR}
+        baseURL: {PLAYWRIGHT_BASE_URL}
+        existingTests: tests/e2e/testcases/
+        techStack: {from CLAUDE.md}
+        appLanguages: {APP_LANGUAGES or null}
+        i18nMessagesDir: {I18N_MESSAGES_DIR or null}
 
     Execute per agents/e2e-orchestrator.md steps, return artifact paths.
     Note: prdChangeMode affects Step 2 dedup behavior — see Step 2.5 for "updated" mode.
@@ -232,15 +238,37 @@ Return:
 // So that downstream qa-fix-tests can reuse the page exploration:
 1. Read or create page-baseline-{slug}.json in $QA_WORKSPACE_DIR/test-cases/generated/
 2. Write subagent's exploration results into baseline.cdpFindings:
+   ```json
    {
-     "scanTimestamp": "{ISO timestamp}",
-     "pageUrl": "{pageUrl}",
-     "domStructure": { /* from three-layer scan */ },
-     "verifiedLocators": { /* selector → UNIQUE/ZERO/MULTIPLE */ },
-     "discrepancies": ["PRD says X but page shows Y", ...],
-     "locatorProfile": { "hasTestIds": bool, "dominantStrategy": "role"|"css"|"testid" }
+     "cdpFindings": {
+       "scanTimestamp": "2026-03-22T10:30:00Z",
+       "pageUrl": "https://example.com/task/abc",
+       "locatorProfile": {
+         "hasTestIds": false,
+         "testIdCount": 0,
+         "hasAriaLabels": true,
+         "dominantStrategy": "role"
+       },
+       "verifiedSelectors": {
+         "button[title='Download file']": { "matches": 1, "status": "UNIQUE" },
+         "button[title='Maximize']": { "matches": 1, "status": "UNIQUE" },
+         "[data-testid='canvas']": { "matches": 0, "status": "ZERO" }
+       },
+       "domStructureNotes": [
+         "Canvas panel: main div.flex > div.border-l.shrink-0",
+         "File cards: div[role='button'].rounded-xl.border.p-3",
+         "Sonner toasts: [data-sonner-toast][data-type='success'|'error']"
+       ],
+       "appLanguage": "en",
+       "discrepancies": ["PRD says '全屏' but button text is 'Maximize'"]
+     }
    }
-3. This allows qa-fix-tests to skip redundant CDP exploration
+   ```
+3. **Merge logic**: If baseline already has cdpFindings from a previous run:
+   - Merge verifiedSelectors (newer overrides older for same key)
+   - Append new domStructureNotes (deduplicate)
+   - Update scanTimestamp
+4. This allows qa-fix-tests to read `baseline.cdpFindings.verifiedSelectors` and skip re-verification for selectors already confirmed as UNIQUE
 
 When multiple POMs correspond to different pages, launch one subagent per page (serially, to avoid CDP conflicts).
 

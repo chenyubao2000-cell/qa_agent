@@ -25,6 +25,20 @@ Read(".env")
 
 Extract `QA_WORKSPACE_DIR`.
 
+### Argument Parsing
+
+Parse `$ARGUMENTS` to extract flags and file paths:
+```
+fromPrd = $ARGUMENTS contains "--from-prd"
+specFiles = all tokens in $ARGUMENTS that end with ".test.ts" (file paths)
+sourceDir = value after "--source" if present
+
+If fromPrd:
+  // Skip Phase 1, go directly to Phase 2 with specFiles
+  // specFiles are the newly generated specs from qa-run-prd
+  If specFiles is empty → ERROR: "--from-prd requires spec file paths as arguments"
+```
+
 ### Source Code Directory
 
 Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
@@ -223,6 +237,28 @@ For each failed file:
 
   // This prevents Agent N from re-exploring the same page that Agent 1 already mapped.
   // Typical savings: 4 agents × 20 min CDP exploration = 80 min → 20 min (only first agent explores).
+
+  **Command-layer implementation:**
+  ```
+  fixContext = {}  // shared across all fix subagents in this session
+
+  for each failedFile:
+    Launch fix subagent with:
+      - ...existing inputs...
+      - previousFixContext: fixContext  // empty for first agent, accumulated for subsequent
+
+    After subagent returns:
+      if subagent.cdpFindings:
+        // Merge into shared context
+        fixContext.verifiedSelectors = { ...fixContext.verifiedSelectors, ...subagent.cdpFindings.verifiedSelectors }
+        fixContext.domStructureNotes = [...new Set([...(fixContext.domStructureNotes || []), ...(subagent.cdpFindings.domStructureNotes || [])])]
+        fixContext.appLanguage = subagent.cdpFindings.appLanguage || fixContext.appLanguage
+
+      Collect subagent result into fixResults[]
+  ```
+
+  This accumulates CDP findings across fix agents. Agent 1 explores everything (~20 min),
+  agents 2-5 receive previousFixContext and skip redundant exploration (~2 min each).
 ```
 
 ---

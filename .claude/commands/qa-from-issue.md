@@ -50,7 +50,7 @@ Read(".env")  # valition_agent root directory
 Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # tech stack (read source code only to understand business)
 ```
 
-Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_URL`, `PLAYWRIGHT_BASE_URL`, `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`, `techStack` (source CLAUDE.md).
+Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_URL`, `PLAYWRIGHT_BASE_URL`, `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`, `APP_LANGUAGES`, `I18N_MESSAGES_DIR`, `techStack` (source CLAUDE.md).
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
@@ -253,6 +253,18 @@ After subagent returns:
 - If `status: "needs_manual"` → report to user, still include in `modified_specs` for test-executor to verify
 - **Skip orchestrator entirely** (no new test cases, no Excel)
 - **Sync handoff**: if spec assertions were changed during fix, read the corresponding `playwright-handoff-{slug}.json`, update the matching entry's assertions to reflect the fix, then write back. This keeps handoff in sync with the fixed spec.
+
+  **Handoff sync implementation** (after Mode X fix subagent returns):
+  1. Read the fixed spec file, extract all TC IDs from test() block comments (regex: `TC-\w+-\d+`)
+  2. Read the corresponding handoff JSON (inferred from spec header `// handoff: ...`)
+  3. For each TC ID found in the fixed spec:
+     a. Find the matching entry in handoff by `id` field
+     b. If the fix subagent changed an assertion text (e.g., updated expected URL or text):
+        - Read the new assertion from the fixed spec's expect() call
+        - Update the handoff entry's `assertions[]` to match
+     c. If the fix subagent added new waits or locator changes: no handoff update needed (handoff tracks WHAT, not HOW)
+  4. Write updated handoff JSON back to disk
+  This keeps handoff in sync with the fixed spec for future /qa-run-prd incremental updates.
 - When building `specToIssueMap`, map the Mode X specFile to its source issueKey:
   `specToIssueMap[specFile] = issueKey`
 
@@ -294,6 +306,17 @@ Steps:
    - If reproSteps available → operate step by step, record state changes at each step
 5. Compare expectedBehavior vs actualBehavior — record discrepancies
 6. Write findings to baselineFile using **merge strategy**:
+
+   **Pre-merge existence check** (before writing to baseline):
+   - If baselineFile exists AND was created by a different source (check `meta.mode`):
+     a. If existing baseline `meta.mode` = "full" (from qa-explore) and current is "targeted" (from qa-from-issue):
+        → Use merge strategy below (targeted adds to existing full scan)
+     b. If existing baseline `meta.mode` = "targeted" and current is also "targeted":
+        → Merge (both are partial scans, combine them)
+     c. If existing baseline has states that conflict with new states (same element, different selectors):
+        → Prefer newer scan (current exploration is more recent)
+   - If baselineFile does NOT exist → create new file with initial structure
+
    - If baselineFile already exists (from a previous /qa-explore or /qa-from-issue run):
      - **Read existing** states, edges, areas first
      - **Append** new states (use next available state ID, never overwrite existing)
@@ -337,7 +360,13 @@ Input:
 - issueKey: <issue-key>
 - issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
 - baselineFile: <baseline JSON path from Phase 2 exploration>
-- projectContext: { targetProjectDir, baseURL, existingTests, ... }
+- projectContext:
+        targetProjectDir: {QA_WORKSPACE_DIR}
+        baseURL: {PLAYWRIGHT_BASE_URL}
+        existingTests: tests/e2e/testcases/
+        techStack: {from CLAUDE.md}
+        appLanguages: {APP_LANGUAGES or null}
+        i18nMessagesDir: {I18N_MESSAGES_DIR or null}
 
 Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return artifact paths.
 ```
