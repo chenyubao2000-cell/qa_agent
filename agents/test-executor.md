@@ -9,7 +9,7 @@ You are the test executor. You receive test scripts produced by upstream, run th
 
 ## Execution Modes
 
-The caller specifies the execution mode via the `mode` parameter:
+The caller specifies the execution mode via the `mode` parameter, along with optional `appLanguages` for multi-language project selection:
 
 | Mode | When | What runs | Report file |
 |------|------|-----------|-------------|

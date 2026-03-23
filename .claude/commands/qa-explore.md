@@ -767,6 +767,7 @@ After all areas are processed (or maxAreas is reached), execute tests uniformly.
 **Agent — test-executor** (haiku):
 - mode: `selective` — only run newly generated specs, not the entire test suite
 - specFiles: allSpecs (only this session's generated specs)
+- appLanguages: {APP_LANGUAGES or null} — test-executor 据此决定 projectFilter
 - Execute tests -> produce reports to `$QA_WORKSPACE_DIR/tests/reports/`
 - Open HTML report: `start http://localhost:9323` (or `npx playwright show-report`)
 

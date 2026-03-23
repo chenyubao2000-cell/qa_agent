@@ -157,6 +157,7 @@ Launch test-executor (haiku):
   - mode: "selective"
   - specFiles: <non-skip-file-list>
   - projectDir: $QA_WORKSPACE_DIR
+  - appLanguages: {APP_LANGUAGES or null}
 ```
 
 > **Efficiency**: Only runs non-skipped files. If user specified specific files in arguments, the list is even smaller.
@@ -377,6 +378,7 @@ Launch test-executor (haiku):
   - mode: "changed"
   - specFiles: modifiedFiles  // only the files that were actually fixed
   - projectDir: $QA_WORKSPACE_DIR
+  - appLanguages: {APP_LANGUAGES or null}
 ```
 
 > **Efficiency**: If 3 files were fixed out of 50, only re-run those 3 — not all 50. Full regression across all specs is the job of `/qa-run-all`, not `/qa-fix-tests`.

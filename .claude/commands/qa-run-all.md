@@ -92,6 +92,7 @@ Input:
 - suite: "{parsed suite parameter, default full}"
 - specFiles: [{if $ARGUMENTS specifies file paths, list them; otherwise omit to run all}]
 - projectDir: "$QA_WORKSPACE_DIR"
+- appLanguages: {APP_LANGUAGES or null}
 
 Execute per agents/test-executor.md steps, return report paths and summary.
 ```

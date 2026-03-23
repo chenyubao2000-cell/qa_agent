@@ -439,6 +439,7 @@ Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx")` → i
 **Agent 2 — test-executor** (haiku):
 - Launched after orchestrator + Locator verification complete
 - Receives merged spec file list: `orchestrator.specs + orchestrator.modified_specs` -> execute tests -> produce reports
+- appLanguages: {APP_LANGUAGES or null} — test-executor 据此决定 projectFilter
 
 **Agent 3 — report-analyzer** (haiku):
 - Launched after test-executor completes
