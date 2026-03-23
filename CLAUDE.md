@@ -48,7 +48,7 @@ PR 监控（独立流程）：
 - `/qa-from-issue <issues>` — 从 Linear issue 生成或更新 E2E 测试（支持批量：多个 key / 关键词 / --all-open）
 - `/qa-run-prd` — PRD 驱动 E2E 测试流水线
 - `/qa-gen-cases` — 仅从 PRD 生成用例 + Excel，不生成脚本
-- `/qa-fix-tests` — 通过 CDP 探查真实页面，修复失败的测试
+- `/qa-fix-tests` — 通过 CDP 探查真实页面，修复失败的测试（支持 `--upgrade-i18n` 升级已有 spec 为多语言模式）
 - `/qa-run-all` — 执行已有 E2E 测试，汇总报告，上报 Linear（不生成用例/spec）
 
 ## 约定

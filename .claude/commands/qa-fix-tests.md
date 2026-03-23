@@ -6,7 +6,7 @@ allowed-tools: Agent, Bash, Read, Write, Edit, Glob, Grep, mcp__chrome-devtools_
 You are a test fix expert. Find failed non-skipped E2E cases in the target project, explore real page state via CDP, fix locators and assertions until tests pass (but always respect business logic — don't just make tests pass for the sake of passing; the failure may indicate a real bug).
 
 ```
-/qa-fix-tests [spec-file-path] [--source <source-code-dir>] [--from-prd]
+/qa-fix-tests [spec-file-path] [--source <source-code-dir>] [--from-prd] [--upgrade-i18n]
      |
 Phase 0: Load project context
      |
@@ -60,6 +60,52 @@ When `--from-prd` is present in `$ARGUMENTS` (chained from /qa-run-prd):
 4. This saves the baseline execution round (typically 1-2h) since qa-run-prd's CDP verification already confirmed locator mismatches
 
 When `--from-prd` is NOT present → execute Phase 1 normally (filter + execute + collect failures).
+
+### --upgrade-i18n Mode (Upgrade Existing Specs to Multi-Language)
+
+**场景**：先用单语言（如英文）探查生成了 spec/POM，后来设了 `APP_LANGUAGES=en,zh` 要支持多语言。
+已有的 POM 用硬编码英文（`getByRole('button', { name: 'Download file' })`），不兼容中文环境。
+
+When `--upgrade-i18n` is present in `$ARGUMENTS`:
+1. **Skip Phase 1**（不执行测试）
+2. **Skip Phase 2**（不做 CDP 修复）
+3. **执行 i18n 升级流程**：
+
+```
+For each spec file (from arguments or Glob all):
+  1. Read the spec's corresponding POM file (inferred from import)
+  2. Read i18n messages JSON from $SOURCE_PROJECT_DIR/$I18N_MESSAGES_DIR/{defaultLocale}.json
+  3. Build flat value→key map: { "Download file": "canvas.downloadFile", "Maximize": "canvas.maximize", ... }
+  4. Scan POM for all hardcoded text patterns:
+     - getByRole('button', { name: 'Download file' })
+     - getByText('Loading...')
+     - getByLabel('Email')
+     - locator('[title="Download file"]')
+  5. For each hardcoded text found:
+     a. Reverse-lookup in i18n flat map → find i18nKey
+     b. If found → replace with i18n.t() pattern:
+        BEFORE: getByRole('button', { name: 'Download file' })
+        AFTER:  this.i18n
+                  ? this.page.getByRole('button', { name: this.i18n.t('canvas.downloadFile') })
+                  : this.page.getByRole('button', { name: /Download file/i })
+     c. If NOT found → keep original (language-agnostic or regex already)
+  6. Update POM constructor: add `i18n?: I18n` parameter if not already present
+  7. Update spec: add `i18n` destructuring from fixture, pass to POM constructor
+  8. Update handoff JSON: add i18nKey to matching uiElements/assertions entries
+```
+
+4. **更新 fixtures.ts**：如果 i18n fixture 不存在，按 qa-explore Phase 0 Step 2e 的规范生成
+5. **更新 playwright.config.ts**：如果没有多 project，按 qa-explore Phase 0 Step 2d 的规范重新生成
+6. **验证**：对每个升级的 spec 分别跑 `--project=e2e-en` 和 `--project=e2e-zh` 验证
+
+```
+/qa-fix-tests --upgrade-i18n
+  → 升级全部 spec/POM 为 i18n 模式
+/qa-fix-tests --upgrade-i18n tests/e2e/testcases/generated/canvas-preview-prd.test.ts
+  → 只升级指定文件
+```
+
+> **保留已有修复**：upgrade-i18n 不删除文件，只替换文本模式。之前 CDP 修好的 locator（如 `button[title="Download file"]`）不受影响（title 属性是语言无关的）。只有 getByText/getByRole name 等文本匹配的 locator 会被升级。
 
 ---
 
