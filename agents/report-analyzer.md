@@ -62,6 +62,22 @@ Read the report JSON and iterate over all test cases:
 
 These rules prevent report-analyzer from spending excessive time reading large screenshots or hanging on missing files.
 
+### Multi-Language Result Handling
+
+When the test suite was executed with multiple Playwright projects (e.g., `e2e-en`, `e2e-zh`):
+1. **Aggregate by project**: Group test results by `projectName`. Each project represents one language.
+2. **Summary table**: Add a per-language row in the summary report:
+   ```
+   | 语言 | 总计 | 通过 | 失败 | 跳过 |
+   | en   | 77   | 75   | 2    | 0    |
+   | zh   | 77   | 70   | 7    | 0    |
+   ```
+3. **Failure deduplication**: A test that fails in BOTH languages counts as 1 bug (not 2).
+   - Same TC ID fails in en + zh → 1 Linear issue, annotated "双语均失败"
+   - TC fails in zh only → 1 Linear issue, annotated "仅中文失败（可能是 i18n 翻译问题）"
+   - TC fails in en only → 1 Linear issue, annotated "仅英文失败"
+4. **Bug-reporter context**: Pass `failedLanguages: ["en", "zh"]` to bug-reporter for each failure
+
 ```json
 {
   "attachments": [

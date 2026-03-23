@@ -303,6 +303,9 @@ Input:
 - baselineFile: {$QA_WORKSPACE_DIR/test-cases/generated/page-baseline-{slug}.json}
 - authSetup: {true/false}
 - testCredentials: {E2E_TEST_EMAIL / E2E_TEST_PASSWORD, if authSetup=true}
+- appLanguages: {APP_LANGUAGES or null}
+- i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+  When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
 
 Steps:
 1. Connect to page (list_pages → select_page, or navigate to pageUrl)

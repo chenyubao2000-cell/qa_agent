@@ -44,6 +44,9 @@ Ensure output directory exists (create if not):
 mkdir -p $OUTPUT_DIR/test-cases/generated $OUTPUT_DIR/test-cases/excel
 ```
 
+> **注意**：qa-gen-cases 仅创建输出目录，不生成 playwright.config.ts、fixtures.ts 等测试基础设施。
+> 这些文件由后续 `/qa-run-prd` 或 `/qa-explore` 在首次执行时生成。
+
 ## Phase 1: Read Requirement Document
 
 Read PRD file (`$ARGUMENTS` or default `$SOURCE_PROJECT_DIR/docs/prd/`).

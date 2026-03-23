@@ -130,7 +130,7 @@ export default defineConfig({
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     viewport: { width: 1280, height: 720 },
     headless: process.env.PLAYWRIGHT_HEADLESS !== "false",
-    locale: "zh-CN",
+    locale: process.env.APP_LANGUAGES?.split(',')[0]?.trim() === 'zh' ? 'zh-CN' : 'en-US',
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "retain-on-failure",
@@ -156,6 +156,10 @@ export default defineConfig({
         testMatch: "**/testcases/**/*.test.ts",
         use: { ...devices["Desktop Chrome"] },
       }],
+  // ── NEXT_LOCALE cookie 说明 ──
+  // cookie 值使用短码（"en", "zh"）匹配 next-intl 的 locale 配置
+  // Playwright 的 locale 字段使用标准码（"en-US", "zh-CN"）用于浏览器行为（日期格式等）
+  // 两者不需要完全一致：cookie 控制 app 语言，locale 控制浏览器行为
 });
 ```
 
@@ -164,7 +168,7 @@ export default defineConfig({
 > - `headless`: 由环境变量控制，默认 true。目标项目 config 可能硬编码 false，test-executor 的 `--reporter` 覆盖不影响 headless，需要通过 .env 的 `PLAYWRIGHT_HEADLESS` 控制
 > - `retries`: CI 环境重试 1 次，减少 flaky 误报；本地不重试，快速暴露问题
 > - `trace` + `video`: 失败时保留，用于排查。`on-first-retry` 不如 `retain-on-failure`（不需要 retry 也能留证据）
-> - `locale`: 中文应用设为 `zh-CN`，确保日期格式、文本排序等与真实用户一致
+> - `locale`: 动态推断——有 APP_LANGUAGES 时用首语言，无则默认 `en-US`。各语言 project 独立设置 locale。
 > - `outputDir`: 显式指定，避免产物散落
 > - `expect.timeout`: 默认 5s 对远程环境偏短，设为 10s
 
@@ -201,13 +205,37 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 export { expect };
 ```
 
-> **i18n fixture** (generated when APP_LANGUAGES is set):
-> When APP_LANGUAGES is configured, add an `i18n` worker-scope fixture that loads
-> the target project's i18n message files and provides a `t(key)` resolver.
-> The fixture reads messages from `$SOURCE_PROJECT_DIR/$I18N_MESSAGES_DIR/{locale}.json`.
-> Specs use it as: `test('...', async ({ authenticatedPage, i18n }) => { ... })`.
-> POM classes accept `i18n` as optional parameter: `new CanvasPage(page, i18n)`.
->
+**With APP_LANGUAGES** → add i18n fixture to fixtures.ts (after authenticatedPage fixture):
+
+```typescript
+// ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
+import enMessages from '{SOURCE_PROJECT_DIR}/{I18N_MESSAGES_DIR}/en.json';
+import zhMessages from '{SOURCE_PROJECT_DIR}/{I18N_MESSAGES_DIR}/zh.json';
+// ... import additional locales as needed from APP_LANGUAGES
+
+const i18nMessages: Record<string, Record<string, any>> = {
+  en: enMessages,
+  zh: zhMessages,
+};
+
+export type I18n = { t: (key: string) => string; locale: string };
+
+// Add to the extend<TestFixtures, WorkerFixtures> call:
+i18n: [async ({}, use, testInfo) => {
+  const locale = testInfo.project.name.replace('e2e-', '') || 'en';
+  const dict = i18nMessages[locale] ?? i18nMessages['en'];
+  const t = (key: string): string => {
+    const parts = key.split('.');
+    let val: any = dict;
+    for (const p of parts) { val = val?.[p]; }
+    return typeof val === 'string' ? val : key; // fallback to key if not found
+  };
+  await use({ t, locale });
+}, { scope: 'worker' }],
+```
+
+> **Import path resolution**: Replace `{SOURCE_PROJECT_DIR}/{I18N_MESSAGES_DIR}` with the actual relative path from `tests/e2e/fixtures.ts` to the i18n messages directory. For Mira: `../../../apps/mira-work/i18n/messages`.
+> If message files don't exist at the specified path → ERROR: "I18N_MESSAGES_DIR 路径无效: {path}"
 > If APP_LANGUAGES is NOT set → do not generate the i18n fixture (backward compatible).
 
 **Without E2E_TEST_EMAIL** -> simple version:
@@ -416,6 +444,9 @@ for area in areas:
   - area: { id: "{area.id}", name: "{area.name}", type: "{area.type}", elements: [...] }
   - pageUrl: {exploration URL}
   - nextStateId: {next available state number}
+  - appLanguages: {APP_LANGUAGES or null}
+  - i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+    When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
 
   Steps:
   1. Read the baseline file to understand existing states (avoid re-exploring)
