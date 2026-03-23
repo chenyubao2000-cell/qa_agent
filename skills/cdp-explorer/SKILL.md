@@ -296,7 +296,7 @@ mcp__chrome-devtools__evaluate_script
 ### Step 3.5 — i18n key reverse-lookup (when `projectContext.i18nMessagesDir` is available)
 
 After collecting all interactive elements and their displayed text:
-1. Load `$sourceProjectDir/$i18nMessagesDir/{detectedLocale}.json`
+1. Load `$i18nMessagesDir/{detectedLocale}.json`（i18nMessagesDir 由命令层传入，指向 QA_WORKSPACE_DIR/messages/）
 2. Build flat value→key map: flatten nested JSON to dot-path keys
    ```javascript
    // { "canvas": { "downloadFile": "Download file" } }
@@ -1127,7 +1127,7 @@ CDP connects to the browser which may display in any language. When `projectCont
 
 1. **Detect current page language**: `evaluate(() => document.documentElement.lang || document.cookie.match(/NEXT_LOCALE=(\w+)/)?.[1] || 'unknown')`
 2. **Record both text and i18n key**: For each interactive element, if `projectContext.i18nMessagesDir` is available:
-   a. Read the default locale messages JSON from source
+   a. Read the default locale messages JSON from `projectContext.i18nMessagesDir`（本地 QA_WORKSPACE_DIR/messages/）
    b. Reverse-lookup the element's displayed text to find the i18n key
    c. Store both in the baseline:
    ```json

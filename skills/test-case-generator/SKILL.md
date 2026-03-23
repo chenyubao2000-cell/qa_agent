@@ -2626,7 +2626,7 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
 - `uiElements[].dataVariant` — (required when `dataType` is set) specifies the data variant: `"valid"`, `"invalid"`, `"boundary"`, or type-specific variants like `"strong"`, `"weak"`, `"long:500"`, `"xss"`, `"png"`, `"pdf"`, `"oversized"`, etc.
 - `uiElements[].i18nKey` — (optional) The i18n message key corresponding to this element's user-visible text.
   Populated when `projectContext.i18nMessagesDir` is available:
-  1. Read messages JSON from `$sourceProjectDir/$i18nMessagesDir/{defaultLocale}.json`
+  1. Read messages JSON from `$i18nMessagesDir/{defaultLocale}.json`（i18nMessagesDir 由命令层传入，指向 QA_WORKSPACE_DIR/messages/）
   2. For each uiElement with a text-based `name` (button label, heading text, placeholder):
      a. Search the messages JSON for a value matching the name text
      b. If found → set `i18nKey` to the dot-path key (e.g., "canvas.downloadFile")
@@ -2696,7 +2696,7 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
 
 **i18n key reverse-lookup** (when `projectContext.i18nMessagesDir` is set):
 After populating each handoff entry's uiElements and assertions, perform reverse-lookup:
-1. Load `$sourceProjectDir/$i18nMessagesDir/{defaultLocale}.json` (use first language in appLanguages as default)
+1. Load `$i18nMessagesDir/{defaultLocale}.json`（i18nMessagesDir 由命令层传入，指向 QA_WORKSPACE_DIR/messages/；用 appLanguages 首语言作为 defaultLocale）
 2. Build a flat map: { "Download file": "canvas.downloadFile", "Maximize": "canvas.maximize", ... }
 3. For each uiElement.name and assertion.expected:
    a. Exact match in flat map → set i18nKey
