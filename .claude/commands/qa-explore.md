@@ -69,7 +69,7 @@ Extract all config from **this project's .env**:
 - `testCredentials` — `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD`
 - `techStack` — from source directory CLAUDE.md
 - `appLanguages` — `APP_LANGUAGES` from .env (comma-separated, e.g., "en,zh"), default: single project mode
-- `i18nMessagesDir` — `I18N_MESSAGES_DIR` from .env (path relative to sourceProjectDir, e.g., "apps/mira-work/i18n/messages"), default: null
+- `i18nMessagesDir` — `I18N_MESSAGES_DIR` from .env (i18n 消息文件的**源路径**，用于复制到目标项目), default: null
 - `defaultLocale` — first language in APP_LANGUAGES, or infer from source project
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
@@ -93,8 +93,22 @@ E2E_TEST_PASSWORD=<from this project's .env>
 
 ```bash
 mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/.auth tests/e2e/test-data/files
-mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-results
+mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-results messages
 ```
+
+#### 2b-1. Copy i18n Messages (when APP_LANGUAGES is set, skip if messages/ already exists)
+
+```bash
+# 将源项目的 i18n 消息文件复制到 $QA_WORKSPACE_DIR/messages/
+# 这样 fixtures.ts 使用本地相对路径引用，不依赖源码位置
+if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -f "$QA_WORKSPACE_DIR/messages/en.json" ]; then
+  cp "$I18N_MESSAGES_DIR"/*.json "$QA_WORKSPACE_DIR/messages/"
+  echo "Copied i18n messages to $QA_WORKSPACE_DIR/messages/"
+fi
+```
+
+> **为什么复制而非引用**：生成的 fixtures.ts 用 `import from '../messages/en.json'`（本地相对路径），
+> 不依赖 SOURCE_PROJECT_DIR 在测试运行时可达。复制一次，后续执行自包含。
 
 #### 2c. Install Playwright (if package.json doesn't exist)
 
@@ -209,8 +223,9 @@ export { expect };
 
 ```typescript
 // ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
-import enMessages from '{SOURCE_PROJECT_DIR}/{I18N_MESSAGES_DIR}/en.json';
-import zhMessages from '{SOURCE_PROJECT_DIR}/{I18N_MESSAGES_DIR}/zh.json';
+// messages/ 目录由 Phase 0 Step 2b-1 从源项目复制到 QA_WORKSPACE_DIR/messages/
+import enMessages from '../messages/en.json';
+import zhMessages from '../messages/zh.json';
 // ... import additional locales as needed from APP_LANGUAGES
 
 const i18nMessages: Record<string, Record<string, any>> = {
@@ -234,9 +249,11 @@ i18n: [async ({}, use, testInfo) => {
 }, { scope: 'worker' }],
 ```
 
-> **Import path resolution**: Replace `{SOURCE_PROJECT_DIR}/{I18N_MESSAGES_DIR}` with the actual relative path from `tests/e2e/fixtures.ts` to the i18n messages directory. For Mira: `../../../apps/mira-work/i18n/messages`.
-> If message files don't exist at the specified path → ERROR: "I18N_MESSAGES_DIR 路径无效: {path}"
-> If APP_LANGUAGES is NOT set → do not generate the i18n fixture (backward compatible).
+> **Import 路径**: fixtures.ts 位于 `tests/e2e/fixtures.ts`，messages 在 `$QA_WORKSPACE_DIR/messages/`，
+> 所以 import 路径是 `'../messages/{locale}.json'`（固定，不依赖源项目结构）。
+> Phase 0 Step 2b-1 已将消息文件从源项目复制到 `$QA_WORKSPACE_DIR/messages/`。
+> 如果 `messages/` 目录不存在或为空 → ERROR: "messages 目录不存在，请检查 I18N_MESSAGES_DIR 配置"
+> 如果 APP_LANGUAGES is NOT set → 不生成 i18n fixture（向后兼容）。
 
 **Without E2E_TEST_EMAIL** -> simple version:
 
