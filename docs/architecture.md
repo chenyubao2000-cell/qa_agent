@@ -29,12 +29,12 @@ QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command →
 
 | 入口 | 触发方式 | 生成 | 执行 | 报告 | CDP |
 |------|---------|:----:|:----:|:----:|:---:|
-| `/qa-explore` | 用户命令 | 是 | 是 | 否（本地） | 全量探查 |
-| `/qa-from-issue` | 用户命令 / git-watcher | 是 | 是 | 是 | 定向探查 |
-| `/qa-run-prd` | 用户命令 | 是 | 修复 | 否 | 仅验证 |
+| `/qa-explore` | 用户命令 | 是 | via fix-tests | 否（本地） | 全量扫描 |
+| `/qa-from-issue` | 用户命令 / git-watcher | 是 | via fix-tests | 是 | 定向探查 |
+| `/qa-run-prd` | 用户命令 | 是 | via fix-tests | 否 | 无（委托 fix-tests） |
 | `/qa-gen-cases` | 用户命令 | 仅用例+Excel | 否 | 否 | 否 |
 | `/qa-run-all` | 用户命令 / git-watcher | 否 | 是 | 是 | 否 |
-| `/qa-fix-tests` | 用户命令 | 仅修复 | 是 | 否 | 验证+修复 |
+| `/qa-fix-tests` | 用户命令 / 委托 | 仅修复 (3 modes: normal, --from-prd, --upgrade-i18n) | 是 | 否 | 验证+修复 |
 | `git-watcher` | 守护进程（轮询 PR） | 路由到上述命令 | — | 评论 PR | Headless |
 
 ---
@@ -42,51 +42,37 @@ QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command →
 ## 3. 三层架构
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        命令层（入口）                                  │
-│  输入准备 + 上下文加载 + 流水线编排                                      │
-├──────────┬───────────┬──────────┬──────────┬──────────┬──────────────┤
-│qa-explore│qa-from-   │qa-run-   │qa-gen-   │qa-run-  │qa-fix-       │
-│          │issue      │prd       │cases     │all      │tests         │
-│ CDP 全量 │ CDP 定向  │ PRD 文本 │ PRD 文本 │ 直接执行 │ CDP 修复     │
-└────┬─────┴────┬──────┴────┬─────┴────┬─────┴────┬────┴────┬─────────┘
-     │          │           │          │          │         │
-     ▼          ▼           ▼          ▼          │         │
-┌────────────────────────────────────────────┐    │         │
-│  生成层                                    │    │         │
-│  e2e-orchestrator (sonnet)                 │    │         │
-│  ├ 步骤 1: 确定输入 (cdp/issue/prd)         │    │         │
-│  ├ 步骤 2: 去重检查（主入口）                │    │         │
-│  ├ 步骤 3: test-case-generator SKILL       │    │         │
-│  ├ 步骤 4: excel-case-export SKILL         │    │         │
-│  └ 步骤 5: playwright-script-generator     │    │         │
-└───┬──────────────┬─────────────────────────┘    │         │
-    │              │ specs                         │         │
-    │              ▼                               │         │
-    │   ┌──────────────────┐                       │         │
-    │   │ qa-run-prd 直接  │                       │         │
-    │   │ 调用 qa-fix-tests│──────────────────────────────→  │
-    │   └──────────────────┘                       │         │
-    │ specs (explore/issue)                        │         │
-    ▼                                              ▼         │
-┌─────────────────────────────────────────────────────────┐  │
-│  执行层                                                  │  │
-│  test-executor (haiku)                                   │  │
-│  接收 spec 列表 → npx playwright test → JSON + HTML 报告 │  │
-└──────────────┬───────────────────┬──────────────────────┘  │
-               │ (qa-from-issue    │ (qa-explore             │
-               │  + qa-run-all)    │  本地报告，不上报)       │
-               ▼                   │                          │
-┌──────────────────────────────┐   │                          │
-│  报告层                       │   │                          │
-│  report-analyzer (haiku)      │   │                          │
-│  ├ 读取报告 → 分析 → 去重     │   │                          │
-│  ├ 路由: 源 issue → 回写      │   │                          │
-│  └ bug-reporter → Linear API  │   │                          │
-└──────────────────────────────┘   │                          │
-                                    │                          │
-  qa-fix-tests: 绕过生成层 ────────────────────────────────────┘
-  直接: CDP 探查 → 修复 spec/POM → 验证 → 回归（不上报 Linear）
+┌──────────────────────────────────────────────────────────────────┐
+│                     Command Layer (Entry Points)                  │
+├──────────┬───────────┬──────────┬──────────┬─────────┬───────────┤
+│qa-explore│qa-from-   │qa-run-   │qa-gen-   │qa-run- │qa-fix-    │
+│ CDP scan │issue      │prd       │cases     │all     │tests      │
+└────┬─────┴────┬──────┴────┬─────┴────┬─────┴───┬────┴────┬──────┘
+     │          │           │          │         │         │
+     ▼          ▼           ▼          ▼         │         │
+┌────────────────────────────────────────┐       │         │
+│ Generation Layer                       │       │         │
+│ e2e-orchestrator (sonnet)              │       │         │
+│ ├ test-case-generator SKILL            │       │         │
+│ ├ excel-case-export SKILL              │       │         │
+│ └ playwright-script-generator SKILL    │       │         │
+└────────────┬───────────────────────────┘       │         │
+             │ all specs                          │         │
+             ▼                                    │         │
+┌─────────────────────────────────────────────────────────────┐
+│ Fix Layer (CDP verify + fix + execute)                       │
+│ /qa-fix-tests                                                │
+│ ├ CDP explore (cdp-explorer SKILL)                           │
+│ ├ Fix locators/assertions (playwright-script-generator SKILL)│
+│ └ test-executor (haiku) → regression                         │
+└────────────┬────────────────────────────────────────────┬────┘
+             │ (qa-from-issue + qa-run-all only)          │
+             ▼                                             │
+┌──────────────────────────────┐                           │
+│ Report Layer                  │                           │
+│ report-analyzer (haiku)       │                           │
+│ └ bug-reporter → Linear API  │                           │
+└──────────────────────────────┘                           │
 ```
 
 **哪些入口走报告层（Linear 上报）**：仅 `/qa-from-issue` 和 `/qa-run-all`。
@@ -133,22 +119,20 @@ Phase 2a: 串行 CDP 探查（每个区域一个子 Agent，顺序执行）
   区域1: CDP BFS 探查 → 写入 baseline → 返回摘要（~100 tokens）
   区域2: CDP BFS 探查 → 写入 baseline → 返回摘要
   ...（动态发现的区域追加并继续探查）
+Phase 2a.5: 跨区域流程发现（BEFORE generation）
+  主命令: 分析 baseline 中跨区域 edge（无需 CDP）
+  CDP 子 Agent: 探查 1 跳导航目标（仅 State₀）
+  orchestrator: 生成跨区域集成测试用例
 Phase 2b: 并行用例生成（每个区域一个 orchestrator，同时启动）
   区域1: orchestrator → 用例 + POM fragment + spec  ←─┐
   区域2: orchestrator → 用例 + POM fragment + spec  ←─┤ 并行
   区域3: orchestrator → 用例 + POM fragment + spec  ←─┘
   → 主命令合并 POM fragment 为最终 POM 文件
-Phase 2c: 串行 Locator 验证（每个 POM 一个子 Agent）
-  POM1: CDP 验证 → 修复 locator → 返回结果
-  POM2: CDP 验证 → 修复 locator → 返回结果
-Phase 2.5: 跨区域流程发现
-  主命令: 分析 baseline 中跨区域 edge（无需 CDP）
-  CDP 子 Agent: 探查 1 跳导航目标（仅 State₀）
-  orchestrator: 生成跨区域集成测试用例
-Phase 3: test-executor → 本地报告（不上报 Linear）
+Phase 3: 委托 /qa-fix-tests --from-prd（CDP verify + fix + execute）
+  → 本地报告（不上报 Linear）
 ```
 
-> qa-explore 不上报 Linear。首次生成的 spec 大概率有 locator 问题，应先 `/qa-fix-tests` 修复，再 `/qa-run-all` 正式执行+上报。
+> qa-explore 不上报 Linear。正式上报 Linear 请用 `/qa-run-all`。
 
 **上下文开销**：每个区域 ~700 tokens 进入主上下文（不用子 Agent 则是 ~100K）。
 
@@ -164,12 +148,13 @@ Phase 2: CDP 定向探查（子 Agent）
 Phase 3（模式 A/B）: 流水线并行生成
   串行 CDP 探查（按 pageUrl 分组）
   → 并行 orchestrator（按分组）
-  → 串行 Locator 验证
   → 构建 specToIssueMap
-  → test-executor → report-analyzer（失败路由回源 issue）
+  → 委托 /qa-fix-tests --from-prd（CDP verify + fix + execute）
+  → report-analyzer（失败路由回源 issue）
 Phase 3（模式 X）: 修复子 Agent
   → CDP 探查 + 直接修复 spec/POM（绕过 orchestrator）
-  → test-executor → report-analyzer
+  → 委托 /qa-fix-tests
+  → report-analyzer
 ```
 
 **批量处理**：多个 issue 按 pageUrl 分组。CDP 按组串行，orchestrator 跨组并行。
@@ -185,11 +170,11 @@ Phase 2: 流水线并行生成
   removed → 标记已有 spec 为 deprecated（test.describe.skip）
   new/updated → 并行 orchestrator（每个模块一个，同时启动）
     → updated 模式: 增量更新（保留未变/修改变更/新增/废弃删除的用例）
-  → 串行 CDP 页面探查 + Locator 验证（每个页面一个子 Agent）
-  → /qa-fix-tests（执行 → 识别失败 → CDP 修复 → 验证）
+    → data-testid conditional: Grep source code first; if no testid found, use getByRole
+Phase 3: 委托 /qa-fix-tests --from-prd（CDP verify + fix + execute）
 ```
 
-> qa-run-prd 不再走 test-executor → report-analyzer。首次生成的 spec 基本不会通过，直接进入 fix 循环更高效。正式上报 Linear 请用 `/qa-run-all`。
+> qa-run-prd directly delegates to /qa-fix-tests after orchestrator generation. No CDP page-verify step of its own. 正式上报 Linear 请用 `/qa-run-all`。
 
 **PRD 变更检测**：每个 .md 文件头部存储 `<!-- PRD-hash: {sha256} | PRD-module: {heading} | feature-slug: {slug} -->`，下次运行时对比 hash 判定变更类型。
 
@@ -216,15 +201,23 @@ Phase 2: case-only-orchestrator → 用例 .md + Excel .xlsx
 
 ### 4.6 `/qa-fix-tests` — 修复失败测试
 
+3 modes:
+- **normal**: standalone fix of existing failing tests
+- **--from-prd**: called by generation commands (explore, from-issue, run-prd); skips baseline creation
+- **--upgrade-i18n**: converts existing single-language specs to multi-language
+
 ```
 Phase 0: 读取 .env
 Phase 1: 查找非 skip 的 spec → 执行一轮 → 收集失败列表
+  → --from-prd mode: skips baseline, uses specs passed from caller
+  → --upgrade-i18n mode: scans all specs for hardcoded strings to convert
 Phase 2: 逐文件修复（每个失败文件一个独立子 Agent）
   子 Agent 对每个失败先分类:
     TEST_ISSUE（locator 过期/选择器模糊）→ 修复测试
     POSSIBLE_BUG（功能真的坏了）→ 不修测试，记录为 Bug
     AMBIGUOUS（不确定）→ 深入调查后分类
-  → 直接执行 Playwright 验证（不走 test-executor Agent）
+  → fix subagent uses test-executor (haiku) for verification runs
+  → cross-file CDP sharing: fix agents share cdpFindings via fixContext
 Phase 2.5: Bug 汇总（仅通知用户，不上报 Linear）
   如有 classification="bug" 的失败 → 通知用户，建议运行 /qa-run-all 正式上报
   → 这些测试保持原样（断言是正确的，应用有问题）
@@ -343,6 +336,7 @@ $QA_WORKSPACE_DIR/
 ├── tests/reports/
 │   ├── playwright-results.json                     JSON 报告
 │   └── combined/summary.md                         汇总报告
+├── messages/                                       i18n message files (copied from source)
 └── playwright-report/index.html                    HTML 报告
 ```
 
@@ -409,3 +403,16 @@ bash scripts/install.sh    # 在目标项目根目录运行
 ```
 
 自动完成：.env 配置、CLAUDE.md 模板、MCP 配置。
+
+---
+
+## 13. Multi-Language Testing (i18n)
+
+When APP_LANGUAGES is configured (e.g., "en,zh"):
+- playwright.config.ts generates per-language Playwright projects (e2e-en, e2e-zh)
+- fixtures.ts includes i18n worker-scope fixture with t(key) resolver
+- POM locators use i18n.t('key') for text-based matching
+- One spec runs across all configured languages
+- NEXT_LOCALE cookie switches app language per project
+- Messages copied from source (I18N_MESSAGES_DIR) to QA_WORKSPACE_DIR/messages/ (self-contained)
+- /qa-fix-tests --upgrade-i18n converts existing single-lang specs to multi-lang

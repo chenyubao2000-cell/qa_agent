@@ -30,18 +30,22 @@ LINEAR_PROJECT_ID=xxx
 LINEAR_TEAM_ID=xxx
 E2E_TEST_EMAIL=test@example.com
 E2E_TEST_PASSWORD=xxx
+
+# Multi-language testing (optional)
+# APP_LANGUAGES=en,zh
+# I18N_MESSAGES_DIR=/path/to/source/i18n/messages
 ```
 
 ### 2. 命令
 
 | 命令 | 用途 | 生成 | 执行 | 报告 |
 |------|------|:----:|:----:|:----:|
-| `/qa-explore [url]` | 探查页面，生成 E2E 测试 | 是 | 是 | 否 |
-| `/qa-from-issue STE-9` | 从 Linear Issue 生成测试 | 是 | 是 | 是 |
-| `/qa-run-prd [路径]` | 从 PRD 文档生成测试 | 是 | 修复 | 否 |
+| `/qa-explore [url]` | 探查页面，生成 E2E 测试 | 是 | via fix-tests | 否 |
+| `/qa-from-issue STE-9` | 从 Linear Issue 生成测试 | 是 | via fix-tests | 是 |
+| `/qa-run-prd [路径]` | 从 PRD 文档生成测试 | 是 | via fix-tests | 否 |
 | `/qa-gen-cases [路径]` | 仅生成用例 + Excel | 仅用例 | 否 | 否 |
 | `/qa-run-all` | 执行已有测试 | 否 | 是 | 是 |
-| `/qa-fix-tests` | 修复失败的测试 | 仅修复 | 是 | 否 |
+| `/qa-fix-tests` | 修复失败的测试 (--from-prd, --upgrade-i18n) | 仅修复 | 是 | 否 |
 
 ### 3. CI 监控
 
@@ -55,22 +59,24 @@ npx tsx scripts/git-watcher.ts
 
 ```
 入口层
-  ├── /qa-explore        CDP 页面 → 串行探查 → 并行生成 → 验证 → 执行（不上报 Linear）
-  ├── /qa-from-issue     Linear Issue → CDP 定向探查 → 并行生成 → 验证 → 执行 → 报告
-  ├── /qa-run-prd        PRD 文档 → 并行生成 → CDP 验证 → /qa-fix-tests 修复
+  ├── /qa-explore        CDP 页面 → 串行探查 → 跨区域流程发现 → 并行生成 → /qa-fix-tests
+  ├── /qa-from-issue     Linear Issue → CDP 定向探查 → 并行生成 → /qa-fix-tests → 报告
+  ├── /qa-run-prd        PRD 文档 → 并行生成 → /qa-fix-tests
   ├── /qa-gen-cases      PRD 文档 → 生成用例 + Excel（不生成脚本，不执行）
   ├── /qa-run-all        执行已有 spec → 报告（不生成）
-  ├── /qa-fix-tests      CDP 探查 → 修复 locator/断言 → 验证（不生成）
+  ├── /qa-fix-tests      CDP 探查 → 修复 locator/断言 → 执行验证（3 modes: normal, --from-prd, --upgrade-i18n）
   └── git-watcher        轮询 PR → 路由到 /qa-from-issue 或 /qa-run-all
 
-Agent 层（串行流水线，非并行）
-  e2e-orchestrator (sonnet) → test-executor (haiku) → report-analyzer (haiku) → bug-reporter (haiku)
-       ↓ 读取                      ↓ 执行                    ↓ 分析              ↓ 调用
-  Skill 层                    npx playwright test       reports/*.json         Linear API
+生成层 → 修复层 → 报告层
+  e2e-orchestrator (sonnet) → /qa-fix-tests (CDP verify + fix + execute) → report-analyzer (haiku)
+       ↓ 读取                      ↓ CDP + test-executor (haiku)            ↓ 分析 + bug-reporter
+  Skill 层                    cdp-explorer + playwright-script-gen       Linear API
   ├── cdp-explorer
   ├── test-case-generator
   ├── excel-case-export
   └── playwright-script-generator
+
+i18n: APP_LANGUAGES → per-language Playwright projects → fixtures i18n → one spec tests all languages
 ```
 
 **核心设计原则：**
@@ -82,6 +88,9 @@ Agent 层（串行流水线，非并行）
 - **断言质量验证** — 生成 spec 后自动检测弱断言（纯 `toBeVisible()`），强制补充业务语义校验
 - **6 种设计方法强制执行** — 用例生成后验证 6 种方法的覆盖率，不足 3 种则阻塞流水线
 - **增量更新** — PRD 通过 content hash 检测变更；CDP 探查通过页面指纹检测 UI 变化；只更新变化部分
+- **Multi-language** — one spec tests all languages via i18n fixture; APP_LANGUAGES controls project matrix
+- **Unified fix delegation** — all CDP verification centralized in /qa-fix-tests; no entry point does its own locator verify or test-executor call
+- **Timeout enforcement** — auto-detected from handoff keywords; validated post-generation
 
 详细架构见 [docs/architecture.md](docs/architecture.md)。
 
@@ -129,6 +138,7 @@ $QA_WORKSPACE_DIR/
 ├── tests/reports/
 │   ├── playwright-results.json                 JSON 报告
 │   └── combined/summary.md                     汇总报告
+├── messages/                                   i18n message files (copied from source)
 └── playwright-report/index.html                HTML 报告
 ```
 
