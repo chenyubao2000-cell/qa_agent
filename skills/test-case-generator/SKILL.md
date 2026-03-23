@@ -2511,6 +2511,55 @@ public class StoryParser {
 
 After all test cases are generated, **ALWAYS** produce a `playwright-handoff-{slug}.json` file. This is **MANDATORY in ALL modes** (PRD, CDP, issue). Without handoff, playwright-script-generator will refuse to generate specs.
 
+### Handoff Output Schema (Mandatory)
+
+Each handoff entry MUST contain ALL of the following fields:
+
+```json
+{
+  "id": "TC-PRD-CVPV-001",          // REQUIRED: matches TC ID in .md
+  "storyId": "US-CVPV-PDF",          // REQUIRED: user story group
+  "criterionId": "AC-001",           // REQUIRED: acceptance criterion
+  "source": "prd",                    // REQUIRED: "prd" | "cdp" | "issue"
+  "title": "PDF 文件正常预览展示",      // REQUIRED: same as .md title
+  "priority": "P0",                   // REQUIRED: "P0" | "P1" | "P2"
+  "scenarioType": "positive",         // REQUIRED: "positive" | "negative" | "boundary" | "error"
+  "preconditions": ["Canvas 已加载 PDF 文件"],  // REQUIRED: array of strings
+  "setup": [                          // REQUIRED: array (can be empty)
+    { "type": "ui", "action": "Navigate to task page", "scope": "test" }
+  ],
+  "teardown": [],                     // REQUIRED: array (can be empty)
+  "uiElements": [                     // REQUIRED: array
+    {
+      "role": "button",              // element role
+      "name": "Download file",       // visible text/label
+      "action": "click",             // "click" | "fill" | "select" | "hover" | "check" | "upload"
+      "value": null,                 // value for fill/select actions
+      "locatorHint": null,           // CSS selector hint from CDP baseline
+      "dataType": null,              // "file.pdf" | "text.email" | etc.
+      "dataVariant": null,           // "valid" | "invalid" | "boundary"
+      "i18nKey": "canvas.downloadFile"  // i18n message key (null if not found)
+    }
+  ],
+  "assertions": [                     // REQUIRED: at least 1 assertion
+    {
+      "type": "visible",             // "visible" | "hidden" | "text" | "url" | "count" | "enabled" | "disabled" | "attribute"
+      "selector": "heading",         // role or CSS selector
+      "name": "Welcome",             // element name/text
+      "expected": null,              // expected value (for text/url/count/attribute types)
+      "i18nKey": null                // i18n key for expected text
+    }
+  ],
+  "tags": ["@P0", "@smoke", "@regression", "@full"],  // REQUIRED: priority + suite tags
+  "timeout": null                     // null (default 60s) or 600000 (AI tasks)
+}
+```
+
+**Validation**: After producing the handoff JSON, self-check:
+- Entry count === "## Merged Test Case List" TC count
+- Every entry has non-null: id, storyId, title, priority, assertions (length >= 1)
+- Every assertion has non-null: type
+
 ### Step 1 — Write playwright-handoff-{slug}.json
 
 Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the Merged Test Case List = exactly one handoff entry** (strict 1:1, NO merging). Each entry maps one test case to the data Playwright needs:

@@ -326,6 +326,23 @@ Before generating a spec, you must:
 3. If a locator needed in the spec has a private property in POM but no public getter → **first add a public getter to the POM**, then call it in the spec
 4. If a locator needed in the spec is completely absent from the POM → **first add a private property + public getter/method to the POM**, then call it in the spec
 
+### POM Fragment Strategy (Parallel Generation)
+
+When the caller launches **multiple orchestrators in parallel** for the same page (e.g., qa-explore Phase 2b with multiple areas):
+- Each orchestrator writes a **POM fragment file**: `{slug}.page.{area-id}.fragment.ts`
+- Fragment contains only this area's private properties + public getters/methods
+- Do **NOT** read-modify-write the shared POM file directly (race condition)
+- The **command layer** (not the orchestrator) is responsible for merging fragments into the final POM after all orchestrators complete
+
+When the caller launches a **single orchestrator** (e.g., qa-run-prd, qa-from-issue):
+- Orchestrator can directly append to the existing POM file (no fragment needed)
+- Read existing POM first to avoid duplicating existing locators/methods
+
+The caller communicates which mode to use via `existingPageObjects` in the prompt:
+- `existingPageObjects: []` (empty) → first orchestrator, create POM directly
+- `existingPageObjects: ["path/to/slug.page.ts"]` → single mode, append to existing
+- Parallel mode is indicated by the caller launching multiple orchestrators simultaneously — each must use fragment naming
+
 ### 5.2 Spec File Header (mandatory metadata)
 
 Every generated spec file MUST include a header comment with traceability metadata:

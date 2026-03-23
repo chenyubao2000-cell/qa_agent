@@ -265,6 +265,12 @@ After subagent returns:
      c. If the fix subagent added new waits or locator changes: no handoff update needed (handoff tracks WHAT, not HOW)
   4. Write updated handoff JSON back to disk
   This keeps handoff in sync with the fixed spec for future /qa-run-prd incremental updates.
+
+  **Responsibility boundary**:
+  - The **fix subagent** returns `{ assertionsChanged: true/false, changedAssertions: [{ tcId, field, oldValue, newValue }] }` in its result
+  - The **command layer** reads this flag and performs the handoff file update (not the subagent)
+  - This ensures the subagent only does CDP + Edit, while the command layer owns artifact consistency
+
 - When building `specToIssueMap`, map the Mode X specFile to its source issueKey:
   `specToIssueMap[specFile] = issueKey`
 

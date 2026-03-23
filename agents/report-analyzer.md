@@ -22,6 +22,9 @@ The caller can pass the following context, which affects the reporting strategy:
 |-------|--------|-------------|
 | `sourceIssueKeys` | `/qa-from-issue` | List of original Linear issue keys that triggered this test run. Used in Step 2 to route failures back to source issues |
 | `sourceSpecs` | `/qa-from-issue` | List of spec file paths generated from those issues |
+
+> `sourceSpecs` clarification: This is the list of spec file paths that were **generated from** the source issues (not all specs in the project). Used in Step 2.1 routing: if a failed spec is IN sourceSpecs → write-back to source issue; if NOT in sourceSpecs → create new Bug issue.
+
 | `specToIssueMap` | `/qa-from-issue` | Map of `{ specFilePath: issueKey }`. Used to determine which issue a failing spec belongs to |
 | `changeSummary` | `/qa-run-all` (git-watcher) | AI-generated structured summary of code changes. Used to distinguish "regression caused by this change" vs "pre-existing failure" |
 | `relatedIssueKeys` | `/qa-run-all` (git-watcher) | List of Linear issue keys associated with the PR. Used to annotate failure reports with related issue context |
@@ -49,6 +52,15 @@ Read the report JSON and iterate over all test cases:
 - Record the corresponding pipeline type (e2e / unit)
 - **For E2E failures, screenshot paths must be extracted**: find entries with `name: "screenshot"` in the `attachments` array
 - **Read screenshots**: For each screenshot path, use `Read(path)` to view the image. Claude can see the screenshot and describe the error state (e.g., "page shows 404", "button is disabled", "empty content area"). This description is passed to bug-reporter for the Linear issue, since Linear cannot access local file paths.
+
+**Screenshot reading rules** (performance and reliability):
+1. **Limit**: Read at most **1 screenshot per failed test case** (the first attachment with `name: "screenshot"`)
+2. **Missing file**: If the screenshot path doesn't exist (auto-cleanup or moved), use description: "截图不可用（文件已清理）"
+3. **Description length**: Truncate screenshot description to **200 characters** max. Focus on the visible error state, not pixel details.
+4. **Timeout**: If `Read(path)` takes > 5 seconds, skip the screenshot and note: "截图读取超时"
+5. **Total budget**: For a test run with many failures (> 20), only read screenshots for the **first 10 failures**. Remaining failures use: "截图已省略（失败数量过多）"
+
+These rules prevent report-analyzer from spending excessive time reading large screenshots or hanging on missing files.
 
 ```json
 {
@@ -78,6 +90,20 @@ Appended content template:
 ## 自动化测试全部通过
 **执行时间**: {timestamp} | **用例总数**: {total} | **全部通过**: {passed}/{total}
 **Spec 文件**: {spec file paths}
+```
+
+**Success write-back template** (when all tests pass and sourceIssueKeys present):
+```markdown
+---
+## ✅ 自动化测试全部通过 — {timestamp}
+
+| 项目 | 值 |
+|------|-----|
+| 执行时间 | {ISO timestamp} |
+| 用例总数 | {total} |
+| 全部通过 | {passed}/{total} |
+| Spec 文件 | {spec file paths, comma-separated} |
+| 执行耗时 | {duration}s |
 ```
 
 ### 2.1 Routing Logic

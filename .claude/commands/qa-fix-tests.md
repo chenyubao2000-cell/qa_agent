@@ -91,7 +91,15 @@ For each spec file (from arguments or Glob all):
      c. If NOT found → keep original (language-agnostic or regex already)
   6. Update POM constructor: add `i18n?: I18n` parameter if not already present
   7. Update spec: add `i18n` destructuring from fixture, pass to POM constructor
-  8. Update handoff JSON: add i18nKey to matching uiElements/assertions entries
+  8. **Update handoff JSON** (MANDATORY, after all POM updates complete):
+     For each spec's corresponding handoff file:
+     a. Read the handoff JSON
+     b. For each uiElement that was upgraded to i18n.t() in the POM:
+        - Set uiElement.i18nKey to the discovered key
+     c. For each assertion with text that maps to an i18n key:
+        - Set assertion.i18nKey to the discovered key
+     d. Write updated handoff back to disk
+     This ensures next /qa-run-prd incremental update has i18nKey data.
 ```
 
 4. **更新 fixtures.ts**：如果 i18n fixture 不存在，按 qa-explore Phase 0 Step 2e 的规范生成

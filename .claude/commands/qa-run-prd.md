@@ -1,6 +1,6 @@
 ---
 description: PRD-driven E2E test pipeline
-allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot
+allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit
 ---
 
 You are an E2E test pipeline orchestrator.
@@ -30,8 +30,8 @@ Read `$SOURCE_PROJECT_DIR/CLAUDE.md` to get tech stack (only for understanding b
 **Initialize workspace** (empty folder compatible, skip all if already initialized):
 Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
 
-> The PRD flow itself doesn't use CDP, but the Locator verification phase needs CDP to navigate to the page and verify selectors.
-> If a login wall is encountered, handle the same as `/qa-explore` Phase 1 Step 1: explore login form -> generate global-setup.ts.
+> qa-run-prd 本身不使用 CDP。所有 CDP 工作（locator 验证、登录墙处理、页面探查）
+> 统一由下游 `/qa-fix-tests` 负责。这避免了重复 CDP 探查（qa-run-prd 探一次 + fix-tests 再探一次）。
 
 ## Phase 1: Read PRD + Change Detection
 
@@ -180,104 +180,16 @@ if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
 - If allSpecs is empty AND removedModules is not empty -> inform user "N modules deprecated, no new/updated modules" -> still run test-executor to verify remaining tests pass
 - Otherwise -> continue to Step 2
 
-**CDP Page Exploration + Locator Verification** (after orchestrator completes):
+### Step 2 — Fix tests via /qa-fix-tests
 
-> PRD generates specs from text requirements — the orchestrator has never seen the real page. Before executing tests, we must:
-> 1. Explore the real page to validate that the PRD's assumptions match reality
-> 2. Verify and fix all locators against the live DOM
+> PRD 生成的 spec 从未见过真实页面，locator 基本都是错的。
+> **所有 CDP 工作（页面探查、locator 验证、登录墙处理、断言修复）统一由 qa-fix-tests 负责。**
+> qa-run-prd 不做任何 CDP 操作，职责清晰：生成 → 交给修复。
 >
-> Both steps run in an isolated subagent per page to avoid context accumulation.
-
-For each unique page referenced by orchestrator's returned `page_objects`:
-
-Launch a **prd-page-verify subagent** with CDP tools + Edit tool:
-
-```
-prompt:
-```
-You are a page explorer and locator verifier. Read skills/cdp-explorer/SKILL.md.
-
-Task: Explore a real page and verify/fix all locators from a POM file generated from PRD.
-
-Input:
-- pageUrl: {projectContext.baseURL + page path inferred from POM's goto() method}
-- pomFile: {absolute path to the POM file}
-- specFiles: [{list of spec files that use this POM}]
-- authSetup: {true/false}
-- testCredentials: {if authSetup=true}
-
-Steps:
-1. Navigate to pageUrl (mcp__chrome-devtools__navigate_page)
-2. Login wall detection → handle if needed (fill credentials, generate global-setup.ts if not present)
-3. Three-layer scan (DOM → accessibility tree → screenshot) to understand the real page structure
-4. For each locator in the POM file:
-   a. CDP verify: evaluate selector on live page → count matches
-   b. UNIQUE (1 match) → pass
-   c. ZERO (0 matches) → use the DOM scan results to find the correct selector → Edit POM file
-   d. MULTIPLE (N matches) → use DOM scan to find narrowing parent → Edit POM file
-   e. Max 3 fix attempts per locator
-5. Check if any spec assertions reference content that doesn't exist on the real page:
-   - Text assertions → evaluate_script to confirm real text
-   - URL assertions → confirm actual routing
-   - Fix spec files if assertions are wrong
-6. Record page exploration findings (structure, actual content, discrepancies from PRD assumptions)
-
-Return:
-{
-  "pageUrl": "...",
-  "locatorsVerified": N,
-  "locatorsFixed": N,
-  "locatorsFailed": N,
-  "assertionsFixed": N,
-  "discrepancies": ["PRD says X but page shows Y", ...]
-}
-```
-```
-
-// ── Persist CDP findings to baseline ──
-// So that downstream qa-fix-tests can reuse the page exploration:
-1. Read or create page-baseline-{slug}.json in $QA_WORKSPACE_DIR/test-cases/generated/
-2. Write subagent's exploration results into baseline.cdpFindings:
-   ```json
-   {
-     "cdpFindings": {
-       "scanTimestamp": "2026-03-22T10:30:00Z",
-       "pageUrl": "https://example.com/task/abc",
-       "locatorProfile": {
-         "hasTestIds": false,
-         "testIdCount": 0,
-         "hasAriaLabels": true,
-         "dominantStrategy": "role"
-       },
-       "verifiedSelectors": {
-         "button[title='Download file']": { "matches": 1, "status": "UNIQUE" },
-         "button[title='Maximize']": { "matches": 1, "status": "UNIQUE" },
-         "[data-testid='canvas']": { "matches": 0, "status": "ZERO" }
-       },
-       "domStructureNotes": [
-         "Canvas panel: main div.flex > div.border-l.shrink-0",
-         "File cards: div[role='button'].rounded-xl.border.p-3",
-         "Sonner toasts: [data-sonner-toast][data-type='success'|'error']"
-       ],
-       "appLanguage": "en",
-       "discrepancies": ["PRD says '全屏' but button text is 'Maximize'"]
-     }
-   }
-   ```
-3. **Merge logic**: If baseline already has cdpFindings from a previous run:
-   - Merge verifiedSelectors (newer overrides older for same key)
-   - Append new domStructureNotes (deduplicate)
-   - Update scanTimestamp
-4. This allows qa-fix-tests to read `baseline.cdpFindings.verifiedSelectors` and skip re-verification for selectors already confirmed as UNIQUE
-
-When multiple POMs correspond to different pages, launch one subagent per page (serially, to avoid CDP conflicts).
-
-After all pages verified → continue to fix-tests phase
-
-### Step 3 — Fix tests via /qa-fix-tests
-
-> PRD-generated specs almost never pass on first run. Instead of wasting time on test-executor → report-analyzer,
-> go directly to the fix loop which includes execution + CDP-based repair.
+> 为什么不在 qa-run-prd 里做 CDP 验证？
+> 1. qa-fix-tests 会做完整的 CDP 探查 + 修复 + 验证循环，能力是 page-verify 的超集
+> 2. 去掉 page-verify 省 ~20 分钟 CDP 重复探查
+> 3. qa-fix-tests 的跨文件 CDP 共享机制（fixContext）比独立 page-verify 更高效
 
 ```
 allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)

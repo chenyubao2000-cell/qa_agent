@@ -1,5 +1,17 @@
 # QA 平台插件 — 系统架构文档
 
+## 术语表
+
+| 术语 | 定义 | 备注 |
+|------|------|------|
+| Locator | Playwright 定位器（`getByRole`, `getByText`, `page.locator()`）| 本项目统一用 locator |
+| Selector | CSS 选择器字符串（`button[title="X"]`, `.class-name`）| 是 locator 的一种输入 |
+| POM | Page Object Model，页面对象 | 文件后缀 `.page.ts` |
+| Handoff | 用例→脚本的移交文件（JSON）| 1:1 映射 TC |
+| Baseline | CDP 探查产出的页面状态图（JSON）| 含 states + stateGraph |
+| TC | Test Case，测试用例 | ID 格式 `TC-{source}-{module}-{seq}` |
+| Spec | Playwright 测试脚本 | 文件后缀 `.test.ts` |
+
 ## 1. 概述
 
 QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command → Agent → Skill 三层架构，将测试用例设计、脚本编写、执行和 Bug 上报全流程自动化。
