@@ -89,6 +89,20 @@ For each spec file (from arguments or Glob all):
                   ? this.page.getByRole('button', { name: this.i18n.t('canvas.downloadFile') })
                   : this.page.getByRole('button', { name: /Download file/i })
      c. If NOT found → keep original (language-agnostic or regex already)
+
+  **Locator conflict resolution**:
+  - Language-agnostic locators (CSS class, `[title="..."]`, `[data-testid="..."]`) → **不升级**，保持原样
+    这些 locator 不依赖语言，i18n 化反而降低稳定性
+  - getByRole with hardcoded English name → **升级** 为 i18n.t()
+  - getByText with hardcoded text → **升级** 为 i18n.t()
+  - 已有 i18n.t() 的 → **跳过**（已升级）
+  - 已有双语 regex（/English|中文/i）→ **升级** 为 i18n.t()（更精确）
+
+  **错误处理**:
+  - i18n 消息文件不存在 → ERROR: "I18N_MESSAGES_DIR 指向的 {path}/{locale}.json 不存在，请检查 .env 配置"，终止升级
+  - i18n JSON 解析失败 → ERROR: "消息文件格式错误: {path}"，终止升级
+  - 反查命中率 < 30% → WARNING: "仅 {N}% 的文本 locator 匹配到 i18n key，建议检查 I18N_MESSAGES_DIR 是否正确"，继续执行
+
   6. Update POM constructor: add `i18n?: I18n` parameter if not already present
   7. Update spec: add `i18n` destructuring from fixture, pass to POM constructor
   8. **Update handoff JSON** (MANDATORY, after all POM updates complete):

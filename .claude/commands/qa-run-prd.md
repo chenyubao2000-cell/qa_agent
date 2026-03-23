@@ -197,6 +197,9 @@ allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
 // Launch /qa-fix-tests targeting only the newly generated specs
 // This will: execute → identify failures → CDP explore → fix locators/assertions → verify
 Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
+// 示例：
+// Execute /qa-fix-tests with arguments: --from-prd tests/e2e/testcases/generated/login-prd.test.ts tests/e2e/testcases/generated/tasks-prd.test.ts
+// qa-fix-tests 解析规则：--from-prd 标记跳过 baseline，.test.ts 路径作为待修复文件列表
 ```
 
 > After qa-fix-tests completes, the user can run `/qa-run-all` for full regression + Linear reporting if needed.

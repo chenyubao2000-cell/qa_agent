@@ -55,6 +55,8 @@ Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_UR
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
 Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
+> 包括 i18n fixture 生成：当 APP_LANGUAGES 配置时，按 qa-explore Phase 0 Step 2e 规范生成 i18n fixture。
+
 global-setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2 (see below).
 
 ### Step 3 — Determine Navigation URL
@@ -421,9 +423,15 @@ Only proceed after ALL checks pass.
 ```bash
 node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/all-cases.xlsx
+  --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
 ```
-Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/all-cases.xlsx")` → if missing, ERROR
+// Excel 命名规范：{identifier}-all-cases.xlsx
+// qa-explore: {page-slug}-all-cases.xlsx
+// qa-from-issue: {issue-slug}-all-cases.xlsx
+// qa-run-prd: {prd-name}-all-cases.xlsx
+// qa-gen-cases: {prd-name}-all-cases.xlsx
+
+Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx")` → if missing, ERROR
 
 **Agent 2 — test-executor** (haiku):
 - Launched after orchestrator + Locator verification complete

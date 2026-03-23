@@ -451,6 +451,12 @@ for area in areas:
   ```
 
   If maxAreas reached → break
+
+  // maxAreas 限制说明：
+  // maxAreas 限制的是 **总处理数量**（初始 + 动态发现的合计）
+  // 例如 maxAreas=5：初始 3 个区域 + 动态发现 2 个 = 恰好 5 个，停止
+  // 动态发现的区域不享有额外配额，避免无限膨胀
+  // 未处理的动态区域记录在 baseline 中（status: "pending"），下次 /qa-explore 可继续
 ```
 
 ### Phase 2b: Parallel Test Generation
