@@ -56,8 +56,19 @@ Checks:
 
 ```bash
 PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/{reportFile} \
-cd $QA_WORKSPACE_DIR && npx playwright test <spec file list> --project=e2e --reporter=json,html {suiteFilter}
+cd $QA_WORKSPACE_DIR && npx playwright test <spec file list> {projectFilter} --reporter=json,html {suiteFilter}
 ```
+
+**Project filter** (based on playwright.config.ts project configuration):
+
+| APP_LANGUAGES | projectFilter | 说明 |
+|--------------|--------------|------|
+| 未设置 | `--project=e2e` | 单语言，project 名为 "e2e" |
+| `en,zh` | 不传 `--project`（跑全部） | 多语言，Playwright 自动发现 e2e-en、e2e-zh |
+| 用户指定 `--project=e2e-en` | `--project=e2e-en` | 只跑指定语言 |
+
+> **关键**：当 APP_LANGUAGES 有值时，config 里的 project 名为 `e2e-{lang}`（如 `e2e-en`、`e2e-zh`），
+> 不是 `e2e`。如果硬编码 `--project=e2e` 会导致 0 个测试被执行。
 
 **Suite filter** (optional, from caller's `suite` parameter):
 

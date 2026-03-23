@@ -234,7 +234,7 @@ Steps:
    - Text/URL mismatches → Edit spec with correct expected values
 6. Run single-file verification:
    PLAYWRIGHT_JSON_OUTPUT_NAME=$QA_WORKSPACE_DIR/tests/reports/fix-verify.json \
-   cd $QA_WORKSPACE_DIR && npx playwright test {specFile} --project=e2e --reporter=json,html
+   cd $QA_WORKSPACE_DIR && npx playwright test {specFile} --reporter=json,html
 7. If still fails → re-analyze and fix (max 3 rounds)
 
 Return:
