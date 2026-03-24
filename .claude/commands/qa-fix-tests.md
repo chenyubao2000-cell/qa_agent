@@ -49,7 +49,7 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR
 Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # only for understanding business logic
 ```
 
-All Playwright config is extracted from **this project's .env**: `baseURL` (PLAYWRIGHT_BASE_URL), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD).
+All Playwright config is extracted from **this project's .env**: `baseURL` (PREVIEW_URL, single source of truth), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD).
 
 ### --from-prd Mode (Skip Baseline, Direct Fix)
 

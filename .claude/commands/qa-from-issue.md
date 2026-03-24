@@ -50,7 +50,7 @@ Read(".env")  # valition_agent root directory
 Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # tech stack (read source code only to understand business)
 ```
 
-Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_URL`, `PLAYWRIGHT_BASE_URL`, `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`, `APP_LANGUAGES`, `I18N_MESSAGES_DIR`, `techStack` (source CLAUDE.md).
+Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_URL`, `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`, `APP_LANGUAGES`, `I18N_MESSAGES_DIR`, `techStack` (source CLAUDE.md). `PREVIEW_URL` is the single source of truth for baseURL.
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
@@ -374,7 +374,7 @@ Input:
 - baselineFile: <baseline JSON path from Phase 2 exploration>
 - projectContext:
         targetProjectDir: {QA_WORKSPACE_DIR}
-        baseURL: {PLAYWRIGHT_BASE_URL}
+        baseURL: {PREVIEW_URL}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
         appLanguages: {APP_LANGUAGES or null}

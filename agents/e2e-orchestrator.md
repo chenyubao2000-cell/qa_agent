@@ -75,7 +75,7 @@ The caller (qa-explore / qa-from-issue / qa-run-prd) passes a `projectContext` o
 | `targetProjectDir` | QA_WORKSPACE_DIR from .env | **Write files**: output path for artifacts (spec/POM/test cases/Excel) |
 | `sourceProjectDir` | Resolved by command layer per priority: `--source` arg > `prSourceDir` > `SOURCE_PROJECT_DIR` in .env > `QA_WORKSPACE_DIR` | **Read source code**: view component implementations, understand business logic |
 | `techStack` | CLAUDE.md in source code directory | Code style and import paths for generated code |
-| `baseURL` | PLAYWRIGHT_BASE_URL from this project's .env | baseURL in specs |
+| `baseURL` | PREVIEW_URL from this project's .env (single source of truth) | baseURL in specs |
 | `authSetup` | Whether E2E_TEST_EMAIL exists in this project's .env | Has value → requires auth state; no value → public page |
 | `testCredentials` | E2E_TEST_EMAIL / E2E_TEST_PASSWORD from this project's .env | Used for fixtures login |
 | `existingTests` | testDir in targetProjectDir | Existing test directory (for deduplication) |

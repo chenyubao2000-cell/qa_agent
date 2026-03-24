@@ -65,7 +65,7 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR
 
 Extract all config from **this project's .env**:
 - `QA_WORKSPACE_DIR` — target project root directory
-- `baseURL` — `PLAYWRIGHT_BASE_URL`, fallback to `PREVIEW_URL`
+- `baseURL` — `PREVIEW_URL` (single source of truth; `PLAYWRIGHT_BASE_URL` is no longer maintained separately)
 - `authSetup` — `E2E_TEST_EMAIL` has value -> requires auth state
 - `testCredentials` — `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD`
 - `techStack` — from source directory CLAUDE.md
@@ -82,10 +82,11 @@ Check `$QA_WORKSPACE_DIR`; if it doesn't exist or is empty, perform initializati
 Write Playwright-related variables from this project's `.env` into `$QA_WORKSPACE_DIR/.env`:
 
 ```
-PLAYWRIGHT_BASE_URL=<from this project's .env>
+PREVIEW_URL=<from this project's .env PREVIEW_URL>
 PLAYWRIGHT_HEADLESS=<from this project's .env>
 E2E_TEST_EMAIL=<from this project's .env>
 E2E_TEST_PASSWORD=<from this project's .env>
+APP_LANGUAGES=<from this project's .env, if set>
 ```
 
 > dotenv loads this file in playwright.config.ts and global-setup.ts.
@@ -176,7 +177,7 @@ export default defineConfig({
     timeout: 10_000,
   },
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.PREVIEW_URL || "http://localhost:3000",
     viewport: { width: 1280, height: 720 },
     headless: process.env.PLAYWRIGHT_HEADLESS !== "false",
     locale: process.env.APP_LANGUAGES?.split(',')[0]?.trim() === 'zh' ? 'zh-CN' : 'en-US',
@@ -343,8 +344,7 @@ fi
 
 Priority:
 1. URL passed by user in `$ARGUMENTS`
-2. `PLAYWRIGHT_BASE_URL` from this project's `.env`
-3. `PREVIEW_URL` from this project's `.env`
+2. `PREVIEW_URL` from this project's `.env`
 
 ---
 
@@ -618,7 +618,7 @@ for area in exploredAreas:
     - projectContext:
         targetProjectDir: {QA_WORKSPACE_DIR}
         sourceProjectDir: {SOURCE_PROJECT_DIR}
-        baseURL: {PLAYWRIGHT_BASE_URL}
+        baseURL: {PREVIEW_URL}
         authSetup: {true/false}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}

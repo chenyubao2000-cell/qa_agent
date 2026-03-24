@@ -24,7 +24,7 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR
 - **Read source code** -> read from source directory
 - **Write files** (spec/POM/cases/reports) -> always write to QA_WORKSPACE_DIR
 
-Read `.env` to get `QA_WORKSPACE_DIR`, `SOURCE_PROJECT_DIR`, `PREVIEW_URL`, `PLAYWRIGHT_BASE_URL`, `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`.
+Read `.env` to get `QA_WORKSPACE_DIR`, `SOURCE_PROJECT_DIR`, `PREVIEW_URL`, `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`. `PREVIEW_URL` is the single source of truth for baseURL.
 Read `$SOURCE_PROJECT_DIR/CLAUDE.md` to get tech stack (only for understanding business logic).
 
 **Initialize workspace** (empty folder compatible, skip all if already initialized):
@@ -117,7 +117,7 @@ for module in prdModules:
     - prdChangeMode: "{module.prdChangeMode}"  // "new" or "updated"
     - projectContext:
         targetProjectDir: {QA_WORKSPACE_DIR}
-        baseURL: {PLAYWRIGHT_BASE_URL}
+        baseURL: {PREVIEW_URL}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
         appLanguages: {APP_LANGUAGES or null}
