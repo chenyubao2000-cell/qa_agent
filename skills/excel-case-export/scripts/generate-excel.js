@@ -159,7 +159,7 @@ async function main() {
 const COLUMN_ALIASES = {
   id:       ['用例编号', 'case id', 'caseid', 'tc', '编号'],
   module:   ['功能模块', 'feature module', 'module', '模块'],
-  type:     ['有效还是无效等价类', 'valid/invalid', 'valid/invalid equivalence class', '测试类型', 'test type', '等价类'],
+  type:     ['有效还是无效等价类', 'valid/invalid', 'valid/invalid equivalence class', '测试类型', 'test type', '等价类', '方法来源', 'method', 'source method'],
   priority: ['用例等级', 'case level', '优先级', 'priority', '等级'],
   title:    ['用例名', 'case name', '用例标题', 'title', '标题'],
   given:    ['输入条件', 'input conditions', '前置条件', 'preconditions', 'given', '条件'],

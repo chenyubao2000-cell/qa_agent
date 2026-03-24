@@ -100,11 +100,11 @@ Execute per agents/test-executor.md steps, return report paths and summary.
 **Multi-language project selection** (when `APP_LANGUAGES` is set):
 - Default: run ALL language projects. Playwright automatically discovers `e2e-en`, `e2e-zh` etc.
   ```bash
-  npx playwright test --reporter=json,html  # runs all projects
+  npx playwright test  # runs all projects, reporter from config
   ```
 - With `--project` argument: run specific language only.
   ```bash
-  npx playwright test --project=e2e-en --reporter=json,html  # English only
+  npx playwright test --project=e2e-en  # English only
   ```
 - The test-executor agent receives the project list implicitly via playwright.config.ts.
   No special handling needed — Playwright's multi-project execution handles language switching automatically (each project has its own locale + NEXT_LOCALE cookie).

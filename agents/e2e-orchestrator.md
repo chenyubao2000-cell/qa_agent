@@ -228,7 +228,12 @@ Read `skills/test-case-generator/SKILL.md` and execute according to the correspo
 - **Only generate test cases that Step 2 determined as "missing"**; do not regenerate already covered ones
 - Output: test-cases/generated/{slug}.md + test-cases/generated/playwright-handoff-{slug}.json
 - **Handoff is MANDATORY**: test-case-generator MUST produce handoff.json in ALL modes (PRD, CDP, issue). Each TC in Merged table = one handoff entry. If handoff is not produced, Step 4.5 will block the pipeline.
-- **i18n context**: When `projectContext.appLanguages` is set, pass `appLanguages` and `i18nMessagesDir` to test-case-generator. The skill uses these to populate `uiElements[].i18nKey` and `assertions[].i18nKey` in the handoff JSON via i18n reverse-lookup.
+- **i18n context (MANDATORY when appLanguages is set)**: Pass `appLanguages` and `i18nMessagesDir` to test-case-generator in the prompt:
+  ```
+  - appLanguages: {projectContext.appLanguages}
+  - i18nMessagesDir: {projectContext.i18nMessagesDir}
+  ```
+  The skill uses these to populate `uiElements[].i18nKey` and `assertions[].i18nKey` in the handoff JSON via i18n reverse-lookup. Without these fields, downstream playwright-script-generator will fall back to hardcoded regex instead of `i18n.t()`.
 - **PRD mode**: The .md file header must include module tracking metadata:
   ```
   <!-- PRD-hash: {sha256(module text)} | PRD-module: {module heading} | feature-slug: {feature} -->
@@ -314,6 +319,31 @@ Read `skills/playwright-script-generator/SKILL.md` and execute according to the 
 - Existing spec → append test cases (do not duplicate existing cases)
 - Existing POM → append locators / methods (do not duplicate existing properties)
 - **i18n propagation**: When `projectContext.appLanguages` is set, pass it to playwright-script-generator. The skill generates i18n-aware POMs (accepting `i18n` fixture parameter) and specs that instantiate POMs with `i18n`. Each Playwright project runs the same specs under a different language. POM text-based locators use `i18n.t('key')` resolved at runtime.
+
+### 5.0.1 i18n Post-Generation Verification (when appLanguages is set)
+
+After playwright-script-generator returns, verify the generated spec and POM:
+
+**Anti-pattern checks (must be 0 matches):**
+
+| Check | Grep Pattern | Expected |
+|-------|-------------|----------|
+| No direct message imports | `import.*messages.*\.json` | 0 matches |
+| No makeI18n helper | `makeI18n` | 0 matches |
+| No separate zh describe blocks | `test\.describe.*中文\|test\.describe.*zh\|test\.describe.*i18n` | 0 matches |
+| No manual language switching | `changeLanguage` | 0 matches |
+
+**Positive checks (must be ≥1 match):**
+
+| Check | Grep Pattern | Expected |
+|-------|-------------|----------|
+| Spec destructures i18n | `i18n` in `async ({` lines | ≥1 match per test() |
+| POM instantiated with i18n | `new \w+Page\(.*i18n` | ≥1 match |
+| POM constructor accepts i18n | `i18n\?: I18n` in POM file | 1 match |
+| POM imports I18n type | `import.*I18n.*fixtures` in POM file | 1 match |
+| Spec uses i18n.t() for text assertions | `i18n\.t\(` | ≥1 match (if handoff has i18nKey entries) |
+
+If any check fails → **regenerate** the spec with explicit instruction to follow `playwright-script-generator/SKILL.md §2.3.1`.
 
 ### 5.1 POM Mandatory Rules
 

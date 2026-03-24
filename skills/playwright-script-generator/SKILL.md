@@ -675,7 +675,21 @@ Use `locatorHint` from baseline directly. If baseline contains `locatorProfile.h
 
 ### 2.3.1 i18n-Aware Locators (Multi-Language Testing)
 
-When `projectContext.appLanguages` is configured (e.g., `"en,zh"`), POM must use i18n for all text-based locators:
+When `projectContext.appLanguages` is configured (e.g., `"en,zh"`), POM must use i18n for all text-based locators.
+
+> **FORBIDDEN ANTI-PATTERNS (when appLanguages is set):**
+> 1. ❌ `import enMessages from '../../messages/en.json'` — spec MUST NOT directly import message files
+> 2. ❌ `makeI18n()` or any custom i18n helper function — use the `i18n` fixture from `fixtures.ts`
+> 3. ❌ Separate `test.describe` blocks for zh/i18n/Chinese — ALL test() run for both languages via Playwright projects
+> 4. ❌ `changeLanguage("zh")` or manual language switching — NEXT_LOCALE cookie is set automatically by each project
+>
+> **REQUIRED PATTERN (mandatory when appLanguages is set):**
+> - Spec imports `i18n` from `../../fixtures`: `import { test, expect } from '../../fixtures';`
+> - Every `test()` destructures i18n: `async ({ page, i18n }) => { ... }`
+> - POM constructor receives i18n: `const home = new HomePage(page, i18n);`
+> - Text assertions use `i18n.t('key')`: `await expect(el).toHaveText(i18n.t('homepage.hero.title'));`
+> - Playwright config has per-language projects (e2e-en, e2e-zh) that set locale + NEXT_LOCALE cookie
+> - Same test code runs under each project — language switching is transparent to the spec
 
 **POM constructor pattern:**
 ```typescript
@@ -708,7 +722,10 @@ export class CanvasPage {
 Every generated spec MUST:
 1. Import `i18n` from fixtures: `import { test, expect, type I18n } from '../../fixtures';`
    (The i18n fixture is auto-generated in fixtures.ts when APP_LANGUAGES is configured)
-2. Destructure `i18n` in every test() block: `test('...', async ({ authenticatedPage: page, i18n }) => { ... })`
+2. Destructure `i18n` in every test() block, using the correct page fixture:
+   - **Public pages** (authSetup=false): `test('...', async ({ page, i18n }) => { ... })`
+   - **Auth-required pages** (authSetup=true): `test('...', async ({ authenticatedPage: page, i18n }) => { ... })`
+   Both patterns destructure `i18n` alongside the page fixture. The `i18n` fixture is always available regardless of auth mode.
 3. Pass `i18n` to POM constructors: `const canvas = new CanvasPage(page, i18n);`
 
 Example generated spec:
@@ -837,7 +854,7 @@ playwright.config.ts     # testDir: ./tests/e2e, testMatch: **/testcases/**/*.te
 ```
 
 - **Test files**: `tests/e2e/testcases/**/*.test.ts` (not `*.spec.ts`)
-- **Imports**: `import { test, expect } from "../fixtures"` + `import { XxxPage } from "../pages/xxx"`
+- **Imports**: `import { test, expect } from "../../fixtures"` + `import { XxxPage } from "../../pages/xxx"` (paths relative to `testcases/generated/`)
 - **Snapshots**: `tests/e2e/snapshots/<testFileName>/<name>.png`, controlled by config `snapshotPathTemplate`
 - **Auth state**: `.auth/user.json` (repository root)
 

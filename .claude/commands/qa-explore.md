@@ -113,6 +113,20 @@ if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -f "$QA_WORKSPACE_DIR/messages/en.json" ];
   cp "$I18N_MESSAGES_DIR"/*.json "$QA_WORKSPACE_DIR/messages/"
   echo "Copied i18n messages to $QA_WORKSPACE_DIR/messages/"
 fi
+
+# Validate ALL languages in APP_LANGUAGES have corresponding message files
+if [ -n "$APP_LANGUAGES" ]; then
+  IFS=',' read -ra LANGS <<< "$APP_LANGUAGES"
+  for lang in "${LANGS[@]}"; do
+    lang=$(echo "$lang" | tr -d ' ')
+    if [ ! -f "$QA_WORKSPACE_DIR/messages/${lang}.json" ]; then
+      echo "ERROR: Missing message file for language '${lang}': $QA_WORKSPACE_DIR/messages/${lang}.json"
+      echo "APP_LANGUAGES=${APP_LANGUAGES} requires message files for all languages."
+      exit 1
+    fi
+  done
+  echo "Validated: message files exist for all languages (${APP_LANGUAGES})"
+fi
 ```
 
 > **Why copy instead of reference**: The generated fixtures.ts uses `import from '../messages/en.json'` (local relative path),
@@ -124,7 +138,20 @@ fi
 npm init -y && npm install -D @playwright/test dotenv && npx playwright install chromium
 ```
 
-#### 2d. Generate playwright.config.ts (if not present)
+#### 2d. Generate playwright.config.ts (if not present, OR upgrade when APP_LANGUAGES changed)
+
+**Upgrade logic**: If file exists, check whether it needs upgrading:
+1. `APP_LANGUAGES` is set AND config has no per-language projects (no `e2e-en`/`e2e-zh`) → **regenerate** with multi-project config
+2. `APP_LANGUAGES` is set AND config already has per-language projects → **skip** (already correct)
+3. `APP_LANGUAGES` is NOT set → **skip** if file exists
+
+```bash
+# Pseudo-check:
+if file exists AND APP_LANGUAGES is set:
+  Grep for "e2e-${firstLang}" in playwright.config.ts
+  If NOT found → regenerate (upgrade to multi-project)
+  If found → skip
+```
 
 ```typescript
 import { config } from "dotenv";
@@ -186,15 +213,28 @@ export default defineConfig({
 ```
 
 > **Configuration notes**:
-> - `reporter`: Always outputs JSON (consumed by report-analyzer) + HTML (for manual review). test-executor command line also overrides this setting to ensure dual output
-> - `headless`: Controlled by environment variable, defaults to true. Target project config may hardcode false; test-executor's `--reporter` override doesn't affect headless — control via `.env`'s `PLAYWRIGHT_HEADLESS`
+> - `reporter`: Always outputs JSON (consumed by report-analyzer) + HTML (for manual review). Do NOT use `--reporter` CLI override — it would replace this config and lose the JSON file output
+> - `headless`: Controlled by environment variable, defaults to true. Control via `.env`'s `PLAYWRIGHT_HEADLESS`
 > - `retries`: Retry once in CI to reduce flaky false positives; no retries locally for fast failure exposure
 > - `trace` + `video`: Retained on failure for debugging. `on-first-retry` is inferior to `retain-on-failure` (preserves evidence without requiring a retry)
 > - `locale`: Dynamically inferred — uses first language when APP_LANGUAGES is set, defaults to `en-US` otherwise. Each language project sets locale independently.
 > - `outputDir`: Explicitly specified to prevent artifacts from scattering
 > - `expect.timeout`: Default 5s is too short for remote environments, set to 10s
 
-#### 2e. Generate fixtures.ts (if not present)
+#### 2e. Generate fixtures.ts (if not present, OR upgrade when APP_LANGUAGES changed)
+
+**Upgrade logic**: If file exists, check whether it needs upgrading:
+1. `APP_LANGUAGES` is set AND fixtures.ts does NOT contain `export type I18n` → **regenerate** with i18n fixture
+2. `APP_LANGUAGES` is set AND fixtures.ts already contains `export type I18n` → **skip** (already correct)
+3. `APP_LANGUAGES` is NOT set → **skip** if file exists
+
+```bash
+# Pseudo-check:
+if file exists AND APP_LANGUAGES is set:
+  Grep for "export type I18n" in fixtures.ts
+  If NOT found → regenerate (upgrade to add i18n fixture)
+  If found → skip
+```
 
 **With E2E_TEST_EMAIL** -> full version with auth:
 
