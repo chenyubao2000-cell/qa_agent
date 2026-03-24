@@ -1,0 +1,13 @@
+/qa-run-all
+
+_trigger: git-watcher_
+
+变更文件列表（changelist）：
+- tests/e2e/testcases/sign-in11.test.ts
+
+代码变更摘要（changeSummary）：
+1. 【测试】修改登录页测试套件名称
+   文件: tests/e2e/testcases/sign-in11.test.ts L8
+
+PR 源码目录（prSourceDir）：D:\code\.qa-worktree-pr-898
+注意：读源码从此目录读，生成的 spec/POM/用例写入原 TARGET_PROJECT_DIR，不要写入 prSourceDir。

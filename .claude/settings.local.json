@@ -1,0 +1,67 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Edit(d:/code/valition_agent_new/**)",
+      "Write(d:/code/valition_agent_new/**)",
+      "Skill(claude-api)",
+      "Bash(npm install:*)",
+      "Bash(npm config:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(cd:*)",
+      "Bash(mkdir:*)",
+      "Bash(git clone:*)",
+      "Bash(which playwright:*)",
+      "Bash(find:*)",
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "mcp__linear__list_teams",
+      "mcp__linear__create_issue",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__linear__search_issues",
+      "mcp__linear__list_issues",
+      "mcp__linear__get_issue",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__linear__update_issue",
+      "Skill(qa-explore)",
+      "WebSearch",
+      "mcp__github__get_pull_request_files",
+      "Skill(qa-from-issue)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "chrome-devtools",
+    "linear",
+    "github"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/post-notify.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
