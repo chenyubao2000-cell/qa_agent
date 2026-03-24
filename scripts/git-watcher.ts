@@ -362,7 +362,7 @@ ${rawDiff}`;
   writeFileSync(promptFile, prompt);
   try {
     const summary = execSync(
-      `type "${promptFile}" | claude -p --model haiku`,
+      `type "${promptFile}" | claude -p --model claude-opus-4-6`,
       { cwd: PROJECT_ROOT, encoding: "utf-8", timeout: 60_000 }
     ).trim();
     log(`  摘要生成完成 (${summary.length} chars)`);
