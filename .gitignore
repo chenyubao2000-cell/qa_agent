@@ -1,14 +1,2 @@
 node_modules/
-.env
-.mcp.json
-.claude/settings.local.json
-scripts/ci/state.json
-.git-watcher.pid
-.claude-prompt.tmp
-.pr-comment-body.md
-package-lock.json
-.cursorindexingignore
-.pr-state.json
-.pr-state*.json
-.specstory/
-.vscode/
+.specstory
