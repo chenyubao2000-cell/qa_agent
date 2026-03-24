@@ -182,11 +182,60 @@ If all pass -> inform user "All non-skipped cases have passed, no fixes needed" 
 
 ---
 
-## Phase 2: Fix One by One
+## Phase 2: Fix Failed Files
 
 > **Context management**: Each failed file's fix cycle (CDP explore → analyze → fix → verify) runs in an **isolated subagent**. This prevents CDP data from accumulating in the main command context across multiple files (10 files × 3 rounds × CDP data would otherwise explode the context).
 
-Group `failedTests` by file. For each failed file, launch a **fix-single-file subagent**:
+### Step 0 — Choose execution strategy (MANDATORY, do NOT skip)
+
+Before launching any fix subagent, you **MUST ask the user** which strategy to use:
+
+```
+Found {N} failed spec files to fix:
+1. {file1} ({M1} failures)
+2. {file2} ({M2} failures)
+...
+
+Choose fix strategy:
+  (A) Parallel — launch all {N} fix agents simultaneously
+      ✅ Fast: all files fixed concurrently
+      ⚠️ Higher token cost: each agent does independent CDP exploration (~×N)
+  (B) Serial — fix one file at a time, share CDP context between agents
+      ✅ Lower token cost: agent 1 explores, agents 2-N reuse findings
+      ⚠️ Slower: sequential execution
+
+Which strategy? (A/B)
+```
+
+**Wait for user response before proceeding.** Do NOT default to either strategy.
+
+- If user chooses **(A) Parallel**: launch ALL fix subagents simultaneously (see Parallel mode below)
+- If user chooses **(B) Serial**: launch fix subagents one by one, passing CDP context forward (see Serial mode below)
+
+---
+
+### Parallel mode
+
+Group `failedTests` by file. Launch **ALL fix-single-file subagents simultaneously**:
+
+> **IMPORTANT**: In parallel mode, `previousFixContext` is NOT available — each agent explores independently.
+
+```
+Launch ALL fix subagents in a single message (parallel):
+  For each failed file, launch subagent with CDP tools + Edit tool, passing:
+    - previousFixContext: {}  // empty — no cross-agent sharing in parallel mode
+    - (all other inputs same as serial mode)
+
+After ALL subagents complete:
+  Collect all results into fixResults[]
+```
+
+### Serial mode
+
+Group `failedTests` by file. Launch fix subagents **one at a time, sequentially**:
+
+```
+For each failed file (one at a time, MUST NOT launch next until current completes):
 
 ```
 For each failed file:
@@ -312,29 +361,25 @@ For each failed file:
 
   Collect subagent result into fixResults[]
 
-  // ── Cross-File CDP Context Sharing ──
-  // After each fix subagent completes, persist its CDP findings for subsequent agents:
+  // ── Cross-File CDP Context Sharing (Serial mode ONLY) ──
+  // After each fix subagent completes, persist its CDP findings for the next agent:
   if subagent returned cdpFindings:
     1. Read existing page-baseline-{slug}.json (or create if absent)
     2. Merge cdpFindings into baseline.fixContext field:
        { verifiedLocators: {...}, domStructure: {...}, pageNotes: [...] }
     3. Pass updated fixContext to the NEXT fix subagent as previousFixContext
 
-  // This prevents Agent N from re-exploring the same page that Agent 1 already mapped.
-  // Typical savings: 4 agents × 20 min CDP exploration = 80 min → 20 min (only first agent explores).
-
-  **Command-layer implementation:**
+  **Serial mode command-layer implementation:**
   ```
   fixContext = {}  // shared across all fix subagents in this session
 
-  for each failedFile:
+  for each failedFile (SEQUENTIAL — MUST wait for previous to complete):
     Launch fix subagent with:
       - ...existing inputs...
       - previousFixContext: fixContext  // empty for first agent, accumulated for subsequent
 
     After subagent returns:
       if subagent.cdpFindings:
-        // Merge into shared context
         fixContext.verifiedSelectors = { ...fixContext.verifiedSelectors, ...subagent.cdpFindings.verifiedSelectors }
         fixContext.domStructureNotes = [...new Set([...(fixContext.domStructureNotes || []), ...(subagent.cdpFindings.domStructureNotes || [])])]
         fixContext.appLanguage = subagent.cdpFindings.appLanguage || fixContext.appLanguage
@@ -342,8 +387,7 @@ For each failed file:
       Collect subagent result into fixResults[]
   ```
 
-  This accumulates CDP findings across fix agents. Agent 1 explores everything (~20 min),
-  agents 2-5 receive previousFixContext and skip redundant exploration (~2 min each).
+  Serial savings: Agent 1 explores fully (~20 min), agents 2-N reuse findings (~2 min each).
 ```
 
 ---
