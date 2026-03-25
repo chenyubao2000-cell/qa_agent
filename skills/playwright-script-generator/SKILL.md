@@ -675,6 +675,12 @@ Use `locatorHint` from baseline directly. If baseline contains `locatorProfile.h
 
 ### 2.3.1 i18n-Aware Locators (Multi-Language Testing)
 
+**i18n prerequisite check** (before generating any i18n-aware code):
+When `projectContext.appLanguages` is set, verify before generating specs:
+1. `projectContext.i18nMessagesDir` is set AND directory exists with message files → proceed with `i18n.t()` pattern
+2. `projectContext.i18nMessagesDir` is null or directory missing → **WARNING**: "appLanguages is set but i18nMessagesDir is unavailable — falling back to regex for text locators. i18n.t() will NOT be used. Fix: ensure command layer copies messages in Phase 0 Step 2b-1". Continue generating specs but use regex fallback pattern instead of `i18n.t()`.
+3. Even when falling back to regex, still generate POM with `i18n?: I18n` parameter and spec with `i18n` destructuring — this ensures specs are i18n-ready and will work correctly once messages are available.
+
 When `projectContext.appLanguages` is configured (e.g., `"en,zh"`), POM must use i18n for all text-based locators.
 
 > **FORBIDDEN ANTI-PATTERNS (when appLanguages is set):**
@@ -994,11 +1000,13 @@ await expect(locator).toHaveClass(/active/);
 
 The project uses a single `tests/e2e/fixtures.ts`, providing:
 
-- **storageStatePath** (worker-scoped): logs in once per worker, saves to `.auth/user.json`
-- **authenticatedPage**: a page with login state
+- **authenticatedContext** (worker-scoped): loads storageState from `.auth/user.json` if fresh (< 3h), otherwise starts clean context
+- **authenticatedPage**: a page with login state — includes **auth self-healing**: if storageState is stale, auto-detects login wall and re-authenticates using `.env` credentials before test runs
 - **chatPage**: a ChatPage instance wrapping authenticatedPage
 
 Environment variables: `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `PREVIEW_URL`
+
+> **Auth resilience**: `global-setup.ts` uses 3h cache + validation. `fixtures.ts` has `reLogin()` fallback — if auth expires mid-run, re-login happens transparently per worker. Specs do NOT need any auth handling.
 
 ```typescript
 import { test, expect } from '../fixtures';
@@ -1116,6 +1124,24 @@ report-analyzer → bug-reporter → Linear Issue — the entire pipeline depend
 7. **Trace viewer debugging**: `pnpm exec playwright show-trace trace.zip`
 8. **fullyParallel: true** but ensure test isolation
 9. **afterEach cleanup** of test data
+10. **Sign-out / session-destroying tests must use isolated context**: Tests that perform logout, clear cookies, or otherwise invalidate auth state **MUST NOT** use `authenticatedPage` (shared worker context). Instead, create a fresh `browser.newContext({ storageState: AUTH_FILE })` within the test, so the sign-out only affects that isolated context. Otherwise the shared worker auth session is destroyed and all subsequent tests in the same worker fail on the login page.
+
+```typescript
+// ❌ WRONG — destroys shared worker auth for all subsequent tests
+test('sign out redirects to login', async ({ authenticatedPage: page }) => {
+  await signOutPage.clickSignOut();
+  await expect(page).toHaveURL(/\/sign-in/);
+});
+
+// ✅ CORRECT — isolated context, sign-out doesn't affect other tests
+test('sign out redirects to login', async ({ browser }) => {
+  const ctx = await browser.newContext({ storageState: AUTH_FILE });
+  const page = await ctx.newPage();
+  await signOutPage.clickSignOut();
+  await expect(page).toHaveURL(/\/sign-in/);
+  await ctx.close();
+});
+```
 
 ---
 
@@ -1129,6 +1155,7 @@ report-analyzer → bug-reporter → Linear Issue — the entire pipeline depend
 6. Execution order dependencies between unrelated test cases (except CRUD scenarios, see §1.4)
 7. Not using baseURL, hardcoding absolute paths
 8. Directly testing third-party services (should mock)
+9. **Using `authenticatedPage` for sign-out tests** — destroys the shared worker auth session, causing cascade failures for all subsequent tests in the same worker (see §10 rule 10)
 9. Not cleaning up side effects
 
 ---

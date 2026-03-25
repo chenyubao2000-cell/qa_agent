@@ -24,14 +24,19 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR
 - **Read source code** -> read from source directory
 - **Write files** (spec/POM/cases/reports) -> always write to QA_WORKSPACE_DIR
 
-Read `.env` to get `QA_WORKSPACE_DIR`, `SOURCE_PROJECT_DIR`, `PREVIEW_URL`, `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`. `PREVIEW_URL` is the single source of truth for baseURL.
+Read `.env` to get `QA_WORKSPACE_DIR`, `SOURCE_PROJECT_DIR`, `PREVIEW_URL`, `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `APP_LANGUAGES`, `I18N_MESSAGES_DIR`. `PREVIEW_URL` is the single source of truth for baseURL.
 Read `$SOURCE_PROJECT_DIR/CLAUDE.md` to get tech stack (only for understanding business logic).
 
 **Initialize workspace** (empty folder compatible, skip all if already initialized):
 Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
 
+> **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
+
+> **Including auth resilience** (when `E2E_TEST_EMAIL` is set): fixtures.ts must include `isAuthFresh()` + `reLogin()` self-healing pattern per qa-explore Phase 0 Step 2e template. Without this, mid-run token expiry causes cascade failures on all authenticated tests.
+
 > qa-run-prd itself does not use CDP. All CDP work (locator verification, login wall handling, page exploration)
 > is uniformly handled by downstream `/qa-fix-tests`. This avoids redundant CDP exploration (qa-run-prd exploring once + fix-tests exploring again).
+> When `/qa-fix-tests` generates `global-setup.ts`, it must follow qa-explore Phase 1 Step 1 template (3h cache + validation navigation + re-login).
 
 ## Phase 1: Read PRD + Change Detection
 

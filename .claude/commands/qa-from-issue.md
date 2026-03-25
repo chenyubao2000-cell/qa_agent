@@ -55,9 +55,12 @@ Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_UR
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
 Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
-> Including i18n fixture generation: when APP_LANGUAGES is configured, generate i18n fixture per qa-explore Phase 0 Step 2e specification.
 
-global-setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2 (see below).
+> **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
+
+> **Including auth resilience** (when `E2E_TEST_EMAIL` is set): fixtures.ts must include `isAuthFresh()` + `reLogin()` self-healing pattern per qa-explore Phase 0 Step 2e template. Without this, mid-run token expiry causes cascade failures on all authenticated tests.
+
+global-setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2. When generated, it must follow qa-explore Phase 1 Step 1 template (3h cache + validation navigation + re-login).
 
 ### Step 3 — Determine Navigation URL
 

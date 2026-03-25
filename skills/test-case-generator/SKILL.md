@@ -2694,7 +2694,12 @@ Save to `test-cases/generated/playwright-handoff-{slug}.json`. **Each TC in the 
 }
 ```
 
-**i18n key reverse-lookup** (when `projectContext.i18nMessagesDir` is set):
+**i18n key reverse-lookup** (when `projectContext.appLanguages` is set):
+
+**Prerequisite check**: Before performing reverse-lookup:
+- If `projectContext.i18nMessagesDir` is set AND `$i18nMessagesDir/{defaultLocale}.json` exists → proceed
+- If `projectContext.appLanguages` is set but `i18nMessagesDir` is null or file missing → **WARNING**: "appLanguages={appLanguages} but i18n messages unavailable at {i18nMessagesDir}. All i18nKey fields will be null — downstream will use regex fallback instead of i18n.t(). Fix: check I18N_MESSAGES_DIR in .env and re-run command Phase 0". Skip reverse-lookup, leave all i18nKey as null.
+
 After populating each handoff entry's uiElements and assertions, perform reverse-lookup:
 1. Load `$i18nMessagesDir/{defaultLocale}.json`（i18nMessagesDir 由命令层传入，指向 QA_WORKSPACE_DIR/messages/；用 appLanguages 首语言作为 defaultLocale）
 2. Build a flat map: { "Download file": "canvas.downloadFile", "Maximize": "canvas.maximize", ... }

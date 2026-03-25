@@ -99,6 +99,45 @@ Read("$SOURCE_PROJECT_DIR/CLAUDE.md") # Fallback only: for obtaining the tech st
 
 Pass `projectContext` to the test-case-generator and playwright-script-generator skills to ensure generated code matches the target project's tech stack and conventions.
 
+### Auth Prerequisite Validation (when authSetup is true)
+
+Before proceeding to Step 1, validate that auth infrastructure follows the 3-layer resilience pattern:
+
+```
+If projectContext.authSetup is true:
+  1. Verify global-setup.ts exists:
+     - Check: file exists at "$targetProjectDir/tests/e2e/global-setup.ts"
+     - If missing → WARNING: "global-setup.ts not found. Login wall handling will be deferred to qa-fix-tests Phase 2."
+  2. Verify global-setup.ts has validation step (not old 12h version):
+     - Check: Grep("validating|isOnLogin", "$targetProjectDir/tests/e2e/global-setup.ts")
+     - If missing → WARNING: "global-setup.ts may use old cache-only pattern without validation. Auth may silently expire."
+  3. Verify fixtures.ts has auth self-healing:
+     - Check: Grep("isAuthFresh|reLogin", "$targetProjectDir/tests/e2e/fixtures.ts")
+     - If missing → WARNING: "fixtures.ts missing auth self-healing (isAuthFresh/reLogin). Mid-run token expiry will cause cascade failures."
+```
+
+> **Why validate here**: Auth failures cause ALL authenticated tests to land on the login page — identical symptoms to locator issues but completely different root cause. Catching stale auth patterns early prevents wasting a full test-executor cycle on a solvable infrastructure problem.
+
+### i18n Prerequisite Validation (when appLanguages is set)
+
+Before proceeding to Step 1, validate that i18n infrastructure is ready. This prevents generating specs with `i18n.t()` calls that fail at runtime because the infrastructure is missing.
+
+```
+If projectContext.appLanguages is set:
+  1. Verify messages directory exists:
+     - Check: Glob("$targetProjectDir/messages/*.json") has files for each language in appLanguages
+     - If missing → ERROR: "i18n messages not found at $targetProjectDir/messages/. Command layer should have copied them in Phase 0 Step 2b-1. Re-run the command or check I18N_MESSAGES_DIR in .env"
+  2. Verify fixtures.ts has i18n fixture:
+     - Check: Grep("export type I18n", "$targetProjectDir/tests/e2e/fixtures.ts")
+     - If missing → ERROR: "fixtures.ts missing i18n fixture. Re-run command Phase 0 or manually add i18n fixture per qa-explore Phase 0 Step 2e"
+  3. Verify playwright.config.ts has per-language projects:
+     - Check: Grep("e2e-", "$targetProjectDir/playwright.config.ts")
+     - If missing → ERROR: "playwright.config.ts missing per-language projects. Re-run command Phase 0 or update per qa-explore Phase 0 Step 2d"
+  4. Set projectContext.i18nMessagesDir = "$targetProjectDir/messages" if not already set
+```
+
+> **Why validate here**: The orchestrator is the last checkpoint before skills generate code. If i18n infrastructure is broken, catching it here avoids generating specs that look correct but fail at runtime for every non-default locale.
+
 ## Step 1: Determine Input
 
 Choose input handling based on the `source` field:
@@ -344,6 +383,20 @@ After playwright-script-generator returns, verify the generated spec and POM:
 | Spec uses i18n.t() for text assertions | `i18n\.t\(` | ≥1 match (if handoff has i18nKey entries) |
 
 If any check fails → **regenerate** the spec with explicit instruction to follow `playwright-script-generator/SKILL.md §2.3.1`.
+
+### 5.0.2 Sign-Out Test Isolation Verification (when authSetup is true)
+
+After playwright-script-generator returns, verify that sign-out/logout tests do NOT use `authenticatedPage`:
+
+```
+Grep pattern in generated spec: "authenticatedPage.*signOut|authenticatedPage.*logout|authenticatedPage.*sign.out"
+Expected: 0 matches
+
+If found → FIX: refactor the sign-out test to use isolated browser context per playwright-script-generator/SKILL.md §10 rule 10.
+Sign-out tests must use `async ({ browser })` and create a fresh context, not `async ({ authenticatedPage })`.
+```
+
+> **Why**: `authenticatedPage` shares the worker-scoped `authenticatedContext`. Signing out destroys the session for ALL subsequent tests in the same worker, causing cascade failures where every test lands on the login page.
 
 ### 5.1 POM Mandatory Rules
 

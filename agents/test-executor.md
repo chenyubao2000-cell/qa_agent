@@ -45,10 +45,21 @@ Checks:
 1. playwright.config.ts exists
 2. tests/e2e/fixtures.ts exists
 3. node_modules/@playwright/test exists
+4. (when appLanguages is set) i18n infrastructure:
+   a. playwright.config.ts contains per-language projects (Grep "e2e-" in config)
+   b. fixtures.ts contains i18n fixture (Grep "export type I18n" in fixtures)
+   c. messages/ directory has files for each language
+5. (when E2E_TEST_EMAIL is set) auth infrastructure:
+   a. global-setup.ts exists at tests/e2e/global-setup.ts
+   b. global-setup.ts has validation step (Grep "validating|isOnLogin" — old 12h-only version will fail)
+   c. fixtures.ts has auth self-healing (Grep "isAuthFresh|reLogin")
+   d. .auth/user.json if exists, is not older than 3h — if stale, delete it to force re-login
 ```
 
 - All pass → Verify that playwright.config.ts includes failure evidence configuration (`screenshot: 'only-on-failure'`, `trace: 'retain-on-failure'`); add if missing
 - Any missing → Return error, indicating upstream command did not complete initialization
+- i18n check failed → Return error: "APP_LANGUAGES={appLanguages} but i18n infrastructure incomplete: {details}. Re-run command Phase 0 to fix."
+- Auth check failed → Return WARNING: "Auth infrastructure may be outdated: {details}. Tests may fail on login page. Consider re-running /qa-explore to regenerate global-setup.ts and fixtures.ts."
 
 ### Step 2: Run Tests
 

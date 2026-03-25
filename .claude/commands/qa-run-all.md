@@ -71,10 +71,22 @@ Related Linear Issues (for failure attribution): STE-123, STE-456
 PR source directory (prSourceDir): D:\code\.qa-worktree-pr
 ```
 
-**Parse suite parameter from $ARGUMENTS**:
-- `--suite smoke` → suite = "smoke" (only @smoke tagged tests = P0)
-- `--suite regression` → suite = "regression" (P0 + P1)
-- `--suite full` or no --suite → suite = "full" (all tests)
+**Parse suite parameter from $ARGUMENTS** (supports both flags and natural language):
+
+Formal flags:
+- `--suite smoke` → suite = "smoke"
+- `--suite regression` → suite = "regression"
+- `--suite full` or no --suite → suite = "full"
+
+Natural language (Chinese/English):
+- Contains "smoke" / "冒烟" / "P0" / "只跑smoke" → suite = "smoke"
+- Contains "regression" / "回归" / "P0+P1" → suite = "regression"
+- Contains "full" / "全量" / "所有" → suite = "full"
+
+Suite to Playwright --grep mapping:
+- smoke → `--grep @smoke`
+- regression → `--grep "@smoke|@regression"`
+- full → no --grep (run all)
 
 ### Headless Mode Detection
 

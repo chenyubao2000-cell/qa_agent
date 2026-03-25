@@ -137,10 +137,14 @@ mcp__chrome-devtools__evaluate_script
   function: () => {
     const indicators = [
       document.querySelector('input[type="password"]'),
-      document.querySelector('[name="email"], [name="username"]'),
+      document.querySelector('[name="email"], [name="username"], input[type="email"]'),
       document.querySelector('form[action*="login"], form[action*="signin"]'),
+      document.querySelector('[href*="forgot"], [href*="reset-password"]'),
     ];
-    const isLoginPage = indicators.filter(Boolean).length >= 2;
+    // >= 2 indicators = login page. But also check URL as fallback
+    // (multi-step login may only show email field initially, no password in DOM)
+    const urlHint = /sign-?in|log-?in|auth/i.test(location.pathname);
+    const isLoginPage = indicators.filter(Boolean).length >= 2 || (urlHint && indicators.filter(Boolean).length >= 1);
     return {
       isLoginPage,
       url: location.href,

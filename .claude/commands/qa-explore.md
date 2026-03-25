@@ -245,21 +245,86 @@ import path from "node:path";
 import fs from "node:fs";
 
 const AUTH_FILE = path.join(__dirname, ".auth", "user.json");
+const AUTH_MAX_AGE_MS = 3 * 60 * 60 * 1000; // 3h — must match global-setup.ts
+
+function isAuthFresh(): boolean {
+  if (!fs.existsSync(AUTH_FILE)) return false;
+  const age = Date.now() - fs.statSync(AUTH_FILE).mtimeMs;
+  return age < AUTH_MAX_AGE_MS;
+}
+
+async function reLogin(page: Page): Promise<void> {
+  // Detect login page: check for email input (visible on step 1 of multi-step login)
+  // IMPORTANT: Do NOT check password input first — on multi-step login pages,
+  // password is hidden until email is submitted. Checking password first would
+  // cause reLogin to silently skip, leaving the user on the login page.
+  const emailInput = page.locator('input[type="email"], input[name="email"], input[id*="email"]').first();
+  const isLoginPage = await emailInput.isVisible({ timeout: 3000 }).catch(() => false);
+  if (!isLoginPage) return; // not on login page, auth is fine
+
+  // Fill email
+  await emailInput.fill(process.env.E2E_TEST_EMAIL!);
+
+  // Click continue/submit (handles both single-step and multi-step login)
+  const continueBtn = page.locator(
+    'button[type="submit"], input[type="submit"], ' +
+    'button:has-text("Log in"), button:has-text("Sign in"), button:has-text("Continue"), ' +
+    'button:has-text("登录"), button:has-text("登入"), button:has-text("继续"), ' +
+    'button:has-text("ログイン"), button:has-text("로그인")'
+  ).first();
+  await continueBtn.click();
+
+  // Wait for password step (multi-step) or post-login redirect (single-step)
+  const pwdInput = page.locator('input[type="password"]');
+  const needPassword = await pwdInput.isVisible({ timeout: 5000 }).catch(() => false);
+  if (needPassword) {
+    await pwdInput.fill(process.env.E2E_TEST_PASSWORD!);
+    await continueBtn.click();
+  }
+
+  await page.waitForURL((url) => !url.pathname.includes("login") && !url.pathname.includes("sign-in"), { timeout: 15000 });
+  console.log("[fixtures] Re-login successful, saving auth state.");
+  const authDir = path.dirname(AUTH_FILE);
+  if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
+  await page.context().storageState({ path: AUTH_FILE });
+}
 
 type TestFixtures = { authenticatedPage: Page };
 type WorkerFixtures = { authenticatedContext: BrowserContext };
 
+// Track per-worker whether auth has been validated (avoid re-checking every test)
+let workerAuthValidated = false;
+
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   authenticatedContext: [async ({ browser }, use) => {
-    const ctx = fs.existsSync(AUTH_FILE)
+    const ctx = isAuthFresh()
       ? await browser.newContext({ storageState: AUTH_FILE })
       : await browser.newContext();
+    workerAuthValidated = false;
     await use(ctx);
     await ctx.close();
   }, { scope: "worker" }],
 
   authenticatedPage: async ({ authenticatedContext }, use) => {
     const page = await authenticatedContext.newPage();
+
+    // First test in this worker: validate auth by navigating to AUTH-REQUIRED page
+    // IMPORTANT: use /task (requires auth), NOT PREVIEW_URL (public homepage won't redirect)
+    // reLogin() uses email-first detection (not password-first) to handle multi-step login
+    if (!workerAuthValidated) {
+      try {
+        const authCheckUrl = process.env.PREVIEW_URL!.replace(/\/$/, '') + '/task';
+        await page.goto(authCheckUrl, { timeout: 30_000 });
+        if (page.url().includes("/sign-in") || page.url().includes("/login")) {
+          console.log("[fixtures] Auth expired in worker, re-authenticating...");
+          await reLogin(page);
+        }
+        workerAuthValidated = true;
+      } catch {
+        console.log("[fixtures] Auth validation timed out, will retry next test.");
+      }
+    }
+
     await use(page);
     await page.close();
   },
@@ -267,6 +332,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
 export { expect };
 ```
+
+> **Auth self-healing**: `isAuthFresh()` checks file age against 3h TTL. `reLogin()` detects login wall via **email input** visibility (NOT password — password is hidden on multi-step login pages). Handles both single-step and multi-step login flows. `authenticatedPage` validates auth on **every test** (not just first in worker) to handle short-TTL session cookies (~5min).
 
 **With APP_LANGUAGES** → add i18n fixture to fixtures.ts (after authenticatedPage fixture):
 
@@ -367,8 +434,96 @@ Execute cdp-explorer SKILL **Phase 1 (Connection)**, then detect login wall (Pha
 2. **CDP login**: Use discovered selectors + `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` from `.env` to complete login
 3. **Generate global-setup.ts** (`$QA_WORKSPACE_DIR/tests/e2e/global-setup.ts`, if not present):
    - Write with verified real selectors, no guessing
-   - Includes: 12h storageState cache, login flow, write `.auth/user.json`
    - If exists -> skip (don't overwrite user-customized login logic)
+   - **Template** (replace `{emailSelector}`, `{passwordSelector}`, `{submitSelector}`, `{postLoginUrlPattern}` with CDP-discovered real selectors):
+
+```typescript
+import { chromium, type FullConfig } from "@playwright/test";
+import { config } from "dotenv";
+import path from "node:path";
+import fs from "node:fs";
+
+config();
+
+const AUTH_FILE = path.join(__dirname, ".auth", "user.json");
+const AUTH_MAX_AGE_MS = 3 * 60 * 60 * 1000; // 3h
+
+async function doLogin(page: import("@playwright/test").Page, baseURL: string, email: string, password: string) {
+  await page.goto(`${baseURL}/sign-in`);
+
+  // Step 1: Enter email — selectors from CDP exploration
+  const emailInput = page.locator('{emailSelector}').first();
+  await emailInput.waitFor({ state: "visible", timeout: 15_000 });
+  await emailInput.fill(email);
+  // If multi-step login: click continue after email
+  // const continueBtn = page.locator('{submitSelector}');
+  // await continueBtn.click();
+
+  // Step 2: Enter password
+  const passwordInput = page.locator('{passwordSelector}');
+  await passwordInput.waitFor({ state: "visible", timeout: 10_000 });
+  await passwordInput.fill(password);
+  await page.locator('{submitSelector}').click();
+
+  // Wait for post-login redirect
+  await page.waitForURL('{postLoginUrlPattern}', { timeout: 15_000 });
+  console.log("Login successful, saving auth state.");
+}
+
+async function globalSetup(config: FullConfig) {
+  const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.PREVIEW_URL || "http://localhost:3000";
+  const email = process.env.E2E_TEST_EMAIL;
+  const password = process.env.E2E_TEST_PASSWORD;
+
+  if (!email || !password) {
+    console.log("No test credentials configured, skipping auth setup.");
+    return;
+  }
+
+  const isFresh = fs.existsSync(AUTH_FILE) && (Date.now() - fs.statSync(AUTH_FILE).mtimeMs < AUTH_MAX_AGE_MS);
+
+  if (isFresh) {
+    // Validate: load cached state and check if auth actually works
+    console.log("Auth file is fresh, validating...");
+    const browser = await chromium.launch();
+    const context = await browser.newContext({ storageState: AUTH_FILE });
+    const page = await context.newPage();
+    // Navigate to an AUTH-REQUIRED page (not public homepage — homepage won't redirect to login)
+    const authCheckUrl = baseURL.replace(/\/$/, '') + '/task';
+    await page.goto(authCheckUrl, { timeout: 30_000 });
+
+    const isOnLogin = page.url().includes("/sign-in") || page.url().includes("/login");
+    if (!isOnLogin) {
+      console.log("Auth state validated, still active.");
+      await browser.close();
+      return;
+    }
+
+    // Auth expired despite fresh file — re-login
+    console.log("Auth state expired (redirected to login), re-authenticating...");
+    await doLogin(page, baseURL, email, password);
+    await context.storageState({ path: AUTH_FILE });
+    await browser.close();
+    return;
+  }
+
+  // No fresh auth — full login
+  console.log(`Auth file stale or missing, logging in as ${email}...`);
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await doLogin(page, baseURL, email, password);
+  const authDir = path.dirname(AUTH_FILE);
+  if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
+  await context.storageState({ path: AUTH_FILE });
+  await browser.close();
+}
+
+export default globalSetup;
+```
+
+> **Three-layer auth**: (1) File age check (< 3h), (2) Validation navigation (detect login redirect), (3) Re-login if needed. This prevents stale-but-fresh auth files from causing all authenticated tests to fail.
 4. **Update playwright.config.ts**: Ensure it includes `globalSetup: "./tests/e2e/global-setup.ts"`
 5. **Generate sign-in POM** (`tests/e2e/pages/sign-in.page.ts`) for login-related specs
 6. After successful login, navigate to the original target URL, continue to Step 2

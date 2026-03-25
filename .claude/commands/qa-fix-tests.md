@@ -49,7 +49,41 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR
 Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # only for understanding business logic
 ```
 
-All Playwright config is extracted from **this project's .env**: `baseURL` (PREVIEW_URL, single source of truth), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD).
+All Playwright config is extracted from **this project's .env**: `baseURL` (PREVIEW_URL, single source of truth), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD), `APP_LANGUAGES`, `I18N_MESSAGES_DIR`.
+
+### i18n Infrastructure Check (when APP_LANGUAGES is set)
+
+Before any test execution or fix, ensure the i18n infrastructure is in place. This prevents test failures caused by missing i18n setup rather than real locator issues.
+
+```
+If APP_LANGUAGES is set in .env:
+  1. Check playwright.config.ts for per-language projects (e.g., "e2e-en", "e2e-zh")
+     - If missing → regenerate per qa-explore Phase 0 Step 2d specification
+  2. Check fixtures.ts for "export type I18n"
+     - If missing → regenerate per qa-explore Phase 0 Step 2e specification (with i18n fixture)
+  3. Check $QA_WORKSPACE_DIR/messages/ directory has {locale}.json for each language
+     - If missing → copy from I18N_MESSAGES_DIR per qa-explore Phase 0 Step 2b-1
+     - If I18N_MESSAGES_DIR not set or dir not found → ERROR: "APP_LANGUAGES is set but i18n messages not available, check I18N_MESSAGES_DIR in .env"
+```
+
+> **Why here**: qa-fix-tests is often invoked standalone (not chained from qa-explore). If the user adds `APP_LANGUAGES` to `.env` after initial exploration, the first fix run would fail on every i18n-related test without this check.
+
+### Auth Infrastructure Check (when E2E_TEST_EMAIL is set)
+
+Before any test execution, ensure auth infrastructure follows the 3-layer resilience pattern. Stale auth is the #1 cause of "all authenticated tests fail on login page".
+
+```
+If E2E_TEST_EMAIL is set in .env:
+  1. Check global-setup.ts exists at $QA_WORKSPACE_DIR/tests/e2e/global-setup.ts
+     - If missing → generate per qa-explore Phase 1 Step 1 template (requires CDP login exploration)
+  2. Check global-setup.ts has validation step (Grep "validating" or "isOnLogin" in global-setup.ts)
+     - If missing (old 12h version without validation) → regenerate per qa-explore Phase 1 Step 1 template
+  3. Check fixtures.ts has auth self-healing (Grep "isAuthFresh" in fixtures.ts)
+     - If missing (old version without reLogin) → regenerate per qa-explore Phase 0 Step 2e template
+  4. Check .auth/user.json is not stale (> 3h) — if stale, delete it so global-setup re-authenticates
+```
+
+> **Why here**: Auth tokens expire unpredictably (server restart, token rotation, session timeout). Without validation, global-setup skips login because the file is "fresh" but the token is dead, causing cascade failures on all authenticated tests.
 
 ### --from-prd Mode (Skip Baseline, Direct Fix)
 
@@ -289,7 +323,7 @@ For each failed file:
      a. Use cdp-explorer three-layer scan to discover login form selectors (email, password, submit)
      b. CDP login with testCredentials from .env
      c. Generate `$QA_WORKSPACE_DIR/tests/e2e/global-setup.ts` with verified real selectors
-        (same as qa-explore Phase 1 Step 1: 12h storageState cache, write .auth/user.json)
+        (same as qa-explore Phase 1 Step 1: **3h storageState cache + validation**, write .auth/user.json)
      d. Update playwright.config.ts to include `globalSetup` if missing
      e. Generate sign-in POM if not present
      This ensures Playwright can authenticate in subsequent test-executor runs (Phase 3).
