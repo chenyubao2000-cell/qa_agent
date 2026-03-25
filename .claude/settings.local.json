@@ -7,6 +7,8 @@
       "Grep(*)",
       "Edit(d:/code/valition_agent_new/**)",
       "Write(d:/code/valition_agent_new/**)",
+      "Edit(D:/code/mira_online/**)",
+      "Write(D:/code/mira_online/**)",
       "Skill(claude-api)",
       "Bash(npm install:*)",
       "Bash(npm config:*)",
@@ -25,7 +27,14 @@
       "mcp__chrome-devtools__take_snapshot",
       "mcp__chrome-devtools__take_screenshot",
       "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__hover",
       "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__select_page",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__press_key",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__type_text",
+      "mcp__chrome-devtools__handle_dialog",
       "mcp__linear__search_issues",
       "mcp__linear__list_issues",
       "mcp__linear__get_issue",
@@ -34,7 +43,9 @@
       "Skill(qa-explore)",
       "WebSearch",
       "mcp__github__get_pull_request_files",
-      "Skill(qa-from-issue)"
+      "Skill(qa-from-issue)",
+      "mcp__chrome-devtools__new_page",
+      "Skill(qa-run-all)"
     ]
   },
   "enabledMcpjsonServers": [
