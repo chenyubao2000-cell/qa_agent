@@ -28,15 +28,15 @@ Read `.env` to get `QA_WORKSPACE_DIR`, `SOURCE_PROJECT_DIR`, `PREVIEW_URL`, `E2E
 Read `$SOURCE_PROJECT_DIR/CLAUDE.md` to get tech stack (only for understanding business logic).
 
 **Initialize workspace** (empty folder compatible, skip all if already initialized):
-Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
+Same as `/qa-explore` Phase 0 Step 2 (sub-steps: 2a copy .env, 2b directories, 2b-1 copy i18n messages, 2c npm install, 2d playwright.config.ts, 2e fixtures.ts, 2f copy test data files). Each sub-step is skip-if-exists.
 
 > **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
 
-> **Including auth resilience** (when `E2E_TEST_EMAIL` is set): fixtures.ts must include `isAuthFresh()` + `reLogin()` self-healing pattern per qa-explore Phase 0 Step 2e template. Without this, mid-run token expiry causes cascade failures on all authenticated tests.
+> **Including auth** (when `E2E_TEST_EMAIL` is set): playwright.config.ts must include setup project with `dependencies: ['setup']`, and auth.setup.ts must exist. The setup project re-authenticates every run — no self-healing needed.
 
 > qa-run-prd itself does not use CDP. All CDP work (locator verification, login wall handling, page exploration)
 > is uniformly handled by downstream `/qa-fix-tests`. This avoids redundant CDP exploration (qa-run-prd exploring once + fix-tests exploring again).
-> When `/qa-fix-tests` generates `global-setup.ts`, it must follow qa-explore Phase 1 Step 1 template (3h cache + validation navigation + re-login).
+> When `/qa-fix-tests` generates `auth.setup.ts`, it must follow qa-explore Phase 1 Step 1 template (setup project pattern).
 
 ## Phase 1: Read PRD + Change Detection
 
@@ -122,9 +122,11 @@ for module in prdModules:
     - prdChangeMode: "{module.prdChangeMode}"  // "new" or "updated"
     - projectContext:
         targetProjectDir: {QA_WORKSPACE_DIR}
+        sourceProjectDir: {resolved source code directory per priority: --source > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
         baseURL: {PREVIEW_URL}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
+        authSetup: {true/false based on E2E_TEST_EMAIL}
         appLanguages: {APP_LANGUAGES or null}
         i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
 
@@ -149,21 +151,34 @@ for module in removedModules:
   6. If spec NOT found → log warning, skip (module may never have generated a spec)
   7. Mark the .md file with deprecation header: <!-- DEPRECATED: module removed from PRD -->
 
+// ── POM Fragment Merge (same as qa-explore, prevents parallel write conflicts) ──
+// When multiple orchestrators target the same page (e.g., module "Login" and module "Auth Settings"
+// both generate POM for sign-in.page.ts), each orchestrator writes a FRAGMENT file:
+//   tests/e2e/pages/{slug}.page.{module-slug}.fragment.ts
+// After ALL orchestrators complete, merge fragments into the final POM:
+//   1. Group fragments by {slug}: Glob("tests/e2e/pages/{slug}.page.*.fragment.ts")
+//   2. Read all fragments + existing POM (if any)
+//   3. Merge: combine imports, deduplicate locators by name, union all methods
+//   4. Write merged POM to tests/e2e/pages/{slug}.page.ts
+//   5. Delete fragment files
+// If only ONE orchestrator targets a page, it writes directly to {slug}.page.ts (no fragment needed).
+// The orchestrator decides fragment vs direct based on `existingPageObjects` parameter passed by caller.
+
 // Wait for ALL orchestrators to complete (parallel)
 results = await all(orchestratorAgents)
 
+// Merge POM fragments (if any)
+for slug in uniqueSlugs(results):
+  fragments = Glob(`tests/e2e/pages/${slug}.page.*.fragment.ts`)
+  if fragments.length > 0:
+    mergeFragmentsIntoPOM(slug, fragments)  // combine + deduplicate + delete fragments
+
 // ══ MANDATORY VERIFICATION GATE ══
-// Execute the Post-Return File Verification checklist from agents/e2e-orchestrator.md
-// (Steps V1-V5). Pipeline STOPS if any check fails.
-//
-// For EACH orchestrator result, verify:
-//   V1: .md files exist + contain "## Merged Test Case List" + at least 1 "**TC-"
-//   V2: handoff JSON exists + valid JSON array + entry count matches .md TC count
-//   V3: spec files exist + contain "test(" + contain "import"
-//   V4: POM files exist + contain "export class"
-//   V5: cross-artifact consistency (spec imports match POM, spec header references handoff)
-//
-// If ANY verification fails → STOP, report error to user, do NOT proceed.
+// Execute the Post-Return File Verification checklist defined in
+// agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
+// The AUTHORITATIVE definition of V1-V5 is in e2e-orchestrator.md — do NOT
+// duplicate inline. Read the checklist from that file and execute each step.
+// Pipeline STOPS if any check fails — do NOT proceed to test-executor.
 
 // Collect all verified artifacts
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)

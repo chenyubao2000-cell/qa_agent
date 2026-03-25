@@ -27,8 +27,9 @@ Only need to extract:
 - `LINEAR_*` — pass through to report-analyzer (bug reporting)
 - `APP_LANGUAGES` — if set, Playwright config has per-language projects (e.g., `e2e-en`, `e2e-zh`). test-executor must handle project selection.
 
-Not needed: SOURCE_PROJECT_DIR (no source reading), PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in global-setup).
-No initialization — only runs existing specs; workspace must have been initialized by `/qa-explore` or similar commands.
+Not needed: SOURCE_PROJECT_DIR (no source reading), PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in auth.setup.ts).
+No initialization — only runs existing specs. Workspace must have been initialized by `/qa-explore` or similar commands.
+Required files: `playwright.config.ts`, `tests/e2e/fixtures.ts`, `tests/e2e/testcases/**/*.test.ts`, `node_modules/@playwright/test`. If `E2E_TEST_EMAIL` is set: also `tests/e2e/auth.setup.ts` + `playwright/.auth/` directory.
 
 ### Source Code Directory (optional, injected by git-watcher)
 

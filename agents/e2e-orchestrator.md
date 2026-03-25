@@ -101,19 +101,19 @@ Pass `projectContext` to the test-case-generator and playwright-script-generator
 
 ### Auth Prerequisite Validation (when authSetup is true)
 
-Before proceeding to Step 1, validate that auth infrastructure follows the 3-layer resilience pattern:
+Before proceeding to Step 1, validate that auth infrastructure follows the setup project pattern:
 
 ```
 If projectContext.authSetup is true:
-  1. Verify global-setup.ts exists:
-     - Check: file exists at "$targetProjectDir/tests/e2e/global-setup.ts"
-     - If missing → WARNING: "global-setup.ts not found. Login wall handling will be deferred to qa-fix-tests Phase 2."
-  2. Verify global-setup.ts has validation step (not old 12h version):
-     - Check: Grep("validating|isOnLogin", "$targetProjectDir/tests/e2e/global-setup.ts")
-     - If missing → WARNING: "global-setup.ts may use old cache-only pattern without validation. Auth may silently expire."
-  3. Verify fixtures.ts has auth self-healing:
-     - Check: Grep("isAuthFresh|reLogin", "$targetProjectDir/tests/e2e/fixtures.ts")
-     - If missing → WARNING: "fixtures.ts missing auth self-healing (isAuthFresh/reLogin). Mid-run token expiry will cause cascade failures."
+  1. Verify auth.setup.ts exists:
+     - Check: file exists at "$targetProjectDir/tests/e2e/auth.setup.ts"
+     - If missing → WARNING: "auth.setup.ts not found. Login wall handling will be deferred to qa-fix-tests Phase 2."
+  2. Verify playwright.config.ts has setup project:
+     - Check: Grep("name: 'setup'|auth\\.setup", "$targetProjectDir/playwright.config.ts")
+     - If missing → WARNING: "playwright.config.ts missing setup project. Auth will not work."
+  3. Verify playwright/.auth directory exists:
+     - Check: directory exists at "$targetProjectDir/playwright/.auth"
+     - If missing → create it
 ```
 
 > **Why validate here**: Auth failures cause ALL authenticated tests to land on the login page — identical symptoms to locator issues but completely different root cause. Catching stale auth patterns early prevents wasting a full test-executor cycle on a solvable infrastructure problem.
@@ -386,17 +386,15 @@ If any check fails → **regenerate** the spec with explicit instruction to foll
 
 ### 5.0.2 Sign-Out Test Isolation Verification (when authSetup is true)
 
-After playwright-script-generator returns, verify that sign-out/logout tests do NOT use `authenticatedPage`:
+After playwright-script-generator returns, verify that sign-out/logout tests use isolated browser contexts:
 
-```
-Grep pattern in generated spec: "authenticatedPage.*signOut|authenticatedPage.*logout|authenticatedPage.*sign.out"
-Expected: 0 matches
+Grep pattern in generated spec: "sign.?out|logout" in test blocks
+For each match: verify it uses `async ({ browser })` with `browser.newContext({ storageState: 'playwright/.auth/user.json' })`, NOT the shared `page` fixture.
 
-If found → FIX: refactor the sign-out test to use isolated browser context per playwright-script-generator/SKILL.md §10 rule 10.
-Sign-out tests must use `async ({ browser })` and create a fresh context, not `async ({ authenticatedPage })`.
-```
+If found using shared `page` → FIX: refactor the sign-out test to use isolated browser context per playwright-script-generator/SKILL.md §10 rule 10.
+Sign-out tests must use `async ({ browser })` and create a fresh context, not the shared `page`.
 
-> **Why**: `authenticatedPage` shares the worker-scoped `authenticatedContext`. Signing out destroys the session for ALL subsequent tests in the same worker, causing cascade failures where every test lands on the login page.
+> **Why**: The shared `page` uses config-level storageState. Signing out in the shared page corrupts the session state for ALL subsequent tests in the same worker, causing cascade failures where every test lands on the login page.
 
 ### 5.1 POM Mandatory Rules
 

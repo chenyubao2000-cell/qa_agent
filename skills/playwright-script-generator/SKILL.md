@@ -84,7 +84,7 @@ For each `test()` block, generate setup and teardown based on the test case's pr
 
 **1. Setup (before test action) — via UI POM methods:**
 ```typescript
-test('Delete task removes it from list', async ({ authenticatedPage: page }) => {
+test('Delete task removes it from list', async ({ page }) => {
   const tasksPage = new TasksPage(page);
   const taskName = `Test-Del-${Date.now()}`;
 
@@ -105,7 +105,7 @@ test('Delete task removes it from list', async ({ authenticatedPage: page }) => 
 
 **2. Teardown (after test action) — via UI POM methods:**
 ```typescript
-test('Create task shows in list', async ({ authenticatedPage: page }) => {
+test('Create task shows in list', async ({ page }) => {
   const tasksPage = new TasksPage(page);
   const taskName = `Test-Create-${Date.now()}`;
 
@@ -514,7 +514,7 @@ test.describe.serial('Canvas Preview', { tag: ['@all'] }, () => {
 
   test.beforeAll(async ({ browser }) => {
     // 1. Log in and create a new task
-    const ctx = await browser.newContext({ storageState: '.auth/user.json' });
+    const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
     const page = await ctx.newPage();
     await page.goto('/task');
     // 2. Enter prompt to trigger Agent execution
@@ -527,8 +527,8 @@ test.describe.serial('Canvas Preview', { tag: ['@all'] }, () => {
     await ctx.close();
   });
 
-  test('Canvas shows download button after file opens', async ({ authenticatedPage }) => {
-    await authenticatedPage.goto(taskUrl);
+  test('Canvas shows download button after file opens', async ({ page }) => {
+    await page.goto(taskUrl);
     // ... assert Canvas functionality ...
   });
 });
@@ -553,8 +553,8 @@ test.describe('File Download', { tag: ['@all'] }, () => {
     }, { timeout: 120_000 }).toBe('completed');
   });
 
-  test('Download button triggers file download', async ({ authenticatedPage }) => {
-    await authenticatedPage.goto(`/task/${taskId}`);
+  test('Download button triggers file download', async ({ page }) => {
+    await page.goto(`/task/${taskId}`);
     // ...
   });
 });
@@ -563,11 +563,11 @@ test.describe('File Download', { tag: ['@all'] }, () => {
 **Pattern C — No data creation needed (the test target itself is the create operation):**
 ```typescript
 // When testing "create task" functionality, the operation itself is data creation — no beforeAll needed
-test('After creating a task, redirects to task detail page', async ({ authenticatedPage }) => {
-  await authenticatedPage.goto('/task');
-  await authenticatedPage.getByRole('textbox').fill('Test content');
-  await authenticatedPage.getByRole('button', { name: 'Submit' }).click();
-  await expect(authenticatedPage).toHaveURL(/\/task\/.+/);
+test('After creating a task, redirects to task detail page', async ({ page }) => {
+  await page.goto('/task');
+  await page.getByRole('textbox').fill('Test content');
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await expect(page).toHaveURL(/\/task\/.+/);
 });
 ```
 
@@ -584,7 +584,7 @@ When multiple test.describe blocks all need the same expensive setup (e.g., crea
 ```typescript
 // fixtures.ts — worker-scope fixture
 testDataContext: [async ({ browser }, use) => {
-  const ctx = await browser.newContext({ storageState: AUTH_FILE });
+  const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
   const page = await ctx.newPage();
   await page.goto('/task');
   await page.getByRole('textbox', { name: /please enter/i }).fill('Create a recruiting task');
@@ -598,8 +598,8 @@ testDataContext: [async ({ browser }, use) => {
 
 ```typescript
 // In spec — consumed directly, no beforeAll needed
-test('Canvas preview works', async ({ authenticatedPage, testDataContext }) => {
-  await authenticatedPage.goto(testDataContext.taskUrl);
+test('Canvas preview works', async ({ page, testDataContext }) => {
+  await page.goto(testDataContext.taskUrl);
   // ... assertions ...
 });
 ```
@@ -730,7 +730,7 @@ Every generated spec MUST:
    (The i18n fixture is auto-generated in fixtures.ts when APP_LANGUAGES is configured)
 2. Destructure `i18n` in every test() block, using the correct page fixture:
    - **Public pages** (authSetup=false): `test('...', async ({ page, i18n }) => { ... })`
-   - **Auth-required pages** (authSetup=true): `test('...', async ({ authenticatedPage: page, i18n }) => { ... })`
+   - **Auth-required pages** (authSetup=true): `test('...', async ({ page, i18n }) => { ... })`
    Both patterns destructure `i18n` alongside the page fixture. The `i18n` fixture is always available regardless of auth mode.
 3. Pass `i18n` to POM constructors: `const canvas = new CanvasPage(page, i18n);`
 
@@ -740,7 +740,7 @@ import { test, expect } from '../../fixtures';
 import { CanvasPage } from '../../pages/canvas.page';
 
 test.describe('Canvas Preview', () => {
-  test('download button visible', async ({ authenticatedPage: page, i18n }) => {
+  test('download button visible', async ({ page, i18n }) => {
     const canvas = new CanvasPage(page, i18n);
     await page.goto('/task/abc');
     // i18n-aware assertion — resolves to "Download file" (en) or "下载文件" (zh)
@@ -862,7 +862,7 @@ playwright.config.ts     # testDir: ./tests/e2e, testMatch: **/testcases/**/*.te
 - **Test files**: `tests/e2e/testcases/**/*.test.ts` (not `*.spec.ts`)
 - **Imports**: `import { test, expect } from "../../fixtures"` + `import { XxxPage } from "../../pages/xxx"` (paths relative to `testcases/generated/`)
 - **Snapshots**: `tests/e2e/snapshots/<testFileName>/<name>.png`, controlled by config `snapshotPathTemplate`
-- **Auth state**: `.auth/user.json` (repository root)
+- **Auth state**: `playwright/.auth/user.json` (from project root)
 
 ---
 
@@ -947,8 +947,9 @@ This ensures POM → fixtures type dependency is clean and circular imports are 
 ## 5. Writing Test Specs
 
 ```typescript
-import { test, expect } from '../fixtures';
-import { SignInPage } from '../pages/sign-in';
+// Spec files are in testcases/generated/, so paths go up 2 levels to e2e/
+import { test, expect } from '../../fixtures';
+import { SignInPage } from '../../pages/sign-in';
 
 test.describe('Sign-in Page', { tag: ['@all', '@smoke'] }, () => {
   test('Sign-in page loads and form is visible', async ({ page }) => {
@@ -959,7 +960,7 @@ test.describe('Sign-in Page', { tag: ['@all', '@smoke'] }, () => {
 });
 ```
 
-Tests requiring login state should use `authenticatedPage` or `chatPage` from fixtures — do not log in manually within test cases.
+Tests are automatically authenticated via setup project storageState — do not log in manually within test cases.
 
 ---
 
@@ -998,18 +999,16 @@ await expect(locator).toHaveClass(/active/);
 
 ## 7. Fixtures & Authentication
 
-The project uses a single `tests/e2e/fixtures.ts`, providing:
-
-- **authenticatedContext** (worker-scoped): loads storageState from `.auth/user.json` if fresh (< 3h), otherwise starts clean context
-- **authenticatedPage**: a page with login state — includes **auth self-healing**: if storageState is stale, auto-detects login wall and re-authenticates using `.env` credentials before test runs
-- **chatPage**: a ChatPage instance wrapping authenticatedPage
+- **storageState** (via config): setup project runs `auth.setup.ts` before all tests, saves state to `playwright/.auth/user.json`. Test projects load this via `storageState` in config — no auth fixture needed.
+- **page**: already authenticated via config storageState. Public page tests opt out with `test.use({ storageState: { cookies: [], origins: [] } })`.
 
 Environment variables: `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `PREVIEW_URL`
 
-> **Auth resilience**: `global-setup.ts` uses 3h cache + validation. `fixtures.ts` has `reLogin()` fallback — if auth expires mid-run, re-login happens transparently per worker. Specs do NOT need any auth handling.
+> **Auth flow**: setup project → auth.setup.ts → login → save storageState → test projects load storageState from config. No TTL, no cache validation, no self-healing needed. Every `npx playwright test` run re-authenticates.
 
 ```typescript
-import { test, expect } from '../fixtures';
+// Spec files are in testcases/generated/, paths relative to that location
+import { test, expect } from '../../fixtures';
 
 test('needs login', async ({ chatPage }) => {
   await chatPage.gotoNewTask();
@@ -1124,18 +1123,18 @@ report-analyzer → bug-reporter → Linear Issue — the entire pipeline depend
 7. **Trace viewer debugging**: `pnpm exec playwright show-trace trace.zip`
 8. **fullyParallel: true** but ensure test isolation
 9. **afterEach cleanup** of test data
-10. **Sign-out / session-destroying tests must use isolated context**: Tests that perform logout, clear cookies, or otherwise invalidate auth state **MUST NOT** use `authenticatedPage` (shared worker context). Instead, create a fresh `browser.newContext({ storageState: AUTH_FILE })` within the test, so the sign-out only affects that isolated context. Otherwise the shared worker auth session is destroyed and all subsequent tests in the same worker fail on the login page.
+10. **Sign-out / session-destroying tests must use isolated context**: Tests that perform logout, clear cookies, or otherwise invalidate auth state must create a fresh `browser.newContext({ storageState: 'playwright/.auth/user.json' })` within the test, so the sign-out only affects that isolated context and doesn't corrupt the config-level storageState.
 
 ```typescript
-// ❌ WRONG — destroys shared worker auth for all subsequent tests
-test('sign out redirects to login', async ({ authenticatedPage: page }) => {
+// ❌ WRONG — destroys shared page auth for all subsequent tests
+test('sign out redirects to login', async ({ page }) => {
   await signOutPage.clickSignOut();
   await expect(page).toHaveURL(/\/sign-in/);
 });
 
 // ✅ CORRECT — isolated context, sign-out doesn't affect other tests
 test('sign out redirects to login', async ({ browser }) => {
-  const ctx = await browser.newContext({ storageState: AUTH_FILE });
+  const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
   const page = await ctx.newPage();
   await signOutPage.clickSignOut();
   await expect(page).toHaveURL(/\/sign-in/);
@@ -1155,7 +1154,7 @@ test('sign out redirects to login', async ({ browser }) => {
 6. Execution order dependencies between unrelated test cases (except CRUD scenarios, see §1.4)
 7. Not using baseURL, hardcoding absolute paths
 8. Directly testing third-party services (should mock)
-9. **Using `authenticatedPage` for sign-out tests** — destroys the shared worker auth session, causing cascade failures for all subsequent tests in the same worker (see §10 rule 10)
+9. **Using shared `page` for sign-out tests** — destroys the shared worker auth session, causing cascade failures for all subsequent tests in the same worker (see §10 rule 10)
 9. Not cleaning up side effects
 
 ---

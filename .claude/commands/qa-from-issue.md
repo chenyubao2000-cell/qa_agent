@@ -54,13 +54,13 @@ Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_UR
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
-Same as `/qa-explore` Phase 0 Step 2: directories, npm install, playwright.config.ts, fixtures.ts.
+Same as `/qa-explore` Phase 0 Step 2 (sub-steps: 2a copy .env, 2b directories, 2b-1 copy i18n messages, 2c npm install, 2d playwright.config.ts, 2e fixtures.ts, 2f copy test data files). Each sub-step is skip-if-exists.
 
 > **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
 
-> **Including auth resilience** (when `E2E_TEST_EMAIL` is set): fixtures.ts must include `isAuthFresh()` + `reLogin()` self-healing pattern per qa-explore Phase 0 Step 2e template. Without this, mid-run token expiry causes cascade failures on all authenticated tests.
+> **Including auth** (when `E2E_TEST_EMAIL` is set): playwright.config.ts must include setup project with `dependencies: ['setup']`, and auth.setup.ts must exist. The setup project re-authenticates every run — no self-healing needed.
 
-global-setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2. When generated, it must follow qa-explore Phase 1 Step 1 template (3h cache + validation navigation + re-login).
+auth.setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2. When generated, it must follow qa-explore Phase 1 Step 1 template (setup project pattern).
 
 ### Step 3 — Determine Navigation URL
 
@@ -228,22 +228,31 @@ Steps:
    - mode: "targeted"
    - If reproSteps available → follow steps, record state changes
    - Three-layer scan (DOM → accessibility tree → screenshot)
-5. Compare CDP findings with existing spec/POM:
+5. **Classify each failure** (same logic as qa-fix-tests Phase 2 Step 3):
+   - TEST ISSUE (locator stale, timing, selector too broad) → fix locator/wait, do NOT change business assertions
+   - POSSIBLE BUG (data not loading, feature removed, button state wrong) → do NOT fix, record as bug with evidence
+   - AMBIGUOUS (timeout) → retry with 30s timeout (max 3 attempts), then check source code
+6. For TEST ISSUE classifications — fix:
    - For each locator in POM → CDP verify: count matches on live page
    - ZERO matches → DOM scan to find correct selector → Edit POM
    - MULTIPLE matches → DOM scan for narrowing parent → Edit POM
    - For each assertion in spec → evaluate_script to get real values
    - Text/URL mismatches → Edit spec with correct expected values
-6. Run single-file verification:
+   - If assertion content legitimately changed → include `assertionsChanged: true` + `changedAssertions` in return (command layer updates handoff)
+7. For POSSIBLE BUG classifications — do NOT modify test, record in return as `bugs: [{ testName, expectedBehavior, actualBehavior, evidence }]`
+8. Run single-file verification on fixed tests:
    cd $QA_WORKSPACE_DIR && npx playwright test {specFile}
-7. If still fails → re-analyze and fix (max 3 rounds)
+9. If test issues still fail after fix → re-analyze and fix (max 3 rounds)
 
 Return:
 {
   "specFile": "{path}",
-  "status": "fixed" | "needs_manual",
+  "status": "fixed" | "needs_manual" | "has_bugs",
   "locatorsFixed": N,
   "assertionsFixed": N,
+  "assertionsChanged": true|false,
+  "changedAssertions": [{ "tcId": "TC-XXX-001", "field": "expectedText", "oldValue": "...", "newValue": "..." }],
+  "bugs": [{ "testName": "...", "expectedBehavior": "...", "actualBehavior": "...", "evidence": "..." }],
   "behaviorMatch": { "expected": "...", "actual": "...", "matches": true|false }
 }
 ```
@@ -262,6 +271,7 @@ After subagent returns:
   **Handoff sync implementation** (after Mode X fix subagent returns):
   1. Read the fixed spec file, extract all TC IDs from test() block comments (regex: `TC-\w+-\d+`)
   2. Read the corresponding handoff JSON (inferred from spec header `// handoff: ...`)
+     - If handoff file not found at inferred path → WARNING: "Handoff not found for {specFile}, skipping sync. Future /qa-run-prd incremental updates may regenerate this test." Continue without sync.
   3. For each TC ID found in the fixed spec:
      a. Find the matching entry in handoff by `id` field
      b. If the fix subagent changed an assertion text (e.g., updated expected URL or text):
@@ -275,7 +285,7 @@ After subagent returns:
   **Responsibility boundary**:
   - The **fix subagent** returns `{ assertionsChanged: true/false, changedAssertions: [{ tcId, field, oldValue, newValue }] }` in its result
   - The **command layer** reads this flag and performs the handoff file update (not the subagent)
-  - This ensures the subagent only does CDP + Edit, while the command layer owns artifact consistency
+  - This ensures the subagent only does CDP + spec Edit, while the command layer owns artifact consistency (handoff ↔ spec sync)
 
 - When building `specToIssueMap`, map the Mode X specFile to its source issueKey:
   `specToIssueMap[specFile] = issueKey`
@@ -313,7 +323,7 @@ Input:
 
 Steps:
 1. Connect to page (list_pages → select_page, or navigate to pageUrl)
-2. Login wall handling: detect login page → fill credentials → login → generate global-setup.ts if not present → generate sign-in POM
+2. Login wall handling: detect login page → fill credentials → login → generate auth.setup.ts if not present → generate sign-in POM
 3. Initial state three-layer scan (DOM → accessibility tree → screenshot)
 4. Targeted interactive exploration around targetArea:
    - If targetArea is found on the page → explore around it (cdp-explorer Phase 3 targeted rules)
@@ -334,7 +344,7 @@ Steps:
 
    - If baselineFile already exists (from a previous /qa-explore or /qa-from-issue run):
      - **Read existing** states, edges, areas first
-     - **Append** new states (use next available state ID, never overwrite existing)
+     - **Append** new states (next ID = `max(existing numeric IDs) + 1`, e.g., existing S1,S2,S5 → next is S6. Never overwrite existing)
      - **Append** new edges (skip duplicates by `from+action+element` key)
      - **Update** area status for the targeted area only
      - **Preserve** all other areas' data untouched
@@ -377,9 +387,11 @@ Input:
 - baselineFile: <baseline JSON path from Phase 2 exploration>
 - projectContext:
         targetProjectDir: {QA_WORKSPACE_DIR}
+        sourceProjectDir: {resolved source code directory per priority: --source > prSourceDir > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
         baseURL: {PREVIEW_URL}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
+        authSetup: {true/false based on E2E_TEST_EMAIL}
         appLanguages: {APP_LANGUAGES or null}
         i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
 
@@ -392,28 +404,25 @@ Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return
 
 **MANDATORY VERIFICATION GATE** (after ALL orchestrators complete):
 
-Execute the Post-Return File Verification checklist from `agents/e2e-orchestrator.md` (Steps V1-V5). Pipeline **STOPS** if any check fails.
+Execute the Post-Return File Verification checklist defined in `agents/e2e-orchestrator.md` § "Post-Return File Verification" (Steps V1-V5). The AUTHORITATIVE definition is in e2e-orchestrator.md — do NOT duplicate inline. Pipeline **STOPS** if any check fails — do NOT proceed to test-executor.
 
 ```
-For EACH orchestrator result, verify:
-  V1: .md files exist + contain "## Merged Test Case List" + at least 1 "**TC-"
-  V2: handoff JSON exists + valid JSON array + entry count matches .md TC count
-  V3: spec files exist + contain "test(" + contain "import"
-  V4: POM files exist + contain "export class"
-  V5: cross-artifact consistency (spec imports match POM, spec header references handoff)
-
-If ANY verification fails → STOP, report error to user, do NOT proceed to test-executor.
+Read agents/e2e-orchestrator.md → § "Post-Return File Verification" → execute V1-V5 for EACH result.
+If ANY verification fails → STOP, delete incomplete artifacts, report detailed error to user.
 Only proceed after ALL checks pass.
 ```
 
 **Build specToIssueMap** (command layer, after orchestrator returns):
 - Read `specToIssueMap` directly from the orchestrator's return value (the orchestrator populates this field in issue mode)
-- Merge mappings from all orchestrator results: `specToIssueMap = Object.assign({}, ...results.map(r => r.specToIssueMap))`
-- For Mode X (fix existing): add the mapping manually: `specToIssueMap[specFile] = issueKey`
+- Merge mappings from all orchestrator results. **Multiple issues may map to the same spec** (same page):
+  - For each orchestrator result, iterate its specToIssueMap entries
+  - If spec already in map → convert value to array: `specToIssueMap[spec] = [...existing, newIssueKey]`
+  - If spec not in map → `specToIssueMap[spec] = [issueKey]`
+- For Mode X (fix existing): add the mapping manually: `specToIssueMap[specFile] = [issueKey]`
 - Example:
   ```json
-  { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9",
-    "tests/e2e/testcases/generated/feature-b.test.ts": "STE-10" }
+  { "tests/e2e/testcases/generated/feature-a-issue.test.ts": ["STE-9"],
+    "tests/e2e/testcases/generated/feature-b-issue.test.ts": ["STE-10", "STE-11"] }
   ```
 
 **Export Excel** (after orchestrator completes + verification gate passes):
@@ -434,6 +443,7 @@ Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx")` → i
 allGeneratedSpecs = orchestrator.specs + orchestrator.modified_specs
 
 // Delegate to qa-fix-tests: CDP verify + fix + execute + regression
+// Note: --from-prd means "skip baseline execution, fix directly" — applies to all sources (issue/cdp/prd), not just PRD
 Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
 ```
 
@@ -473,7 +483,7 @@ Note: This run was triggered by /qa-from-issue. Failed cases need to be categori
 | `test-cases/generated/playwright-handoff-{slug}.json` | Phase 3: Playwright handoff |
 | `test-cases/excel/{slug}-{source}.xlsx` | Phase 3: Excel test case spreadsheet |
 | `tests/e2e/pages/{slug}.page.ts` | Phase 3: Page Object |
-| `tests/e2e/testcases/generated/{slug}-{area-id}-{source}.test.ts` | Phase 3: Playwright spec |
+| `tests/e2e/testcases/generated/{slug}-{source}.test.ts` | Phase 3: Playwright spec (feature-granular, no area-id) |
 | `tests/reports/playwright-results.json` | Phase 4: JSON report |
 | `playwright-report/index.html` | Phase 4: HTML report |
 | `tests/reports/combined/summary.md` | Phase 5: Summary report (always generated) |

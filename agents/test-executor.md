@@ -50,16 +50,16 @@ Checks:
    b. fixtures.ts contains i18n fixture (Grep "export type I18n" in fixtures)
    c. messages/ directory has files for each language
 5. (when E2E_TEST_EMAIL is set) auth infrastructure:
-   a. global-setup.ts exists at tests/e2e/global-setup.ts
-   b. global-setup.ts has validation step (Grep "validating|isOnLogin" — old 12h-only version will fail)
-   c. fixtures.ts has auth self-healing (Grep "isAuthFresh|reLogin")
-   d. .auth/user.json if exists, is not older than 3h — if stale, delete it to force re-login
+   a. auth.setup.ts exists at tests/e2e/auth.setup.ts
+   b. playwright.config.ts has setup project (Grep "name: 'setup'" or "auth\\.setup")
+   c. playwright/.auth directory exists (create if missing)
+   d. if playwright/.auth/user.json exists: validate it is valid JSON with non-empty `cookies` array. If invalid/empty → delete it (setup project will regenerate on next run)
 ```
 
 - All pass → Verify that playwright.config.ts includes failure evidence configuration (`screenshot: 'only-on-failure'`, `trace: 'retain-on-failure'`); add if missing
 - Any missing → Return error, indicating upstream command did not complete initialization
 - i18n check failed → Return error: "APP_LANGUAGES={appLanguages} but i18n infrastructure incomplete: {details}. Re-run command Phase 0 to fix."
-- Auth check failed → Return WARNING: "Auth infrastructure may be outdated: {details}. Tests may fail on login page. Consider re-running /qa-explore to regenerate global-setup.ts and fixtures.ts."
+- Auth check failed → Return WARNING: "Auth infrastructure may be outdated: {details}. Tests may fail on login page. Consider re-running /qa-explore to regenerate auth.setup.ts."
 
 ### Step 2: Run Tests
 
@@ -118,11 +118,13 @@ After test-executor completes, the command layer starts report-analyzer, which r
 
 ## Return
 
+> **Consumers**: report-analyzer reads `result_json` file; qa-fix-tests reads this return JSON to build failure list. Keep this schema in sync with both consumers.
+
 ```json
 {
   "pipeline": "e2e|unit",
   "specs_executed": ["tests/e2e/testcases/generated/xxx.test.ts"],
-  "result_json": "tests/reports/playwright-results.json",
+  "result_json": "tests/reports/playwright-results.json",  // report-analyzer reads this file directly from disk (not from this return value)
   "test_results_dir": "test-results/",
   "total": 11,
   "passed": 10,
