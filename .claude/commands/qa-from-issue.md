@@ -263,9 +263,13 @@ After subagent returns:
   // Build specToIssueMap for Mode X (orchestrator was bypassed, must build manually)
   specToIssueMap[fixSubagentResult.specFile] = issueKey;
 - Set `specs = []` (Mode X generates no NEW specs, only modifies existing)
-- If `status: "fixed"` → continue to test-executor with `modified_specs`
-- If `status: "needs_manual"` → report to user, still include in `modified_specs` for test-executor to verify
+- If `status: "needs_manual"` → report to user, still include in `modified_specs` for verification
 - **Skip orchestrator entirely** (no new test cases, no Excel)
+- **Skip qa-fix-tests** (Mode X subagent already did CDP fix + verification, avoid double-fixing)
+- **Go directly to Phase 3 regression + reporting**:
+  1. Launch test-executor (mode: "changed", specFiles: modified_specs) → produces `fix-regression.json`
+  2. Collect detectedBugs from Mode X subagent's `bugs` field (if any)
+  3. Continue to Phase 3 Step 3 (report-analyzer) with reportFile + detectedBugs
 - **Sync handoff**: if spec assertions were changed during fix, read the corresponding `playwright-handoff-{slug}.json`, update the matching entry's assertions to reflect the fix, then write back. This keeps handoff in sync with the fixed spec.
 
   **Handoff sync implementation** (after Mode X fix subagent returns):
@@ -456,6 +460,22 @@ allGeneratedSpecs = orchestrator.specs + orchestrator.modified_specs
 Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
 ```
 
+**After qa-fix-tests completes, extract results for report-analyzer**:
+
+```
+// qa-fix-tests Phase 3 regression produces: tests/reports/fix-regression.json
+// qa-fix-tests Phase 2.5 may detect application bugs (not test issues)
+
+// 1. Collect detectedBugs from qa-fix-tests output
+//    Parse the "Application Bugs Detected" section from qa-fix-tests' summary
+detectedBugs = extract bug entries from qa-fix-tests output:
+  [{ testName, expectedBehavior, actualBehavior, evidence, specFile }]
+
+// 2. Determine reportFile
+//    qa-fix-tests --from-prd → Phase 3 uses test-executor "changed" mode → fix-regression.json
+reportFile = "tests/reports/fix-regression.json"
+```
+
 ### Step 3 — Linear Reporting (after fix-tests completes)
 
 > qa-from-issue is the only generation entry point that reports to Linear.
@@ -465,6 +485,8 @@ Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by sp
 - Launched after qa-fix-tests completes
 - Reads test reports produced by qa-fix-tests' test-executor
 - **Must pass sourceIssueKey**; report-analyzer uses this to distinguish writeback vs. new creation
+- **Must pass reportFile**; qa-fix-tests produces `fix-regression.json`, not the default `playwright-results.json`
+- **Must pass detectedBugs** (if any); application bugs found by qa-fix-tests that need Linear reporting
 
 prompt template:
 ```
@@ -474,12 +496,15 @@ Input:
 - sourceIssueKeys: [<issue-key-1>, <issue-key-2>, ...]
 - sourceSpecs: [{allGeneratedSpecs}]
 - specToIssueMap: { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9", ... }
+- reportFile: "fix-regression.json"
+- detectedBugs: [{detectedBugs from qa-fix-tests, or empty list if none}]
 - projectContext: { targetProjectDir, ... }
 - appLanguages: {APP_LANGUAGES or null}
 
 Note: This run was triggered by /qa-from-issue. Failed cases need to be categorized:
 1. Failures in sourceSpecs -> route to the corresponding sourceIssueKey via specToIssueMap, write back comments
 2. Failures in other specs -> normal dedup + create new issues
+3. detectedBugs (application bugs from qa-fix-tests) -> transform to bug-reporter format and create new issues
 ```
 
 ---
@@ -493,7 +518,7 @@ Note: This run was triggered by /qa-from-issue. Failed cases need to be categori
 | `test-cases/excel/{slug}-{source}.xlsx` | Phase 3: Excel test case spreadsheet |
 | `tests/e2e/pages/{slug}.page.ts` | Phase 3: Page Object |
 | `tests/e2e/testcases/generated/{slug}-{source}.test.ts` | Phase 3: Playwright spec (feature-granular, no area-id) |
-| `tests/reports/playwright-results.json` | Phase 4: JSON report |
+| `tests/reports/fix-regression.json` | Phase 4: JSON report (from qa-fix-tests regression) |
 | `playwright-report/index.html` | Phase 4: HTML report |
 | `tests/reports/combined/summary.md` | Phase 5: Summary report (always generated) |
 | Linear issue (original) | Phase 6: Write back test file paths + execution results |
