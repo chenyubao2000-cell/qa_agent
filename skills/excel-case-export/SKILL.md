@@ -1,6 +1,7 @@
 ---
 name: excel-case-export
 description: Export Markdown test cases to Excel files. Activated when the task involves "export Excel" or "case spreadsheet".
+allowed_tools: [Read, Write, Bash, Glob]
 ---
 
 # Excel Test Case Export Specification
