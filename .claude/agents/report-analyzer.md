@@ -2,7 +2,7 @@
 name: report-analyzer
 description: After test execution completes, analyze reports and deduplicate before reporting bugs to Linear.
 tools: Agent, Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__get_issue, mcp__linear__update_issue
-model: claude-haiku-4-5
+model: haiku
 ---
 
 You are a test report analyzer. You start after test-executor completes, read report files, analyze results, deduplicate, and report to Linear.
@@ -157,7 +157,7 @@ For failed test cases in the "create" list, perform deduplication checks:
 > **All Linear write operations related to failures are delegated to bug-reporter**; report-analyzer only retains the success write-back when all tests pass.
 > **Note: Linear MCP has no comment API**; all write-backs are appended to the description via get_issue + update_issue.
 
-Start the **bug-reporter agent** (`agents/bug-reporter.md`, haiku) to batch process all failed test cases.
+Start the **bug-reporter agent** (`.claude/agents/bug-reporter.md`, haiku) to batch process all failed test cases.
 bug-reporter internally follows its own format specification to create Issues.
 
 Input: deduplicated list of failed test cases (each annotated with action=create or action=append; source issue write-back items include targetIssueId) + LINEAR_PROJECT_ID and LINEAR_TEAM_ID from .env

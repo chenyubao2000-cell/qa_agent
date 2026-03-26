@@ -53,7 +53,7 @@ The complete workflow follows this sequence: **Scope check → Parse → Design 
 
 ### Phase A: Collect Existing Coverage (before design)
 
-> **Deduplication hierarchy**: The primary deduplication is performed by the **e2e-orchestrator** (agents/e2e-orchestrator.md Step 2) before this skill is invoked. This skill's Phase A serves as a **defensive fallback**.
+> **Deduplication hierarchy**: The primary deduplication is performed by the **e2e-orchestrator** (.claude/agents/e2e-orchestrator.md Step 2) before this skill is invoked. This skill's Phase A serves as a **defensive fallback**.
 
 0. **Scan existing artifacts to build a coverage index** -- Before starting design, collect what already exists:
    - Scan `test-cases/generated/*.md` for existing case IDs and verification targets

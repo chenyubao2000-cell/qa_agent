@@ -87,7 +87,7 @@ Each orchestrator receives `prdChangeMode` telling it how to handle existing tes
 
 **Key constraint**: When launching agents, the prompt only passes **input data** (PRD content, source, projectContext),
 **do not** include specific code conventions, locator strategies, or file templates in the prompt.
-Agents must read the `agents/e2e-orchestrator.md` -> `skills/*/SKILL.md` chain to get specifications themselves.
+Agents must read the `.claude/agents/e2e-orchestrator.md` -> `skills/*/SKILL.md` chain to get specifications themselves.
 
 ### Step 1 — Parallel test generation (one orchestrator per module, all at once)
 
@@ -113,7 +113,7 @@ for module in prdModules:
 
     prompt:
     ```
-    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+    You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md.
 
     Input:
     - source: "prd"
@@ -130,7 +130,7 @@ for module in prdModules:
         appLanguages: {APP_LANGUAGES or null}
         i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
 
-    Execute per agents/e2e-orchestrator.md steps, return artifact paths.
+    Execute per .claude/agents/e2e-orchestrator.md steps, return artifact paths.
     Note: prdChangeMode affects Step 2 dedup behavior — see Step 2.5 for "updated" mode.
     ```
   )
@@ -175,7 +175,7 @@ for slug in uniqueSlugs(results):
 
 // ══ MANDATORY VERIFICATION GATE ══
 // Execute the Post-Return File Verification checklist defined in
-// agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
+// .claude/agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
 // The AUTHORITATIVE definition of V1-V5 is in e2e-orchestrator.md — do NOT
 // duplicate inline. Read the checklist from that file and execute each step.
 // Pipeline STOPS if any check fails — do NOT proceed to test-executor.

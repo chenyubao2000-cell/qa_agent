@@ -2,7 +2,7 @@
 name: test-executor
 description: Test executor. Receives specs produced by upstream (e2e-orchestrator / qa-run-all), runs them uniformly, and outputs reports. Failures stay as failures — no retries, no marking as skip.
 tools: Bash, Read, Write, Edit, Glob
-model: claude-haiku-4-5
+model: haiku
 ---
 
 You are the test executor. You receive test scripts produced by upstream, run them uniformly, and output JSON + HTML reports.

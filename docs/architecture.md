@@ -391,7 +391,7 @@ $QA_WORKSPACE_DIR/
 ### 单元测试（暂停，预留）
 
 ```
-agents/unit-test-orchestrator.md     ← 暂停
+.claude/agents/unit-test-orchestrator.md     ← 暂停
 skills/vitest-testing/SKILL.md       ← 暂停
 .claude/commands/qa-run-unit.md      ← 暂停
 ```

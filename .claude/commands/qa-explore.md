@@ -665,7 +665,7 @@ for area in exploredAreas:
 
     prompt:
     ```
-    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+    You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md.
 
     Input:
     - source: "cdp"
@@ -682,7 +682,7 @@ for area in exploredAreas:
         i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
     - existingPageObjects: [list of already-generated POM file paths]
 
-    Execute per agents/e2e-orchestrator.md steps, return artifact paths.
+    Execute per .claude/agents/e2e-orchestrator.md steps, return artifact paths.
     ```
   )
 
@@ -691,7 +691,7 @@ if crossAreaFlows.length > 0:
   orchestratorAgents.push(
     Launch e2e-orchestrator (sonnet) in background:
     prompt: """
-    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+    You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md.
     Input:
     - source: "cdp"
     - baselineFile: {baselineFile}
@@ -706,7 +706,7 @@ results = await all(orchestratorAgents)
 
 // ══ MANDATORY VERIFICATION GATE ══
 // Execute the Post-Return File Verification checklist defined in
-// agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
+// .claude/agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
 // The AUTHORITATIVE definition of V1-V5 is in e2e-orchestrator.md — do NOT
 // duplicate inline. Read the checklist from that file and execute each step.
 // Pipeline STOPS if any check fails — do NOT proceed.

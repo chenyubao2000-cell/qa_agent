@@ -168,7 +168,7 @@ Extract from the issue's title + description:
 
 ### Step 3 — Determine Operation Type
 
-> Detailed dedup review rules are defined uniformly in `agents/e2e-orchestrator.md` Step 2, shared across all generation flows.
+> Detailed dedup review rules are defined uniformly in `.claude/agents/e2e-orchestrator.md` Step 2, shared across all generation flows.
 > Only issue-specific quick determination is done here:
 
 Determine operation mode via explicit if-else:
@@ -372,13 +372,13 @@ Return summary:
 
 **Key constraint**: When launching agents, the prompt only passes **input data** (issue context, CDP exploration results, source, projectContext),
 **do not** include specific code conventions, locator strategies, or file templates in the prompt.
-Agents must read the `agents/e2e-orchestrator.md` -> `skills/*/SKILL.md` chain to get specifications themselves.
+Agents must read the `.claude/agents/e2e-orchestrator.md` -> `skills/*/SKILL.md` chain to get specifications themselves.
 
 **Agent 1 — e2e-orchestrator** (sonnet):
 
 prompt template:
 ```
-You are e2e-orchestrator. First read agents/e2e-orchestrator.md to understand your full responsibilities and steps.
+You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md to understand your full responsibilities and steps.
 
 Input:
 - source: "issue"
@@ -395,7 +395,7 @@ Input:
         appLanguages: {APP_LANGUAGES or null}
         i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
 
-Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return artifact paths.
+Execute per .claude/agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return artifact paths.
 ```
 
 **Check orchestrator return value**:
@@ -404,10 +404,10 @@ Execute per agents/e2e-orchestrator.md steps (read SKILL.md -> generate), return
 
 **MANDATORY VERIFICATION GATE** (after ALL orchestrators complete):
 
-Execute the Post-Return File Verification checklist defined in `agents/e2e-orchestrator.md` § "Post-Return File Verification" (Steps V1-V5). The AUTHORITATIVE definition is in e2e-orchestrator.md — do NOT duplicate inline. Pipeline **STOPS** if any check fails — do NOT proceed to test-executor.
+Execute the Post-Return File Verification checklist defined in `.claude/agents/e2e-orchestrator.md` § "Post-Return File Verification" (Steps V1-V5). The AUTHORITATIVE definition is in e2e-orchestrator.md — do NOT duplicate inline. Pipeline **STOPS** if any check fails — do NOT proceed to test-executor.
 
 ```
-Read agents/e2e-orchestrator.md → § "Post-Return File Verification" → execute V1-V5 for EACH result.
+Read .claude/agents/e2e-orchestrator.md → § "Post-Return File Verification" → execute V1-V5 for EACH result.
 If ANY verification fails → STOP, delete incomplete artifacts, report detailed error to user.
 Only proceed after ALL checks pass.
 ```
@@ -459,7 +459,7 @@ Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by sp
 
 prompt template:
 ```
-You are report-analyzer. First read agents/report-analyzer.md to understand your full responsibilities.
+You are report-analyzer. First read .claude/agents/report-analyzer.md to understand your full responsibilities.
 
 Input:
 - sourceIssueKeys: [<issue-key-1>, <issue-key-2>, ...]

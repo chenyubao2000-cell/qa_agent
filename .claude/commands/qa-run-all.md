@@ -98,7 +98,7 @@ If the prompt contains `_trigger: git-watcher_`, set `headless: true` for report
 Launch test-executor agent:
 
 ```
-You are test-executor. First read agents/test-executor.md to understand your full responsibilities.
+You are test-executor. First read .claude/agents/test-executor.md to understand your full responsibilities.
 
 Input:
 - mode: "full"
@@ -107,7 +107,7 @@ Input:
 - projectDir: "$QA_WORKSPACE_DIR"
 - appLanguages: {APP_LANGUAGES or null}
 
-Execute per agents/test-executor.md steps, return report paths and summary.
+Execute per .claude/agents/test-executor.md steps, return report paths and summary.
 ```
 
 **Multi-language project selection** (when `APP_LANGUAGES` is set):
@@ -129,7 +129,7 @@ Execute per agents/test-executor.md steps, return report paths and summary.
 Launched after test-executor completes.
 
 ```
-You are report-analyzer. First read agents/report-analyzer.md to understand your full responsibilities.
+You are report-analyzer. First read .claude/agents/report-analyzer.md to understand your full responsibilities.
 
 Input:
 - projectContext: { targetProjectDir: "$QA_WORKSPACE_DIR", ... }
@@ -138,10 +138,10 @@ Input:
 - appLanguages: {APP_LANGUAGES or null}
 - headless: {true if _trigger: git-watcher_, otherwise false}
 
-Execute per agents/report-analyzer.md steps:
+Execute per .claude/agents/report-analyzer.md steps:
 1. Read test reports from $QA_WORKSPACE_DIR/tests/reports/
 2. Parse results → route failed cases → deduplicate
-3. Launch bug-reporter (agents/bug-reporter.md) for Linear issue creation/append
+3. Launch bug-reporter (.claude/agents/bug-reporter.md) for Linear issue creation/append
 4. Generate summary report
 5. Open HTML report (unless headless)
 ```
