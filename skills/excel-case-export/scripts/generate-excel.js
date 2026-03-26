@@ -131,6 +131,9 @@ async function main() {
   for (const file of inputFiles) {
     const markdown = fs.readFileSync(file, 'utf-8')
     const testCases = parseMarkdownCases(markdown)
+    if (testCases.length === 0) {
+      console.warn(`⚠ ${file}: 未解析到任何用例，请检查 .md 格式是否包含 "## Merged Test Case List" 和标准字段`)
+    }
     const sheetName = inputFiles.length === 1 ? '测试用例' : sheetNameFromFile(file)
     const count = addSheet(workbook, sheetName, testCases)
     total += count
@@ -171,18 +174,43 @@ const COLUMN_ALIASES = {
 
 function matchColumn(headerText) {
   const normalized = headerText.trim().toLowerCase()
+  // Pass 1: exact match (highest confidence)
   for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
     for (const alias of aliases) {
-      if (normalized === alias || normalized.includes(alias)) return field
+      if (normalized === alias) return field
+    }
+  }
+  // Pass 2: word-boundary substring match (avoid false positives like "Counter" matching "condition")
+  for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
+    for (const alias of aliases) {
+      // Only match if alias appears as whole word(s) within the header
+      const re = new RegExp(`(?:^|[\\s/])${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:[\\s/]|$)`)
+      if (re.test(normalized) || normalized.startsWith(alias) || normalized.endsWith(alias)) return field
     }
   }
   return null
+}
+
+function inferSectionType(heading) {
+  if (!heading) return ''
+  const s = heading.trim()
+  if (s.includes('正向') || s.includes('Positive')) return '正向'
+  if (s.includes('异常') || s.includes('Negative') || s.includes('Invalid')) return '异常'
+  if (s.includes('边界') || s.includes('Boundary')) return '边界'
+  if (s.includes('Equivalence') || s.includes('等价类')) return '等价类划分'
+  if (s.includes('Boundary Value') || s.includes('边界值')) return '边界值分析'
+  if (s.includes('Cause-Effect') || s.includes('因果图') || s.includes('Decision')) return '因果图'
+  if (s.includes('State Transition') || s.includes('状态迁移')) return '状态迁移'
+  if (s.includes('Scenario') || s.includes('场景')) return '场景法'
+  if (s.includes('Error Guessing') || s.includes('错误猜测')) return '错误猜测'
+  return ''
 }
 
 function parseMarkdownTable(md, module) {
   const cases = []
   const lines = md.split('\n')
   let headerMap = null  // index → field name
+  let currentSection = ''  // section-based type inference (same as parseFormatA)
 
   // 优先只解析 "## Merged Test Case List" 之后的内容
   // 如果没有 Merged 标记，则解析全部（兼容旧格式）
@@ -196,6 +224,13 @@ function parseMarkdownTable(md, module) {
 
   for (let i = startLine; i < lines.length; i++) {
     const line = lines[i].trim()
+
+    // Track section headings for type inference when table has no 'type' column
+    const sectionMatch = line.match(/^## (.+)/)
+    if (sectionMatch) {
+      currentSection = inferSectionType(sectionMatch[1])
+    }
+
     if (!line.startsWith('|') || !line.endsWith('|')) continue
 
     const cells = line.split('|').slice(1, -1).map(c => c.trim())
@@ -215,6 +250,9 @@ function parseMarkdownTable(md, module) {
       if (matched >= 3) {
         headerMap = map
         continue
+      }
+      if (matched > 0) {
+        console.warn(`⚠ 表头仅匹配 ${matched} 列（需 ≥3），跳过该表格。匹配列: ${Object.values(map).join(', ')}，原始表头: ${cells.join(' | ')}`)
       }
       continue
     }
@@ -239,6 +277,8 @@ function parseMarkdownTable(md, module) {
 
     // 跳过空行
     if (!tc.id && !tc.title) continue
+    // Fallback: if table has no 'type' column, use section heading inference
+    if (!tc.type && currentSection) tc.type = currentSection
     cases.push(tc)
   }
 
@@ -308,18 +348,8 @@ function parseFormatA(md, module) {
       // 检测章节 — 支持场景分类（正向/异常/边界）和设计方法名
       const sectionMatch = line.match(/^## (.+)/)
       if (sectionMatch) {
-        const s = sectionMatch[1].trim()
-        // 场景分类
-        if (s.includes('正向') || s.includes('Positive')) currentSection = '正向'
-        else if (s.includes('异常') || s.includes('Negative') || s.includes('Invalid')) currentSection = '异常'
-        else if (s.includes('边界') || s.includes('Boundary')) currentSection = '边界'
-        // 设计方法名（Method 1-6）
-        else if (s.includes('Equivalence') || s.includes('等价类')) currentSection = '等价类划分'
-        else if (s.includes('Boundary Value') || s.includes('边界值')) currentSection = '边界值分析'
-        else if (s.includes('Cause-Effect') || s.includes('因果图') || s.includes('Decision')) currentSection = '因果图'
-        else if (s.includes('State Transition') || s.includes('状态迁移')) currentSection = '状态迁移'
-        else if (s.includes('Scenario') || s.includes('场景')) currentSection = '场景法'
-        else if (s.includes('Error Guessing') || s.includes('错误猜测')) currentSection = '错误猜测'
+        const inferred = inferSectionType(sectionMatch[1])
+        if (inferred) currentSection = inferred
       }
       continue
     }
@@ -336,7 +366,7 @@ function parseFormatA(md, module) {
       else if (k.includes('操作') || k.includes('when') || k.includes('operation') || k.includes('step')) field = 'when'
       else if (k.includes('预期结果') || k.includes('then') || k.includes('expected')) field = 'then'
       else if (k.includes('测试数据') || k.includes('test data')) field = 'testData'
-      else if (k.includes('suite') || k.includes('类型') || k.includes('type')) field = 'type'
+      else if (k.includes('测试类型') || k.includes('test type') || k.includes('suite') || k.includes('方法来源') || k === '类型' || k === 'type') field = 'type'
 
       if (field) {
         currentCase[field] = val.trim()

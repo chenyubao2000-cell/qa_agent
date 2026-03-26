@@ -432,7 +432,16 @@ node skills/excel-case-export/scripts/generate-excel.js \
   --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
 ```
 
-Verify: `Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx")` → if missing, ERROR
+Verify — retry once on failure:
+```
+if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
+  WARN: "Excel export failed — retrying..."
+  node skills/excel-case-export/scripts/generate-excel.js \
+    --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+    --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
+  if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
+    ERROR: "Excel export failed after retry — file not written"
+```
 
 ### Step 2 — Delegate to /qa-fix-tests (Locator verification + fix + execution)
 

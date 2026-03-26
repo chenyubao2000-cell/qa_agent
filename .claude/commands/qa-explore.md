@@ -726,9 +726,14 @@ node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
   --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
 
-// Verify Excel output exists
+// Verify Excel output exists — retry once on failure
 if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
-  ERROR: "Excel export failed — file not written"
+  WARN: "Excel export failed — retrying..."
+  node skills/excel-case-export/scripts/generate-excel.js \
+    --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+    --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
+  if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
+    ERROR: "Excel export failed after retry — file not written"
 
 // Report generation progress
 ```
