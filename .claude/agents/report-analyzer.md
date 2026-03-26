@@ -1,7 +1,7 @@
 ---
 name: report-analyzer
 description: After test execution completes, analyze reports and deduplicate before reporting bugs to Linear.
-tools: Agent, Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__get_issue, mcp__linear__update_issue
+tools: Agent, Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__get_issue, mcp__linear__update_issue, mcp__linear__create_comment
 model: haiku
 ---
 
@@ -95,15 +95,11 @@ If there are no failed test cases:
 
 **Write-back method when all tests pass** (called directly by report-analyzer):
 
-> Linear MCP has no comment API, so we use description append instead: first get_issue to read the current text, append a record at the end, then update_issue to write it back.
-
 ```
-1. mcp__linear__get_issue(issueId) → get current description
-2. mcp__linear__update_issue(issueId, description: original text + appended content)
+mcp__linear__create_comment(issueId, body)
 
-Appended content template:
----
-## 自动化测试全部通过
+Comment body:
+## ✅ 自动化测试全部通过
 **执行时间**: {timestamp} | **用例总数**: {total} | **全部通过**: {passed}/{total}
 **Spec 文件**: {spec file paths}
 ```
@@ -147,7 +143,7 @@ For failed test cases in the "create" list, perform deduplication checks:
 
 - Query via Linear MCP whether an Open Issue with the same title exists
 - Search keyword: `[Auto] {test case name}`
-- Open Issue already exists → **Append to description** with latest failure info (error, screenshot, timestamp)
+- Open Issue already exists → **Add comment** with latest failure info (error, screenshot, timestamp)
 - Exists but status is Done / Cancelled → Treat as regression bug, **re-create** the issue
 - Does not exist → Add to the pending report list
 
@@ -155,7 +151,7 @@ For failed test cases in the "create" list, perform deduplication checks:
 
 > **Deduplication is handled entirely by this agent**; bug-reporter does not repeat the check.
 > **All Linear write operations related to failures are delegated to bug-reporter**; report-analyzer only retains the success write-back when all tests pass.
-> **Note: Linear MCP has no comment API**; all write-backs are appended to the description via get_issue + update_issue.
+> **Comment API available**: bug-reporter uses `mcp__linear__create_comment` for write-backs (keeps original description clean).
 
 Start the **bug-reporter agent** (`.claude/agents/bug-reporter.md`, haiku) to batch process all failed test cases.
 bug-reporter internally follows its own format specification to create Issues.

@@ -14,10 +14,9 @@
     },
     "linear": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "@ibraheem4/linear-mcp"],
+      "args": ["/c", "npx", "-y", "@calltelemetry/linear-mcp"],
       "env": {
-        "LINEAR_API_KEY": "lin_api_pUAU79wm7QwadwyQBjan4yibJoLHU7cq7FGKfRF7",
-        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+        "LINEAR_API_KEY": "lin_api_pUAU79wm7QwadwyQBjan4yibJoLHU7cq7FGKfRF7"
       }
     }
   }
