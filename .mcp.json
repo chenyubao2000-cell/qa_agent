@@ -8,15 +8,20 @@
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-github"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
-
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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",
+        "HTTPS_PROXY": "http://127.0.0.1:7890",
+        "HTTP_PROXY": "http://127.0.0.1:7890"
       }
     },
     "linear": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "@calltelemetry/linear-mcp"],
+      "args": ["/c", "node", "--import", "./scripts/proxy-bootstrap.mjs", "node_modules/@calltelemetry/linear-mcp/build/index.js"],
       "env": {
-        "LINEAR_API_KEY": "lin_api_pUAU79wm7QwadwyQBjan4yibJoLHU7cq7FGKfRF7"
+        "LINEAR_API_KEY": "lin_api_pUAU79wm7QwadwyQBjan4yibJoLHU7cq7FGKfRF7",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GLOBAL_AGENT_HTTP_PROXY": "http://127.0.0.1:7890",
+        "HTTPS_PROXY": "http://127.0.0.1:7890",
+        "HTTP_PROXY": "http://127.0.0.1:7890"
       }
     }
   }
