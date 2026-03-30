@@ -331,8 +331,8 @@ $QA_WORKSPACE_DIR/
 │   ├── testcases/generated/
 │   │   └── {slug}-{area-id}-cdp.test.ts            Playwright spec
 │   ├── fixtures.ts                                 测试 fixtures（auth 或简单版）
-│   ├── global-setup.ts                             登录设置（需要认证时）
-│   └── .auth/user.json                             缓存的认证状态
+│   ├── auth.setup.ts                               登录设置（setup project，需要认证时）
+├── playwright/.auth/user.json                       缓存的认证状态
 ├── tests/reports/
 │   ├── playwright-results.json                     JSON 报告
 │   └── combined/summary.md                         汇总报告
@@ -357,7 +357,7 @@ $QA_WORKSPACE_DIR/
 
 | 场景 | 处理方式 |
 |------|---------|
-| CDP 探查遇到登录墙 | 自动检测 → 填入凭据 → 生成 global-setup.ts |
+| CDP 探查遇到登录墙 | 自动检测 → 填入凭据 → 生成 auth.setup.ts（setup project） |
 | Locator 验证失败（0 或 N 个匹配） | CDP DOM 扫描 → 修复 POM → 重新验证（最多 3 轮） |
 | 交互后回退失败 | 降级链：Escape → 浏览器后退 → 强制导航到初始 URL |
 | BFS 探查超出限制 | 终止条件：最多 100 次交互 / 30 个状态 / 10 分钟 → 输出覆盖率报告 |
@@ -391,7 +391,7 @@ $QA_WORKSPACE_DIR/
 ### 单元测试（暂停，预留）
 
 ```
-agents/unit-test-orchestrator.md     ← 暂停
+.claude/agents/unit-test-orchestrator.md     ← 暂停
 skills/vitest-testing/SKILL.md       ← 暂停
 .claude/commands/qa-run-unit.md      ← 暂停
 ```

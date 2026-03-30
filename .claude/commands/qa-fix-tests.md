@@ -49,14 +49,48 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR
 Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # only for understanding business logic
 ```
 
-All Playwright config is extracted from **this project's .env**: `baseURL` (PREVIEW_URL, single source of truth), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD).
+All Playwright config is extracted from **this project's .env**: `baseURL` (PREVIEW_URL, single source of truth), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD), `APP_LANGUAGES`, `I18N_MESSAGES_DIR`.
+
+### i18n Infrastructure Check (when APP_LANGUAGES is set)
+
+Before any test execution or fix, ensure the i18n infrastructure is in place. This prevents test failures caused by missing i18n setup rather than real locator issues.
+
+```
+If APP_LANGUAGES is set in .env:
+  1. Check playwright.config.ts for per-language projects (e.g., "e2e-en", "e2e-zh")
+     - If missing → regenerate per qa-explore Phase 0 Step 2d specification
+  2. Check fixtures.ts for "export type I18n"
+     - If missing → regenerate per qa-explore Phase 0 Step 2e specification (with i18n fixture)
+  3. Check $QA_WORKSPACE_DIR/messages/ directory has {locale}.json for each language
+     - If missing → copy from I18N_MESSAGES_DIR per qa-explore Phase 0 Step 2b-1
+     - If I18N_MESSAGES_DIR not set or dir not found → ERROR: "APP_LANGUAGES is set but i18n messages not available, check I18N_MESSAGES_DIR in .env"
+```
+
+> **Why here**: qa-fix-tests is often invoked standalone (not chained from qa-explore). If the user adds `APP_LANGUAGES` to `.env` after initial exploration, the first fix run would fail on every i18n-related test without this check.
+
+### Auth Infrastructure Check (when E2E_TEST_EMAIL is set)
+
+Before any test execution, ensure auth infrastructure follows the setup project pattern.
+
+```
+If E2E_TEST_EMAIL is set in .env:
+  1. Check auth.setup.ts exists at $QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts
+     - If missing → generate per qa-explore Phase 1 Step 1 template (requires CDP login exploration)
+  2. Check playwright.config.ts has setup project (Grep "name: 'setup'" or "auth\\.setup" in playwright.config.ts)
+     - If missing → regenerate config per qa-explore Phase 0 Step 2d template
+  3. Check playwright/.auth/ directory exists
+     - If missing → create it: mkdir -p playwright/.auth
+```
+
+> **Why here**: Auth tokens expire between runs. The setup project re-authenticates every time `npx playwright test` is invoked, so no cache/TTL management is needed.
 
 ### --from-prd Mode (Skip Baseline, Direct Fix)
 
 When `--from-prd` is present in `$ARGUMENTS` (chained from /qa-run-prd):
-1. **Skip Phase 1 entirely** — do not run baseline test execution
-2. Treat ALL spec files from arguments as needing fixes (PRD-generated specs have never seen the real page)
-3. Go directly to Phase 2 with the full spec file list
+1. **Execute Phase 0 normally** — infrastructure validation (i18n, auth) is still required for Phase 2 CDP
+2. **Skip Phase 1 entirely** — do not run baseline test execution
+3. Treat ALL spec files from arguments as needing fixes (PRD-generated specs have never seen the real page)
+4. Go directly to Phase 2 with the full spec file list
 4. This saves the baseline execution round (typically 1-2h) since qa-run-prd's CDP verification already confirmed locator mismatches
 
 When `--from-prd` is NOT present → execute Phase 1 normally (filter + execute + collect failures).
@@ -67,12 +101,24 @@ When `--from-prd` is NOT present → execute Phase 1 normally (filter + execute 
 Existing POMs use hardcoded English (`getByRole('button', { name: 'Download file' })`), incompatible with Chinese environment.
 
 When `--upgrade-i18n` is present in `$ARGUMENTS`:
+
+**Precondition check**:
+- `APP_LANGUAGES` must be set in .env → if not: ERROR "APP_LANGUAGES not set, nothing to upgrade"
+- `$QA_WORKSPACE_DIR/messages/` must contain .json files for all languages → if not: ERROR "i18n message files missing, run Phase 0 Step 2b-1 first"
+- Spec files must exist (from arguments or Glob `tests/e2e/testcases/**/*.test.ts`) → if empty: ERROR "No spec files found to upgrade"
+- For each spec, infer handoff path from spec header `// handoff: ...` → if handoff file missing: WARNING "Handoff not found for {specFile}, i18n key reverse-lookup will be limited to POM text scanning"
+
 1. **Skip Phase 1** (no test execution)
 2. **Skip Phase 2** (no CDP fixes)
 3. **Execute i18n upgrade flow**:
 
 ```
-For each spec file (from arguments or Glob all):
+Determine spec file list:
+- If specific files provided in `$ARGUMENTS` (after `--upgrade-i18n`): use those files only
+  Example: `/qa-fix-tests --upgrade-i18n tests/e2e/testcases/generated/task-cdp.test.ts`
+- If no files specified: Glob all `$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts` (upgrade entire project)
+
+For each spec file:
   1. Read the spec's corresponding POM file (inferred from import)
   2. Read i18n messages JSON from $QA_WORKSPACE_DIR/messages/{defaultLocale}.json
   3. Build flat value→key map: { "Download file": "canvas.downloadFile", "Maximize": "canvas.maximize", ... }
@@ -164,7 +210,7 @@ Launch test-executor (haiku):
 
 ### Step 3 — Parse failure list
 
-Read `fix-baseline.json`, extract all cases with `status: "failed"`:
+Read the test-executor result (JSON returned by test-executor agent, sourced from `tests/reports/playwright-results.json`), extract all cases with `status: "failed"`:
 
 ```
 failedTests = [
@@ -186,9 +232,14 @@ If all pass -> inform user "All non-skipped cases have passed, no fixes needed" 
 
 > **Context management**: Each failed file's fix cycle (CDP explore → analyze → fix → verify) runs in an **isolated subagent**. This prevents CDP data from accumulating in the main command context across multiple files (10 files × 3 rounds × CDP data would otherwise explode the context).
 
-### Step 0 — Choose execution strategy (MANDATORY, do NOT skip)
+### Step 0 — Choose execution strategy
 
-Before launching any fix subagent, you **MUST ask the user** which strategy to use:
+Determine fix strategy by priority:
+
+0. **Special modes**: If `--upgrade-i18n` is present → skip strategy selection entirely (no Phase 1/2 agents, i18n upgrade runs directly)
+1. **Explicit argument**: If `--strategy parallel` or `--strategy serial` in `$ARGUMENTS` → use that
+2. **Called by upstream command** (e.g., `--from-prd` flag present → called by qa-explore/qa-run-prd/qa-from-issue): **default to parallel** (automation-friendly, no user prompt)
+3. **Interactive (user invoked directly)**: Ask user:
 
 ```
 Found {N} failed spec files to fix:
@@ -207,7 +258,7 @@ Choose fix strategy:
 Which strategy? (A/B)
 ```
 
-**Wait for user response before proceeding.** Do NOT default to either strategy.
+**Wait for user response before proceeding** (interactive mode only).
 
 - If user chooses **(A) Parallel**: launch ALL fix subagents simultaneously (see Parallel mode below)
 - If user chooses **(B) Serial**: launch fix subagents one by one, passing CDP context forward (see Serial mode below)
@@ -285,15 +336,15 @@ For each failed file:
 
   1. Connect to page (list_pages → select_page, or navigate if needed)
   2. Login wall detection per cdp-explorer Phase 1 Step 3
-     **If login wall detected AND global-setup.ts does NOT exist**:
+     **If login wall detected AND auth.setup.ts does NOT exist**:
      a. Use cdp-explorer three-layer scan to discover login form selectors (email, password, submit)
      b. CDP login with testCredentials from .env
-     c. Generate `$QA_WORKSPACE_DIR/tests/e2e/global-setup.ts` with verified real selectors
-        (same as qa-explore Phase 1 Step 1: 12h storageState cache, write .auth/user.json)
-     d. Update playwright.config.ts to include `globalSetup` if missing
+     c. Generate `$QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts` with verified real selectors
+        (same as qa-explore Phase 1 Step 1 template — setup project pattern)
+     d. Verify playwright.config.ts has setup project with `dependencies: ['setup']`
      e. Generate sign-in POM if not present
-     This ensures Playwright can authenticate in subsequent test-executor runs (Phase 3).
-     If global-setup.ts already exists → skip (don't overwrite user-customized login logic).
+     This ensures Playwright can authenticate via setup project in subsequent test-executor runs (Phase 3).
+     If auth.setup.ts already exists → skip (don't overwrite user-customized login logic).
   3. For each failure, FIRST CLASSIFY (using handoff assertions as reference), then act:
 
      === Step 3a: Classify failure type ===
@@ -318,7 +369,7 @@ For each failed file:
      b2. Fix POM (Edit tool): replace/narrow locators, add new getters
      b3. Fix spec (Edit tool): add waits, fix timing issues
      b4. **Do NOT change business assertions** (what the test checks). Only change technical implementation (how it locates/waits). The handoff defines WHAT; you fix HOW.
-     b5. If real page content has legitimately changed (e.g., copy update) AND handoff assertion is now wrong → this is an UPDATE scenario, not a fix. Update the handoff entry's assertion first, then update the spec to match.
+     b5. If real page content has legitimately changed (e.g., copy update) AND handoff assertion is now wrong → this is an UPDATE scenario. Do NOT directly edit the handoff file. Instead, include `assertionsChanged: true` and `changedAssertions: [{ tcId, field, oldValue, newValue }]` in your return JSON. The **command layer** will perform the handoff file update to ensure artifact consistency.
      b6. Strictly follow POM rules: no bare locators in specs
 
      === Step 3c: For POSSIBLE BUG — do NOT fix ===
@@ -329,10 +380,11 @@ For each failed file:
          - Record as: { classification: "bug", testName, expectedBehavior, actualBehavior, evidence }
      c4. If source code confirms the behavior change is INTENTIONAL → reclassify as TEST ISSUE → go to Step 3b
 
-     === Step 3d: For AMBIGUOUS — investigate deeper ===
-     d1. Wait longer (increase timeout to 30s) and retry
+     === Step 3d: For AMBIGUOUS — investigate deeper (max 3 retries) ===
+     d1. Wait longer (increase timeout to 30s) and retry (max 3 attempts with 30s each)
      d2. If element appears → TEST ISSUE (add explicit wait)
-     d3. If element never appears → check source code → BUG or TEST ISSUE
+     d3. If element never appears after retries → check source code → BUG or TEST ISSUE
+     d4. If still unresolvable after source code check → classify as POSSIBLE BUG with note "ambiguous-unresolved"
 
   4. After processing all failures:
      - For TEST ISSUES fixed: run single-file verification via test-executor (mode: "single", specFiles: [specFile])
@@ -362,11 +414,18 @@ For each failed file:
   Collect subagent result into fixResults[]
 
   // ── Cross-File CDP Context Sharing (Serial mode ONLY) ──
-  // After each fix subagent completes, persist its CDP findings for the next agent:
+  // After each fix subagent completes, persist its CDP findings for the next agent.
+  //
+  // cdpFindings return structure (subagent MUST include this in return JSON when serial mode):
+  // {
+  //   verifiedSelectors: { "selectorName": "verified CSS/role selector", ... },
+  //   domStructureNotes: ["note about page structure", ...],
+  //   appLanguage: "en" | "zh" | null
+  // }
+  //
   if subagent returned cdpFindings:
     1. Read existing page-baseline-{slug}.json (or create if absent)
-    2. Merge cdpFindings into baseline.fixContext field:
-       { verifiedLocators: {...}, domStructure: {...}, pageNotes: [...] }
+    2. Merge cdpFindings into baseline.fixContext field
     3. Pass updated fixContext to the NEXT fix subagent as previousFixContext
 
   **Serial mode command-layer implementation:**
@@ -395,6 +454,18 @@ For each failed file:
 ## Phase 2.5: Bug Summary (report only, no Linear escalation)
 
 > **qa-fix-tests does NOT report to Linear.** Its job is fixing scripts. If bugs are found, inform the user and let them decide whether to run `/qa-run-all` for formal reporting.
+
+**Handoff sync** (before bug summary): If any fix subagent returned `assertionsChanged: true`:
+```
+for each result in fixResults where result.assertionsChanged === true:
+  1. Infer handoff path from spec header: Read spec file → extract `// handoff: ...` path
+  2. Read handoff JSON
+  3. For each entry in result.changedAssertions:
+     - Find matching TC by tcId in handoff array
+     - Update the assertion field: oldValue → newValue
+  4. Write updated handoff JSON back to disk
+  5. Log: "Updated handoff {path}: {N} assertions synced"
+```
 
 After all fix subagents complete, check if any classified failures as application bugs:
 

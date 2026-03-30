@@ -65,7 +65,7 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR
 
 Extract all config from **this project's .env**:
 - `QA_WORKSPACE_DIR` — target project root directory
-- `baseURL` — `PREVIEW_URL` (single source of truth; `PLAYWRIGHT_BASE_URL` is no longer maintained separately)
+- `baseURL` — `PREVIEW_URL` (recommended). Config template supports fallback: `PLAYWRIGHT_BASE_URL || PREVIEW_URL || localhost:3000`, but only set `PREVIEW_URL` in `.env`
 - `authSetup` — `E2E_TEST_EMAIL` has value -> requires auth state
 - `testCredentials` — `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD`
 - `techStack` — from source directory CLAUDE.md
@@ -89,12 +89,12 @@ E2E_TEST_PASSWORD=<from this project's .env>
 APP_LANGUAGES=<from this project's .env, if set>
 ```
 
-> dotenv loads this file in playwright.config.ts and global-setup.ts.
+> dotenv loads this file in playwright.config.ts and auth.setup.ts.
 
 #### 2b. Directory Structure (skip if exists)
 
 ```bash
-mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/.auth tests/e2e/test-data/files
+mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/test-data/files playwright/.auth
 mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-results messages
 ```
 
@@ -111,7 +111,8 @@ fi
 # Copy i18n message files from source project to $QA_WORKSPACE_DIR/messages/
 # This way fixtures.ts uses local relative paths, independent of source code location
 if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -f "$QA_WORKSPACE_DIR/messages/en.json" ]; then
-  cp "$I18N_MESSAGES_DIR"/*.json "$QA_WORKSPACE_DIR/messages/"
+  # Use node for cross-platform compatibility (cp with glob may fail on Windows)
+  node -e "const fs=require('fs'),p=require('path'); fs.readdirSync('$I18N_MESSAGES_DIR').filter(f=>f.endsWith('.json')).forEach(f=>fs.copyFileSync(p.join('$I18N_MESSAGES_DIR',f),p.join('$QA_WORKSPACE_DIR/messages',f)))"
   echo "Copied i18n messages to $QA_WORKSPACE_DIR/messages/"
 fi
 
@@ -157,13 +158,39 @@ if file exists AND APP_LANGUAGES is set:
 ```typescript
 import { config } from "dotenv";
 import { defineConfig, devices } from "@playwright/test";
-import fs from "node:fs";
 
 config();
 
+const AUTH_FILE = "playwright/.auth/user.json";
+
+const hasAuth = !!(process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD);
+
+const testProjects = process.env.APP_LANGUAGES
+  ? process.env.APP_LANGUAGES.split(',').map(lang => ({
+      name: `e2e-${lang.trim().toLowerCase()}`,
+      testDir: "./tests/e2e",
+      testMatch: "**/testcases/**/*.test.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+        locale: { zh: 'zh-CN', 'zh-tw': 'zh-TW', ja: 'ja-JP', ko: 'ko-KR' }[lang.trim().toLowerCase()] || lang.trim().toLowerCase(),
+        extraHTTPHeaders: { 'Cookie': `NEXT_LOCALE=${lang.trim().toLowerCase()}` },
+      },
+      ...(hasAuth ? { dependencies: ['setup'] } : {}),
+    }))
+  : [{
+      name: "e2e",
+      testDir: "./tests/e2e",
+      testMatch: "**/testcases/**/*.test.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+      },
+      ...(hasAuth ? { dependencies: ['setup'] } : {}),
+    }];
+
 export default defineConfig({
   testDir: "./tests/e2e",
-  ...(fs.existsSync("./tests/e2e/global-setup.ts") ? { globalSetup: "./tests/e2e/global-setup.ts" } : {}),
   timeout: 60_000,
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
@@ -185,31 +212,14 @@ export default defineConfig({
     trace: "retain-on-failure",
     video: "retain-on-failure",
   },
-  // ── i18n multi-language projects ──
-  // When APP_LANGUAGES is set (e.g., "en,zh"), generate one project per language.
-  // Each project sets locale + NEXT_LOCALE cookie to switch app language.
-  // When APP_LANGUAGES is not set, generate a single "e2e" project (default behavior).
-  projects: process.env.APP_LANGUAGES
-    ? process.env.APP_LANGUAGES.split(',').map(lang => ({
-        name: `e2e-${lang.trim()}`,
-        testDir: "./tests/e2e",
-        testMatch: "**/testcases/**/*.test.ts",
-        use: {
-          ...devices["Desktop Chrome"],
-          locale: lang.trim() === 'zh' ? 'zh-CN' : lang.trim(),
-          extraHTTPHeaders: { 'Cookie': `NEXT_LOCALE=${lang.trim()}` },
-        },
-      }))
-    : [{
-        name: "e2e",
-        testDir: "./tests/e2e",
-        testMatch: "**/testcases/**/*.test.ts",
-        use: { ...devices["Desktop Chrome"] },
-      }],
-  // ── NEXT_LOCALE cookie explanation ──
-  // cookie value uses short codes ("en", "zh") matching next-intl's locale config
-  // Playwright's locale field uses standard codes ("en-US", "zh-CN") for browser behavior (date formats, etc.)
-  // The two don't need to match exactly: cookie controls app language, locale controls browser behavior
+  // Setup project runs auth.setup.ts before all test projects.
+  // Even for public-page-only test runs, setup still executes if hasAuth=true.
+  // This is by design: setup is fast (~5s) and ensures auth state is fresh.
+  // Public page tests opt out via test.use({ storageState: { cookies: [], origins: [] } }).
+  projects: [
+    ...(hasAuth ? [{ name: 'setup', testMatch: /auth\.setup\.ts/ }] : []),
+    ...testProjects,
+  ],
 });
 ```
 
@@ -237,74 +247,52 @@ if file exists AND APP_LANGUAGES is set:
   If found → skip
 ```
 
-**With E2E_TEST_EMAIL** -> full version with auth:
+**With E2E_TEST_EMAIL** → auth is handled by setup project (auth.setup.ts), fixtures only provide i18n:
+
+**With APP_LANGUAGES** → fixtures.ts with i18n fixture:
+
+> **Dynamic imports**: Generate one `import` line per language in APP_LANGUAGES. Example below shows `APP_LANGUAGES=en,zh`. For `APP_LANGUAGES=en,fr,de`, generate `import enMessages from '../../messages/en.json'`, `import frMessages from '../../messages/fr.json'`, `import deMessages from '../../messages/de.json'` and matching entries in `i18nMessages`.
 
 ```typescript
-import { test as base, expect, type Page, type BrowserContext } from "@playwright/test";
-import path from "node:path";
-import fs from "node:fs";
+import { test as base, expect } from "@playwright/test";
 
-const AUTH_FILE = path.join(__dirname, ".auth", "user.json");
+// ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
+// messages/ directory copied from source project to QA_WORKSPACE_DIR/messages/ by Phase 0 Step 2b-1
+// IMPORTANT: Generate one import per language in APP_LANGUAGES, not hardcoded en/zh
+import enMessages from '../../messages/en.json';
+import zhMessages from '../../messages/zh.json';
+// ^^^ Dynamic: for each lang in APP_LANGUAGES, generate: import {lang}Messages from '../../messages/{lang}.json';
 
-type TestFixtures = { authenticatedPage: Page };
-type WorkerFixtures = { authenticatedContext: BrowserContext };
+const i18nMessages: Record<string, Record<string, any>> = {
+  en: enMessages,
+  zh: zhMessages,
+  // ^^^ Dynamic: for each lang in APP_LANGUAGES, generate: {lang}: {lang}Messages,
+};
 
-export const test = base.extend<TestFixtures, WorkerFixtures>({
-  authenticatedContext: [async ({ browser }, use) => {
-    const ctx = fs.existsSync(AUTH_FILE)
-      ? await browser.newContext({ storageState: AUTH_FILE })
-      : await browser.newContext();
-    await use(ctx);
-    await ctx.close();
-  }, { scope: "worker" }],
+export type I18n = { t: (key: string) => string; locale: string };
 
-  authenticatedPage: async ({ authenticatedContext }, use) => {
-    const page = await authenticatedContext.newPage();
-    await use(page);
-    await page.close();
-  },
+export const test = base.extend<{ i18n: I18n }>({
+  i18n: [async ({}, use, testInfo) => {
+    const locale = testInfo.project.name.replace('e2e-', '') || 'en';
+    const dict = i18nMessages[locale] ?? i18nMessages['en'];
+    const t = (key: string): string => {
+      const parts = key.split('.');
+      let val: any = dict;
+      for (const p of parts) { val = val?.[p]; }
+      return typeof val === 'string' ? val : key;
+    };
+    await use({ t, locale });
+  }, { scope: 'worker' }],
 });
 
 export { expect };
 ```
 
-**With APP_LANGUAGES** → add i18n fixture to fixtures.ts (after authenticatedPage fixture):
+> **Auth is handled by config**: `storageState` is declared in playwright.config.ts projects, and setup project runs auth.setup.ts before all tests. No auth fixtures needed.
+> Tests use `{ page, i18n }` — `page` is already authenticated via config storageState.
+> **Public page tests** (sign-in, forgot-password etc.) opt out with `test.use({ storageState: { cookies: [], origins: [] } })`.
 
-```typescript
-// ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
-// messages/ directory copied from source project to QA_WORKSPACE_DIR/messages/ by Phase 0 Step 2b-1
-import enMessages from '../messages/en.json';
-import zhMessages from '../messages/zh.json';
-// ... import additional locales as needed from APP_LANGUAGES
-
-const i18nMessages: Record<string, Record<string, any>> = {
-  en: enMessages,
-  zh: zhMessages,
-};
-
-export type I18n = { t: (key: string) => string; locale: string };
-
-// Add to the extend<TestFixtures, WorkerFixtures> call:
-i18n: [async ({}, use, testInfo) => {
-  const locale = testInfo.project.name.replace('e2e-', '') || 'en';
-  const dict = i18nMessages[locale] ?? i18nMessages['en'];
-  const t = (key: string): string => {
-    const parts = key.split('.');
-    let val: any = dict;
-    for (const p of parts) { val = val?.[p]; }
-    return typeof val === 'string' ? val : key; // fallback to key if not found
-  };
-  await use({ t, locale });
-}, { scope: 'worker' }],
-```
-
-> **Import path**: fixtures.ts is located at `tests/e2e/fixtures.ts`, messages at `$QA_WORKSPACE_DIR/messages/`,
-> so the import path is `'../messages/{locale}.json'` (fixed, independent of source project structure).
-> Phase 0 Step 2b-1 has already copied message files from the source project to `$QA_WORKSPACE_DIR/messages/`.
-> If `messages/` directory does not exist or is empty → ERROR: "messages directory not found, check I18N_MESSAGES_DIR configuration"
-> If APP_LANGUAGES is NOT set → do not generate i18n fixture (backward compatible).
-
-**Without E2E_TEST_EMAIL** -> simple version:
+**Without APP_LANGUAGES** → minimal fixtures.ts:
 
 ```typescript
 import { test as base, expect } from "@playwright/test";
@@ -312,7 +300,8 @@ export const test = base;
 export { expect };
 ```
 
-> **global-setup.ts is not generated at this point** — it requires Phase 1 CDP exploration of the login page to write with verified real selectors.
+> **auth.setup.ts is not generated at this point** — it requires Phase 1 CDP exploration of the login page to write with verified real selectors.
+> **Pre-check**: If `E2E_TEST_EMAIL` is set but `auth.setup.ts` does not exist at `$QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts`, log a WARNING: "Auth credentials configured but auth.setup.ts not found. It will be generated when CDP encounters a login wall in Phase 1. If the initial URL is a public page, auth.setup.ts may not be created — run /qa-explore on a protected page to trigger generation."
 
 #### 2f. Copy static test data files (if not present)
 
@@ -363,17 +352,84 @@ Execute cdp-explorer SKILL **Phase 1 (Connection)**, then detect login wall (Pha
 **If a login page is encountered** (entire auth infrastructure is closed-loop here):
 
 1. **Explore login form**: Use cdp-explorer's three-layer scan (DOM -> accessibility tree -> screenshot) to discover real selectors
-   - Record: email input selector, password input selector, submit button selector, post-login URL pattern, whether multi-step (email first then password), etc.
+   - Record: login page path (e.g., `/sign-in`), email input selector, password input selector, submit button selector, post-login URL pattern (e.g., `**/task**`), whether multi-step (email first → continue → then password), etc.
 2. **CDP login**: Use discovered selectors + `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` from `.env` to complete login
-3. **Generate global-setup.ts** (`$QA_WORKSPACE_DIR/tests/e2e/global-setup.ts`, if not present):
-   - Write with verified real selectors, no guessing
-   - Includes: 12h storageState cache, login flow, write `.auth/user.json`
+3. **Generate auth.setup.ts** (`$QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts`, if not present):
+   - Write with verified real selectors from CDP exploration, no guessing
    - If exists -> skip (don't overwrite user-customized login logic)
-4. **Update playwright.config.ts**: Ensure it includes `globalSetup: "./tests/e2e/global-setup.ts"`
+   - **Template** (replace `{loginPagePath}`, `{emailSelector}`, `{passwordSelector}`, `{submitSelector}`, `{postLoginUrlPattern}` with CDP-discovered real values):
+
+```typescript
+import { test as setup, expect } from '@playwright/test';
+import { config } from 'dotenv';
+import path from 'node:path';
+import fs from 'node:fs';
+
+config();
+
+const authFile = path.join(__dirname, '..', '..', 'playwright', '.auth', 'user.json');
+
+setup('authenticate', async ({ page }) => {
+  const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.PREVIEW_URL || 'http://localhost:3000';
+  const email = process.env.E2E_TEST_EMAIL;
+  const password = process.env.E2E_TEST_PASSWORD;
+
+  if (!email && !password) {
+    console.log('No test credentials configured, skipping auth setup.');
+    return;
+  }
+  if (!email || !password) {
+    throw new Error(`Auth setup incomplete: ${!email ? 'E2E_TEST_EMAIL' : 'E2E_TEST_PASSWORD'} is missing in .env. Set both or remove both.`);
+  }
+
+  // Ensure auth directory exists + login with retry
+  const MAX_RETRIES = 2;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      // Navigate to login page — path from CDP exploration
+      await page.goto(`${baseURL}{loginPagePath}`);
+
+      // Step 1: Enter email — selectors from CDP exploration
+      const emailInput = page.locator('{emailSelector}').first();
+      await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
+      await emailInput.fill(email);
+
+      // {IF_MULTI_STEP}: Multi-step login — click continue after email to reveal password field
+      // await page.locator('{submitSelector}').click();
+      // {END_IF_MULTI_STEP}
+
+      // Step 2: Enter password
+      const passwordInput = page.locator('{passwordSelector}');
+      await passwordInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await passwordInput.fill(password);
+      await page.locator('{submitSelector}').click();
+
+      // Wait for post-login redirect
+      await page.waitForURL('{postLoginUrlPattern}', { timeout: 15_000 });
+      console.log(`Login successful as ${email}, saving auth state.`);
+
+      // Save auth state
+      await page.context().storageState({ path: authFile });
+      return; // success — exit retry loop
+    } catch (e) {
+      if (attempt < MAX_RETRIES) {
+        console.log(`Login attempt ${attempt + 1} failed, retrying in 5s... (${e.message})`);
+        await page.waitForTimeout(5000);
+      } else {
+        throw new Error(`Auth setup failed after ${MAX_RETRIES + 1} attempts: ${e.message}`);
+      }
+    }
+  }
+});
+```
+
+> **Setup project pattern** (Playwright recommended): auth.setup.ts runs once before all test projects via `dependencies: ['setup']` in playwright.config.ts. Every test run re-authenticates — no TTL/cache/validation complexity needed.
+
+4. **Verify playwright.config.ts** has setup project: Ensure it includes `{ name: 'setup', testMatch: /auth\.setup\.ts/ }` and test projects have `dependencies: ['setup']`. The config template from Phase 0 Step 2d already includes this.
 5. **Generate sign-in POM** (`tests/e2e/pages/sign-in.page.ts`) for login-related specs
 6. After successful login, navigate to the original target URL, continue to Step 2
 
-> **Closed-loop**: Selectors have only one source — CDP real exploration. The same set of selectors is used for: CDP login (for exploration), global-setup.ts (for Playwright execution), sign-in POM (for login specs).
+> **Closed-loop**: Selectors have only one source — CDP real exploration. The same set of selectors is used for: CDP login (for exploration), auth.setup.ts (for Playwright setup project), sign-in POM (for login specs).
 
 **If login is not required** -> proceed directly to Step 2
 
@@ -609,7 +665,7 @@ for area in exploredAreas:
 
     prompt:
     ```
-    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+    You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md.
 
     Input:
     - source: "cdp"
@@ -626,7 +682,7 @@ for area in exploredAreas:
         i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
     - existingPageObjects: [list of already-generated POM file paths]
 
-    Execute per agents/e2e-orchestrator.md steps, return artifact paths.
+    Execute per .claude/agents/e2e-orchestrator.md steps, return artifact paths.
     ```
   )
 
@@ -635,7 +691,7 @@ if crossAreaFlows.length > 0:
   orchestratorAgents.push(
     Launch e2e-orchestrator (sonnet) in background:
     prompt: """
-    You are e2e-orchestrator. First read agents/e2e-orchestrator.md.
+    You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md.
     Input:
     - source: "cdp"
     - baselineFile: {baselineFile}
@@ -649,17 +705,16 @@ if crossAreaFlows.length > 0:
 results = await all(orchestratorAgents)
 
 // ══ MANDATORY VERIFICATION GATE ══
-// Execute the Post-Return File Verification checklist from agents/e2e-orchestrator.md
-// (Steps V1-V5). Pipeline STOPS if any check fails.
+// Execute the Post-Return File Verification checklist defined in
+// .claude/agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
+// The AUTHORITATIVE definition of V1-V5 is in e2e-orchestrator.md — do NOT
+// duplicate inline. Read the checklist from that file and execute each step.
+// Pipeline STOPS if any check fails — do NOT proceed.
 //
-// For EACH orchestrator result, verify:
-//   V1: .md files exist + contain "## Merged Test Case List" + at least 1 "**TC-"
-//   V2: handoff JSON exists + valid JSON array + entry count matches .md TC count
-//   V3: spec files exist + contain "test(" + contain "import"
-//   V4: POM files exist + contain "export class"
-//   V5: cross-artifact consistency (spec imports match POM, spec header references handoff)
-//
-// If ANY verification fails → STOP, report error to user, do NOT proceed.
+// On failure:
+//   - Delete INCOMPLETE artifacts from the failed orchestrator (spec, POM, handoff for that area)
+//   - Keep artifacts from other orchestrators that passed verification
+//   - Report detailed error: area, V step, reason, deleted files, suggested action
 
 // Collect all verified artifacts
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
@@ -671,9 +726,14 @@ node skills/excel-case-export/scripts/generate-excel.js \
   --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
   --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
 
-// Verify Excel output exists
+// Verify Excel output exists — retry once on failure
 if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
-  ERROR: "Excel export failed — file not written"
+  WARN: "Excel export failed — retrying..."
+  node skills/excel-case-export/scripts/generate-excel.js \
+    --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
+    --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
+  if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
+    ERROR: "Excel export failed after retry — file not written"
 
 // Report generation progress
 ```
@@ -730,6 +790,7 @@ If the user runs `/qa-explore` again on a previously explored page:
    - Compare current State₀ fingerprint with `baseline.states.S0.fingerprint` (stored at last exploration)
    - **Fingerprint matches** → page unchanged → resume mode:
      - Check `areas[*].status`: skip `completed` ones, continue `pending` ones
+     - **Completion validation**: for each `completed` area, verify it has at least 1 state and 1 edge in baseline stateGraph. If a `completed` area has 0 states/edges → reclassify as `pending` (likely interrupted mid-write)
      - State-flow graph is not lost; resume from the last breakpoint
    - **Fingerprint differs** → page has changed → re-explore mode:
      - Log: "Page has changed since last exploration (UI update detected)"

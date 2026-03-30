@@ -1,2 +1,4 @@
 node_modules/
 .specstory
+tests/reports/
+.claude/settings.local.json

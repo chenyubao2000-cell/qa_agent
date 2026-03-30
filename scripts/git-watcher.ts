@@ -462,20 +462,50 @@ interface ReportResult {
   content: string;
 }
 
-/** 解析测试报告 summary.md，提取通过/失败状态 */
+/** 用模型判断测试报告是否全部通过 */
 function parseReport(): ReportResult {
   const summaryPath = resolve(TARGET_DIR, "tests/reports/combined/summary.md");
-  if (existsSync(summaryPath)) {
-    const content = readFileSync(summaryPath, "utf-8");
-    // 从执行摘要表格提取失败数：匹配 "| E2E | N | N | 0 |" 中的失败列
-    const failMatch = content.match(/\|\s*E2E\s*\|\s*\d+\s*\|\s*\d+\s*\|\s*(\d+)\s*\|/);
-    const failCount = failMatch ? Number(failMatch[1]) : -1;
-    const passed = failCount === 0;
-    log(`  报告解析: ${passed ? "全部通过" : `${failCount} 个失败`}`);
-    return { passed, content };
+  if (!existsSync(summaryPath)) {
+    log("  报告文件未找到:", summaryPath);
+    return { passed: false, content: "报告文件未生成" };
   }
-  log("  报告文件未找到:", summaryPath);
-  return { passed: false, content: "报告文件未生成" };
+
+  const content = readFileSync(summaryPath, "utf-8");
+  const promptFile = resolve(PROJECT_ROOT, ".report-judge-prompt.tmp");
+  const prompt = `你是测试报告分析器。阅读以下测试报告，判断 E2E 测试是否全部通过。
+
+只输出一个 JSON 对象，不要输出其他内容：
+{"passed": true/false, "failCount": 数字, "reason": "一句话说明"}
+
+规则：
+- 如果所有测试用例都通过（无失败、无错误），passed=true，failCount=0
+- 如果有任何失败或错误的测试用例，passed=false，failCount=失败数量
+- 如果无法判断，passed=false，failCount=-1
+
+---
+${content}`;
+
+  writeFileSync(promptFile, prompt);
+  try {
+    const raw = execSync(
+      `type "${promptFile}" | claude -p --model claude-haiku-4-5`,
+      { cwd: PROJECT_ROOT, encoding: "utf-8", timeout: 30_000 }
+    ).trim();
+    // 从输出中提取 JSON（模型可能包裹在 markdown code block 中）
+    const jsonMatch = raw.match(/\{[\s\S]*?\}/);
+    if (jsonMatch) {
+      const result = JSON.parse(jsonMatch[0]);
+      log(`  报告解析: ${result.passed ? "全部通过" : `${result.failCount} 个失败`} — ${result.reason}`);
+      return { passed: !!result.passed, content };
+    }
+    logError("  模型返回格式异常:", raw.slice(0, 200));
+    return { passed: false, content };
+  } catch (e: any) {
+    logError("  报告解析失败:", e.message);
+    return { passed: false, content };
+  } finally {
+    try { unlinkSync(promptFile); } catch {}
+  }
 }
 
 // ── PR 评论 ─────────────────────────────────────────

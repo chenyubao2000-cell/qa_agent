@@ -27,8 +27,9 @@ Only need to extract:
 - `LINEAR_*` — pass through to report-analyzer (bug reporting)
 - `APP_LANGUAGES` — if set, Playwright config has per-language projects (e.g., `e2e-en`, `e2e-zh`). test-executor must handle project selection.
 
-Not needed: SOURCE_PROJECT_DIR (no source reading), PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in global-setup).
-No initialization — only runs existing specs; workspace must have been initialized by `/qa-explore` or similar commands.
+Not needed: SOURCE_PROJECT_DIR (no source reading), PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in auth.setup.ts).
+No initialization — only runs existing specs. Workspace must have been initialized by `/qa-explore` or similar commands.
+Required files: `playwright.config.ts`, `tests/e2e/fixtures.ts`, `tests/e2e/testcases/**/*.test.ts`, `node_modules/@playwright/test`. If `E2E_TEST_EMAIL` is set: also `tests/e2e/auth.setup.ts` + `playwright/.auth/` directory.
 
 ### Source Code Directory (optional, injected by git-watcher)
 
@@ -71,10 +72,22 @@ Related Linear Issues (for failure attribution): STE-123, STE-456
 PR source directory (prSourceDir): D:\code\.qa-worktree-pr
 ```
 
-**Parse suite parameter from $ARGUMENTS**:
-- `--suite smoke` → suite = "smoke" (only @smoke tagged tests = P0)
-- `--suite regression` → suite = "regression" (P0 + P1)
-- `--suite full` or no --suite → suite = "full" (all tests)
+**Parse suite parameter from $ARGUMENTS** (supports both flags and natural language):
+
+Formal flags:
+- `--suite smoke` → suite = "smoke"
+- `--suite regression` → suite = "regression"
+- `--suite full` or no --suite → suite = "full"
+
+Natural language (Chinese/English):
+- Contains "smoke" / "冒烟" / "P0" / "只跑smoke" → suite = "smoke"
+- Contains "regression" / "回归" / "P0+P1" → suite = "regression"
+- Contains "full" / "全量" / "所有" → suite = "full"
+
+Suite to Playwright --grep mapping:
+- smoke → `--grep @smoke`
+- regression → `--grep "@smoke|@regression"`
+- full → no --grep (run all)
 
 ### Headless Mode Detection
 
@@ -85,7 +98,7 @@ If the prompt contains `_trigger: git-watcher_`, set `headless: true` for report
 Launch test-executor agent:
 
 ```
-You are test-executor. First read agents/test-executor.md to understand your full responsibilities.
+You are test-executor. First read .claude/agents/test-executor.md to understand your full responsibilities.
 
 Input:
 - mode: "full"
@@ -94,7 +107,7 @@ Input:
 - projectDir: "$QA_WORKSPACE_DIR"
 - appLanguages: {APP_LANGUAGES or null}
 
-Execute per agents/test-executor.md steps, return report paths and summary.
+Execute per .claude/agents/test-executor.md steps, return report paths and summary.
 ```
 
 **Multi-language project selection** (when `APP_LANGUAGES` is set):
@@ -116,7 +129,7 @@ Execute per agents/test-executor.md steps, return report paths and summary.
 Launched after test-executor completes.
 
 ```
-You are report-analyzer. First read agents/report-analyzer.md to understand your full responsibilities.
+You are report-analyzer. First read .claude/agents/report-analyzer.md to understand your full responsibilities.
 
 Input:
 - projectContext: { targetProjectDir: "$QA_WORKSPACE_DIR", ... }
@@ -125,10 +138,10 @@ Input:
 - appLanguages: {APP_LANGUAGES or null}
 - headless: {true if _trigger: git-watcher_, otherwise false}
 
-Execute per agents/report-analyzer.md steps:
+Execute per .claude/agents/report-analyzer.md steps:
 1. Read test reports from $QA_WORKSPACE_DIR/tests/reports/
 2. Parse results → route failed cases → deduplicate
-3. Launch bug-reporter (agents/bug-reporter.md) for Linear issue creation/append
+3. Launch bug-reporter (.claude/agents/bug-reporter.md) for Linear issue creation/append
 4. Generate summary report
 5. Open HTML report (unless headless)
 ```

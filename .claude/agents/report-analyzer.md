@@ -1,8 +1,8 @@
 ---
 name: report-analyzer
 description: After test execution completes, analyze reports and deduplicate before reporting bugs to Linear.
-tools: Agent, Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__get_issue, mcp__linear__update_issue
-model: claude-haiku-4-5
+tools: Agent, Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__get_issue, mcp__linear__update_issue, mcp__linear__create_comment
+model: haiku
 ---
 
 You are a test report analyzer. You start after test-executor completes, read report files, analyze results, deduplicate, and report to Linear.
@@ -20,6 +20,7 @@ The caller can pass the following context, which affects the reporting strategy:
 
 | Field | Source | Description |
 |-------|--------|-------------|
+| `reportFile` | All callers (optional) | Report JSON filename to read (default: `playwright-results.json`). `/qa-from-issue` and `/qa-run-prd` pass `fix-regression.json` because qa-fix-tests' regression uses test-executor "changed" mode |
 | `sourceIssueKeys` | `/qa-from-issue` | List of original Linear issue keys that triggered this test run. Used in Step 2 to route failures back to source issues |
 | `sourceSpecs` | `/qa-from-issue` | List of spec file paths generated from those issues |
 
@@ -34,19 +35,42 @@ The caller can pass the following context, which affects the reporting strategy:
 
 When none of these are provided (`/qa-explore`, `/qa-run-prd`), all failed test cases go through the unified deduplication + creation flow.
 
+## Step 0: Read Environment Config (mandatory)
+
+```
+Read("$QA_WORKSPACE_DIR/.env")
+```
+
+Extract Linear configuration needed for bug-reporter:
+- `LINEAR_TEAM_ID` — team key or UUID (e.g., "STE"), **required** for create_issue
+- `LINEAR_PROJECT_ID` — project UUID (optional, for associating issues with a project)
+- `PREVIEW_URL` — for bug-reporter's environment info section
+
+> **Why here**: bug-reporter doesn't read .env. report-analyzer must extract these values and pass them explicitly when launching bug-reporter in Step 3.
+
 ## Report Files
 
-Read report files produced by test-executor:
+The caller can specify which report file to read via the `reportFile` parameter:
+
+| Caller | reportFile | Reason |
+|--------|-----------|--------|
+| `/qa-run-all` | `playwright-results.json` (default) | test-executor full/selective mode |
+| `/qa-from-issue` | `fix-regression.json` | qa-fix-tests Phase 3 changed mode |
+| `/qa-run-prd` | `fix-regression.json` | qa-fix-tests Phase 3 changed mode |
+| `/qa-explore` | `playwright-results.json` (default) | test-executor selective mode |
 
 ```
 $QA_WORKSPACE_DIR/tests/reports/
-  ├── playwright-results.json    ← E2E report (produced by test-executor)
+  ├── playwright-results.json    ← E2E report (test-executor full/selective mode)
+  ├── fix-regression.json        ← E2E report (test-executor changed mode, from qa-fix-tests)
   └── vitest-results.json        ← Unit report (paused, to be produced in the future)
 ```
 
+If `reportFile` is not specified, default to `playwright-results.json`.
+
 ## Step 1: Parse Test Results
 
-Read the report JSON and iterate over all test cases:
+Read the report JSON (`$QA_WORKSPACE_DIR/tests/reports/{reportFile}`, default `playwright-results.json`) and iterate over all test cases:
 - Count passed / failed / skipped totals
 - Extract entries with status = "failed"
 - Record the corresponding pipeline type (e2e / unit)
@@ -61,6 +85,39 @@ Read the report JSON and iterate over all test cases:
 5. **Total budget**: For a test run with many failures (> 20), only read screenshots for the **first 10 failures**. Remaining failures use: "Screenshot omitted (too many failures)"
 
 These rules prevent report-analyzer from spending excessive time reading large screenshots or hanging on missing files.
+
+### Step 1.5: Enrich Failed Tests from Spec/Handoff (mandatory)
+
+Playwright JSON reports only contain `name`, `error`, `file`, `attachments`. Bug-reporter needs additional fields (`priority`, `feature`, `pageUrl`, `handoffFile`) that must be extracted from spec and handoff files.
+
+For each failed test case:
+
+```
+1. specFile = failed test's file path (from report JSON)
+
+2. Extract handoffFile from spec header:
+   Read(specFile) → find "// handoff: ..." comment → handoffPath
+   Fallback: infer from filename → test-cases/generated/playwright-handoff-{slug}.json
+
+3. Extract pageUrl from spec:
+   Grep("page.goto|baseURL", specFile) → extract URL path
+
+4. Infer feature from spec filename:
+   specFile "task-download-issue.test.ts" → feature = "task-download"
+
+5. Extract priority from handoff (if exists):
+   Read(handoffPath) → find entry matching TC ID → entry.priority
+   Fallback: "P2" (default medium)
+
+6. Build enriched failure object:
+   {
+     name, error, pipeline, file,           // from report JSON
+     screenshotDescription,                  // from Step 1 screenshot reading
+     priority, feature, pageUrl, handoffFile // from this step
+   }
+```
+
+> **Performance**: Read each spec file once, extract all fields in a single pass. Only read handoff if it exists (Glob check first).
 
 ### Multi-Language Result Handling
 
@@ -90,27 +147,21 @@ When the test suite was executed with multiple Playwright projects (e.g., `e2e-e
 ## Step 2: Failed Test Case Routing (Executed Only When Failures Exist)
 
 If there are no failed test cases:
-- Has sourceIssueKeys (/qa-from-issue scenario) → Comment "All automated tests passed" on each source issue, then proceed to Step 4
+- Has sourceIssueKeys (/qa-from-issue scenario) → Comment "All automated tests passed" on each source issue + **update issue status to Done**, then proceed to Step 4
 - No sourceIssueKeys → Proceed directly to Step 4
 
 **Write-back method when all tests pass** (called directly by report-analyzer):
 
-> Linear MCP has no comment API, so we use description append instead: first get_issue to read the current text, append a record at the end, then update_issue to write it back.
-
 ```
-1. mcp__linear__get_issue(issueId) → get current description
-2. mcp__linear__update_issue(issueId, description: original text + appended content)
+// Step 1: Add success comment
+mcp__linear__create_comment(issueId, body)
 
-Appended content template:
----
-## 自动化测试全部通过
-**执行时间**: {timestamp} | **用例总数**: {total} | **全部通过**: {passed}/{total}
-**Spec 文件**: {spec file paths}
+// Step 2: Close the issue — tests verified the fix
+mcp__linear__update_issue(issueId, status: "Done")
 ```
 
-**Success write-back template** (when all tests pass and sourceIssueKeys present):
+Comment body:
 ```markdown
----
 ## ✅ 自动化测试全部通过 — {timestamp}
 
 | 项目 | 值 |
@@ -137,9 +188,26 @@ Has sourceIssueKeys + sourceSpecs?
 ### 2.2 Source Issue Write-back (/qa-from-issue Scenario)
 
 For failed test cases in the "write-back" list, mark them for write-back to the original issue, **delegated to bug-reporter for execution**:
-- action: "append"
-- targetIssueId: issue ID corresponding to sourceIssueKey (mapped via specToIssueMap)
-- Merged into Step 3's pending list, passed to bug-reporter together with new bugs
+
+```
+For each failed test case in the "write-back" list:
+  specFile = failed test's spec file path
+  issueKeys = specToIssueMap[specFile]  // may be a single key or an array
+
+  // Normalize to array
+  if issueKeys is string → issueKeys = [issueKeys]
+
+  // Create one append action PER source issue
+  for each issueKey in issueKeys:
+    Add to pending list:
+      - action: "append"
+      - targetIssueId: issueKey
+      - (all other fields from the enriched failure object)
+```
+
+> **Multiple issues per spec**: When multiple issues map to the same spec (same page, different bugs), a failure in that spec must be written back to ALL source issues, not just the first one.
+
+Merged into Step 3's pending list, passed to bug-reporter together with new bugs.
 
 ### 2.3 New Bug Deduplication + Creation
 
@@ -147,20 +215,60 @@ For failed test cases in the "create" list, perform deduplication checks:
 
 - Query via Linear MCP whether an Open Issue with the same title exists
 - Search keyword: `[Auto] {test case name}`
-- Open Issue already exists → **Append to description** with latest failure info (error, screenshot, timestamp)
+- Open Issue already exists → **Add comment** with latest failure info (error, screenshot, timestamp)
 - Exists but status is Done / Cancelled → Treat as regression bug, **re-create** the issue
 - Does not exist → Add to the pending report list
+
+### 2.4 Change Attribution (when changeSummary or relatedIssueKeys is provided)
+
+When `changeSummary` is present (from git-watcher via `/qa-run-all`), annotate each failure with change relevance:
+
+```
+For each failed test case in the "create" or "append" list:
+  1. Extract the failed spec's page URL and feature name
+  2. Compare against changeSummary's changed files and descriptions:
+     - If changeSummary mentions the same component/page/API → tag as "regression_likely"
+       (e.g., changeSummary says "modified src/components/Chat.tsx" and failure is in chat-related spec)
+     - If no overlap between changed files and failed spec's scope → tag as "pre_existing"
+  3. Pass the tag to bug-reporter:
+     - "regression_likely" → bug-reporter adds "🔴 可能由本次变更引起" label in issue description
+     - "pre_existing" → bug-reporter adds "⚪ 可能为已有问题" label in issue description
+```
+
+When `relatedIssueKeys` is present (from git-watcher via `/qa-run-all`), pass them to bug-reporter:
+
+```
+For each failed test case entry passed to bug-reporter:
+  - Add field: relatedIssueKeys = [list from caller context]
+  - bug-reporter includes these in the issue description's "关联信息" section
+  - This links automated bug reports back to the PR's original Linear issues
+```
+
+> **Note**: changeSummary attribution is best-effort based on file path / component name matching, not guaranteed. The tag helps developers prioritize triage but should not be used as a definitive root cause.
 
 ## Step 3: Trigger Reporting (Executed When Failed Test Cases Exist)
 
 > **Deduplication is handled entirely by this agent**; bug-reporter does not repeat the check.
 > **All Linear write operations related to failures are delegated to bug-reporter**; report-analyzer only retains the success write-back when all tests pass.
-> **Note: Linear MCP has no comment API**; all write-backs are appended to the description via get_issue + update_issue.
+> **Comment API available**: bug-reporter uses `mcp__linear__create_comment` for write-backs (keeps original description clean).
 
-Start the **bug-reporter agent** (`agents/bug-reporter.md`, haiku) to batch process all failed test cases.
+Start the **bug-reporter agent** (`.claude/agents/bug-reporter.md`, haiku) to batch process all failed test cases.
 bug-reporter internally follows its own format specification to create Issues.
 
-Input: deduplicated list of failed test cases (each annotated with action=create or action=append; source issue write-back items include targetIssueId) + LINEAR_PROJECT_ID and LINEAR_TEAM_ID from .env
+Input:
+- `linearTeamId`: LINEAR_TEAM_ID from Step 0 (.env)
+- `linearProjectId`: LINEAR_PROJECT_ID from Step 0 (.env, optional)
+- `previewUrl`: PREVIEW_URL from Step 0 (.env)
+- Deduplicated list of failed test cases (below)
+
+Each failed test case entry passed to bug-reporter must include:
+- `name`, `error`, `pipeline`, `file` — from report JSON
+- `priority`, `feature`, `pageUrl`, `handoffFile` — from Step 1.5 enrichment
+- `screenshotDescription` — text description generated in Step 1 (bug-reporter uses this directly, does NOT re-read screenshot files)
+- `action`: `create` | `append` — from Step 2 routing
+- `targetIssueId` — from Step 2 routing (only when action=append)
+- `changeAttribution` — `"regression_likely"` | `"pre_existing"` | `null` — from Step 2.4 (only when changeSummary provided)
+- `relatedIssueKeys` — list of PR-related Linear issue keys from Step 2.4 (only when relatedIssueKeys provided)
 
 ## Step 4: Generate Summary Report (Always Executed)
 
