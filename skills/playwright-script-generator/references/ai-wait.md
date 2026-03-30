@@ -34,10 +34,17 @@ For slow fixtures (e.g. AI session setup), give the fixture its own timeout:
 
 ```typescript
 const test = base.extend({
+  // Quick fixture: 60s is enough
   aiSession: [async ({}, use) => {
-    // expensive setup...
+    // light setup...
     await use(session);
-  }, { timeout: 60_000 }], // independent from test timeout
+  }, { timeout: 60_000 }],
+
+  // AI task creation fixture: needs 5-6 min (worker-scope, runs once per worker)
+  taskWithFilesUrl: [async ({ browser }, use) => {
+    // create task via UI, wait for AI to generate files...
+    await use(taskUrl);
+  }, { scope: 'worker', timeout: 360_000 }], // ← RECOMMENDED for AI-heavy setup
 });
 ```
 

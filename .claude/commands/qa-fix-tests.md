@@ -382,9 +382,10 @@ For each failed file:
      b6. Strictly follow POM rules: no bare locators in specs
      b7. **Test data self-sufficiency check (§0c)**: Scan the spec for hardcoded data IDs
          (e.g., `const TASK_URL = '/task/abc123'`, `process.env.XXX ?? '/task/fallbackId'`).
-         If found → refactor to `test.describe.serial` + `beforeAll` that creates data via UI/API.
-         Follow `playwright-script-generator/SKILL.md` §0c and `references/test-data-patterns.md` Pattern A.
-         POM must have setup methods (`createTask()`, `gotoTask(url)` accepting dynamic URL).
+         Also scan for `beforeAll` that creates data → refactor to worker-scope fixture.
+         If found → refactor to **worker-scope fixture** in `fixtures.ts` (`{ scope: 'worker', timeout: 360_000 }`).
+         Tests receive data via fixture parameter. No `beforeAll`, no `serial` wrapper needed.
+         Follow `playwright-script-generator/SKILL.md` §0c and `references/test-data-patterns.md` Pattern D.
 
      === Step 3c: For POSSIBLE BUG — do NOT fix ===
      c1. Using sourceContext from Step 0.5 (already built), review the component's intended rendering logic and behavior

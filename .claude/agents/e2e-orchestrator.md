@@ -167,46 +167,71 @@ Glob("$QA_WORKSPACE_DIR/test-cases/generated/*.md")
 ```
 // Scan ALL spec files, not just those from the current source
 Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*.test.ts")
+Glob("$QA_WORKSPACE_DIR/tests/e2e/pages/*.ts")
 Glob("$QA_WORKSPACE_DIR/test-cases/generated/*.md")
+
+For each spec file:
+  1. Read imports → extract POM class name + file path
+  2. Read test bodies → extract POM method calls (e.g., taskPage.clickFileCard, canvas.clickMaximize)
+  3. Read spec header → extract source (cdp/prd/issue), handoff path
 
 existingTests = [
   {
-    file: "view-all-files-entry.test.ts",
-    source: "cdp",  // extracted from filename suffix or spec header comment
-    testIds: ["TC-VF-001"],
-    feature: "view-all-files",
-    urls: ["/task/YoEjBY4PNBFMwZWz"],
-    assertions: ["viewAllFilesButton.toBeVisible"],
-    locators: ["div[role='button'].rounded-xl.border.p-3", "getByRole('button', { name: /查看所有文件/ })"]
+    file: "task-file-preview-cdp.test.ts",
+    source: "cdp",
+    testIds: ["TC-CDP-FP-001", ...],
+    pomClass: "TaskPage",                     // ← NEW: POM class imported
+    pomMethods: ["getFileCards", "clickFileCard", "getWorkspacePanel", "closeWorkspacePanel"],  // ← NEW
+    assertions: ["toBeVisible", "toContainText('sample.pdf')"],
   },
   ...
 ]
 ```
 
-### 2.3 Match Against Current Input
+### 2.3 Match Against Current Input (POM-Based Cross-Source Matching)
 
-Compare the feature modules / pages / issues identified in Step 1 against existing test cases one by one.
+> **Core principle**: URL and feature name are unreliable across sources (PRD has no URL, CDP names are in Chinese).
+> The reliable matching key is **what DOM elements the test interacts with** — expressed as POM class + methods.
 
-**Matching key** (in priority order):
-1. **Page URL** — if existing test covers the same URL → potential match
-2. **Functional area type** — form, navigation, tab, modal etc. on the same URL → same feature
-3. **Assertion overlap** — if ≥50% assertions test the same elements → fully covered
+**Matching strategy (3-layer, execute in order):**
 
-Do NOT rely on feature name string matching alone (`sign-in` ≠ `login` but they're the same feature if on the same URL).
+```
+Layer 1 — POM class match (fast, high confidence):
+  Current input's target UI component → grep sourceProjectDir → identify POM class
+  If existing spec imports the SAME POM class → potential overlap, proceed to Layer 2
+  If no POM class match → no overlap, generate new
 
-| Match Result | Action |
-|----------|------|
-| Existing test fully covers the current scenario | **Skip generation**, only fix locators / assertions / parameterized URLs. If an existing spec's locators/assertions were fixed, record the modified spec path in the `modified_specs` field of the return value to ensure the downstream test-executor can execute that spec |
-| Existing test partially covers (missing certain test perspectives) | Only generate the missing cases, append to existing spec |
-| No existing test | Generate new test cases + POM + spec as normal |
+Layer 2 — POM method overlap (medium, precise):
+  Compare POM methods called by current input vs existing spec:
+  overlapRate = |intersection(currentMethods, existingMethods)| / |currentMethods|
+  - overlapRate ≥ 70% → FULL OVERLAP (same feature area)
+  - overlapRate 30-70% → PARTIAL OVERLAP (related but different focus)
+  - overlapRate < 30% → NO OVERLAP (different feature area on same page)
+
+Layer 3 — Assertion semantic match (fallback, for edge cases):
+  Compare assertion targets: what element + what expectation
+  - Same element + same expectation → duplicate assertion
+  - Same element + different expectation → complementary (keep both)
+  - Different element → no overlap
+```
+
+**Match result → action matrix:**
+
+| Match Result | POM Overlap | Action |
+|----------|------|------|
+| Full overlap, same assertions | ≥ 70% | **Skip** — existing spec covers this. Record in `skipped[]` |
+| Full overlap, assertions outdated (PRD changed) | ≥ 70% | **Update** existing spec's assertions to match new PRD. Record in `modified_specs[]` |
+| Partial overlap | 30-70% | **Append** only missing cases to existing spec |
+| No overlap | < 30% | **Generate** new spec + POM + cases |
+| PRD removed feature, existing spec covers it | N/A | **Deprecate** existing spec: wrap with `test.describe.skip`, add `// DEPRECATED: feature removed from PRD` |
 
 ### 2.4 Deduplication Rules
 
 - **TC ID must be globally unique**: Format `TC-{SOURCE}-{FEATURE}-{3-digit}`, e.g., `TC-CDP-NAV-001`, `TC-PRD-LOGIN-003`, `TC-ISS-VF-002`. The source prefix prevents collision across commands.
-- **Same assertion** (same page + same locator + same expect) must not appear in two test cases
-- **Only URL differs** but verification logic is identical → parameterize with `for...of` or `test.each`, do not split into multiple tests
-- **Issue is a failure report for an existing test** → do not add new test cases, only update the actual result record of the existing test
-- **Cross-source matching**: When comparing features, use **page URL + functional area type** as the primary matching key (not feature name alone). `sign-in` and `login` on the same URL are the same feature.
+- **Same POM method + same assertion** must not appear in two test cases (regardless of source)
+- **Cross-source is the norm**: PRD spec testing "Canvas maximize" and CDP spec testing "预览面板全屏" are duplicates if both call `canvas.clickMaximize()` + `expect(restoreBtn).toBeVisible()`
+- **URL is NOT a matching key** — different sources use different URLs (PRD: none, CDP: specific task URL). Match by POM interaction, not URL.
+- **Feature name is NOT a matching key** — `sign-in` ≠ `登录` but they import the same `SignInPage` POM → same feature
 
 ### 2.5 PRD Update Mode (when `prdChangeMode: "updated"`)
 
@@ -251,7 +276,7 @@ prdChangeMode: "updated" → Incremental update (this section)
 6. For each "Deprecate" action:
    - Wrap the test block with `test.skip()` in the spec
    - **Remove handoff**: delete the corresponding entry from `playwright-handoff-{slug}.json`
-   - **Cross-source check**: search for specs from OTHER sources (CDP, issue) that cover the same feature (by URL + area type). If found, also mark them as deprecated (test.skip) to keep consistent state.
+   - **Cross-source check**: search for specs from OTHER sources (CDP, issue) that cover the same feature (by POM class + method overlap per §2.3 Layer 1-2). If found, also mark them as deprecated (test.skip) to keep consistent state.
    - Record in `modified_specs`
 
 7. Update the PRD hash in the .md file header: `<!-- PRD-hash: {new hash} -->`
@@ -385,7 +410,7 @@ Read `skills/playwright-script-generator/SKILL.md` and execute according to the 
 - Existing spec → append test cases (do not duplicate existing cases)
 - Existing POM → append locators / methods (do not duplicate existing properties)
 - **Source-aware locator selection**: When sourceContext is available, follow `playwright-script-generator/SKILL.md` §2.2 Step A-D to prefer data-testid/aria-* from source over CSS selectors
-- **Test data self-sufficiency (§0c)**: Generated specs MUST follow `playwright-script-generator/SKILL.md` §0c rules — no hardcoded data IDs, create data in beforeAll/beforeEach, unique naming with `Date.now()`. POM must include setup/teardown methods (e.g., `createTask()`, `deleteTask()`). For Read/Update/Delete/Download/List tests, `setup[]` in handoff must provide data creation steps.
+- **Test data self-sufficiency (§0c)**: Generated specs MUST follow `playwright-script-generator/SKILL.md` §0c — no hardcoded data IDs, unique naming with `Date.now()`. All prerequisite data created via **worker-scope fixture** in `fixtures.ts` (`{ scope: 'worker', timeout: 360_000 }`). Do NOT use `beforeAll`. Tests receive data via fixture parameter destructuring.
 - **i18n propagation**: When `projectContext.appLanguages` is set, pass it to playwright-script-generator. The skill generates i18n-aware POMs (accepting `i18n` fixture parameter) and specs that instantiate POMs with `i18n`. Each Playwright project runs the same specs under a different language. POM text-based locators use `i18n.t('key')` resolved at runtime.
 
 ### 5.0.1 i18n Post-Generation Verification (when appLanguages is set)

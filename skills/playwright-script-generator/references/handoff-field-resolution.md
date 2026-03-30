@@ -12,7 +12,7 @@
 | `data` | `object` | Key-value pairs for the operation | Passed as argument to POM method; `{timestamp}` → `Date.now()` |
 
 **Lifecycle mapping:**
-- `setup[]` entries → `test.beforeAll` (shared fixture) or `test.beforeEach` (per-test isolation)
+- `setup[]` entries → **worker-scope fixture** in `fixtures.ts` (default). When `setup[].scope = "worker"`, generate fixture with `{ scope: 'worker', timeout: 360_000 }`. Do NOT use `beforeAll`.
 - `teardown[]` entries → `test.afterAll` or `test.afterEach`
 - Empty `setup[]` on an action that requires it → infer from `preconditions[]`; if both empty → flag error
 

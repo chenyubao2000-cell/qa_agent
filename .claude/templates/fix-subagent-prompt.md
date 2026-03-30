@@ -55,7 +55,7 @@ Steps:
    b4. Do NOT change business assertions
    b5. If assertions legitimately changed → return assertionsChanged: true
    b6. No bare locators in specs
-   b7. Test data self-sufficiency: no hardcoded IDs → refactor to beforeAll if found
+   b7. Test data self-sufficiency: no hardcoded IDs, no beforeAll → refactor to worker-scope fixture (Pattern D)
 
    === 3c: POSSIBLE BUG — do NOT fix ===
    c1. Use sourceContext to review intended behavior

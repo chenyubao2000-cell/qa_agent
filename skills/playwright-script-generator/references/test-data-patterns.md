@@ -48,10 +48,11 @@ test('Create task shows in list', async ({ page }) => {
 - Prevents collisions when tests run in parallel
 - Pattern: `Test-{Action}-{timestamp}` (e.g., `Test-Edit-1711234567890`)
 
-**4. When to use `test.beforeEach` / `test.afterEach`:**
-- If ALL tests in a `test.describe` need the same setup → use `beforeEach`
-- If cleanup is needed regardless of test pass/fail → use `afterEach` (ensures teardown even on failure)
-- Individual tests with unique setup → inline setup in the test body
+**4. Data lifecycle:**
+- **Shared prerequisite data** (task URL, session) → worker-scope fixture (Pattern D)
+- **Per-test cleanup** (delete created record) → `test.afterEach` (ensures cleanup even on failure)
+- **CRUD ordering** (create→read→update→delete) → `test.describe.serial` (for ordering, NOT for data sharing)
+- **Inline setup** (fill a form field) → directly in test body
 
 **5. POM must include setup/teardown methods:**
 ```typescript
@@ -107,12 +108,19 @@ For each handoff entry:
 
 ## Data Preparation Patterns (§1.5)
 
-**Pattern A — Create data via UI operations (recommended):**
+**Pattern A — DEPRECATED (do NOT use for new code):**
+
+> ⚠️ beforeAll has a hidden 60s default timeout, requires `serial` wrapper, and prevents parallel execution.
+> Use Pattern D (worker-scope fixture) instead. Pattern A is kept here only as reference for understanding legacy code.
+
+<details><summary>Legacy Pattern A code (click to expand)</summary>
+
 ```typescript
+// ❌ DEPRECATED — do NOT copy this pattern
 test.describe.serial('Canvas Preview', { tag: ['@all'] }, () => {
   let taskUrl: string;
-
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(300_000);
     const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
     const page = await ctx.newPage();
     await page.goto('/task');
@@ -122,35 +130,31 @@ test.describe.serial('Canvas Preview', { tag: ['@all'] }, () => {
     taskUrl = page.url();
     await ctx.close();
   });
-
-  test('Canvas shows download button after file opens', async ({ page }) => {
-    await page.goto(taskUrl);
-  });
+  test('test', async ({ page }) => { await page.goto(taskUrl); });
 });
 ```
+</details>
 
-**Pattern B — Create data via API (faster, large amounts of prerequisite data):**
+**Pattern B — DEPRECATED (same issues as Pattern A):**
+
+<details><summary>Legacy Pattern B code (click to expand)</summary>
+
 ```typescript
+// ❌ DEPRECATED — use Pattern D with request fixture instead
 test.describe('File Download', { tag: ['@all'] }, () => {
   let taskId: string;
-
   test.beforeAll(async ({ request }) => {
-    const resp = await request.post('/api/tasks', {
-      data: { prompt: 'Help me find a full-stack engineer' },
-    });
-    const body = await resp.json();
-    taskId = body.id;
+    test.setTimeout(300_000);
+    const resp = await request.post('/api/tasks', { data: { prompt: '...' } });
+    taskId = (await resp.json()).id;
     await expect.poll(async () => {
-      const r = await request.get(`/api/tasks/${taskId}`);
-      return (await r.json()).status;
+      return (await (await request.get(`/api/tasks/${taskId}`)).json()).status;
     }, { timeout: 120_000 }).toBe('completed');
   });
-
-  test('Download button triggers file download', async ({ page }) => {
-    await page.goto(`/task/${taskId}`);
-  });
+  test('test', async ({ page }) => { await page.goto(`/task/${taskId}`); });
 });
 ```
+</details>
 
 **Pattern C — No data creation needed (the test IS the create operation):**
 ```typescript
@@ -162,31 +166,36 @@ test('After creating a task, redirects to task detail page', async ({ page }) =>
 });
 ```
 
-**Pattern D — Worker-scope fixture for expensive shared data:**
+**Pattern D — Worker-scope fixture (RECOMMENDED for all data creation):**
+
+> ✅ Independent timeout (not limited by beforeAll 60s). Runs once per worker. Tests stay parallel. No `serial` wrapper needed.
+
 ```typescript
 // fixtures.ts — worker-scope fixture
-testDataContext: [async ({ browser }, use) => {
+taskWithFilesUrl: [async ({ browser }, use) => {
   const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
   const page = await ctx.newPage();
   await page.goto('/task');
   await page.getByRole('textbox', { name: /please enter/i }).fill('Create a recruiting task');
   await page.getByRole('button', { name: 'Submit' }).click();
   await page.waitForSelector('text=Task completed', { timeout: 300_000 });
-  const data = { taskUrl: page.url() };
+  const taskUrl = new URL(page.url()).pathname;
   await ctx.close();
-  await use(data);
-}, { scope: 'worker' }],
+  await use(taskUrl);
+}, { scope: 'worker', timeout: 360_000 }],  // ← independent timeout, 6 minutes
 
-// In spec — no beforeAll needed
-test('Canvas preview works', async ({ page, testDataContext }) => {
-  await page.goto(testDataContext.taskUrl);
+// In spec — no beforeAll, no serial, just destructure the fixture
+test('Canvas preview works', async ({ page, taskWithFilesUrl }) => {
+  await page.goto(taskWithFilesUrl);
 });
 ```
 
-**When to use worker-scope vs beforeAll:**
-| Criterion | beforeAll (Pattern A) | worker-scope fixture (Pattern D) |
-|-----------|----------------------|----------------------------------|
-| Setup cost | < 30 seconds | > 30 seconds (AI tasks, file processing) |
-| Sharing scope | Within one test.describe | Across all tests in the same worker |
-| Data mutation | Tests may modify data | Tests only read data (read-only shared) |
-| Handoff signal | `setup[].scope` absent or `"test"` | `setup[].scope = "worker"` |
+**Why Pattern D over Pattern A/B:**
+
+| | Pattern A/B (beforeAll) | Pattern D (worker-scope fixture) |
+|---|---|---|
+| Timeout | Shares test timeout (default 60s) | Independent (`{ timeout: 360_000 }`) |
+| Execution | Once per describe | Once per worker (fewer runs) |
+| Parallelism | Requires `serial` wrapper | Tests stay parallel |
+| Complexity | `let` variable + serial + setTimeout | Clean fixture parameter |
+| Handoff signal | — | `setup[].scope = "worker"` |

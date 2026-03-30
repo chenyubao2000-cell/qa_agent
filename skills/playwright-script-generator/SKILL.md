@@ -61,11 +61,12 @@ For each test case entry in the handoff:
 
 **Rules:**
 1. **No hardcoded data IDs** — no `const TASK_ID = 'abc123'` or `process.env.E2E_TASK_WITH_PDF ?? 'fallbackId'`
-2. **Create data in beforeAll/beforeEach** — prerequisite data created via UI or API calls
+2. **Create data via worker-scope fixture** — all prerequisite data created in `fixtures.ts` as worker-scope fixtures (`{ scope: 'worker', timeout: 360_000 }`). Tests receive data via fixture parameter destructuring. **Do NOT use `beforeAll`** — it has a hidden 60s timeout limit, requires `serial` wrapper, and prevents parallel execution. See `references/test-data-patterns.md` Pattern D.
 3. **Wait for async data to be ready** — use `waitForResponse` / polling to confirm before asserting
 4. **Unique naming** — always use `Date.now()` or `crypto.randomUUID()` suffix: `Test-{Action}-${Date.now()}`
 5. **POM must include setup/teardown methods** — `createTask()`, `deleteTask()`, etc.
-6. **Handoff integration**: `setup[]` → before-action; `teardown[]` → after-action cleanup; `{timestamp}` → `Date.now()`. For full schema (type/url/pomMethod/data fields) and code generation mapping, read `references/handoff-field-resolution.md` §1.
+6. **Handoff integration**: `setup[]` → worker-scope fixture; `teardown[]` → after-action cleanup; `{timestamp}` → `Date.now()`. For full schema, read `references/handoff-field-resolution.md` §1.
+7. **Fixture timeout**: Every worker-scope fixture that creates data MUST specify `{ scope: 'worker', timeout: 360_000 }`. This is independent from test timeout and handles AI tasks (1-5 min) without any workaround.
 
 **Setup validation (MANDATORY before generating each test)** — classify action type, then validate setup[] exists:
 
