@@ -160,8 +160,8 @@ async function main() {
 
 // 列名 → 内部字段名映射（支持中英文 + 模糊匹配）
 const COLUMN_ALIASES = {
-  id:       ['用例编号', 'case id', 'caseid', 'tc', '编号'],
-  module:   ['功能模块', 'feature module', 'module', '模块'],
+  id:       ['用例编号', 'case id', 'caseid', 'tc', '编号', 'id'],
+  module:   ['功能模块', 'feature module', 'module', '模块', 'category', '分类'],
   type:     ['有效还是无效等价类', 'valid/invalid', 'valid/invalid equivalence class', '测试类型', 'test type', '等价类', '方法来源', 'method', 'source method'],
   priority: ['用例等级', 'case level', '优先级', 'priority', '等级'],
   title:    ['用例名', 'case name', '用例标题', 'title', '标题'],
@@ -327,7 +327,7 @@ function parseFormatA(md, module) {
   for (let i = startLine; i < lines.length; i++) {
     const line = lines[i]
     // 检测用例开始：**TC-xxx-nnn**: 标题
-    const tcMatch = line.match(/\*\*(TC[\w-]+-\d+)\*\*:\s*(.+)/)
+    const tcMatch = line.match(/\*\*(TC[\w-]+-\d+)\*\*[：:]\s*(.+)/)
     if (tcMatch) {
       if (currentCase) cases.push(currentCase)
       currentCase = {
@@ -356,7 +356,7 @@ function parseFormatA(md, module) {
 
     // 解析用例字段
     // 兼容两种格式：- **key**: value（冒号在外）和 - **key:** value（冒号在内）
-    const fieldMatch = line.match(/- \*\*(.+?)(?::\*\*|\*\*:)\s*(.*)/)
+    const fieldMatch = line.match(/- \*\*(.+?)(?:[：:]?\*\*[：:]?|\*\*[：:])\s*(.*)/)
     if (fieldMatch) {
       const [, key, val] = fieldMatch
       const k = key.toLowerCase()

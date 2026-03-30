@@ -6,7 +6,7 @@ allowed-tools: Agent, Bash, Read, Write, Edit, Glob, Grep, mcp__chrome-devtools_
 You are a test fix expert. Find failed non-skipped E2E cases in the target project, explore real page state via CDP, fix locators and assertions until tests pass (but always respect business logic — don't just make tests pass for the sake of passing; the failure may indicate a real bug).
 
 ```
-/qa-fix-tests [spec-file-path] [--source <source-code-dir>] [--from-prd] [--upgrade-i18n]
+/qa-fix-tests [spec-file-path] [--source <source-code-dir>] [--skip-baseline] [--upgrade-i18n]
      |
 Phase 0: Load project context
      |
@@ -29,19 +29,19 @@ Extract `QA_WORKSPACE_DIR`.
 
 Parse `$ARGUMENTS` to extract flags and file paths:
 ```
-fromPrd = $ARGUMENTS contains "--from-prd"
+skipBaseline = $ARGUMENTS contains "--skip-baseline"
 specFiles = all tokens in $ARGUMENTS that end with ".test.ts" (file paths)
 sourceDir = value after "--source" if present
 
-If fromPrd:
+If skipBaseline:
   // Skip Phase 1, go directly to Phase 2 with specFiles
   // specFiles are the newly generated specs from qa-run-prd
-  If specFiles is empty → ERROR: "--from-prd requires spec file paths as arguments"
+  If specFiles is empty → ERROR: "--skip-baseline requires spec file paths as arguments"
 ```
 
 ### Source Code Directory
 
-Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
+Source code directory priority: `--source` in `$ARGUMENTS` > `prSourceDir` (from git-watcher prompt) > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
 - **Read source code** (viewing component implementation, locating locators) -> read from source directory
 - **Write files** (fixed spec/POM) -> always write to QA_WORKSPACE_DIR
 
@@ -51,49 +51,34 @@ Read("$SOURCE_PROJECT_DIR/CLAUDE.md")        # only for understanding business l
 
 All Playwright config is extracted from **this project's .env**: `baseURL` (PREVIEW_URL, single source of truth), `testCredentials` (E2E_TEST_EMAIL / E2E_TEST_PASSWORD), `APP_LANGUAGES`, `I18N_MESSAGES_DIR`.
 
-### i18n Infrastructure Check (when APP_LANGUAGES is set)
+### Infrastructure Validation (i18n + Auth)
 
-Before any test execution or fix, ensure the i18n infrastructure is in place. This prevents test failures caused by missing i18n setup rather than real locator issues.
+Execute `.claude/references/phase-0-workspace-init.md` § "i18n Infrastructure Validation" + § "Auth Infrastructure Validation".
 
+> **Why here**: qa-fix-tests is often invoked standalone (not chained from qa-explore). If infrastructure is missing or changed since last run, tests fail for infrastructure reasons, not locator issues. Validating here catches this early.
+
+### Spec Header Metadata Validation
+
+For each spec file in the execution list, validate header metadata:
 ```
-If APP_LANGUAGES is set in .env:
-  1. Check playwright.config.ts for per-language projects (e.g., "e2e-en", "e2e-zh")
-     - If missing → regenerate per qa-explore Phase 0 Step 2d specification
-  2. Check fixtures.ts for "export type I18n"
-     - If missing → regenerate per qa-explore Phase 0 Step 2e specification (with i18n fixture)
-  3. Check $QA_WORKSPACE_DIR/messages/ directory has {locale}.json for each language
-     - If missing → copy from I18N_MESSAGES_DIR per qa-explore Phase 0 Step 2b-1
-     - If I18N_MESSAGES_DIR not set or dir not found → ERROR: "APP_LANGUAGES is set but i18n messages not available, check I18N_MESSAGES_DIR in .env"
+For each specFile:
+  Read first 10 lines → extract "// source:", "// handoff:", "// generated:"
+  If "// handoff:" missing → WARNING: "{specFile} missing handoff metadata, using filename-based inference"
+  If "// source:" missing → WARNING: "{specFile} missing source metadata"
+  Log inferred handoff path for traceability
 ```
+> **Why**: Fix subagents use `// handoff:` to locate the handoff file. Missing header → fallback inference → may point to wrong file → assertion changes written to wrong handoff.
 
-> **Why here**: qa-fix-tests is often invoked standalone (not chained from qa-explore). If the user adds `APP_LANGUAGES` to `.env` after initial exploration, the first fix run would fail on every i18n-related test without this check.
+### --skip-baseline Mode (Skip Baseline, Direct Fix)
 
-### Auth Infrastructure Check (when E2E_TEST_EMAIL is set)
-
-Before any test execution, ensure auth infrastructure follows the setup project pattern.
-
-```
-If E2E_TEST_EMAIL is set in .env:
-  1. Check auth.setup.ts exists at $QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts
-     - If missing → generate per qa-explore Phase 1 Step 1 template (requires CDP login exploration)
-  2. Check playwright.config.ts has setup project (Grep "name: 'setup'" or "auth\\.setup" in playwright.config.ts)
-     - If missing → regenerate config per qa-explore Phase 0 Step 2d template
-  3. Check playwright/.auth/ directory exists
-     - If missing → create it: mkdir -p playwright/.auth
-```
-
-> **Why here**: Auth tokens expire between runs. The setup project re-authenticates every time `npx playwright test` is invoked, so no cache/TTL management is needed.
-
-### --from-prd Mode (Skip Baseline, Direct Fix)
-
-When `--from-prd` is present in `$ARGUMENTS` (chained from /qa-run-prd):
+When `--skip-baseline` is present in `$ARGUMENTS` (chained from any upstream command: /qa-run-prd, /qa-explore, /qa-from-issue):
 1. **Execute Phase 0 normally** — infrastructure validation (i18n, auth) is still required for Phase 2 CDP
 2. **Skip Phase 1 entirely** — do not run baseline test execution
 3. Treat ALL spec files from arguments as needing fixes (PRD-generated specs have never seen the real page)
 4. Go directly to Phase 2 with the full spec file list
 4. This saves the baseline execution round (typically 1-2h) since qa-run-prd's CDP verification already confirmed locator mismatches
 
-When `--from-prd` is NOT present → execute Phase 1 normally (filter + execute + collect failures).
+When `--skip-baseline` is NOT present → execute Phase 1 normally (filter + execute + collect failures).
 
 ### --upgrade-i18n Mode (Upgrade Existing Specs to Multi-Language)
 
@@ -120,8 +105,13 @@ Determine spec file list:
 
 For each spec file:
   1. Read the spec's corresponding POM file (inferred from import)
+  1.5. **Read source component (when sourceProjectDir available)**:
+       Grep sourceProjectDir for the component rendering this spec's page.
+       Extract all `t("key")` / `useTranslations("namespace")` calls → build element→i18nKey mapping.
+       This is MORE accurate than reverse-lookup (Step 3) because it knows WHICH element uses WHICH key.
   2. Read i18n messages JSON from $QA_WORKSPACE_DIR/messages/{defaultLocale}.json
-  3. Build flat value→key map: { "Download file": "canvas.downloadFile", "Maximize": "canvas.maximize", ... }
+  3. Build flat value→key map: { "Download file": "canvas.downloadFile", ... }
+     Merge with source-extracted element→key mapping from Step 1.5 (source wins on conflicts).
   4. Scan POM for all hardcoded text patterns:
      - getByRole('button', { name: 'Download file' })
      - getByText('Loading...')
@@ -152,14 +142,14 @@ For each spec file:
   6. Update POM constructor: add `i18n?: I18n` parameter if not already present
   7. Update spec: add `i18n` destructuring from fixture, pass to POM constructor
   8. **Update handoff JSON** (MANDATORY, after all POM updates complete):
-     For each spec's corresponding handoff file:
-     a. Read the handoff JSON
-     b. For each uiElement that was upgraded to i18n.t() in the POM:
-        - Set uiElement.i18nKey to the discovered key
-     c. For each assertion with text that maps to an i18n key:
-        - Set assertion.i18nKey to the discovered key
-     d. Write updated handoff back to disk
-     This ensures next /qa-run-prd incremental update has i18nKey data.
+     Pre-check: For each spec, infer handoff path from header `// handoff: ...`.
+     If handoff not found → WARNING: "Handoff missing for {spec}, skipping i18n key update"
+     For each spec with valid handoff:
+     a. Read handoff JSON. If parse fails → ERROR: "Handoff corrupted", skip this spec
+     b. For each uiElement upgraded to i18n.t() → set uiElement.i18nKey
+     c. For each assertion with i18n text match → set assertion.i18nKey
+     d. Write via atomic pattern: backup → temp file → verify → rename (per `.claude/references/handoff-sync.md`)
+     e. Log summary: "Updated {N} handoff files, {M} skipped"
 ```
 
 4. **Update fixtures.ts**: If i18n fixture does not exist, generate per qa-explore Phase 0 Step 2e specification
@@ -238,7 +228,7 @@ Determine fix strategy by priority:
 
 0. **Special modes**: If `--upgrade-i18n` is present → skip strategy selection entirely (no Phase 1/2 agents, i18n upgrade runs directly)
 1. **Explicit argument**: If `--strategy parallel` or `--strategy serial` in `$ARGUMENTS` → use that
-2. **Called by upstream command** (e.g., `--from-prd` flag present → called by qa-explore/qa-run-prd/qa-from-issue): **default to parallel** (automation-friendly, no user prompt)
+2. **Called by upstream command** (e.g., `--skip-baseline` flag present → called by qa-explore/qa-run-prd/qa-from-issue): **default to parallel** (automation-friendly, no user prompt)
 3. **Interactive (user invoked directly)**: Ask user:
 
 ```
@@ -292,7 +282,7 @@ For each failed file (one at a time, MUST NOT launch next until current complete
 For each failed file:
   Launch subagent with CDP tools + Edit tool, passing:
 
-  prompt:
+  prompt (base template: `.claude/templates/fix-subagent-prompt.md`, appended with command-specific inputs):
   ```
   You are a test fix expert. Read skills/cdp-explorer/SKILL.md and skills/playwright-script-generator/SKILL.md.
 
@@ -334,6 +324,20 @@ For each failed file:
 
      If handoffFile does NOT exist → log warning, proceed with spec-only analysis (degraded mode).
 
+  0.5. **Read component source code (MANDATORY when sourceProjectDir is available)**:
+       Per cdp-explorer/SKILL.md Phase 0, BEFORE any CDP interaction:
+       a. From pageUrl, grep sourceProjectDir for the page component:
+          Grep("{pageUrl path segment}", "$sourceProjectDir", glob: "*.tsx,*.jsx,*.vue")
+       b. Read matched component file(s) (max 3: page + key child components)
+       c. Extract: data-testid, aria-label, role, conditional rendering, i18n keys, semantic vs utility CSS
+       d. Build sourceContext = { testIds[], ariaAttributes[], conditionalElements[], i18nKeys[], utilityClasses[] }
+       e. Use sourceContext throughout Steps 1-3 to:
+          - Prefer data-testid/aria-* from source over CSS locators from CDP
+          - Understand conditional rendering before declaring elements "missing"
+          - Distinguish Tailwind utility classes (never use as locators) from semantic identifiers
+          - Know which i18n keys map to which button/text (avoid guessing from CDP text)
+       f. If sourceProjectDir is not available → log WARNING, proceed with CDP-only (degraded mode)
+
   1. Connect to page (list_pages → select_page, or navigate if needed)
   2. Login wall detection per cdp-explorer Phase 1 Step 3
      **If login wall detected AND auth.setup.ts does NOT exist**:
@@ -366,14 +370,24 @@ For each failed file:
      b1. CDP verify mode: check locator match count
          - 0 matches → full DOM scan to find correct selector
          - N matches → DOM scan to find narrowing parent
+     b1.5. **Cross-reference with sourceContext** (from Step 0.5):
+           - Source has data-testid for this element? → use it, even if CDP found a CSS match
+           - Source shows conditional rendering? → check condition; add waitFor if needed
+           - CDP locator uses a Tailwind utility class? → replace with testId/aria from source
+           - Source component hierarchy shows parent scope? → use for strict mode narrowing
      b2. Fix POM (Edit tool): replace/narrow locators, add new getters
      b3. Fix spec (Edit tool): add waits, fix timing issues
      b4. **Do NOT change business assertions** (what the test checks). Only change technical implementation (how it locates/waits). The handoff defines WHAT; you fix HOW.
      b5. If real page content has legitimately changed (e.g., copy update) AND handoff assertion is now wrong → this is an UPDATE scenario. Do NOT directly edit the handoff file. Instead, include `assertionsChanged: true` and `changedAssertions: [{ tcId, field, oldValue, newValue }]` in your return JSON. The **command layer** will perform the handoff file update to ensure artifact consistency.
      b6. Strictly follow POM rules: no bare locators in specs
+     b7. **Test data self-sufficiency check (§0c)**: Scan the spec for hardcoded data IDs
+         (e.g., `const TASK_URL = '/task/abc123'`, `process.env.XXX ?? '/task/fallbackId'`).
+         If found → refactor to `test.describe.serial` + `beforeAll` that creates data via UI/API.
+         Follow `playwright-script-generator/SKILL.md` §0c and `references/test-data-patterns.md` Pattern A.
+         POM must have setup methods (`createTask()`, `gotoTask(url)` accepting dynamic URL).
 
      === Step 3c: For POSSIBLE BUG — do NOT fix ===
-     c1. Read source code (from sourceProjectDir) to understand the intended behavior
+     c1. Using sourceContext from Step 0.5 (already built), review the component's intended rendering logic and behavior
      c2. Compare: What does the code/PRD say SHOULD happen vs. what actually happens?
      c3. If source code confirms the current behavior is WRONG → classify as BUG:
          - Do NOT modify the test assertion (the original assertion is correct)
@@ -420,7 +434,8 @@ For each failed file:
   // {
   //   verifiedSelectors: { "selectorName": "verified CSS/role selector", ... },
   //   domStructureNotes: ["note about page structure", ...],
-  //   appLanguage: "en" | "zh" | null
+  //   appLanguage: "en" | "zh" | null,
+  //   sourceContext: { testIds, ariaAttributes, conditionalElements, i18nKeys, utilityClasses }  // from Step 0.5
   // }
   //
   if subagent returned cdpFindings:
@@ -441,6 +456,9 @@ For each failed file:
       if subagent.cdpFindings:
         fixContext.verifiedSelectors = { ...fixContext.verifiedSelectors, ...subagent.cdpFindings.verifiedSelectors }
         fixContext.domStructureNotes = [...new Set([...(fixContext.domStructureNotes || []), ...(subagent.cdpFindings.domStructureNotes || [])])]
+        // Share sourceContext so subsequent agents skip redundant source reading for the same page
+        if (subagent.cdpFindings.sourceContext):
+          fixContext.sourceContext = { ...fixContext.sourceContext, ...subagent.cdpFindings.sourceContext }
         fixContext.appLanguage = subagent.cdpFindings.appLanguage || fixContext.appLanguage
 
       Collect subagent result into fixResults[]
@@ -455,7 +473,8 @@ For each failed file:
 
 > **qa-fix-tests does NOT report to Linear.** Its job is fixing scripts. If bugs are found, inform the user and let them decide whether to run `/qa-run-all` for formal reporting.
 
-**Handoff sync** (before bug summary): If any fix subagent returned `assertionsChanged: true`:
+**Handoff sync** (before bug summary): Execute `.claude/references/handoff-sync.md` procedure.
+If any fix subagent returned `assertionsChanged: true`:
 ```
 for each result in fixResults where result.assertionsChanged === true:
   1. Infer handoff path from spec header: Read spec file → extract `// handoff: ...` path

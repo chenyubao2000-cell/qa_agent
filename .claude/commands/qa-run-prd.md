@@ -20,7 +20,7 @@ Phase 2: Sequential agent launch
 
 ## Phase 0: Load Context + Initialize Workspace (mandatory, execute first)
 
-Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
+Source code directory priority: `--source` in `$ARGUMENTS` > `prSourceDir` (from git-watcher prompt) > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
 - **Read source code** -> read from source directory
 - **Write files** (spec/POM/cases/reports) -> always write to QA_WORKSPACE_DIR
 
@@ -28,7 +28,8 @@ Read `.env` to get `QA_WORKSPACE_DIR`, `SOURCE_PROJECT_DIR`, `PREVIEW_URL`, `E2E
 Read `$SOURCE_PROJECT_DIR/CLAUDE.md` to get tech stack (only for understanding business logic).
 
 **Initialize workspace** (empty folder compatible, skip all if already initialized):
-Same as `/qa-explore` Phase 0 Step 2 (sub-steps: 2a copy .env, 2b directories, 2b-1 copy i18n messages, 2c npm install, 2d playwright.config.ts, 2e fixtures.ts, 2f copy test data files). Each sub-step is skip-if-exists.
+Execute `.claude/references/phase-0-workspace-init.md` Steps 2a–2f. Each sub-step is skip-if-exists.
+Then run i18n + auth infrastructure validation per the same reference file.
 
 > **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
 
@@ -107,7 +108,7 @@ for module in prdModules:
     removedModules.push(module)
     continue
 
-  // "new" or "updated" → launch orchestrator
+  // "new" or "updated" → launch e2e-orchestrator
   orchestratorAgents.push(
     Launch e2e-orchestrator (sonnet) in background:
 
@@ -122,7 +123,10 @@ for module in prdModules:
     - prdChangeMode: "{module.prdChangeMode}"  // "new" or "updated"
     - projectContext:
         targetProjectDir: {QA_WORKSPACE_DIR}
-        sourceProjectDir: {resolved source code directory per priority: --source > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
+        sourceProjectDir: {resolved source code directory per priority: --source > prSourceDir > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
+        # NOTE: sourceProjectDir MUST propagate to ALL downstream agents (orchestrator → fix subagents → CDP).
+        # Per cdp-explorer/SKILL.md Phase 0, agents performing CDP must read component source first.
+        # Do NOT strip sourceProjectDir from projectContext at any point in the pipeline.
         baseURL: {PREVIEW_URL}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
@@ -168,9 +172,14 @@ for module in removedModules:
 results = await all(orchestratorAgents)
 
 // Merge POM fragments (if any)
+// Safety: merge runs AFTER all orchestrators complete (no concurrent writes).
+// Existing POM is backed up before merge to prevent data loss from user edits.
 for slug in uniqueSlugs(results):
   fragments = Glob(`tests/e2e/pages/${slug}.page.*.fragment.ts`)
   if fragments.length > 0:
+    // Backup existing POM before merge (if exists)
+    if Glob(`tests/e2e/pages/${slug}.page.ts`):
+      copy → `tests/e2e/pages/${slug}.page.ts.bak`
     mergeFragmentsIntoPOM(slug, fragments)  // combine + deduplicate + delete fragments
 
 // ══ MANDATORY VERIFICATION GATE ══
@@ -221,10 +230,10 @@ allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
 
 // Launch /qa-fix-tests targeting only the newly generated specs
 // This will: execute → identify failures → CDP explore → fix locators/assertions → verify
-Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
+Execute /qa-fix-tests with arguments: --skip-baseline {allGeneratedSpecs joined by space}
 // Example:
-// Execute /qa-fix-tests with arguments: --from-prd tests/e2e/testcases/generated/login-prd.test.ts tests/e2e/testcases/generated/tasks-prd.test.ts
-// qa-fix-tests parsing rules: --from-prd flag skips baseline, .test.ts paths serve as the list of files to fix
+// Execute /qa-fix-tests with arguments: --skip-baseline tests/e2e/testcases/generated/login-prd.test.ts tests/e2e/testcases/generated/tasks-prd.test.ts
+// qa-fix-tests parsing rules: --skip-baseline flag skips baseline, .test.ts paths serve as the list of files to fix
 ```
 
 > After qa-fix-tests completes, the user can run `/qa-run-all` for full regression + Linear reporting if needed.

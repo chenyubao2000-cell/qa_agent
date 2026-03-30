@@ -28,7 +28,7 @@ Phase 2b: Parallel test generation (one orchestrator per area + cross-area, all 
          e2e-orchestrator -> test cases + POM + spec
      |
 Phase 3: Delegate to /qa-fix-tests (CDP verify + fix + execute, no Linear)
-         /qa-fix-tests --from-prd -> locator fix -> regression -> local report
+         /qa-fix-tests --skip-baseline -> locator fix -> regression -> local report
 ```
 
 ## User Intent Parsing
@@ -61,7 +61,7 @@ Read(".env")  # valition_agent root directory
 Read("$SOURCE_PROJECT_DIR/CLAUDE.md")  # tech stack (read source code only to understand business)
 ```
 
-Source code directory priority: `--source` in `$ARGUMENTS` > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
+Source code directory priority: `--source` in `$ARGUMENTS` > `prSourceDir` (from git-watcher prompt) > `SOURCE_PROJECT_DIR` in `.env` > `QA_WORKSPACE_DIR`
 
 Extract all config from **this project's .env**:
 - `QA_WORKSPACE_DIR` — target project root directory
@@ -74,6 +74,9 @@ Extract all config from **this project's .env**:
 - `defaultLocale` — first language in APP_LANGUAGES, or infer from source project
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
+
+> **Shared reference**: `.claude/references/phase-0-workspace-init.md` defines Steps 2a–2f procedure + validation.
+> This file (qa-explore) is the **single location** for config/fixtures templates (Steps 2d, 2e). Other commands execute the reference file which points here for templates.
 
 Check `$QA_WORKSPACE_DIR`; if it doesn't exist or is empty, perform initialization: create `$QA_WORKSPACE_DIR` if it doesn't exist
 
@@ -568,10 +571,18 @@ for area in areas:
   - appLanguages: {APP_LANGUAGES or null}
   - i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
     When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
+  - sourceProjectDir: {resolved source code directory}
+    MUST execute cdp-explorer Phase 0 (source pre-read) before any DOM scanning.
+  - previousSourceContext: {sharedSourceContext from previous area subagents, if any}
+    When present, reuse existing sourceContext for shared components — only read NEW components.
 
   Steps:
   1. Read the baseline file to understand existing states (avoid re-exploring)
   2. Connect to the page (list_pages → select_page, or navigate if needed)
+  2.5. **Source Code Pre-Read**: Execute cdp-explorer SKILL.md Phase 0 using sourceProjectDir.
+       Grep for components matching area.name and area.elements.
+       Build sourceContext (testIds, ariaAttributes, conditionalElements, i18nKeys, utilityClasses).
+       Use sourceContext in Step 3 BFS to prefer stable locators and understand conditional elements.
   3. Execute Phase 3 BFS using area.elements as initial seeds
      - Allow BFS to discover and interact with NEW elements after interaction
      - Mark all new states/edges with sourceArea = "{area.id}"
@@ -588,12 +599,20 @@ for area in areas:
     "newStates": ["S3", "S4"],
     "newEdges": 5,
     "discoveredAreas": [{ "id": "modal-create", "type": "modal", "name": "Create Modal" }],
-    "coverageReport": { "interactedElements": 15, "statesDiscovered": 3, "terminationReason": "queue_empty" }
+    "coverageReport": { "interactedElements": 15, "statesDiscovered": 3, "terminationReason": "queue_empty" },
+    "sourceContext": { testIds, ariaAttributes, conditionalElements, i18nKeys, utilityClasses }
   }
   ```
 
   // Process dynamic area discovery
   If subagent returned discoveredAreas → append to areas list (subsequent iterations will explore them)
+
+  // ── sourceContext sharing (sequential area exploration) ──
+  // Merge sourceContext from this subagent into shared context for subsequent areas.
+  // Areas on the same page share components — avoid redundant source reading.
+  if subagent returned sourceContext:
+    sharedSourceContext = { ...sharedSourceContext, ...subagent.sourceContext }
+    // Pass sharedSourceContext to the NEXT area subagent as previousSourceContext
 
   exploredAreas.push({ area, summary: subagent result })
 
@@ -652,11 +671,11 @@ crossAreaFlows = [
 
 ### Phase 2b: Parallel Test Generation
 
-> After all areas are explored AND cross-area flows identified, launch **all orchestrator agents in parallel**.
+> After all areas are explored AND cross-area flows identified, launch **all e2e-orchestrator agents in parallel**.
 > This includes: one orchestrator per area + one orchestrator for cross-area integration tests (if any).
 
 ```
-// Launch ALL orchestrator agents simultaneously (parallel)
+// Launch ALL e2e-orchestrator agents simultaneously (parallel)
 orchestratorAgents = []
 
 for area in exploredAreas:
@@ -826,8 +845,8 @@ If the user runs `/qa-explore` again on a previously explored page:
 allGeneratedSpecs = results.flatMap(r => r.specs + r.modified_specs)
 
 // Delegate to qa-fix-tests: CDP verify + fix locators/assertions + execute + regression
-Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
-// Note: although the source is CDP not PRD, --from-prd semantics mean "skip baseline execution, fix directly"
+Execute /qa-fix-tests with arguments: --skip-baseline {allGeneratedSpecs joined by space}
+// Note: although the source is CDP not PRD, --skip-baseline semantics mean "skip baseline execution, fix directly"
 // CDP-generated specs also need locator fixing (CDP baseline locators may be inaccurate due to headless/headed differences)
 ```
 

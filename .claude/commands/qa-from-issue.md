@@ -54,7 +54,8 @@ Extract all config from **this project's .env**: `QA_WORKSPACE_DIR`, `PREVIEW_UR
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
-Same as `/qa-explore` Phase 0 Step 2 (sub-steps: 2a copy .env, 2b directories, 2b-1 copy i18n messages, 2c npm install, 2d playwright.config.ts, 2e fixtures.ts, 2f copy test data files). Each sub-step is skip-if-exists.
+Execute `.claude/references/phase-0-workspace-init.md` Steps 2a–2f. Each sub-step is skip-if-exists.
+Then run i18n + auth infrastructure validation per the same reference file.
 
 > **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
 
@@ -95,15 +96,18 @@ Source code directory priority: `--source` in `$ARGUMENTS` > `prSourceDir` in pr
 3. **Pipeline execution**:
    ```
    Step 1 — Serial CDP exploration (one subagent per pageUrl group, sequential):
+     sharedSourceContext = {}
      for each pageUrl group:
        CDP targeted exploration → write baseline (subagent, serial due to CDP)
+       Pass previousSourceContext: sharedSourceContext to each subagent
+       After return: merge subagent.sourceContext into sharedSourceContext
 
    Step 2 — Parallel test generation (one orchestrator per pageUrl group, all at once):
      for each pageUrl group: (launched in parallel)
        orchestrator → test cases + POM + spec
 
    Step 3 — Delegate to /qa-fix-tests (verify + fix + execute):
-     /qa-fix-tests --from-prd → locator fix → regression
+     /qa-fix-tests --skip-baseline → locator fix → regression
 
    Step 4 — Linear reporting:
      report-analyzer → bug-reporter → Linear
@@ -125,7 +129,7 @@ Phase 2: CDP targeted exploration -> Verify page state described in issue (comma
 Phase 3: Sequential launch (execute in order)
          e2e-orchestrator (issue) -> cases -> Excel -> spec
               | after completion
-         /qa-fix-tests --from-prd -> CDP verify + fix + execute
+         /qa-fix-tests --skip-baseline -> CDP verify + fix + execute
               | after completion
          report-analyzer -> route failures:
                +-- source issue spec failures -> write back to original issue
@@ -205,7 +209,7 @@ When Mode X is determined, the flow **bypasses orchestrator** and launches a sin
 ```
 Launch fix-from-issue subagent with CDP tools + Edit tool:
 
-prompt:
+prompt (base template: `.claude/templates/fix-subagent-prompt.md`, appended with issue-specific inputs):
 ```
 You are a test fix expert. Read skills/cdp-explorer/SKILL.md.
 
@@ -222,6 +226,8 @@ Input:
 
 Steps:
 1. Read the existing spec file and its POM
+1.5. **Source Code Pre-Read**: Per cdp-explorer/SKILL.md Phase 0, grep sourceProjectDir for
+     the component matching issueContext.feature/pageUrl. Build sourceContext for use in Steps 4-6.
 2. Connect to the page (list_pages → select_page, or navigate to pageUrl)
 3. Login wall detection → handle if needed
 4. CDP targeted exploration around the issue's target area:
@@ -270,26 +276,8 @@ After subagent returns:
   1. Launch test-executor (mode: "changed", specFiles: modified_specs) → produces `fix-regression.json`
   2. Collect detectedBugs from Mode X subagent's `bugs` field (if any)
   3. Continue to Phase 3 Step 3 (report-analyzer) with reportFile + detectedBugs
-- **Sync handoff**: if spec assertions were changed during fix, read the corresponding `playwright-handoff-{slug}.json`, update the matching entry's assertions to reflect the fix, then write back. This keeps handoff in sync with the fixed spec.
-
-  **Handoff sync implementation** (after Mode X fix subagent returns):
-  1. Read the fixed spec file, extract all TC IDs from test() block comments (regex: `TC-\w+-\d+`)
-  2. Read the corresponding handoff JSON (inferred from spec header `// handoff: ...`)
-     - If handoff file not found at inferred path → WARNING: "Handoff not found for {specFile}, skipping sync. Future /qa-run-prd incremental updates may regenerate this test." Continue without sync.
-  3. For each TC ID found in the fixed spec:
-     a. Find the matching entry in handoff by `id` field
-     b. If the fix subagent changed an assertion text (e.g., updated expected URL or text):
-        - Read the new assertion from the fixed spec's expect() call
-        - Update the handoff entry's `assertions[]` to match
-     c. If the fix subagent added new waits or locator changes: no handoff update needed (handoff tracks WHAT, not HOW)
-  4. Write updated handoff JSON back to disk
-  5. **Verify handoff write**: Glob(handoffPath) — if file not found → ERROR: "Handoff sync failed, file not written: {handoffPath}", retry Write
-  This keeps handoff in sync with the fixed spec for future /qa-run-prd incremental updates.
-
-  **Responsibility boundary**:
-  - The **fix subagent** returns `{ assertionsChanged: true/false, changedAssertions: [{ tcId, field, oldValue, newValue }] }` in its result
-  - The **command layer** reads this flag and performs the handoff file update (not the subagent)
-  - This ensures the subagent only does CDP + spec Edit, while the command layer owns artifact consistency (handoff ↔ spec sync)
+- **Sync handoff**: Execute `.claude/references/handoff-sync.md` procedure.
+  Subagent returns `{ assertionsChanged, changedAssertions }` → command layer writes handoff.
 
 - When building `specToIssueMap`, map the Mode X specFile to its source issueKey:
   `specToIssueMap[specFile] = issueKey`
@@ -324,9 +312,13 @@ Input:
 - appLanguages: {APP_LANGUAGES or null}
 - i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
   When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
+- sourceProjectDir: {resolved source code directory per priority: --source > prSourceDir > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
+  MUST execute cdp-explorer Phase 0 (source pre-read) before any DOM scanning.
 
 Steps:
 1. Connect to page (list_pages → select_page, or navigate to pageUrl)
+1.5. **Source Code Pre-Read**: Per cdp-explorer/SKILL.md Phase 0, grep sourceProjectDir for
+     the component rendering targetArea. Build sourceContext for use in Steps 3-5.
 2. Login wall handling: detect login page → fill credentials → login → generate auth.setup.ts if not present → generate sign-in POM
 3. Initial state three-layer scan (DOM → accessibility tree → screenshot)
 4. Targeted interactive exploration around targetArea:
@@ -416,6 +408,15 @@ If ANY verification fails → STOP, delete incomplete artifacts, report detailed
 Only proceed after ALL checks pass.
 ```
 
+**POM Fragment Merge** (when multiple orchestrators target the same page):
+If multiple issues target the same page and orchestrators wrote POM fragments (`{slug}.page.{area}.fragment.ts`):
+1. Group fragments by slug: `Glob("tests/e2e/pages/{slug}.page.*.fragment.ts")`
+2. Read all fragments + existing POM (if any)
+3. Merge: combine imports, deduplicate locators by name, union all methods
+4. Write merged POM to `tests/e2e/pages/{slug}.page.ts`
+5. Delete fragment files
+Same logic as qa-run-prd Phase 2 and qa-explore Phase 2b POM merge.
+
 **Build specToIssueMap** (command layer, after orchestrator returns):
 - Read `specToIssueMap` directly from the orchestrator's return value (the orchestrator populates this field in issue mode)
 - Merge mappings from all orchestrator results. **Multiple issues may map to the same spec** (same page):
@@ -456,8 +457,8 @@ if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
 allGeneratedSpecs = orchestrator.specs + orchestrator.modified_specs
 
 // Delegate to qa-fix-tests: CDP verify + fix + execute + regression
-// Note: --from-prd means "skip baseline execution, fix directly" — applies to all sources (issue/cdp/prd), not just PRD
-Execute /qa-fix-tests with arguments: --from-prd {allGeneratedSpecs joined by space}
+// Note: --skip-baseline means "skip baseline execution, fix directly" — applies to all sources (issue/cdp/prd), not just PRD
+Execute /qa-fix-tests with arguments: --skip-baseline {allGeneratedSpecs joined by space}
 ```
 
 **After qa-fix-tests completes, extract results for report-analyzer**:
@@ -472,7 +473,7 @@ detectedBugs = extract bug entries from qa-fix-tests output:
   [{ testName, expectedBehavior, actualBehavior, evidence, specFile }]
 
 // 2. Determine reportFile
-//    qa-fix-tests --from-prd → Phase 3 uses test-executor "changed" mode → fix-regression.json
+//    qa-fix-tests --skip-baseline → Phase 3 uses test-executor "changed" mode → fix-regression.json
 reportFile = "tests/reports/fix-regression.json"
 ```
 

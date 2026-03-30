@@ -15,6 +15,7 @@ Before calling each skill at every step, **you must first read the corresponding
 | Step | Required Reading |
 |------|---------|
 | CDP baseline format (cdp/issue mode) | `skills/cdp-explorer/SKILL.md` → only reference Phase 5 output format, do not perform exploration |
+| Source + CDP Co-Reading (all modes) | `skills/cdp-explorer/SKILL.md` Phase 0 → when any downstream agent performs CDP, `sourceProjectDir` MUST be passed to enable source pre-read |
 | Generate test cases | `skills/test-case-generator/SKILL.md` |
 | Export Excel | `skills/excel-case-export/SKILL.md` |
 | Generate E2E scripts | `skills/playwright-script-generator/SKILL.md` |
@@ -73,7 +74,7 @@ The caller (qa-explore / qa-from-issue / qa-run-prd) passes a `projectContext` o
 | Field | Source | Purpose |
 |------|------|------|
 | `targetProjectDir` | QA_WORKSPACE_DIR from .env | **Write files**: output path for artifacts (spec/POM/test cases/Excel) |
-| `sourceProjectDir` | Resolved by command layer per priority: `--source` arg > `prSourceDir` > `SOURCE_PROJECT_DIR` in .env > `QA_WORKSPACE_DIR` | **Read source code**: view component implementations, understand business logic |
+| `sourceProjectDir` | Resolved by command layer per priority: `--source` arg > `prSourceDir` > `SOURCE_PROJECT_DIR` in .env > `QA_WORKSPACE_DIR` | **Read source code**: view component implementations, understand business logic. **MANDATORY for CDP co-reading**: all agents performing CDP exploration must read component source from this directory per `cdp-explorer/SKILL.md` Phase 0 before scanning the DOM |
 | `techStack` | CLAUDE.md in source code directory | Code style and import paths for generated code |
 | `baseURL` | PREVIEW_URL from this project's .env (single source of truth) | baseURL in specs |
 | `authSetup` | Whether E2E_TEST_EMAIL exists in this project's .env | Has value → requires auth state; no value → public page |
@@ -256,6 +257,8 @@ prdChangeMode: "updated" → Incremental update (this section)
 7. Update the PRD hash in the .md file header: `<!-- PRD-hash: {new hash} -->`
 
 > **Handoff sync rule**: Every action that modifies .md or spec MUST also update handoff.json. The three files (.md, handoff, spec) must always be in sync. Handoff is the contract; spec is the implementation.
+>
+> **Handoff sync responsibility**: The **command layer** is the sole owner of handoff file writes when assertions change during fix cycles. Subagents (fix agents, CDP agents) MUST NOT write to handoff directly — they return `{ assertionsChanged: true, changedAssertions: [...] }` and the command layer performs the write. This prevents race conditions and ensures atomic updates.
 
 > **Important**: "Updated" mode NEVER deletes code. Deprecated tests are wrapped in `test.skip()`, not removed. This preserves history and allows manual review.
 
@@ -350,13 +353,39 @@ if handoff file exists but entry count < Merged TC count:
 
 > **Why this gate exists**: Without the handoff file, playwright-script-generator falls back to "reading the .md text" and makes its own decisions about which TCs to merge — resulting in fewer test() blocks than TCs. The handoff file is the contract: each entry = one test().
 
+## Step 4.6: Source Code Pre-Read for Script Generation (Mandatory when sourceProjectDir is available)
+
+Before generating scripts, read the source code to determine the best locator strategy:
+
+```
+If projectContext.sourceProjectDir is available:
+  1. Grep sourceProjectDir for data-testid: Grep("data-testid", "$sourceProjectDir", glob: "*.tsx,*.jsx,*.vue")
+     → Set hasTestIds = (matches > 0)
+  2. Grep sourceProjectDir for the page component rendering the target URL/feature:
+     Grep("{feature-slug or pageUrl path}", "$sourceProjectDir", glob: "*.tsx,*.jsx,*.vue")
+  3. Read matched component(s) (max 3 files): extract data-testid, aria-label, role, title,
+     conditional rendering logic, i18n keys (t("key")), semantic vs Tailwind utility classes
+  4. Build sourceContext for use in Step 5:
+     sourceContext = { hasTestIds, testIds[], ariaAttributes[], conditionalElements[], i18nKeys[], utilityClasses[] }
+  5. Pass sourceContext to playwright-script-generator (alongside handoff.json)
+Else:
+  Log WARNING: "sourceProjectDir not available — script generator will use handoff locatorHint only"
+  sourceContext = null
+```
+
+> **Why here**: The orchestrator is the bridge between test case design (Step 3) and script generation (Step 5).
+> Without sourceContext, the script generator guesses locators from handoff text alone, producing fragile CSS-based selectors.
+> With sourceContext, it can use data-testid (most stable) or aria-* attributes from the actual component code.
+
 ## Step 5: Generate E2E Scripts
 
 Read `skills/playwright-script-generator/SKILL.md` and execute according to the skill specification.
-- Input: handoff.json (validated in Step 4.5) — each entry becomes exactly one test() block
+- Input: handoff.json (validated in Step 4.5) + sourceContext (from Step 4.6) — each handoff entry becomes exactly one test() block
 - Output: tests/e2e/pages/{feature}.ts + tests/e2e/testcases/generated/{feature}.test.ts
 - Existing spec → append test cases (do not duplicate existing cases)
 - Existing POM → append locators / methods (do not duplicate existing properties)
+- **Source-aware locator selection**: When sourceContext is available, follow `playwright-script-generator/SKILL.md` §2.2 Step A-D to prefer data-testid/aria-* from source over CSS selectors
+- **Test data self-sufficiency (§0c)**: Generated specs MUST follow `playwright-script-generator/SKILL.md` §0c rules — no hardcoded data IDs, create data in beforeAll/beforeEach, unique naming with `Date.now()`. POM must include setup/teardown methods (e.g., `createTask()`, `deleteTask()`). For Read/Update/Delete/Download/List tests, `setup[]` in handoff must provide data creation steps.
 - **i18n propagation**: When `projectContext.appLanguages` is set, pass it to playwright-script-generator. The skill generates i18n-aware POMs (accepting `i18n` fixture parameter) and specs that instantiate POMs with `i18n`. Each Playwright project runs the same specs under a different language. POM text-based locators use `i18n.t('key')` resolved at runtime.
 
 ### 5.0.1 i18n Post-Generation Verification (when appLanguages is set)
@@ -455,6 +484,8 @@ This enables:
 > **CDP locator verification** (checking whether locators resolve to exactly one element on the real page) is the **command layer's** responsibility. The command layer executes this after the orchestrator returns, using `skills/cdp-explorer/SKILL.md` verify mode.
 >
 > The orchestrator's role is to generate correct POM structure; the command layer's role is to verify locators against the live page.
+>
+> **Source Code Co-Reading Requirement**: When the command layer calls CDP verify mode, it MUST pass `sourceProjectDir` so that cdp-explorer can execute Phase 0 (source pre-read). Without source context, CDP verify operates in degraded mode and may produce fragile CSS-based locators.
 
 ## Return
 
@@ -477,50 +508,5 @@ After generation is complete, return artifact paths and hand off to the downstre
 
 ### Post-Return File Verification (caller responsibility — MANDATORY GATE)
 
-> **All callers** (qa-explore, qa-from-issue, qa-run-prd, qa-gen-cases) MUST execute this verification checklist after EACH orchestrator returns. **Pipeline MUST STOP if any check fails** — do NOT proceed to test-executor or Excel export with missing artifacts. Subagents run in isolated contexts — if a Write call fails silently, the return claims success but no file was written.
-
-```
-MANDATORY VERIFICATION CHECKLIST (execute in order, STOP on first failure):
-
-── Step V1: .md file verification ──
-For each path in return.test_cases:
-  1. Glob(path) → file must exist
-  2. Read(path) → must contain "## Merged Test Case List"
-  3. Read(path) → must contain at least 1 "**TC-" pattern (actual test cases)
-  4. If ANY check fails → ERROR: ".md file missing or malformed: {path}"
-     → Retry: re-launch orchestrator for this module/area (max 1 retry)
-     → If retry also fails → STOP pipeline, report to user
-
-── Step V2: handoff file verification ──
-For each path in return.handoff:
-  1. Glob(path) → file must exist
-  2. Read(path) → must be valid JSON array with length > 0
-  3. Count handoff entries == count TC entries in corresponding .md (1:1 mapping)
-  4. If ANY check fails → ERROR: "Handoff missing or count mismatch: {path}"
-     → Regenerate per orchestrator Step 4.5 (max 1 retry)
-     → If retry also fails → STOP pipeline, report to user
-
-── Step V3: spec file verification (skip for qa-gen-cases) ──
-For each path in return.specs + return.modified_specs:
-  1. Glob(path) → file must exist
-  2. Read(path) → must contain at least 1 "test(" pattern
-  3. Read(path) → must contain "import" statement (POM or fixtures import)
-  4. If ANY check fails → ERROR: "Spec file missing or malformed: {path}"
-     → STOP pipeline, report to user (spec regeneration requires re-running orchestrator)
-
-── Step V4: POM file verification (skip for qa-gen-cases) ──
-For each path in return.page_objects:
-  1. Glob(path) → file must exist
-  2. Read(path) → must contain "export class" pattern
-  3. If ANY check fails → ERROR: "POM file missing: {path}"
-     → STOP pipeline, report to user
-
-── Step V5: cross-artifact consistency ──
-  1. Each spec file must import from a POM that exists in return.page_objects
-  2. Each spec file header must reference a handoff file that exists in return.handoff
-  3. If ANY check fails → WARNING (log but continue, downstream tools may still work)
-
-Only after ALL checks pass → proceed to Excel export and test execution.
-```
-
-> **Why STOP instead of continue?** Running test-executor with missing specs produces misleading "0 tests" results. Running Excel export with missing .md produces empty spreadsheets. Running locator verification with missing POMs wastes CDP time. Stopping early gives the user a clear error instead of silent partial results.
+Execute `.claude/references/verification-gate-v1-v5.md` — the authoritative definition of V1-V5 checks.
+All callers MUST run this after EACH orchestrator returns. Pipeline STOPS on failure.

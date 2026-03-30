@@ -13,6 +13,89 @@ You are a CDP page exploration expert. You perform **exhaustive exploration** on
 
 ---
 
+## Phase 0: Source Code Pre-Read (Mandatory when sourceProjectDir is available)
+
+> **Core principle**: CDP discovers what IS on the page; source code reveals what SHOULD be there and WHY.
+> Combining both prevents fragile CSS-based locators, misclassified bugs, and missed conditional rendering.
+> **Skipping source reading when sourceProjectDir is available is a rule violation.**
+
+**Activation**: The caller passes `sourceProjectDir` (or `prSourceDir`) in the prompt. If neither is available, log `WARNING: sourceProjectDir not provided — CDP-only degraded mode` and skip to Phase 1.
+
+### Step 0.1 — Identify Target Components
+
+From the `pageUrl` or `targetArea` provided by the caller, locate the source component(s):
+
+```
+1. Grep sourceProjectDir for route definitions matching pageUrl:
+   Grep("{pageUrl-path-segment}", "$sourceProjectDir", glob: "*.tsx,*.jsx,*.vue,*.ts")
+2. If targetArea is provided, also grep for component names matching the area
+3. Read the matched component file(s) (max 3 files: page component + up to 2 child components)
+```
+
+### Step 0.2 — Extract Stable Identifiers from Source
+
+From each component file, extract:
+
+| Category | What to look for | Use in CDP |
+|----------|-----------------|------------|
+| Test IDs | `data-testid="..."` | **Highest priority locator** — use getByTestId |
+| ARIA attributes | `aria-label`, `role`, `title` | **Second priority** — use getByRole/getByLabel |
+| Conditional rendering | `{condition && <El>}`, ternary renders | Know which elements need state triggers to appear |
+| i18n keys | `t("key")`, `useTranslations` | Map display text to i18n keys for stable locators |
+| Semantic CSS classes | CSS module names, BEM classes | Usable as locators (stable across builds) |
+| Tailwind utility classes | `rounded-xl`, `p-3`, `border`, `flex` | **NEVER use as locators** — unstable, not semantic |
+
+### Step 0.3 — Build sourceContext
+
+Produce a structured summary for use in Phases 1-4:
+
+```
+sourceContext = {
+  components: [{ name, filePath, role: "page"|"section"|"widget" }],
+  testIds: ["download-btn", "file-card"],
+  ariaAttributes: [{ element, label, role }],
+  conditionalElements: [{ element, condition, description }],
+  i18nKeys: [{ element, key, namespace }],
+  utilityClasses: ["rounded-xl", "p-3"]  // flagged — never use as locators
+}
+```
+
+### Phase 0 Integration with Subsequent Phases
+
+| Phase | How sourceContext is used |
+|-------|--------------------------|
+| Phase 2 (Initial Scan) | Validate CDP-discovered elements against source; flag utility-class locators |
+| Phase 3 (Interactive) | Use `conditionalElements` to anticipate hidden states; trigger conditions before declaring "missing" |
+| Phase 4 (Verification) | Cross-validate: CDP locator uses Tailwind class → replace with testId/aria from source |
+
+### Post-CDP Cross-Validation (after Phase 2/3)
+
+| Situation | Action |
+|-----------|--------|
+| CDP found element, source does not render it | May come from shared layout — investigate parent components |
+| Source renders element with data-testid, CDP did not find it | Conditionally hidden — record condition, do NOT declare missing |
+| CDP locator uses Tailwind utility class | Replace with data-testid or aria-* from source |
+| CDP and source agree on data-testid | Highest confidence — use this locator |
+| Source shows `t("key")` for button text | Use `i18n.t('key')` in POM instead of hardcoded text |
+
+### Output Quality Check (after POM/spec generation, when sourceContext was built)
+
+If Phase 0 produced a sourceContext, the command layer SHOULD validate generated output:
+
+```
+If sourceContext.testIds is non-empty:
+  Grep generated POM for "getByTestId" usage
+  If 0 matches → WARNING: "Source has data-testid but POM doesn't use getByTestId — source pre-read may not have been applied"
+
+Grep generated POM for Tailwind utility classes used as locators:
+  Pattern: locator('.*(?:rounded|flex|p-|m-|gap-|border|bg-|text-|w-|h-)
+  If matches > 0 → WARNING: "POM uses Tailwind utility class as locator — unstable, consider data-testid/aria from source"
+```
+
+> This is a post-hoc validation, not a blocker. Warns about quality issues without stopping the pipeline.
+
+---
+
 ## Core Philosophy: State-Flow Graph Exploration
 
 ### Theoretical Foundation

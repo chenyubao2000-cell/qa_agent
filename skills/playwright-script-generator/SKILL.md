@@ -176,6 +176,9 @@ source = "prd":
 source = "cdp":
   1. Use locatorHint directly from baseline
   2. Spec file name uses -cdp suffix; test.describe prefixed with [CDP]
+  NOTE: Even when source is "cdp", if sourceProjectDir is available in projectContext,
+  MUST read the component source to distinguish semantic classes from Tailwind utilities
+  and prefer data-testid/aria-* over CDP-discovered CSS locators. See cdp-explorer/SKILL.md Phase 0.
 
 source = "issue":
   1. Same as "cdp" when baselineFile available; fallback to "prd" strategy
@@ -199,11 +202,24 @@ After generating all `test()` blocks, **extract every locator into a Page Object
 - **Never use MCP playwright browser** (headless, no login state, no real data)
 - **Verification loop**: run each PO/spec immediately after writing, fix until all pass
 
-### 2.2 Discovery Strategy
+### 2.2 Discovery Strategy (Source + CDP Co-Reading)
+
+> **Rule**: Source code reading is NOT optional when `sourceProjectDir` is available.
+> Grepping only for `data-testid` is insufficient — read the component to understand structure.
+> See `cdp-explorer/SKILL.md` Phase 0 for the full rule.
 
 ```
-Have project source code?
-  YES → Grep source first (instant): Grep "data-testid" --glob "*.tsx,*.jsx,*.vue"
+Have project source code (sourceProjectDir available)?
+  YES →
+    Step A: Grep sourceProjectDir for data-testid: Grep "data-testid" --glob "*.tsx,*.jsx,*.vue"
+    Step B: Read the page component rendering the target URL (grep for route/path)
+            Extract: data-testid, aria-label, role, conditional rendering, i18n keys, semantic vs utility classes
+    Step C: Select locator strategy per source findings:
+            - Source has data-testid → getByTestId (most stable)
+            - Source has aria-label/title but no testid → getByRole with name
+            - Source shows conditional rendering → add waitFor / guard in spec
+            - Source uses Tailwind utility class → NEVER use as locator
+    Step D: When CDP locatorHint conflicts with source → prefer source-based identifier
   NO  → Use locatorHint from handoff
 CDP verification → performed by command layer / e2e-orchestrator calling cdp-explorer verify mode
 ```
@@ -256,9 +272,20 @@ tests/e2e/
 playwright.config.ts
 ```
 
-- **Test files**: `tests/e2e/testcases/**/*.test.ts`
+- **Test files**: `tests/e2e/testcases/generated/{slug}-[{area-id}-]{source}.test.ts`
+  - `{source}` ∈ `cdp | prd | issue` (MANDATORY suffix per CLAUDE.md convention)
+  - `{area-id}` only for `/qa-explore` area-scoped generation; omitted for `/qa-run-prd` and `/qa-from-issue`
 - **Imports**: `import { test, expect } from "../../fixtures"` + `import { XxxPage } from "../../pages/xxx"`
 - **Auth state**: `playwright/.auth/user.json`
+- **Spec file header (MANDATORY)**: Every generated spec MUST include a metadata header comment as the first lines:
+  ```typescript
+  // source: cdp | prd | issue
+  // handoff: test-cases/generated/playwright-handoff-{slug}.json
+  // baseline: test-cases/generated/page-baseline-{slug}.json  (CDP/issue only, omit for PRD)
+  // generated: {ISO 8601 timestamp}
+  ```
+  This enables: qa-fix-tests to locate handoff files, cross-command dedup, and traceability from spec back to handoff.
+  Defined in `e2e-orchestrator.md` Step 5.2.
 
 ---
 
