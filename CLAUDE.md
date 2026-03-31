@@ -25,7 +25,9 @@ qa-platform/
      ↓ 完成后
   test-executor (haiku)     → 执行测试 → 产出报告（执行层）
      ↓ 完成后
-  report-analyzer (haiku)   → 分析报告 → bug-reporter → Linear（报告层）
+  report-analyzer (haiku)   → 分析报告 → 返回失败列表（报告层）
+     ↓ 命令层接收失败列表
+  bug-reporter (haiku)      → 创建/追加 Linear Issue（上报层，命令层直接调度）
 
 SessionStart hook：
   hooks/session-start.sh → 校验 .env 必需变量 → 输出 {"env":"ok"}

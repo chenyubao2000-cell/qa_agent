@@ -67,6 +67,7 @@ For each test case entry in the handoff:
 5. **POM must include setup/teardown methods** — `createTask()`, `deleteTask()`, etc.
 6. **Handoff integration**: `setup[]` → worker-scope fixture; `teardown[]` → after-action cleanup; `{timestamp}` → `Date.now()`. For full schema, read `references/handoff-field-resolution.md` §1.
 7. **Fixture timeout**: Every worker-scope fixture that creates data MUST specify `{ scope: 'worker', timeout: 360_000 }`. This is independent from test timeout and handles AI tasks (1-5 min) without any workaround.
+8. **AI interactive blocker handling** — Worker-scope fixtures that submit AI tasks MUST handle interactive blockers (clarification forms, consent dialogs, error retries) that may appear before the expected result. Use `waitWithBlockerDismissal()` pattern from `references/ai-wait.md` Strategy F. Never assume AI will produce results without intermediate interaction.
 
 **Setup validation (MANDATORY before generating each test)** — classify action type, then validate setup[] exists:
 
@@ -362,6 +363,8 @@ await expect(page.getByRole('listitem')).toHaveCount(5);
 ## 7. Fixtures & Authentication
 
 - **storageState**: setup project runs `auth.setup.ts`, saves to `playwright/.auth/user.json`. Test projects load via config.
+- **Session guard**: `ensureAuthenticated` auto-fixture in `fixtures.ts` intercepts `page.goto()` — if the page redirects to `/sign-in` (session expired), it re-authenticates and retries. No spec changes needed. See `references/session-guard.md`.
+- **Worker-scope fixtures**: create their own context via `browser.newContext({ storageState })` — they don't get auto-fixtures. Must check `page.url().includes('/sign-in')` after navigation and call `reAuthenticate(page)` manually.
 - **Public pages**: opt out with `test.use({ storageState: { cookies: [], origins: [] } })`
 - **Env vars**: `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `PREVIEW_URL`
 
@@ -522,3 +525,4 @@ Use `test.only` to focus on a single test, `await page.pause()` to pause and ins
 - `references/handoff-examples.md` — Complete handoff→spec example, CRUD ordering pattern, i18n-aware POM/spec patterns. Read when generating from handoff or when `projectContext.appLanguages` is set.
 - `references/ai-wait.md` — AI response wait strategies (streaming, loading anchors, multi-turn, expect.poll). Read when writing any test that waits for AI content or async operations > 10 seconds.
 - `references/handoff-field-resolution.md` — setup[]/teardown[] schema, assertions[].selector clarification, expected value resolution rules, timeout two-pass strategy. Read when consuming handoff fields that need non-trivial mapping.
+- `references/session-guard.md` — Session expiry detection and auto re-authentication pattern. Read when generating fixtures.ts or worker-scope fixtures that navigate to authenticated pages.

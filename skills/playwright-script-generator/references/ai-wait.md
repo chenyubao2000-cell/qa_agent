@@ -100,10 +100,15 @@ await page.getByRole('button', { name: /发送|Send/i }).click();
 await page.getByRole('button', { name: /停止|Stop/i })
   .waitFor({ state: 'hidden', timeout: 120_000 });
 
-// Option 2: wait for send button to re-enable
-await expect(page.getByRole('button', { name: /发送|Send/i }))
-  .toBeEnabled({ timeout: 120_000 });
+// Option 2: click send again — click() auto-waits for enabled (actionability checks)
+// More resilient than manual toBeEnabled + click, especially on slow/remote environments
+await page.getByRole('button', { name: /发送|Send/i })
+  .click({ timeout: 120_000, trial: true });  // trial: true = wait-only, no actual click
 ```
+
+> **Prefer `click({ timeout })` over `toBeEnabled()` + `click()`** for "wait then interact" patterns.
+> Playwright's `click()` auto-waits for visible + stable + enabled. Use `trial: true` if you only need to wait (no actual click).
+> Reserve `expect(btn).toBeEnabled()` for **business assertions** — verifying that a button SHOULD be enabled.
 
 ---
 
@@ -268,8 +273,121 @@ test.describe('AI chat — single turn', () => {
 
     const response = page.getByTestId('ai-response').last();
     await expect(response).toContainText(/Playwright|测试|自动化/i);
+    // Verify send button is re-enabled (business assertion — button SHOULD be enabled after AI completes)
     await expect(page.getByRole('button', { name: /发送|Send/i })).toBeEnabled();
   });
+});
+```
+
+---
+
+## Strategy F — Interactive blocker dismissal (AI workflow fixtures)
+
+Use when an AI workflow may present interactive blockers (clarification forms,
+confirmation dialogs, consent prompts, etc.) before producing the target result.
+Common in worker-scope fixtures that create test data via AI task submission.
+
+**Common blockers in AI apps:**
+
+| Blocker | Detection | Action |
+|---------|-----------|--------|
+| Clarification form (radio + submit) | `[role="log"] button:has-text("提交")` | Fill required fields → click submit |
+| Consent / terms dialog | `[role="dialog"]` with accept button | Click accept |
+| Rate limit / cooldown | Toast with "rate limit" text | `waitForTimeout` → retry |
+| Error state with retry | Button with "Retry" / "重试" | Click retry (max 3×) |
+| Session expired redirect | URL changed to `/sign-in` | Auto-handled by `ensureAuthenticated` fixture (page-scope). Worker-scope fixtures must call `reAuthenticate(page)` manually. See `session-guard.md` |
+
+**Shared helper (put in fixtures.ts or helpers/):**
+
+```typescript
+/**
+ * Wait for a target element, auto-dismissing interactive blockers along the way.
+ * @param page - Playwright Page
+ * @param target - Locator for the expected result element
+ * @param opts.blockers - Array of { detect: Locator, action: () => Promise<void> }
+ * @param opts.fallbackFill - Default text for empty required fields in forms
+ * @param opts.pollInterval - Milliseconds between checks (default 5000)
+ * @param opts.maxPolls - Maximum poll iterations (default 60 = 5 min at 5s interval)
+ */
+async function waitWithBlockerDismissal(
+  page: Page,
+  target: Locator,
+  opts: {
+    blockers?: Array<{ detect: Locator; action: () => Promise<void> }>;
+    fallbackFill?: string;
+    pollInterval?: number;
+    maxPolls?: number;
+  } = {},
+) {
+  const { fallbackFill = '默认输入', pollInterval = 5000, maxPolls = 60 } = opts;
+
+  // Default blocker: clarification form with submit button
+  const defaultBlockers = [{
+    detect: page.locator('[role="log"] button').filter({ hasText: /^提交$|^Submit$/ }),
+    action: async () => {
+      // Auto-fill empty required textareas
+      const inputs = page.locator('[role="log"] textarea');
+      for (let i = 0; i < await inputs.count(); i++) {
+        if (!(await inputs.nth(i).inputValue())) await inputs.nth(i).fill(fallbackFill);
+      }
+      await page.locator('[role="log"] button').filter({ hasText: /^提交$|^Submit$/ }).click();
+    },
+  }];
+  const blockers = opts.blockers ?? defaultBlockers;
+
+  for (let i = 0; i < maxPolls; i++) {
+    if (await target.isVisible().catch(() => false)) return;
+    for (const b of blockers) {
+      if (await b.detect.isVisible().catch(() => false)) {
+        await b.action();
+        break; // re-poll after action
+      }
+    }
+    await page.waitForTimeout(pollInterval);
+  }
+
+  // Final wait with Playwright's built-in timeout for clear error message
+  await target.waitFor({ state: 'visible', timeout: 300_000 });
+}
+```
+
+**Usage in worker-scope fixture:**
+```typescript
+taskWithFilesUrl: [async ({ browser }, use) => {
+  const page = await (await browser.newContext({ storageState: AUTH_FILE })).newPage();
+  await page.goto('/task');
+  await page.locator('textarea').fill('Create PPT, PDF, and search candidates');
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await page.waitForURL(/\/task\/.+/, { timeout: 60_000 });
+
+  const fileCard = page.locator('[role="log"] div[role="button"]').filter({
+    hasText: /\.pptx|\.pdf|PPT|PDF/i,
+  }).first();
+  await waitWithBlockerDismissal(page, fileCard, { fallbackFill: '软件工程师' });
+  await use(new URL(page.url()).pathname);
+}, { scope: 'worker', timeout: 360_000 }],
+```
+
+**Custom blockers (app-specific):**
+```typescript
+await waitWithBlockerDismissal(page, resultLocator, {
+  blockers: [
+    // Clarification form
+    {
+      detect: page.locator('[role="log"] button').filter({ hasText: /^提交$/ }),
+      action: async () => { /* fill + click */ },
+    },
+    // Cookie consent
+    {
+      detect: page.getByRole('dialog').filter({ hasText: /cookie/i }),
+      action: async () => { await page.getByRole('button', { name: /accept/i }).click(); },
+    },
+    // Error retry
+    {
+      detect: page.getByRole('button', { name: /Retry|重试/ }),
+      action: async () => { await page.getByRole('button', { name: /Retry|重试/ }).click(); },
+    },
+  ],
 });
 ```
 

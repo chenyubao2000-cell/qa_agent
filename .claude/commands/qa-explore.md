@@ -258,6 +258,7 @@ if file exists AND APP_LANGUAGES is set:
 
 ```typescript
 import { test as base, expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 // ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
 // messages/ directory copied from source project to QA_WORKSPACE_DIR/messages/ by Phase 0 Step 2b-1
@@ -274,7 +275,51 @@ const i18nMessages: Record<string, Record<string, any>> = {
 
 export type I18n = { t: (key: string) => string; locale: string };
 
-export const test = base.extend<{ i18n: I18n }>({
+// ── Session guard: auto re-authenticate on expiry ──
+// See: skills/playwright-script-generator/references/session-guard.md
+const AUTH_FILE = 'playwright/.auth/user.json';
+const SIGN_IN_PATH = '/sign-in';
+
+async function reAuthenticate(page: Page): Promise<void> {
+  const email = process.env.E2E_TEST_EMAIL;
+  const password = process.env.E2E_TEST_PASSWORD;
+  if (!email || !password) throw new Error('Session expired but no credentials in env');
+
+  console.log('[session-guard] Session expired, re-authenticating...');
+
+  const emailInput = page.locator('input[type="email"], input[name="email"]').first();
+  await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
+  await emailInput.fill(email);
+
+  const continueBtn = page.getByRole('button', { name: /^Continue$|^继续$/i });
+  await continueBtn.click({ timeout: 30_000 });
+
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: 'visible', timeout: 15_000 });
+  await passwordInput.fill(password);
+  await continueBtn.click({ timeout: 30_000 });
+
+  await page.waitForURL('**/task**', { timeout: 60_000 });
+  console.log('[session-guard] Re-authentication successful');
+
+  await page.context().storageState({ path: AUTH_FILE });
+}
+
+export const test = base.extend<{ i18n: I18n; ensureAuthenticated: void }>({
+  // Auto-fixture: intercepts page.goto to detect login redirects and re-authenticate
+  ensureAuthenticated: [async ({ page }, use) => {
+    const originalGoto = page.goto.bind(page);
+    page.goto = async (url: string, options?: any) => {
+      const response = await originalGoto(url, options);
+      if (page.url().includes(SIGN_IN_PATH)) {
+        await reAuthenticate(page);
+        return originalGoto(url, options);
+      }
+      return response;
+    };
+    await use();
+  }, { auto: true }],
+
   i18n: [async ({}, use, testInfo) => {
     const locale = testInfo.project.name.replace('e2e-', '') || 'en';
     const dict = i18nMessages[locale] ?? i18nMessages['en'];
@@ -291,17 +336,63 @@ export const test = base.extend<{ i18n: I18n }>({
 export { expect };
 ```
 
-> **Auth is handled by config**: `storageState` is declared in playwright.config.ts projects, and setup project runs auth.setup.ts before all tests. No auth fixtures needed.
-> Tests use `{ page, i18n }` — `page` is already authenticated via config storageState.
+> **Session guard**: `ensureAuthenticated` is an `auto: true` fixture — every test gets it without explicit destructuring. It patches `page.goto` to detect redirects to `/sign-in` and re-authenticates automatically. See `references/session-guard.md` for details.
+> **Worker-scope fixtures** that create their own context must check `page.url().includes('/sign-in')` after navigation and call `reAuthenticate(page)` manually — they don't get the auto-fixture.
+> **Auth is handled by config**: `storageState` is declared in playwright.config.ts projects, and setup project runs auth.setup.ts before all tests.
+> Tests use `{ page, i18n }` — `page` is already authenticated via config storageState, with session guard as safety net.
 > **Public page tests** (sign-in, forgot-password etc.) opt out with `test.use({ storageState: { cookies: [], origins: [] } })`.
 
-**Without APP_LANGUAGES** → minimal fixtures.ts:
+**Without APP_LANGUAGES** → minimal fixtures.ts (still includes session guard when E2E_TEST_EMAIL is set):
 
 ```typescript
 import { test as base, expect } from "@playwright/test";
-export const test = base;
+import type { Page } from "@playwright/test";
+
+// ── Session guard (when E2E_TEST_EMAIL is set) ──
+const AUTH_FILE = 'playwright/.auth/user.json';
+const SIGN_IN_PATH = '/sign-in';
+
+async function reAuthenticate(page: Page): Promise<void> {
+  const email = process.env.E2E_TEST_EMAIL;
+  const password = process.env.E2E_TEST_PASSWORD;
+  if (!email || !password) throw new Error('Session expired but no credentials in env');
+  console.log('[session-guard] Session expired, re-authenticating...');
+  const emailInput = page.locator('input[type="email"], input[name="email"]').first();
+  await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
+  await emailInput.fill(email);
+  const continueBtn = page.getByRole('button', { name: /^Continue$|^继续$/i });
+  await continueBtn.click({ timeout: 30_000 });
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: 'visible', timeout: 15_000 });
+  await passwordInput.fill(password);
+  await continueBtn.click({ timeout: 30_000 });
+  await page.waitForURL('**/task**', { timeout: 60_000 });
+  console.log('[session-guard] Re-authentication successful');
+  await page.context().storageState({ path: AUTH_FILE });
+}
+
+export const test = base.extend<{ ensureAuthenticated: void }>({
+  ensureAuthenticated: [async ({ page }, use) => {
+    const originalGoto = page.goto.bind(page);
+    page.goto = async (url: string, options?: any) => {
+      const response = await originalGoto(url, options);
+      if (page.url().includes(SIGN_IN_PATH)) {
+        await reAuthenticate(page);
+        return originalGoto(url, options);
+      }
+      return response;
+    };
+    await use();
+  }, { auto: true }],
+});
 export { expect };
 ```
+
+> When E2E_TEST_EMAIL is NOT set (public-only pages), omit session guard entirely:
+> ```typescript
+> import { test, expect } from "@playwright/test";
+> export { test, expect };
+> ```
 
 > **auth.setup.ts is not generated at this point** — it requires Phase 1 CDP exploration of the login page to write with verified real selectors.
 > **Pre-check**: If `E2E_TEST_EMAIL` is set but `auth.setup.ts` does not exist at `$QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts`, log a WARNING: "Auth credentials configured but auth.setup.ts not found. It will be generated when CDP encounters a login wall in Phase 1. If the initial URL is a public page, auth.setup.ts may not be created — run /qa-explore on a protected page to trigger generation."
@@ -361,6 +452,7 @@ Execute cdp-explorer SKILL **Phase 1 (Connection)**, then detect login wall (Pha
    - Write with verified real selectors from CDP exploration, no guessing
    - If exists -> skip (don't overwrite user-customized login logic)
    - **Template** (replace `{loginPagePath}`, `{emailSelector}`, `{passwordSelector}`, `{submitSelector}`, `{postLoginUrlPattern}` with CDP-discovered real values):
+   - **`{submitSelector}` notes**: Use `^...$` anchors in regex to avoid matching partial text (e.g., `/^Continue$/i` won't match "Continue with Google"). Use `click({ timeout: 30_000 })` instead of manual `toBeEnabled()` + `click()` — Playwright's click auto-waits for enabled state (actionability checks), more resilient to slow JS hydration.
 
 ```typescript
 import { test as setup, expect } from '@playwright/test';
@@ -371,6 +463,7 @@ import fs from 'node:fs';
 config();
 
 const authFile = path.join(__dirname, '..', '..', 'playwright', '.auth', 'user.json');
+const AUTH_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes — session tokens typically expire in < 1h
 
 setup('authenticate', async ({ page }) => {
   const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.PREVIEW_URL || 'http://localhost:3000';
@@ -385,7 +478,25 @@ setup('authenticate', async ({ page }) => {
     throw new Error(`Auth setup incomplete: ${!email ? 'E2E_TEST_EMAIL' : 'E2E_TEST_PASSWORD'} is missing in .env. Set both or remove both.`);
   }
 
-  // Ensure auth directory exists + login with retry
+  // Check if existing auth state is still fresh (skip login if < 30min old)
+  const authDir = path.dirname(authFile);
+  if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
+  if (fs.existsSync(authFile)) {
+    const stat = fs.statSync(authFile);
+    const ageMs = Date.now() - stat.mtimeMs;
+    if (ageMs < AUTH_MAX_AGE_MS) {
+      try {
+        const state = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
+        if (state.cookies?.length > 0) {
+          console.log(`Auth state is fresh (${Math.round(ageMs / 60000)}m old), reusing.`);
+          return;
+        }
+      } catch {}
+    }
+    console.log(`Auth state is stale (${Math.round(ageMs / 60000)}m old), re-authenticating.`);
+  }
+
+  // Login with retry
   const MAX_RETRIES = 2;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -397,18 +508,23 @@ setup('authenticate', async ({ page }) => {
       await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
       await emailInput.fill(email);
 
+      // Use click({ timeout }) instead of manual toBeEnabled + click.
+      // Playwright's click() auto-waits for visible + stable + enabled (actionability checks).
+      // This is more resilient to slow JS hydration in preview/remote environments.
+      const submitBtn = page.locator('{submitSelector}');
+
       // {IF_MULTI_STEP}: Multi-step login — click continue after email to reveal password field
-      // await page.locator('{submitSelector}').click();
+      // await submitBtn.click({ timeout: 30_000 });
       // {END_IF_MULTI_STEP}
 
       // Step 2: Enter password
       const passwordInput = page.locator('{passwordSelector}');
-      await passwordInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await passwordInput.waitFor({ state: 'visible', timeout: 15_000 });
       await passwordInput.fill(password);
-      await page.locator('{submitSelector}').click();
+      await submitBtn.click({ timeout: 30_000 });
 
       // Wait for post-login redirect
-      await page.waitForURL('{postLoginUrlPattern}', { timeout: 15_000 });
+      await page.waitForURL('{postLoginUrlPattern}', { timeout: 60_000 });
       console.log(`Login successful as ${email}, saving auth state.`);
 
       // Save auth state
@@ -426,7 +542,7 @@ setup('authenticate', async ({ page }) => {
 });
 ```
 
-> **Setup project pattern** (Playwright recommended): auth.setup.ts runs once before all test projects via `dependencies: ['setup']` in playwright.config.ts. Every test run re-authenticates — no TTL/cache/validation complexity needed.
+> **Setup project pattern** (Playwright recommended): auth.setup.ts runs once before all test projects via `dependencies: ['setup']` in playwright.config.ts. Staleness check (30min TTL) avoids unnecessary re-login when auth is fresh. Session guard in fixtures.ts (`ensureAuthenticated` auto-fixture) handles mid-run expiry. See `references/session-guard.md`.
 
 4. **Verify playwright.config.ts** has setup project: Ensure it includes `{ name: 'setup', testMatch: /auth\.setup\.ts/ }` and test projects have `dependencies: ['setup']`. The config template from Phase 0 Step 2d already includes this.
 5. **Generate sign-in POM** (`tests/e2e/pages/sign-in.page.ts`) for login-related specs

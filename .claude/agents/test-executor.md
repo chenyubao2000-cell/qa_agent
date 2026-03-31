@@ -54,6 +54,9 @@ Checks:
    b. playwright.config.ts has setup project (Grep "name: 'setup'" or "auth\\.setup")
    c. playwright/.auth directory exists (create if missing)
    d. if playwright/.auth/user.json exists: validate it is valid JSON with non-empty `cookies` array. If invalid/empty → delete it (setup project will regenerate on next run)
+   e. if playwright/.auth/user.json exists and is older than 30 minutes → delete it (stale session token, setup project will re-authenticate)
+   f. Verify auth.setup.ts contains staleness check (Grep "AUTH_MAX_AGE_MS" in auth.setup.ts). If missing → WARNING: "auth.setup.ts lacks staleness check, may reuse expired session"
+   g. Verify fixtures.ts contains session guard (Grep "ensureAuthenticated" in fixtures.ts). If missing → WARNING: "fixtures.ts lacks session guard, mid-run session expiry will cause cascade failures"
 ```
 
 - All pass → Verify that playwright.config.ts includes failure evidence configuration (`screenshot: 'only-on-failure'`, `trace: 'retain-on-failure'`); add if missing

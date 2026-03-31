@@ -172,16 +172,34 @@ test('After creating a task, redirects to task detail page', async ({ page }) =>
 
 ```typescript
 // fixtures.ts — worker-scope fixture
+// IMPORTANT: AI workflows may present interactive blockers (clarification forms,
+// consent dialogs) before producing results. Use waitWithBlockerDismissal()
+// from ai-wait.md Strategy F to handle these automatically.
+// IMPORTANT: Worker-scope fixtures don't get the ensureAuthenticated auto-fixture.
+// Check for session expiry after navigation and call reAuthenticate() if needed.
+// See session-guard.md for the reAuthenticate() helper.
 taskWithFilesUrl: [async ({ browser }, use) => {
   const ctx = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
   const page = await ctx.newPage();
   await page.goto('/task');
-  await page.getByRole('textbox', { name: /please enter/i }).fill('Create a recruiting task');
+
+  // Session guard — worker-scope fixtures must check manually
+  if (page.url().includes('/sign-in')) {
+    await reAuthenticate(page);
+    await page.goto('/task');
+  }
+
+  await page.locator('textarea').fill('Create a recruiting task');
   await page.getByRole('button', { name: 'Submit' }).click();
-  await page.waitForSelector('text=Task completed', { timeout: 300_000 });
-  const taskUrl = new URL(page.url()).pathname;
+  await page.waitForURL(/\/task\/.+/, { timeout: 60_000 });
+
+  // Wait for result, auto-dismissing any clarification forms
+  const resultCard = page.locator('[role="log"] div[role="button"]').filter({
+    hasText: /\.pptx|\.pdf|PPT|PDF/i,
+  }).first();
+  await waitWithBlockerDismissal(page, resultCard);
+  await use(new URL(page.url()).pathname);
   await ctx.close();
-  await use(taskUrl);
 }, { scope: 'worker', timeout: 360_000 }],  // ← independent timeout, 6 minutes
 
 // In spec — no beforeAll, no serial, just destructure the fixture
@@ -189,6 +207,8 @@ test('Canvas preview works', async ({ page, taskWithFilesUrl }) => {
   await page.goto(taskWithFilesUrl);
 });
 ```
+
+> **Blocker handling**: AI apps often interpose clarification forms, consent dialogs, or error retries between user input and result output. Fixtures MUST handle these — see `ai-wait.md` Strategy F for the reusable `waitWithBlockerDismissal()` helper and common blocker patterns.
 
 **Why Pattern D over Pattern A/B:**
 

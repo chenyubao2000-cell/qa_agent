@@ -488,6 +488,7 @@ reportFile = "tests/reports/fix-regression.json"
 - **Must pass sourceIssueKey**; report-analyzer uses this to distinguish writeback vs. new creation
 - **Must pass reportFile**; qa-fix-tests produces `fix-regression.json`, not the default `playwright-results.json`
 - **Must pass detectedBugs** (if any); application bugs found by qa-fix-tests that need Linear reporting
+- **Returns structured failure payload** — does NOT launch bug-reporter (command layer handles that)
 
 prompt template:
 ```
@@ -501,12 +502,55 @@ Input:
 - detectedBugs: [{detectedBugs from qa-fix-tests, or empty list if none}]
 - projectContext: { targetProjectDir, ... }
 - appLanguages: {APP_LANGUAGES or null}
+- sourceProjectDir: {resolved source code directory per priority: --source > prSourceDir > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR, or null}
 
-Note: This run was triggered by /qa-from-issue. Failed cases need to be categorized:
-1. Failures in sourceSpecs -> route to the corresponding sourceIssueKey via specToIssueMap, write back comments
-2. Failures in other specs -> normal dedup + create new issues
-3. detectedBugs (application bugs from qa-fix-tests) -> transform to bug-reporter format and create new issues
+Note: This run was triggered by /qa-from-issue. Analyze and route failures:
+1. Failures in sourceSpecs -> mark action: "append" with targetIssueId from specToIssueMap
+2. Failures in other specs -> mark action: "create" after dedup check
+3. detectedBugs -> transform to failure format with action: "create"
+4. If ALL tests pass -> write success comment to source issues (you handle this directly via Linear MCP)
+
+Return structured failure payload as JSON (see report-analyzer.md Step 3). Do NOT launch bug-reporter.
 ```
+
+### Step 4 — Launch bug-reporter (conditional)
+
+> **Why command layer**: haiku agents cannot reliably launch nested agents. The command layer (sonnet/opus) handles bug-reporter orchestration.
+
+After report-analyzer returns, check if there are failures to report:
+
+```
+Parse report-analyzer's return for the `failures` array.
+
+If failures.length > 0:
+
+  Launch bug-reporter (haiku):
+
+  You are bug-reporter. First read .claude/agents/bug-reporter.md to understand your full responsibilities.
+
+  Input:
+  - linearTeamId: "{reportAnalyzerResult.linearConfig.linearTeamId}"
+  - linearProjectId: "{reportAnalyzerResult.linearConfig.linearProjectId}"
+  - previewUrl: "{reportAnalyzerResult.linearConfig.previewUrl}"
+  - failures: {reportAnalyzerResult.failures}
+
+  Execute per .claude/agents/bug-reporter.md: process each failure entry
+  (create new issues or append comments based on action field).
+  Return created/appended issue list.
+
+If allPassed is true or failures is empty:
+  report-analyzer already handled the success write-back to source issues.
+  No bug-reporter needed.
+```
+
+### Post-processing — Update Summary with Linear URLs
+
+After bug-reporter returns `{ created, appended }`:
+1. Read `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`
+2. Replace the "Linear 上报（待命令层执行）" section with actual results:
+   - 新建 Bug: N 条 — {issue URLs}
+   - 回写源 Issue: N 条 — {issue URLs}
+3. Write updated summary back
 
 ---
 

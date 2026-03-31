@@ -345,6 +345,7 @@ For each failed file:
      b. CDP login with testCredentials from .env
      c. Generate `$QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts` with verified real selectors
         (same as qa-explore Phase 1 Step 1 template — setup project pattern)
+        **Notes**: Use `click({ timeout: 30_000 })` instead of manual `toBeEnabled()` + `click()` — Playwright's click auto-waits for enabled (actionability checks), more resilient to slow hydration. `waitForURL` timeout ≥ 60s (network may be slow)
      d. Verify playwright.config.ts has setup project with `dependencies: ['setup']`
      e. Generate sign-in POM if not present
      This ensures Playwright can authenticate via setup project in subsequent test-executor runs (Phase 3).
@@ -386,6 +387,7 @@ For each failed file:
          If found → refactor to **worker-scope fixture** in `fixtures.ts` (`{ scope: 'worker', timeout: 360_000 }`).
          Tests receive data via fixture parameter. No `beforeAll`, no `serial` wrapper needed.
          Follow `playwright-script-generator/SKILL.md` §0c and `references/test-data-patterns.md` Pattern D.
+         Fixtures that submit AI tasks MUST use `waitWithBlockerDismissal()` from `ai-wait.md` Strategy F.
 
      === Step 3c: For POSSIBLE BUG — do NOT fix ===
      c1. Using sourceContext from Step 0.5 (already built), review the component's intended rendering logic and behavior

@@ -27,7 +27,8 @@ Only need to extract:
 - `LINEAR_*` — pass through to report-analyzer (bug reporting)
 - `APP_LANGUAGES` — if set, Playwright config has per-language projects (e.g., `e2e-en`, `e2e-zh`). test-executor must handle project selection.
 
-Not needed: SOURCE_PROJECT_DIR (no source reading), PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in auth.setup.ts).
+Not needed: PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in auth.setup.ts).
+Also extract: `SOURCE_PROJECT_DIR` — passed to report-analyzer for source code enrichment in bug reports.
 No initialization — only runs existing specs. Workspace must have been initialized by `/qa-explore` or similar commands.
 Required files: `playwright.config.ts`, `tests/e2e/fixtures.ts`, `tests/e2e/testcases/**/*.test.ts`, `node_modules/@playwright/test`. If `E2E_TEST_EMAIL` is set: also `tests/e2e/auth.setup.ts` + `playwright/.auth/` directory.
 
@@ -137,11 +138,52 @@ Input:
 - relatedIssueKeys: [{list of related Linear issue keys from git-watcher, if available; otherwise omit}]
 - appLanguages: {APP_LANGUAGES or null}
 - headless: {true if _trigger: git-watcher_, otherwise false}
+- sourceProjectDir: {resolved source code directory per priority: --source > prSourceDir > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR, or null}
 
 Execute per .claude/agents/report-analyzer.md steps:
 1. Read test reports from $QA_WORKSPACE_DIR/tests/reports/
 2. Parse results → route failed cases → deduplicate
-3. Launch bug-reporter (.claude/agents/bug-reporter.md) for Linear issue creation/append
+3. Build structured failure payload (do NOT launch bug-reporter)
 4. Generate summary report
 5. Open HTML report (unless headless)
+
+Return the structured failure payload as JSON (see report-analyzer.md Step 3 for schema).
 ```
+
+### Agent 3 — bug-reporter (haiku) — Conditional
+
+Launched by the **command layer** after report-analyzer completes, ONLY if report-analyzer returned failures.
+
+> **Why command layer**: haiku agents cannot reliably launch nested agents. The command layer (sonnet/opus) handles this orchestration.
+
+```
+Check: parse report-analyzer's return for the `failures` array.
+
+If failures.length > 0:
+
+  Launch bug-reporter (haiku):
+
+  You are bug-reporter. First read .claude/agents/bug-reporter.md to understand your full responsibilities.
+
+  Input:
+  - linearTeamId: "{reportAnalyzerResult.linearConfig.linearTeamId}"
+  - linearProjectId: "{reportAnalyzerResult.linearConfig.linearProjectId}"
+  - previewUrl: "{reportAnalyzerResult.linearConfig.previewUrl}"
+  - failures: {reportAnalyzerResult.failures}
+
+  Execute per .claude/agents/bug-reporter.md: process each failure entry
+  (create new issues or append comments based on action field).
+  Return created/appended issue list.
+
+If allPassed is true or failures is empty:
+  Skip bug-reporter. No Linear reporting needed.
+```
+
+### Post-processing — Update Summary with Linear URLs
+
+After bug-reporter returns `{ created, appended }`:
+1. Read `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`
+2. Replace the "Linear 上报（待命令层执行）" section with actual results:
+   - 新建 Bug: N 条 — {issue URLs}
+   - 回写源 Issue: N 条 — {issue URLs}
+3. Write updated summary back
