@@ -33,7 +33,7 @@ QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command →
 | `/qa-from-issue` | 用户命令 / git-watcher | 是 | via fix-tests | 是 | 定向探查 |
 | `/qa-run-prd` | 用户命令 | 是 | via fix-tests | 否 | 无（委托 fix-tests） |
 | `/qa-gen-cases` | 用户命令 | 仅用例+Excel | 否 | 否 | 否 |
-| `/qa-run-all` | 用户命令 / git-watcher | 否 | 是 | 是 | 否 |
+| `/qa-run` | 用户命令 / git-watcher | 否 | 是 | 是 | 否 |
 | `/qa-fix-tests` | 用户命令 / 委托 | 仅修复 (3 modes: normal, --from-prd, --upgrade-i18n) | 是 | 否 | 验证+修复 |
 | `git-watcher` | 守护进程（轮询 PR） | 路由到上述命令 | — | 评论 PR | Headless |
 
@@ -66,7 +66,7 @@ QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command →
 │ ├ Fix locators/assertions (playwright-script-generator SKILL)│
 │ └ test-executor (haiku) → regression                         │
 └────────────┬────────────────────────────────────────────┬────┘
-             │ (qa-from-issue + qa-run-all only)          │
+             │ (qa-from-issue + qa-run only)          │
              ▼                                             │
 ┌──────────────────────────────┐                           │
 │ Report Layer                  │                           │
@@ -75,8 +75,8 @@ QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command →
 └──────────────────────────────┘                           │
 ```
 
-**哪些入口走报告层（Linear 上报）**：仅 `/qa-from-issue` 和 `/qa-run-all`。
-其余入口（explore、run-prd、fix-tests）只产出本地报告，需要 Linear 上报时手动运行 `/qa-run-all`。
+**哪些入口走报告层（Linear 上报）**：仅 `/qa-from-issue` 和 `/qa-run`。
+其余入口（explore、run-prd、fix-tests）只产出本地报告，需要 Linear 上报时手动运行 `/qa-run`。
 
 ### 3.1 Agent 流水线
 
@@ -132,7 +132,7 @@ Phase 3: 委托 /qa-fix-tests --from-prd（CDP verify + fix + execute）
   → 本地报告（不上报 Linear）
 ```
 
-> qa-explore 不上报 Linear。正式上报 Linear 请用 `/qa-run-all`。
+> qa-explore 不上报 Linear。正式上报 Linear 请用 `/qa-run`。
 
 **上下文开销**：每个区域 ~700 tokens 进入主上下文（不用子 Agent 则是 ~100K）。
 
@@ -174,11 +174,11 @@ Phase 2: 流水线并行生成
 Phase 3: 委托 /qa-fix-tests --from-prd（CDP verify + fix + execute）
 ```
 
-> qa-run-prd directly delegates to /qa-fix-tests after orchestrator generation. No CDP page-verify step of its own. 正式上报 Linear 请用 `/qa-run-all`。
+> qa-run-prd directly delegates to /qa-fix-tests after orchestrator generation. No CDP page-verify step of its own. 正式上报 Linear 请用 `/qa-run`。
 
 **PRD 变更检测**：每个 .md 文件头部存储 `<!-- PRD-hash: {sha256} | PRD-module: {heading} | feature-slug: {slug} -->`，下次运行时对比 hash 判定变更类型。
 
-### 4.4 `/qa-run-all` — 纯执行
+### 4.4 `/qa-run` — 纯执行
 
 ```
 Phase 0: 读取 .env（仅 QA_WORKSPACE_DIR，不做初始化）
@@ -219,7 +219,7 @@ Phase 2: 逐文件修复（每个失败文件一个独立子 Agent）
   → fix subagent uses test-executor (haiku) for verification runs
   → cross-file CDP sharing: fix agents share cdpFindings via fixContext
 Phase 2.5: Bug 汇总（仅通知用户，不上报 Linear）
-  如有 classification="bug" 的失败 → 通知用户，建议运行 /qa-run-all 正式上报
+  如有 classification="bug" 的失败 → 通知用户，建议运行 /qa-run 正式上报
   → 这些测试保持原样（断言是正确的，应用有问题）
 Phase 3: 回归已修复文件 → 汇总报告（分三类：修复的测试问题 / 发现的应用 Bug / 需人工审查）
 ```
@@ -237,7 +237,7 @@ Phase 3: 回归已修复文件 → 汇总报告（分三类：修复的测试问
     获取变更文件列表 + 生成 diff 摘要（claude -p --model haiku）
     创建 worktree（PR 全量代码副本）
     有 issue → /qa-from-issue {issues}
-    无 issue → /qa-run-all
+    无 issue → /qa-run
     注入 prompt: changelist、changeSummary、prSourceDir、_trigger: git-watcher_
     解析报告 → 在 PR 上评论（按 commit SHA 去重）
     命令执行+评论完成后保存状态（崩溃恢复: 下次重启会重新触发未完成的 PR）

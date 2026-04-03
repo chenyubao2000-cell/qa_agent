@@ -136,6 +136,7 @@ for module in prdModules:
 
     Execute per .claude/agents/e2e-orchestrator.md steps, return artifact paths.
     Note: prdChangeMode affects Step 2 dedup behavior — see Step 2.5 for "updated" mode.
+    Note: If handoff JSON already exists for this module (from prior /qa-gen-cases run), orchestrator may skip case generation (Step 3) and consume the existing handoff directly for spec generation (Step 4+).
     ```
   )
 
@@ -155,58 +156,21 @@ for module in removedModules:
   6. If spec NOT found → log warning, skip (module may never have generated a spec)
   7. Mark the .md file with deprecation header: <!-- DEPRECATED: module removed from PRD -->
 
-// ── POM Fragment Merge (same as qa-explore, prevents parallel write conflicts) ──
-// When multiple orchestrators target the same page (e.g., module "Login" and module "Auth Settings"
-// both generate POM for sign-in.page.ts), each orchestrator writes a FRAGMENT file:
-//   tests/e2e/pages/{slug}.page.{module-slug}.fragment.ts
-// After ALL orchestrators complete, merge fragments into the final POM:
-//   1. Group fragments by {slug}: Glob("tests/e2e/pages/{slug}.page.*.fragment.ts")
-//   2. Read all fragments + existing POM (if any)
-//   3. Merge: combine imports, deduplicate locators by name, union all methods
-//   4. Write merged POM to tests/e2e/pages/{slug}.page.ts
-//   5. Delete fragment files
-// If only ONE orchestrator targets a page, it writes directly to {slug}.page.ts (no fragment needed).
-// The orchestrator decides fragment vs direct based on `existingPageObjects` parameter passed by caller.
-
 // Wait for ALL orchestrators to complete (parallel)
 results = await all(orchestratorAgents)
 
-// Merge POM fragments (if any)
-// Safety: merge runs AFTER all orchestrators complete (no concurrent writes).
-// Existing POM is backed up before merge to prevent data loss from user edits.
-for slug in uniqueSlugs(results):
-  fragments = Glob(`tests/e2e/pages/${slug}.page.*.fragment.ts`)
-  if fragments.length > 0:
-    // Backup existing POM before merge (if exists)
-    if Glob(`tests/e2e/pages/${slug}.page.ts`):
-      copy → `tests/e2e/pages/${slug}.page.ts.bak`
-    mergeFragmentsIntoPOM(slug, fragments)  // combine + deduplicate + delete fragments
+// ── POM Fragment Merge ──
+Execute `.claude/references/pom-merge.md`
 
 // ══ MANDATORY VERIFICATION GATE ══
-// Execute the Post-Return File Verification checklist defined in
-// .claude/agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
-// The AUTHORITATIVE definition of V1-V5 is in e2e-orchestrator.md — do NOT
-// duplicate inline. Read the checklist from that file and execute each step.
+// Execute `.claude/references/verification-gate-v1-v5.md` (Steps V1-V5) for EACH orchestrator result.
 // Pipeline STOPS if any check fails — do NOT proceed to test-executor.
 
 // Collect all verified artifacts
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
 allPageObjects = results.flatMap(r => r.page_objects)
 
-// Export Excel: merge all .md into one file (one Sheet per module)
-// Only executes AFTER verification gate passes
-node skills/excel-case-export/scripts/generate-excel.js \
-  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx
-
-// Verify Excel output exists — retry once on failure
-if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
-  WARN: "Excel export failed — retrying..."
-  node skills/excel-case-export/scripts/generate-excel.js \
-    --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-    --output $QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx
-  if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
-    ERROR: "Excel export failed after retry — file not written"
+Execute `.claude/references/excel-export-gate.md` (with `{name}` = `{prd-name}`)
 ```
 
 **Check results**:
@@ -236,4 +200,4 @@ Execute /qa-fix-tests with arguments: --skip-baseline {allGeneratedSpecs joined 
 // qa-fix-tests parsing rules: --skip-baseline flag skips baseline, .test.ts paths serve as the list of files to fix
 ```
 
-> After qa-fix-tests completes, the user can run `/qa-run-all` for full regression + Linear reporting if needed.
+> After qa-fix-tests completes, the user can run `/qa-run` for full regression + Linear reporting if needed.

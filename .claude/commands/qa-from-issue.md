@@ -77,6 +77,9 @@ If `pageUrl` extracted from the issue is a relative path, concatenate with `base
 /qa-from-issue STE-9                     # single issue key
 /qa-from-issue STE-9 STE-10 STE-11      # multiple issue keys (space-separated)
 /qa-from-issue 790b5957-...              # single issue ID
+/qa-from-issue https://linear.app/team/issue/STE-9/title  # Linear URL (extracts key)
+/qa-from-issue https://linear.app/team/issue/STE-9 https://linear.app/team/issue/STE-10  # multiple URLs
+/qa-from-issue STE-9 https://linear.app/team/issue/STE-10  # mixed keys + URLs
 /qa-from-issue download format selection  # search keyword (matches all results)
 /qa-from-issue --status backlog          # batch by status (process all issues under that status)
 /qa-from-issue --all-open                # all Open/Backlog issues
@@ -142,15 +145,23 @@ Phase 3: Sequential launch (execute in order)
 
 ### Step 1 — Get Issue Details
 
-```
-mcp__linear__get_issue  issueId=$ARGUMENTS
-```
+Parse each input token to determine its type, then fetch:
 
-If the input is a search keyword (not ID/key format), search first:
 ```
-mcp__linear__search_issues  query=$ARGUMENTS
+for each token in $ARGUMENTS (excluding flags like --source, --status, --all-open):
+  if token contains "linear.app":
+    // Linear URL → extract issue key from path
+    // e.g., https://linear.app/team/issue/STE-9/title → "STE-9"
+    // Pattern: /issue/([A-Z]+-\d+)/ in URL path
+    issueKey = extract key from URL path segment after "/issue/"
+    mcp__linear__get_issue  issueId=issueKey
+  elif token matches key pattern ([A-Z]+-\d+) or UUID:
+    mcp__linear__get_issue  issueId=token
+  else:
+    // search keyword
+    mcp__linear__search_issues  query=token
+    List matching results, select the most relevant one.
 ```
-List matching results, select the most relevant one.
 
 ### Step 2 — Extract Test Context
 
@@ -209,59 +220,21 @@ When Mode X is determined, the flow **bypasses orchestrator** and launches a sin
 ```
 Launch fix-from-issue subagent with CDP tools + Edit tool:
 
-prompt (base template: `.claude/templates/fix-subagent-prompt.md`, appended with issue-specific inputs):
-```
-You are a test fix expert. Read skills/cdp-explorer/SKILL.md.
+prompt: Read `.claude/references/fix-subagent-prompt.md` for full prompt template (steps, classification logic, return schema).
 
-Task: Fix an existing test that is failing, based on a Linear issue report.
-
-Input:
+Inputs (per reference file "Required Inputs" + "qa-from-issue Mode X appends"):
 - specFile: {absolute path to the existing spec identified in Phase 1 Step 3}
 - pomFile: {absolute path to corresponding POM, inferred from spec's import}
-- handoffFile: {absolute path to handoff JSON — read from spec header comment `// handoff:`, fallback: infer from slug}
-- issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
+- handoffFile: {absolute path to handoff JSON — from spec header `// handoff:`, fallback: infer from slug}
 - pageUrl: {issueContext.pageUrl, concatenated with baseURL if relative}
+- sourceProjectDir: {resolved source code directory}
+- appLanguages: {APP_LANGUAGES or null}
+- i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
+- issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
 - authSetup: {true/false}
 - testCredentials: {if authSetup=true}
 
-Steps:
-1. Read the existing spec file and its POM
-1.5. **Source Code Pre-Read**: Per cdp-explorer/SKILL.md Phase 0, grep sourceProjectDir for
-     the component matching issueContext.feature/pageUrl. Build sourceContext for use in Steps 4-6.
-2. Connect to the page (list_pages → select_page, or navigate to pageUrl)
-3. Login wall detection → handle if needed
-4. CDP targeted exploration around the issue's target area:
-   - mode: "targeted"
-   - If reproSteps available → follow steps, record state changes
-   - Three-layer scan (DOM → accessibility tree → screenshot)
-5. **Classify each failure** (same logic as qa-fix-tests Phase 2 Step 3):
-   - TEST ISSUE (locator stale, timing, selector too broad) → fix locator/wait, do NOT change business assertions
-   - POSSIBLE BUG (data not loading, feature removed, button state wrong) → do NOT fix, record as bug with evidence
-   - AMBIGUOUS (timeout) → retry with 30s timeout (max 3 attempts), then check source code
-6. For TEST ISSUE classifications — fix:
-   - For each locator in POM → CDP verify: count matches on live page
-   - ZERO matches → DOM scan to find correct selector → Edit POM
-   - MULTIPLE matches → DOM scan for narrowing parent → Edit POM
-   - For each assertion in spec → evaluate_script to get real values
-   - Text/URL mismatches → Edit spec with correct expected values
-   - If assertion content legitimately changed → include `assertionsChanged: true` + `changedAssertions` in return (command layer updates handoff)
-7. For POSSIBLE BUG classifications — do NOT modify test, record in return as `bugs: [{ testName, expectedBehavior, actualBehavior, evidence }]`
-8. Run single-file verification on fixed tests:
-   cd $QA_WORKSPACE_DIR && npx playwright test {specFile}
-9. If test issues still fail after fix → re-analyze and fix (max 3 rounds)
-
-Return:
-{
-  "specFile": "{path}",
-  "status": "fixed" | "needs_manual" | "has_bugs",
-  "locatorsFixed": N,
-  "assertionsFixed": N,
-  "assertionsChanged": true|false,
-  "changedAssertions": [{ "tcId": "TC-XXX-001", "field": "expectedText", "oldValue": "...", "newValue": "..." }],
-  "bugs": [{ "testName": "...", "expectedBehavior": "...", "actualBehavior": "...", "evidence": "..." }],
-  "behaviorMatch": { "expected": "...", "actual": "...", "matches": true|false }
-}
-```
+Return uses "qa-from-issue Mode X return format" from the reference file.
 ```
 
 After subagent returns:
@@ -273,7 +246,8 @@ After subagent returns:
 - **Skip orchestrator entirely** (no new test cases, no Excel)
 - **Skip qa-fix-tests** (Mode X subagent already did CDP fix + verification, avoid double-fixing)
 - **Go directly to Phase 3 regression + reporting**:
-  1. Launch test-executor (mode: "changed", specFiles: modified_specs) → produces `fix-regression.json`
+  1. Launch test-executor (mode: "changed+smoke", specFiles: modified_specs) → produces `fix-regression.json`
+     // Runs modified specs (all tests) + all other specs (@smoke only). See "Issue-Source Smoke Regression" below.
   2. Collect detectedBugs from Mode X subagent's `bugs` field (if any)
   3. Continue to Phase 3 Step 3 (report-analyzer) with reportFile + detectedBugs
 - **Sync handoff**: Execute `.claude/references/handoff-sync.md` procedure.
@@ -302,7 +276,7 @@ Task: Targeted exploration of a page area related to a Linear issue.
 Input:
 - mode: "targeted"
 - pageUrl: {issue pageUrl extracted in Phase 1}
-- targetArea: {functional area referenced by the issue, e.g., "button:download" or ".download-section"}
+- targetArea: {derived from issueContext.feature — e.g., feature "canvas-download" → targetArea "download" or ".download-section". If feature is vague, use reproSteps[0] to infer the UI area}
 - reproSteps: {reproduction steps extracted in Phase 1, if available}
 - expectedBehavior: {from issue}
 - actualBehavior: {from issue}
@@ -314,6 +288,7 @@ Input:
   When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
 - sourceProjectDir: {resolved source code directory per priority: --source > prSourceDir > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
   MUST execute cdp-explorer Phase 0 (source pre-read) before any DOM scanning.
+- previousSourceContext: {sharedSourceContext from previous CDP subagents in batch mode, or {} for first/single issue}
 
 Steps:
 1. Connect to page (list_pages → select_page, or navigate to pageUrl)
@@ -400,22 +375,11 @@ Execute per .claude/agents/e2e-orchestrator.md steps (read SKILL.md -> generate)
 
 **MANDATORY VERIFICATION GATE** (after ALL orchestrators complete):
 
-Execute the Post-Return File Verification checklist defined in `.claude/agents/e2e-orchestrator.md` § "Post-Return File Verification" (Steps V1-V5). The AUTHORITATIVE definition is in e2e-orchestrator.md — do NOT duplicate inline. Pipeline **STOPS** if any check fails — do NOT proceed to test-executor.
-
-```
-Read .claude/agents/e2e-orchestrator.md → § "Post-Return File Verification" → execute V1-V5 for EACH result.
-If ANY verification fails → STOP, delete incomplete artifacts, report detailed error to user.
-Only proceed after ALL checks pass.
-```
+Execute `.claude/references/verification-gate-v1-v5.md` (Steps V1-V5) for EACH orchestrator result.
+Pipeline **STOPS** if any check fails — do NOT proceed to test-executor.
 
 **POM Fragment Merge** (when multiple orchestrators target the same page):
-If multiple issues target the same page and orchestrators wrote POM fragments (`{slug}.page.{area}.fragment.ts`):
-1. Group fragments by slug: `Glob("tests/e2e/pages/{slug}.page.*.fragment.ts")`
-2. Read all fragments + existing POM (if any)
-3. Merge: combine imports, deduplicate locators by name, union all methods
-4. Write merged POM to `tests/e2e/pages/{slug}.page.ts`
-5. Delete fragment files
-Same logic as qa-run-prd Phase 2 and qa-explore Phase 2b POM merge.
+Execute `.claude/references/pom-merge.md`
 
 **Build specToIssueMap** (command layer, after orchestrator returns):
 - Read `specToIssueMap` directly from the orchestrator's return value (the orchestrator populates this field in issue mode)
@@ -431,22 +395,7 @@ Same logic as qa-run-prd Phase 2 and qa-explore Phase 2b POM merge.
   ```
 
 **Export Excel** (after orchestrator completes + verification gate passes):
-```bash
-node skills/excel-case-export/scripts/generate-excel.js \
-  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
-```
-
-Verify — retry once on failure:
-```
-if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
-  WARN: "Excel export failed — retrying..."
-  node skills/excel-case-export/scripts/generate-excel.js \
-    --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-    --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
-  if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
-    ERROR: "Excel export failed after retry — file not written"
-```
+Execute `.claude/references/excel-export-gate.md` (with `{name}` = `{slug}`)
 
 ### Step 2 — Delegate to /qa-fix-tests (Locator verification + fix + execution)
 
@@ -461,19 +410,25 @@ allGeneratedSpecs = orchestrator.specs + orchestrator.modified_specs
 Execute /qa-fix-tests with arguments: --skip-baseline {allGeneratedSpecs joined by space}
 ```
 
-**After qa-fix-tests completes, extract results for report-analyzer**:
+**After qa-fix-tests completes, run smoke regression**:
 
 ```
-// qa-fix-tests Phase 3 regression produces: tests/reports/fix-regression.json
-// qa-fix-tests Phase 2.5 may detect application bugs (not test issues)
+// qa-fix-tests fixes the generated specs. Now run them together with smoke suite for regression.
 
 // 1. Collect detectedBugs from qa-fix-tests output
-//    Parse the "Application Bugs Detected" section from qa-fix-tests' summary
 detectedBugs = extract bug entries from qa-fix-tests output:
   [{ testName, expectedBehavior, actualBehavior, evidence, specFile }]
 
-// 2. Determine reportFile
-//    qa-fix-tests --skip-baseline → Phase 3 uses test-executor "changed" mode → fix-regression.json
+// 2. Launch test-executor with "changed+smoke" mode
+//    Runs: (a) issue-related specs (all tests) + (b) all other specs (@smoke only)
+Launch test-executor (haiku):
+  mode: "changed+smoke"
+  specFiles: allGeneratedSpecs
+  projectDir: "$QA_WORKSPACE_DIR"
+  appLanguages: {APP_LANGUAGES or null}
+  // See "Issue-Source Smoke Regression" section below for execution details.
+
+// 3. Determine reportFile
 reportFile = "tests/reports/fix-regression.json"
 ```
 
@@ -497,7 +452,7 @@ You are report-analyzer. First read .claude/agents/report-analyzer.md to underst
 Input:
 - sourceIssueKeys: [<issue-key-1>, <issue-key-2>, ...]
 - sourceSpecs: [{allGeneratedSpecs}]
-- specToIssueMap: { "tests/e2e/testcases/generated/feature-a.test.ts": "STE-9", ... }
+- specToIssueMap: { "tests/e2e/testcases/generated/feature-a.test.ts": ["STE-9"], "tests/e2e/testcases/generated/feature-b.test.ts": ["STE-10", "STE-11"] }
 - reportFile: "fix-regression.json"
 - detectedBugs: [{detectedBugs from qa-fix-tests, or empty list if none}]
 - projectContext: { targetProjectDir, ... }
@@ -551,6 +506,10 @@ After bug-reporter returns `{ created, appended }`:
    - 新建 Bug: N 条 — {issue URLs}
    - 回写源 Issue: N 条 — {issue URLs}
 3. Write updated summary back
+
+---
+
+> **Issue-Source Smoke Regression**: See `.claude/agents/test-executor.md` § "changed+smoke Mode Execution" for execution details (two-run merge + dedup). report-analyzer uses `specToIssueMap` to route failures: issue specs → append to source issue, smoke specs → dedup + create new issue.
 
 ---
 

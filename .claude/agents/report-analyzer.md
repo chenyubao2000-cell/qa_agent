@@ -28,9 +28,9 @@ The caller can pass the following context, which affects the reporting strategy:
 > `sourceSpecs` clarification: This is the list of spec file paths that were **generated from** the source issues (not all specs in the project). Used in Step 2.1 routing: if a failed spec is IN sourceSpecs → write-back to source issue; if NOT in sourceSpecs → create new Bug issue.
 
 | `specToIssueMap` | `/qa-from-issue` | Map of `{ specFilePath: issueKey }`. Used to determine which issue a failing spec belongs to |
-| `changeSummary` | `/qa-run-all` (git-watcher) | AI-generated structured summary of code changes. Used to distinguish "regression caused by this change" vs "pre-existing failure" |
-| `relatedIssueKeys` | `/qa-run-all` (git-watcher) | List of Linear issue keys associated with the PR. Used to annotate failure reports with related issue context |
-| `headless` | `/qa-run-all` (git-watcher) | When `true`, skip opening the HTML report in the browser (Step 5). Default: `false` |
+| `changeSummary` | `/qa-run` (git-watcher) | AI-generated structured summary of code changes. Used to distinguish "regression caused by this change" vs "pre-existing failure" |
+| `relatedIssueKeys` | `/qa-run` (git-watcher) | List of Linear issue keys associated with the PR. Used to annotate failure reports with related issue context |
+| `headless` | `/qa-run` (git-watcher) | When `true`, skip opening the HTML report in the browser (Step 5). Default: `false` |
 | `detectedBugs` | `/qa-fix-tests` | List of application bugs found during test fixing. Each entry: `{ testName, expectedBehavior, actualBehavior, evidence, specFile }`. These are real regressions (not test issues). When processing, **transform** each entry to bug-reporter's expected format: `{ name: testName, error: "Expected: {expectedBehavior}, Actual: {actualBehavior}", pipeline: "e2e", file: specFile, screenshot: null, priority: "P1", feature: (infer from specFile name), action: "create", targetIssueId: null }` |
 | `source` | `/qa-fix-tests` | When value is `"qa-fix-tests"`, skip report file reading (Step 1) and go directly to bug creation from `detectedBugs` list (after transforming to bug-reporter format) |
 | `sourceProjectDir` | All callers (optional) | Absolute path to the application source code directory. When provided, enables Step 1.6 source code enrichment for failures. |
@@ -56,7 +56,7 @@ The caller can specify which report file to read via the `reportFile` parameter:
 
 | Caller | reportFile | Reason |
 |--------|-----------|--------|
-| `/qa-run-all` | `playwright-results.json` (default) | test-executor full/selective mode |
+| `/qa-run` | `playwright-results.json` (default) | test-executor full/selective mode |
 | `/qa-from-issue` | `fix-regression.json` | qa-fix-tests Phase 3 changed mode |
 | `/qa-run-prd` | `fix-regression.json` | qa-fix-tests Phase 3 changed mode |
 | `/qa-explore` | `playwright-results.json` (default) | test-executor selective mode |
@@ -262,7 +262,7 @@ For failed test cases in the "create" list, perform deduplication checks:
 
 ### 2.4 Change Attribution (when changeSummary or relatedIssueKeys is provided)
 
-When `changeSummary` is present (from git-watcher via `/qa-run-all`), annotate each failure with change relevance:
+When `changeSummary` is present (from git-watcher via `/qa-run`), annotate each failure with change relevance:
 
 ```
 For each failed test case in the "create" or "append" list:
@@ -276,7 +276,7 @@ For each failed test case in the "create" or "append" list:
      - "pre_existing" → bug-reporter adds "⚪ 可能为已有问题" label in issue description
 ```
 
-When `relatedIssueKeys` is present (from git-watcher via `/qa-run-all`), pass them to bug-reporter:
+When `relatedIssueKeys` is present (from git-watcher via `/qa-run`), pass them to bug-reporter:
 
 ```
 For each failed test case entry passed to bug-reporter:

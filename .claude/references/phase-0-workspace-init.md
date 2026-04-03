@@ -76,7 +76,7 @@ npm init -y && npm install -D @playwright/test dotenv && npx playwright install 
 2. `APP_LANGUAGES` set AND config already has per-language projects → **skip**
 3. `APP_LANGUAGES` not set → **skip** if file exists
 
-**Template**: defined in `.claude/commands/qa-explore.md` § "2d. Generate playwright.config.ts" (the ONLY location — do not duplicate elsewhere).
+**Template**: defined in `.claude/references/phase-0-templates.md` § "playwright.config.ts Template" (the ONLY location — do not duplicate elsewhere).
 Key features: dotenv config, auth setup project with `dependencies: ['setup']`, per-language Playwright projects when APP_LANGUAGES set, JSON + HTML reporters, retain-on-failure trace/video.
 
 ## Step 2e. Generate fixtures.ts (if not present, OR upgrade when APP_LANGUAGES changed)
@@ -86,7 +86,7 @@ Key features: dotenv config, auth setup project with `dependencies: ['setup']`, 
 2. `APP_LANGUAGES` set AND fixtures.ts has `export type I18n` → **skip**
 3. `APP_LANGUAGES` not set → **skip** if file exists
 
-**Template**: defined in `.claude/commands/qa-explore.md` § "2e. Generate fixtures.ts" (the ONLY location — do not duplicate elsewhere).
+**Template**: defined in `.claude/references/phase-0-templates.md` § "fixtures.ts Template" (the ONLY location — do not duplicate elsewhere).
 Two variants: with APP_LANGUAGES (i18n fixture + dynamic imports per language) / without (minimal re-export).
 
 ## Step 2f. Copy static test data files (if not present)

@@ -75,353 +75,8 @@ Extract all config from **this project's .env**:
 
 ### Step 2 — Initialize Workspace (empty folder compatible, skip all if already initialized)
 
-> **Shared reference**: `.claude/references/phase-0-workspace-init.md` defines Steps 2a–2f procedure + validation.
-> This file (qa-explore) is the **single location** for config/fixtures templates (Steps 2d, 2e). Other commands execute the reference file which points here for templates.
-
-Check `$QA_WORKSPACE_DIR`; if it doesn't exist or is empty, perform initialization: create `$QA_WORKSPACE_DIR` if it doesn't exist
-
-#### 2a. Copy .env (if not present)
-
-Write Playwright-related variables from this project's `.env` into `$QA_WORKSPACE_DIR/.env`:
-
-```
-PREVIEW_URL=<from this project's .env PREVIEW_URL>
-PLAYWRIGHT_HEADLESS=<from this project's .env>
-E2E_TEST_EMAIL=<from this project's .env>
-E2E_TEST_PASSWORD=<from this project's .env>
-APP_LANGUAGES=<from this project's .env, if set>
-```
-
-> dotenv loads this file in playwright.config.ts and auth.setup.ts.
-
-#### 2b. Directory Structure (skip if exists)
-
-```bash
-mkdir -p tests/e2e/testcases/generated tests/e2e/pages tests/e2e/test-data/files playwright/.auth
-mkdir -p tests/reports/combined test-cases/generated test-cases/excel test-results messages
-```
-
-#### 2b-1. Copy i18n Messages (when APP_LANGUAGES is set, skip if messages/ already exists)
-
-```bash
-# Validate I18N_MESSAGES_DIR exists before copying
-if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -d "$I18N_MESSAGES_DIR" ]; then
-  echo "ERROR: I18N_MESSAGES_DIR directory not found: $I18N_MESSAGES_DIR"
-  echo "Please check .env configuration"
-  exit 1
-fi
-
-# Copy i18n message files from source project to $QA_WORKSPACE_DIR/messages/
-# This way fixtures.ts uses local relative paths, independent of source code location
-if [ -n "$I18N_MESSAGES_DIR" ] && [ ! -f "$QA_WORKSPACE_DIR/messages/en.json" ]; then
-  # Use node for cross-platform compatibility (cp with glob may fail on Windows)
-  node -e "const fs=require('fs'),p=require('path'); fs.readdirSync('$I18N_MESSAGES_DIR').filter(f=>f.endsWith('.json')).forEach(f=>fs.copyFileSync(p.join('$I18N_MESSAGES_DIR',f),p.join('$QA_WORKSPACE_DIR/messages',f)))"
-  echo "Copied i18n messages to $QA_WORKSPACE_DIR/messages/"
-fi
-
-# Validate ALL languages in APP_LANGUAGES have corresponding message files
-if [ -n "$APP_LANGUAGES" ]; then
-  IFS=',' read -ra LANGS <<< "$APP_LANGUAGES"
-  for lang in "${LANGS[@]}"; do
-    lang=$(echo "$lang" | tr -d ' ')
-    if [ ! -f "$QA_WORKSPACE_DIR/messages/${lang}.json" ]; then
-      echo "ERROR: Missing message file for language '${lang}': $QA_WORKSPACE_DIR/messages/${lang}.json"
-      echo "APP_LANGUAGES=${APP_LANGUAGES} requires message files for all languages."
-      exit 1
-    fi
-  done
-  echo "Validated: message files exist for all languages (${APP_LANGUAGES})"
-fi
-```
-
-> **Why copy instead of reference**: The generated fixtures.ts uses `import from '../messages/en.json'` (local relative path),
-> independent of SOURCE_PROJECT_DIR being reachable at test runtime. Copy once, subsequent executions are self-contained.
-
-#### 2c. Install Playwright (if package.json doesn't exist)
-
-```bash
-npm init -y && npm install -D @playwright/test dotenv && npx playwright install chromium
-```
-
-#### 2d. Generate playwright.config.ts (if not present, OR upgrade when APP_LANGUAGES changed)
-
-**Upgrade logic**: If file exists, check whether it needs upgrading:
-1. `APP_LANGUAGES` is set AND config has no per-language projects (no `e2e-en`/`e2e-zh`) → **regenerate** with multi-project config
-2. `APP_LANGUAGES` is set AND config already has per-language projects → **skip** (already correct)
-3. `APP_LANGUAGES` is NOT set → **skip** if file exists
-
-```bash
-# Pseudo-check:
-if file exists AND APP_LANGUAGES is set:
-  Grep for "e2e-${firstLang}" in playwright.config.ts
-  If NOT found → regenerate (upgrade to multi-project)
-  If found → skip
-```
-
-```typescript
-import { config } from "dotenv";
-import { defineConfig, devices } from "@playwright/test";
-
-config();
-
-const AUTH_FILE = "playwright/.auth/user.json";
-
-const hasAuth = !!(process.env.E2E_TEST_EMAIL && process.env.E2E_TEST_PASSWORD);
-
-const testProjects = process.env.APP_LANGUAGES
-  ? process.env.APP_LANGUAGES.split(',').map(lang => ({
-      name: `e2e-${lang.trim().toLowerCase()}`,
-      testDir: "./tests/e2e",
-      testMatch: "**/testcases/**/*.test.ts",
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
-        locale: { zh: 'zh-CN', 'zh-tw': 'zh-TW', ja: 'ja-JP', ko: 'ko-KR' }[lang.trim().toLowerCase()] || lang.trim().toLowerCase(),
-        extraHTTPHeaders: { 'Cookie': `NEXT_LOCALE=${lang.trim().toLowerCase()}` },
-      },
-      ...(hasAuth ? { dependencies: ['setup'] } : {}),
-    }))
-  : [{
-      name: "e2e",
-      testDir: "./tests/e2e",
-      testMatch: "**/testcases/**/*.test.ts",
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
-      },
-      ...(hasAuth ? { dependencies: ['setup'] } : {}),
-    }];
-
-export default defineConfig({
-  testDir: "./tests/e2e",
-  timeout: 60_000,
-  fullyParallel: true,
-  retries: process.env.CI ? 1 : 0,
-  workers: 1,
-  outputDir: "./test-results",
-  reporter: [
-    ["json", { outputFile: "tests/reports/playwright-results.json" }],
-    ["html", { open: "never" }],
-  ],
-  expect: {
-    timeout: 10_000,
-  },
-  use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.PREVIEW_URL || "http://localhost:3000",
-    viewport: { width: 1280, height: 720 },
-    headless: process.env.PLAYWRIGHT_HEADLESS !== "false",
-    locale: process.env.APP_LANGUAGES?.split(',')[0]?.trim() === 'zh' ? 'zh-CN' : 'en-US',
-    screenshot: "only-on-failure",
-    trace: "retain-on-failure",
-    video: "retain-on-failure",
-  },
-  // Setup project runs auth.setup.ts before all test projects.
-  // Even for public-page-only test runs, setup still executes if hasAuth=true.
-  // This is by design: setup is fast (~5s) and ensures auth state is fresh.
-  // Public page tests opt out via test.use({ storageState: { cookies: [], origins: [] } }).
-  projects: [
-    ...(hasAuth ? [{ name: 'setup', testMatch: /auth\.setup\.ts/ }] : []),
-    ...testProjects,
-  ],
-});
-```
-
-> **Configuration notes**:
-> - `reporter`: Always outputs JSON (consumed by report-analyzer) + HTML (for manual review). Do NOT use `--reporter` CLI override — it would replace this config and lose the JSON file output
-> - `headless`: Controlled by environment variable, defaults to true. Control via `.env`'s `PLAYWRIGHT_HEADLESS`
-> - `retries`: Retry once in CI to reduce flaky false positives; no retries locally for fast failure exposure
-> - `trace` + `video`: Retained on failure for debugging. `on-first-retry` is inferior to `retain-on-failure` (preserves evidence without requiring a retry)
-> - `locale`: Dynamically inferred — uses first language when APP_LANGUAGES is set, defaults to `en-US` otherwise. Each language project sets locale independently.
-> - `outputDir`: Explicitly specified to prevent artifacts from scattering
-> - `expect.timeout`: Default 5s is too short for remote environments, set to 10s
-
-#### 2e. Generate fixtures.ts (if not present, OR upgrade when APP_LANGUAGES changed)
-
-**Upgrade logic**: If file exists, check whether it needs upgrading:
-1. `APP_LANGUAGES` is set AND fixtures.ts does NOT contain `export type I18n` → **regenerate** with i18n fixture
-2. `APP_LANGUAGES` is set AND fixtures.ts already contains `export type I18n` → **skip** (already correct)
-3. `APP_LANGUAGES` is NOT set → **skip** if file exists
-
-```bash
-# Pseudo-check:
-if file exists AND APP_LANGUAGES is set:
-  Grep for "export type I18n" in fixtures.ts
-  If NOT found → regenerate (upgrade to add i18n fixture)
-  If found → skip
-```
-
-**With E2E_TEST_EMAIL** → auth is handled by setup project (auth.setup.ts), fixtures only provide i18n:
-
-**With APP_LANGUAGES** → fixtures.ts with i18n fixture:
-
-> **Dynamic imports**: Generate one `import` line per language in APP_LANGUAGES. Example below shows `APP_LANGUAGES=en,zh`. For `APP_LANGUAGES=en,fr,de`, generate `import enMessages from '../../messages/en.json'`, `import frMessages from '../../messages/fr.json'`, `import deMessages from '../../messages/de.json'` and matching entries in `i18nMessages`.
-
-```typescript
-import { test as base, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
-
-// ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
-// messages/ directory copied from source project to QA_WORKSPACE_DIR/messages/ by Phase 0 Step 2b-1
-// IMPORTANT: Generate one import per language in APP_LANGUAGES, not hardcoded en/zh
-import enMessages from '../../messages/en.json';
-import zhMessages from '../../messages/zh.json';
-// ^^^ Dynamic: for each lang in APP_LANGUAGES, generate: import {lang}Messages from '../../messages/{lang}.json';
-
-const i18nMessages: Record<string, Record<string, any>> = {
-  en: enMessages,
-  zh: zhMessages,
-  // ^^^ Dynamic: for each lang in APP_LANGUAGES, generate: {lang}: {lang}Messages,
-};
-
-export type I18n = { t: (key: string) => string; locale: string };
-
-// ── Session guard: auto re-authenticate on expiry ──
-// See: skills/playwright-script-generator/references/session-guard.md
-const AUTH_FILE = 'playwright/.auth/user.json';
-const SIGN_IN_PATH = '/sign-in';
-
-async function reAuthenticate(page: Page): Promise<void> {
-  const email = process.env.E2E_TEST_EMAIL;
-  const password = process.env.E2E_TEST_PASSWORD;
-  if (!email || !password) throw new Error('Session expired but no credentials in env');
-
-  console.log('[session-guard] Session expired, re-authenticating...');
-
-  const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-  await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
-  await emailInput.fill(email);
-
-  const continueBtn = page.getByRole('button', { name: /^Continue$|^继续$/i });
-  await continueBtn.click({ timeout: 30_000 });
-
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 15_000 });
-  await passwordInput.fill(password);
-  await continueBtn.click({ timeout: 30_000 });
-
-  await page.waitForURL('**/task**', { timeout: 60_000 });
-  console.log('[session-guard] Re-authentication successful');
-
-  await page.context().storageState({ path: AUTH_FILE });
-}
-
-export const test = base.extend<{ i18n: I18n; ensureAuthenticated: void }>({
-  // Auto-fixture: intercepts page.goto to detect login redirects and re-authenticate
-  ensureAuthenticated: [async ({ page }, use) => {
-    const originalGoto = page.goto.bind(page);
-    page.goto = async (url: string, options?: any) => {
-      const response = await originalGoto(url, options);
-      if (page.url().includes(SIGN_IN_PATH)) {
-        await reAuthenticate(page);
-        return originalGoto(url, options);
-      }
-      return response;
-    };
-    await use();
-  }, { auto: true }],
-
-  i18n: [async ({}, use, testInfo) => {
-    const locale = testInfo.project.name.replace('e2e-', '') || 'en';
-    const dict = i18nMessages[locale] ?? i18nMessages['en'];
-    const t = (key: string): string => {
-      const parts = key.split('.');
-      let val: any = dict;
-      for (const p of parts) { val = val?.[p]; }
-      return typeof val === 'string' ? val : key;
-    };
-    await use({ t, locale });
-  }, { scope: 'worker' }],
-});
-
-export { expect };
-```
-
-> **Session guard**: `ensureAuthenticated` is an `auto: true` fixture — every test gets it without explicit destructuring. It patches `page.goto` to detect redirects to `/sign-in` and re-authenticates automatically. See `references/session-guard.md` for details.
-> **Worker-scope fixtures** that create their own context must check `page.url().includes('/sign-in')` after navigation and call `reAuthenticate(page)` manually — they don't get the auto-fixture.
-> **Auth is handled by config**: `storageState` is declared in playwright.config.ts projects, and setup project runs auth.setup.ts before all tests.
-> Tests use `{ page, i18n }` — `page` is already authenticated via config storageState, with session guard as safety net.
-> **Public page tests** (sign-in, forgot-password etc.) opt out with `test.use({ storageState: { cookies: [], origins: [] } })`.
-
-**Without APP_LANGUAGES** → minimal fixtures.ts (still includes session guard when E2E_TEST_EMAIL is set):
-
-```typescript
-import { test as base, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
-
-// ── Session guard (when E2E_TEST_EMAIL is set) ──
-const AUTH_FILE = 'playwright/.auth/user.json';
-const SIGN_IN_PATH = '/sign-in';
-
-async function reAuthenticate(page: Page): Promise<void> {
-  const email = process.env.E2E_TEST_EMAIL;
-  const password = process.env.E2E_TEST_PASSWORD;
-  if (!email || !password) throw new Error('Session expired but no credentials in env');
-  console.log('[session-guard] Session expired, re-authenticating...');
-  const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-  await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
-  await emailInput.fill(email);
-  const continueBtn = page.getByRole('button', { name: /^Continue$|^继续$/i });
-  await continueBtn.click({ timeout: 30_000 });
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 15_000 });
-  await passwordInput.fill(password);
-  await continueBtn.click({ timeout: 30_000 });
-  await page.waitForURL('**/task**', { timeout: 60_000 });
-  console.log('[session-guard] Re-authentication successful');
-  await page.context().storageState({ path: AUTH_FILE });
-}
-
-export const test = base.extend<{ ensureAuthenticated: void }>({
-  ensureAuthenticated: [async ({ page }, use) => {
-    const originalGoto = page.goto.bind(page);
-    page.goto = async (url: string, options?: any) => {
-      const response = await originalGoto(url, options);
-      if (page.url().includes(SIGN_IN_PATH)) {
-        await reAuthenticate(page);
-        return originalGoto(url, options);
-      }
-      return response;
-    };
-    await use();
-  }, { auto: true }],
-});
-export { expect };
-```
-
-> When E2E_TEST_EMAIL is NOT set (public-only pages), omit session guard entirely:
-> ```typescript
-> import { test, expect } from "@playwright/test";
-> export { test, expect };
-> ```
-
-> **auth.setup.ts is not generated at this point** — it requires Phase 1 CDP exploration of the login page to write with verified real selectors.
-> **Pre-check**: If `E2E_TEST_EMAIL` is set but `auth.setup.ts` does not exist at `$QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts`, log a WARNING: "Auth credentials configured but auth.setup.ts not found. It will be generated when CDP encounters a login wall in Phase 1. If the initial URL is a public page, auth.setup.ts may not be created — run /qa-explore on a protected page to trigger generation."
-
-#### 2f. Copy static test data files (if not present)
-
-Copy test data fixture files from qa-platform to the target project. Only copy files that don't already exist (preserve user customizations):
-
-```
-Source: <qa-platform-dir>/tests/e2e/fixtures/files/*
-Target: $QA_WORKSPACE_DIR/tests/e2e/test-data/files/
-
-Files: sample.png, sample.jpg, sample.pdf, sample.csv, sample.xlsx, sample.txt, empty.txt, oversized-6mb.bin
-```
-
-```bash
-# Copy each static file only if it doesn't exist in target
-for f in <qa-platform-dir>/tests/e2e/fixtures/files/*; do
-  target="$QA_WORKSPACE_DIR/tests/e2e/test-data/files/$(basename $f)"
-  [ ! -f "$target" ] && cp "$f" "$target"
-done
-
-# Generate oversized test file dynamically (not stored in repo due to size)
-if [ ! -f "$QA_WORKSPACE_DIR/tests/e2e/test-data/files/oversized-6mb.bin" ]; then
-  node -e "require('fs').writeFileSync('$QA_WORKSPACE_DIR/tests/e2e/test-data/files/oversized-6mb.bin', Buffer.alloc(6*1024*1024, 0x41))"
-fi
-```
-
-> These files are referenced by generated specs when handoff entries use `file.*` dataTypes (see `skills/playwright-script-generator/SKILL.md` §0d). Without them, file upload tests will fail with "file not found". The oversized file is generated dynamically to avoid bloating the qa-platform repository.
+Execute `.claude/references/phase-0-workspace-init.md` Steps 2a-2f. Each sub-step is skip-if-exists.
+Then run i18n + auth infrastructure validation per the same reference file.
 
 ### Step 3 — Determine Exploration URL
 
@@ -451,98 +106,9 @@ Execute cdp-explorer SKILL **Phase 1 (Connection)**, then detect login wall (Pha
 3. **Generate auth.setup.ts** (`$QA_WORKSPACE_DIR/tests/e2e/auth.setup.ts`, if not present):
    - Write with verified real selectors from CDP exploration, no guessing
    - If exists -> skip (don't overwrite user-customized login logic)
-   - **Template** (replace `{loginPagePath}`, `{emailSelector}`, `{passwordSelector}`, `{submitSelector}`, `{postLoginUrlPattern}` with CDP-discovered real values):
-   - **`{submitSelector}` notes**: Use `^...$` anchors in regex to avoid matching partial text (e.g., `/^Continue$/i` won't match "Continue with Google"). Use `click({ timeout: 30_000 })` instead of manual `toBeEnabled()` + `click()` — Playwright's click auto-waits for enabled state (actionability checks), more resilient to slow JS hydration.
-
-```typescript
-import { test as setup, expect } from '@playwright/test';
-import { config } from 'dotenv';
-import path from 'node:path';
-import fs from 'node:fs';
-
-config();
-
-const authFile = path.join(__dirname, '..', '..', 'playwright', '.auth', 'user.json');
-const AUTH_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes — session tokens typically expire in < 1h
-
-setup('authenticate', async ({ page }) => {
-  const baseURL = process.env.PLAYWRIGHT_BASE_URL || process.env.PREVIEW_URL || 'http://localhost:3000';
-  const email = process.env.E2E_TEST_EMAIL;
-  const password = process.env.E2E_TEST_PASSWORD;
-
-  if (!email && !password) {
-    console.log('No test credentials configured, skipping auth setup.');
-    return;
-  }
-  if (!email || !password) {
-    throw new Error(`Auth setup incomplete: ${!email ? 'E2E_TEST_EMAIL' : 'E2E_TEST_PASSWORD'} is missing in .env. Set both or remove both.`);
-  }
-
-  // Check if existing auth state is still fresh (skip login if < 30min old)
-  const authDir = path.dirname(authFile);
-  if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
-  if (fs.existsSync(authFile)) {
-    const stat = fs.statSync(authFile);
-    const ageMs = Date.now() - stat.mtimeMs;
-    if (ageMs < AUTH_MAX_AGE_MS) {
-      try {
-        const state = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
-        if (state.cookies?.length > 0) {
-          console.log(`Auth state is fresh (${Math.round(ageMs / 60000)}m old), reusing.`);
-          return;
-        }
-      } catch {}
-    }
-    console.log(`Auth state is stale (${Math.round(ageMs / 60000)}m old), re-authenticating.`);
-  }
-
-  // Login with retry
-  const MAX_RETRIES = 2;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      // Navigate to login page — path from CDP exploration
-      await page.goto(`${baseURL}{loginPagePath}`);
-
-      // Step 1: Enter email — selectors from CDP exploration
-      const emailInput = page.locator('{emailSelector}').first();
-      await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
-      await emailInput.fill(email);
-
-      // Use click({ timeout }) instead of manual toBeEnabled + click.
-      // Playwright's click() auto-waits for visible + stable + enabled (actionability checks).
-      // This is more resilient to slow JS hydration in preview/remote environments.
-      const submitBtn = page.locator('{submitSelector}');
-
-      // {IF_MULTI_STEP}: Multi-step login — click continue after email to reveal password field
-      // await submitBtn.click({ timeout: 30_000 });
-      // {END_IF_MULTI_STEP}
-
-      // Step 2: Enter password
-      const passwordInput = page.locator('{passwordSelector}');
-      await passwordInput.waitFor({ state: 'visible', timeout: 15_000 });
-      await passwordInput.fill(password);
-      await submitBtn.click({ timeout: 30_000 });
-
-      // Wait for post-login redirect
-      await page.waitForURL('{postLoginUrlPattern}', { timeout: 60_000 });
-      console.log(`Login successful as ${email}, saving auth state.`);
-
-      // Save auth state
-      await page.context().storageState({ path: authFile });
-      return; // success — exit retry loop
-    } catch (e) {
-      if (attempt < MAX_RETRIES) {
-        console.log(`Login attempt ${attempt + 1} failed, retrying in 5s... (${e.message})`);
-        await page.waitForTimeout(5000);
-      } else {
-        throw new Error(`Auth setup failed after ${MAX_RETRIES + 1} attempts: ${e.message}`);
-      }
-    }
-  }
-});
-```
-
-> **Setup project pattern** (Playwright recommended): auth.setup.ts runs once before all test projects via `dependencies: ['setup']` in playwright.config.ts. Staleness check (30min TTL) avoids unnecessary re-login when auth is fresh. Session guard in fixtures.ts (`ensureAuthenticated` auto-fixture) handles mid-run expiry. See `references/session-guard.md`.
+   - **Template**: Use auth.setup.ts template from `.claude/references/phase-0-templates.md` § "auth.setup.ts template"
+   - Replace `{loginPagePath}`, `{emailSelector}`, `{passwordSelector}`, `{submitSelector}`, `{postLoginUrlPattern}` with CDP-discovered real values
+   - **`{submitSelector}` notes**: Use `^...$` anchors in regex to avoid matching partial text. Use `click({ timeout: 30_000 })` — Playwright's click auto-waits for actionability.
 
 4. **Verify playwright.config.ts** has setup project: Ensure it includes `{ name: 'setup', testMatch: /auth\.setup\.ts/ }` and test projects have `dependencies: ['setup']`. The config template from Phase 0 Step 2d already includes this.
 5. **Generate sign-in POM** (`tests/e2e/pages/sign-in.page.ts`) for login-related specs
@@ -811,6 +377,7 @@ for area in exploredAreas:
         sourceProjectDir: {SOURCE_PROJECT_DIR}
         baseURL: {PREVIEW_URL}
         authSetup: {true/false}
+        testCredentials: {E2E_TEST_EMAIL / E2E_TEST_PASSWORD, if authSetup=true}
         existingTests: tests/e2e/testcases/
         techStack: {from CLAUDE.md}
         appLanguages: {APP_LANGUAGES or null}
@@ -840,10 +407,7 @@ if crossAreaFlows.length > 0:
 results = await all(orchestratorAgents)
 
 // ══ MANDATORY VERIFICATION GATE ══
-// Execute the Post-Return File Verification checklist defined in
-// .claude/agents/e2e-orchestrator.md § "Post-Return File Verification" (Steps V1-V5).
-// The AUTHORITATIVE definition of V1-V5 is in e2e-orchestrator.md — do NOT
-// duplicate inline. Read the checklist from that file and execute each step.
+// Execute `.claude/references/verification-gate-v1-v5.md` (Steps V1-V5) for EACH orchestrator result.
 // Pipeline STOPS if any check fails — do NOT proceed.
 //
 // On failure:
@@ -855,20 +419,7 @@ results = await all(orchestratorAgents)
 allSpecs = results.flatMap(r => r.specs + r.modified_specs)
 allPageObjects = results.flatMap(r => r.page_objects)
 
-// Export Excel: merge all .md into one file (one Sheet per area)
-// Only executes AFTER verification gate passes
-node skills/excel-case-export/scripts/generate-excel.js \
-  --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-  --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
-
-// Verify Excel output exists — retry once on failure
-if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
-  WARN: "Excel export failed — retrying..."
-  node skills/excel-case-export/scripts/generate-excel.js \
-    --input-dir $QA_WORKSPACE_DIR/test-cases/generated \
-    --output $QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx
-  if NOT Glob("$QA_WORKSPACE_DIR/test-cases/excel/{slug}-all-cases.xlsx"):
-    ERROR: "Excel export failed after retry — file not written"
+Execute `.claude/references/excel-export-gate.md` (with `{name}` = `{slug}`)
 
 // Report generation progress
 ```
@@ -897,21 +448,7 @@ Combined Excel: test-cases/excel/{slug}-all-cases.xlsx
 
 ### Same-Page POM Merge Rules (Parallel-Safe)
 
-When multiple areas belong to the same page, they share a single POM file. In parallel generation mode (Phase 2b), **concurrent writes to the same POM would cause data loss**. Solution: fragment-then-merge.
-
-**During Phase 2b (parallel generation)**:
-- Each orchestrator writes a **POM fragment file** instead of appending to the shared POM directly
-- Fragment naming: `tests/e2e/pages/{slug}.page.{area-id}.fragment.ts`
-- Each fragment contains only the private properties + public getters/methods for that area
-- No read-modify-write of the shared POM → no write conflicts
-
-**After Phase 2b completes, before Phase 2c (main command merges)**:
-1. Read the base POM file (created by the first area, or existing)
-2. Read all fragment files for the same page: `Glob("tests/e2e/pages/{slug}.page.*.fragment.ts")`
-3. Merge: for each fragment, append its private properties and public methods to the base POM (skip duplicates by property name)
-4. Write the merged POM back to `tests/e2e/pages/{slug}.page.ts`
-5. Delete all fragment files
-6. Update spec imports if needed (fragments used temporary names)
+Execute `.claude/references/pom-merge.md`
 
 **During serial generation** (single area at a time): orchestrators can directly append to the POM as before — no fragment needed.
 
@@ -953,7 +490,7 @@ If the user runs `/qa-explore` again on a previously explored page:
 > **Separation of concerns**: qa-explore only handles exploration + generation. Locator verification + fix + execution are all handled by `/qa-fix-tests`.
 > This is consistent with the qa-run-prd pattern: after generation, hand off to fix-tests.
 >
-> qa-explore does not report to Linear. Run `/qa-run-all` when formal reporting is needed.
+> qa-explore does not report to Linear. Run `/qa-run` when formal reporting is needed.
 
 **Pre-check**: If allSpecs is empty (all areas already covered) -> inform user "all test cases already have spec coverage" -> end
 
@@ -971,7 +508,7 @@ Execute /qa-fix-tests with arguments: --skip-baseline {allGeneratedSpecs joined 
 
 Explored {N} areas, generated {M} test cases, {K} specs.
 qa-fix-tests will verify locators, fix issues, and run tests.
-When ready for formal testing + Linear reporting, run /qa-run-all.
+When ready for formal testing + Linear reporting, run /qa-run.
 ```
 
 ---
@@ -989,4 +526,3 @@ When ready for formal testing + Linear reporting, run /qa-run-all.
 | `tests/reports/playwright-results.json` | Test execution: JSON report |
 | `playwright-report/index.html` | Test execution: HTML report |
 | `tests/reports/combined/summary.md` | Report analysis: Summary report (always generated) |
-| Linear Issue | Report analysis: Failed case reporting (after dedup, skipped when all pass) |

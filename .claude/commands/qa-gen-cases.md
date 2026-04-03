@@ -169,7 +169,7 @@ Return artifact paths:
 
 ### Post-Generation Verification (MANDATORY — V1-V2 gate)
 
-After the subagent returns, execute `.claude/agents/e2e-orchestrator.md` § "Post-Return File Verification" Steps V1 (.md) and V2 (handoff). Skip V3-V4 (no specs/POMs in case-only mode). Pipeline STOPS if any check fails — do NOT proceed to Excel export.
+After the subagent returns, execute `.claude/references/verification-gate-v1-v5.md` Steps V1 (.md) and V2 (handoff) only. Skip V3-V5 (no specs/POMs in case-only mode). Pipeline STOPS if any check fails — do NOT proceed to Excel export.
 
 ```
 1. For each test_cases path in the return value:
@@ -187,6 +187,7 @@ After the subagent returns, execute `.claude/agents/e2e-orchestrator.md` § "Pos
    - If file NOT found → ERROR: "Subagent reported success but handoff not written: {path}"
    - Retry: re-launch subagent with explicit instruction to use Write tool
    - If file exists: validate it is a valid JSON array with at least 1 entry
+   - Count handoff entries == count TC entries in .md (1:1 mapping per verification-gate-v1-v5.md V2)
 ```
 
 > **Why this is needed**: Subagents run in isolated contexts. If a subagent's Write call fails silently (permission, path issue), the subagent may report success while no file was written. This verification catches that.
@@ -199,11 +200,12 @@ node skills/excel-case-export/scripts/generate-excel.js \
   --output $OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx
 ```
 
-**Verify Excel output**:
+**Verify Excel output** (same gate as other commands):
 ```
 if NOT Glob("$OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
-  ERROR: "Excel export failed — file not written"
-  Retry: re-run generate-excel.js
+  WARN: "Excel export failed — retrying..."
+  Re-run generate-excel.js
+  if still NOT found → ERROR: "Excel export failed after retry — file not written"
 ```
 
 ## Artifacts

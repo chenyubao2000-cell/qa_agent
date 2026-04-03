@@ -8,7 +8,7 @@
  *
  * 触发规则：
  *   - PR title/body 中包含 Linear issue key → /qa-from-issue（CDP 探查 + 生成用例 + 测试）
- *   - 否则 → /qa-run-all（跑已有测试）
+ *   - 否则 → /qa-run（跑已有测试）
  *   - 测试完成后自动在 PR 上评论结构化报告（同一 commit 不重复评论）
  *
  * CDP 支持：启动时生成 headless MCP 配置（chrome-devtools --headless），
@@ -704,8 +704,8 @@ function check() {
             log(`  ▶ 触发 /qa-from-issue ${issueList}`);
             passed = triggerCommand("/qa-from-issue", issueList, changes);
           } else {
-            log("  ▶ 触发 /qa-run-all");
-            passed = triggerCommand("/qa-run-all", "", changes);
+            log("  ▶ 触发 /qa-run");
+            passed = triggerCommand("/qa-run", "", changes);
           }
         } finally {
           if (worktreePath) removeWorktree(worktreePath);

@@ -44,7 +44,7 @@ E2E_TEST_PASSWORD=xxx
 | `/qa-from-issue STE-9` | 从 Linear Issue 生成测试 | 是 | via fix-tests | 是 |
 | `/qa-run-prd [路径]` | 从 PRD 文档生成测试 | 是 | via fix-tests | 否 |
 | `/qa-gen-cases [路径]` | 仅生成用例 + Excel | 仅用例 | 否 | 否 |
-| `/qa-run-all` | 执行已有测试 | 否 | 是 | 是 |
+| `/qa-run` | 执行已有测试 | 否 | 是 | 是 |
 | `/qa-fix-tests` | 修复失败的测试 (--from-prd, --upgrade-i18n) | 仅修复 | 是 | 否 |
 
 ### 3. CI 监控
@@ -53,7 +53,7 @@ E2E_TEST_PASSWORD=xxx
 npx tsx scripts/git-watcher.ts
 ```
 
-轮询 GitHub PR → 检测代码推送 → 触发 `/qa-from-issue` 或 `/qa-run-all` → 在 PR 上评论测试结果。
+轮询 GitHub PR → 检测代码推送 → 触发 `/qa-from-issue` 或 `/qa-run` → 在 PR 上评论测试结果。
 
 ## 架构
 
@@ -63,9 +63,9 @@ npx tsx scripts/git-watcher.ts
   ├── /qa-from-issue     Linear Issue → CDP 定向探查 → 并行生成 → /qa-fix-tests → 报告
   ├── /qa-run-prd        PRD 文档 → 并行生成 → /qa-fix-tests
   ├── /qa-gen-cases      PRD 文档 → 生成用例 + Excel（不生成脚本，不执行）
-  ├── /qa-run-all        执行已有 spec → 报告（不生成）
+  ├── /qa-run        执行已有 spec → 报告（不生成）
   ├── /qa-fix-tests      CDP 探查 → 修复 locator/断言 → 执行验证（3 modes: normal, --from-prd, --upgrade-i18n）
-  └── git-watcher        轮询 PR → 路由到 /qa-from-issue 或 /qa-run-all
+  └── git-watcher        轮询 PR → 路由到 /qa-from-issue 或 /qa-run
 
 生成层 → 修复层 → 报告层
   e2e-orchestrator (sonnet) → /qa-fix-tests (CDP verify + fix + execute) → report-analyzer (haiku)
@@ -103,7 +103,7 @@ qa-platform/
 │   ├── qa-from-issue       Issue 驱动测试
 │   ├── qa-run-prd          PRD 驱动流水线
 │   ├── qa-gen-cases        仅生成用例
-│   ├── qa-run-all          执行 + 报告
+│   ├── qa-run          执行 + 报告
 │   └── qa-fix-tests        修复失败测试
 ├── agents/               4 个 Agent
 │   ├── e2e-orchestrator    生成引擎 (sonnet)

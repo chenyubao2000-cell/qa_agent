@@ -6,7 +6,7 @@ allowed-tools: Agent, Bash, Read, Write, Glob, Grep, Edit
 You are a test executor. Do not generate cases, export Excel, or generate specs — only execute existing tests and report.
 
 ```
-/qa-run-all [spec-file-path] [--suite smoke|regression|full] [--source <source-code-dir>]
+/qa-run [spec-file-path|glob] [--suite smoke|regression|full] [--lang <language>] [--slug <keyword>] [--source-filter cdp|issue|prd] [--source <source-code-dir>]
      |
 Phase 0: Load project context (.env -> target project config)
      |
@@ -73,22 +73,69 @@ Related Linear Issues (for failure attribution): STE-123, STE-456
 PR source directory (prSourceDir): D:\code\.qa-worktree-pr
 ```
 
-**Parse suite parameter from $ARGUMENTS** (supports both flags and natural language):
+**Parse parameters from $ARGUMENTS** (supports both flags and natural language):
+
+### Suite (level)
 
 Formal flags:
 - `--suite smoke` → suite = "smoke"
 - `--suite regression` → suite = "regression"
 - `--suite full` or no --suite → suite = "full"
-
-Natural language (Chinese/English):
-- Contains "smoke" / "冒烟" / "P0" / "只跑smoke" → suite = "smoke"
-- Contains "regression" / "回归" / "P0+P1" → suite = "regression"
-- Contains "full" / "全量" / "所有" → suite = "full"
+- `--suite P0` / `--suite P1` / `--suite P2` → suite = "P0" / "P1" / "P2"
 
 Suite to Playwright --grep mapping:
 - smoke → `--grep @smoke`
 - regression → `--grep "@smoke|@regression"`
 - full → no --grep (run all)
+- P0 / P1 / P2 → `--grep @P0` / `--grep @P1` / `--grep @P2`
+
+### Language
+
+Formal flags:
+- `--lang en` → projectFilter = `--project=e2e-en`
+- `--lang zh` → projectFilter = `--project=e2e-zh`
+- `--lang all` or no --lang → projectFilter omitted (run all language projects)
+
+> Only effective when `APP_LANGUAGES` is set. When not set, project is always `e2e`.
+
+### File scope
+
+Multiple ways to narrow which specs to run (combined with AND logic):
+
+| Flag | Example | Effect |
+|------|---------|--------|
+| Positional file path | `/qa-run tests/e2e/testcases/generated/login.test.ts` | Run exact file(s) |
+| Positional glob | `/qa-run "tests/**/login*.test.ts"` | Glob match |
+| `--slug <keyword>` | `/qa-run --slug login` | Match filenames containing `login` |
+| `--source-filter cdp\|issue\|prd` | `/qa-run --source-filter cdp` | Only run `*-cdp.test.ts` specs |
+
+Resolution order:
+1. If positional file path or glob is provided → use that directly
+2. If `--slug` → `Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*{slug}*.test.ts")`
+3. If `--source-filter` → `Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/**/*-{source-filter}.test.ts")`
+4. If both `--slug` and `--source-filter` → intersect results
+5. If none → run all specs
+
+### Natural language (Chinese/English combined parsing)
+
+Parse the entire $ARGUMENTS string for combined intent:
+
+| Input | Parsed as |
+|-------|-----------|
+| `冒烟` / `smoke` | suite=smoke |
+| `P0` (standalone) | suite=P0 (explicit priority level, `--grep @P0`) |
+| `回归` / `regression` / `P0+P1` | suite=regression |
+| `全量` / `full` / `所有` | suite=full |
+| `中文` / `zh` / `chinese` | lang=zh |
+| `英文` / `en` / `english` | lang=en |
+| `冒烟中文` | suite=smoke, lang=zh |
+| `回归英文` | suite=regression, lang=en |
+| `P0 中文` | suite=P0, lang=zh |
+| `全量 英文` | suite=full, lang=en |
+| `只跑登录` | slug=login (extracted from keyword) |
+| `冒烟 只跑登录` | suite=smoke, slug=login |
+
+> Natural language tokens are matched greedily. Unrecognized tokens are treated as slug keywords.
 
 ### Headless Mode Detection
 
@@ -103,25 +150,26 @@ You are test-executor. First read .claude/agents/test-executor.md to understand 
 
 Input:
 - mode: "full"
-- suite: "{parsed suite parameter, default full}"
-- specFiles: [{if $ARGUMENTS specifies file paths, list them; otherwise omit to run all}]
+- suite: "{parsed suite, default full}"
+- specFiles: [{resolved file list from scope parsing; omit to run all}]
 - projectDir: "$QA_WORKSPACE_DIR"
 - appLanguages: {APP_LANGUAGES or null}
+- langProject: "{parsed --lang → e2e-{lang}, or null for all}"
 
 Execute per .claude/agents/test-executor.md steps, return report paths and summary.
 ```
 
 **Multi-language project selection** (when `APP_LANGUAGES` is set):
-- Default: run ALL language projects. Playwright automatically discovers `e2e-en`, `e2e-zh` etc.
+- `langProject` is null → run ALL language projects. Playwright automatically discovers `e2e-en`, `e2e-zh` etc.
   ```bash
   npx playwright test  # runs all projects, reporter from config
   ```
-- With `--project` argument: run specific language only.
+- `langProject` is set (e.g., `e2e-zh` from `--lang zh`) → run specific language only.
   ```bash
-  npx playwright test --project=e2e-en  # English only
+  npx playwright test --project=e2e-zh  # Chinese only
   ```
-- The test-executor agent receives the project list implicitly via playwright.config.ts.
-  No special handling needed — Playwright's multi-project execution handles language switching automatically (each project has its own locale + NEXT_LOCALE cookie).
+- The test-executor agent receives `langProject` and maps it to `--project` flag.
+  Playwright's multi-project execution handles language switching automatically (each project has its own locale + NEXT_LOCALE cookie).
 
 - Produce JSON + HTML reports to `$QA_WORKSPACE_DIR/tests/reports/`
 
