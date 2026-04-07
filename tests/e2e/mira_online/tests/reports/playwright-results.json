@@ -1,0 +1,527 @@
+{
+  "config": {
+    "configFile": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\playwright.config.ts",
+    "rootDir": "D:/ling_work/code2026/qa_agent/tests/e2e/mira_online/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/ling_work/code2026/qa_agent/tests/e2e/mira_online/test-results",
+        "repeatEach": 1,
+        "retries": 3,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "D:/ling_work/code2026/qa_agent/tests/e2e/mira_online/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/auth\\.setup\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/ling_work/code2026/qa_agent/tests/e2e/mira_online/test-results",
+        "repeatEach": 1,
+        "retries": 3,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "e2e-en",
+        "name": "e2e-en",
+        "testDir": "D:/ling_work/code2026/qa_agent/tests/e2e/mira_online/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/testcases/**/*.test.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/ling_work/code2026/qa_agent/tests/e2e/mira_online/test-results",
+        "repeatEach": 1,
+        "retries": 3,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "e2e-zh",
+        "name": "e2e-zh",
+        "testDir": "D:/ling_work/code2026/qa_agent/tests/e2e/mira_online/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/testcases/**/*.test.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json",
+        {
+          "outputFile": "tests/reports/playwright-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "auth.setup.ts",
+      "file": "auth.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 288,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Auth state is fresh (6m old), reusing.\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-04-07T05:52:39.533Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-60f085b113a677673906",
+          "file": "auth.setup.ts",
+          "line": 11,
+          "column": 6
+        }
+      ]
+    },
+    {
+      "title": "testcases\\generated\\task-scenario-send-verify-fix.test.ts",
+      "file": "testcases/generated/task-scenario-send-verify-fix.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "[VERIFY-FIX] MIRA-1318 场景发送后应导航到新对话页",
+          "file": "testcases/generated/task-scenario-send-verify-fix.test.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [
+            {
+              "title": "[VERIFY-FIX] TC-VF-TSS-001 场景发送后应导航到新对话页",
+              "ok": true,
+              "tags": [
+                "P0",
+                "smoke",
+                "regression",
+                "full"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17478,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[VERIFY-FIX] URL before send: https://mira-bff-preview.up.railway.app/task\n"
+                        },
+                        {
+                          "text": "[VERIFY-FIX] URL after send: https://mira-bff-preview.up.railway.app/task\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-07T05:52:42.508Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8262b6dfd22be6030f46-c8b5b482f7058ab6a02a",
+              "file": "testcases/generated/task-scenario-send-verify-fix.test.ts",
+              "line": 20,
+              "column": 7
+            },
+            {
+              "title": "[VERIFY-FIX] TC-VF-TSS-002 新对话页应显示已发送的场景消息内容",
+              "ok": true,
+              "tags": [
+                "P0",
+                "smoke",
+                "regression",
+                "full"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 17705,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[VERIFY-FIX] Scenario text to send: Analyze key findings from a market research report\n"
+                        },
+                        {
+                          "text": "[VERIFY-FIX] URL before send: https://mira-bff-preview.up.railway.app/task\n"
+                        },
+                        {
+                          "text": "[VERIFY-FIX] URL after send: https://mira-bff-preview.up.railway.app/task\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-07T05:52:42.481Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8262b6dfd22be6030f46-5a8fe415e76ad65ff8ab",
+              "file": "testcases/generated/task-scenario-send-verify-fix.test.ts",
+              "line": 62,
+              "column": 7
+            },
+            {
+              "title": "[VERIFY-FIX] TC-VF-TSS-003 输入框为空时发送按钮应禁用，不应导航到新对话页",
+              "ok": true,
+              "tags": [
+                "P1",
+                "regression",
+                "full"
+              ],
+              "tests": [
+                {
+                  "timeout": 15000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 14344,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-07T05:52:42.511Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8262b6dfd22be6030f46-b5c8a4881d2d4f6bfd5b",
+              "file": "testcases/generated/task-scenario-send-verify-fix.test.ts",
+              "line": 103,
+              "column": 7
+            },
+            {
+              "title": "[VERIFY-FIX] TC-VF-TSS-004 场景建议卡片在 /task 页面可见且可点击（回归验证）",
+              "ok": false,
+              "tags": [
+                "P1",
+                "regression",
+                "full"
+              ],
+              "tests": [
+                {
+                  "timeout": 15000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 15544,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts",
+                            "column": 33,
+                            "line": 136
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('task.tryScenarios')\nExpected: visible\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByText('task.tryScenarios')\u001b[22m\n\n\n  134 |     // \"试试以下场景\" label should be visible\n  135 |     const scenarioLabel = taskPage.getScenarioLabel();\n> 136 |     await expect(scenarioLabel).toBeVisible({ timeout: 10_000 });\n      |                                 ^\n  137 |     await expect(scenarioLabel).toContainText(i18n.t('task.tryScenarios'));\n  138 |\n  139 |     // At least 1 scenario card should be visible\n    at D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts:136:33"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-07T05:52:42.491Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en\\trace.zip"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 15923,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts",
+                            "column": 33,
+                            "line": 136
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('task.tryScenarios')\nExpected: visible\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByText('task.tryScenarios')\u001b[22m\n\n\n  134 |     // \"试试以下场景\" label should be visible\n  135 |     const scenarioLabel = taskPage.getScenarioLabel();\n> 136 |     await expect(scenarioLabel).toBeVisible({ timeout: 10_000 });\n      |                                 ^\n  137 |     await expect(scenarioLabel).toContainText(i18n.t('task.tryScenarios'));\n  138 |\n  139 |     // At least 1 scenario card should be visible\n    at D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts:136:33"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-04-07T05:53:02.406Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry1\\trace.zip"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 15863,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts",
+                            "column": 33,
+                            "line": 136
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('task.tryScenarios')\nExpected: visible\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByText('task.tryScenarios')\u001b[22m\n\n\n  134 |     // \"试试以下场景\" label should be visible\n  135 |     const scenarioLabel = taskPage.getScenarioLabel();\n> 136 |     await expect(scenarioLabel).toBeVisible({ timeout: 10_000 });\n      |                                 ^\n  137 |     await expect(scenarioLabel).toContainText(i18n.t('task.tryScenarios'));\n  138 |\n  139 |     // At least 1 scenario card should be visible\n    at D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts:136:33"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 2,
+                      "startTime": "2026-04-07T05:53:20.621Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry2\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry2\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry2\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry2\\trace.zip"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 15780,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 15000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts",
+                            "column": 33,
+                            "line": 136
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('task.tryScenarios')\nExpected: visible\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for getByText('task.tryScenarios')\u001b[22m\n\n\n  134 |     // \"试试以下场景\" label should be visible\n  135 |     const scenarioLabel = taskPage.getScenarioLabel();\n> 136 |     await expect(scenarioLabel).toBeVisible({ timeout: 10_000 });\n      |                                 ^\n  137 |     await expect(scenarioLabel).toContainText(i18n.t('task.tryScenarios'));\n  138 |\n  139 |     // At least 1 scenario card should be visible\n    at D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\tests\\e2e\\testcases\\generated\\task-scenario-send-verify-fix.test.ts:136:33"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 3,
+                      "startTime": "2026-04-07T05:53:38.851Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry3\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry3\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry3\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\ling_work\\code2026\\qa_agent\\tests\\e2e\\mira_online\\test-results\\testcases-generated-task-s-e563c-场景建议卡片在-task-页面可见且可点击（回归验证）-e2e-en-retry3\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "8262b6dfd22be6030f46-6494f989b9ad51b7601a",
+              "file": "testcases/generated/task-scenario-send-verify-fix.test.ts",
+              "line": 126,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-04-07T05:52:37.800Z",
+    "duration": 77716.961,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

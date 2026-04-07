@@ -1,0 +1,271 @@
+[
+  {
+    "id": "TC-CDP-HOME-001",
+    "storyId": "US-CDP-HOME",
+    "criterionId": "CDP-mira-home-001",
+    "source": "cdp",
+    "title": "首页核心功能展示完整：Hero + 核心 tab + 功能卡片 + 底部 CTA",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户访问首页 https://www.mira.day/"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "img", "name": "Mira Hero", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "link", "name": "加入等待名单", "expected": null, "i18nKey": "homepage.hero.getStarted" },
+      { "type": "visible", "selector": "tab", "name": "核心", "expected": null, "i18nKey": "homepage.features.core" },
+      { "type": "count", "selector": "h2.feature-card", "name": "core feature cards", "expected": 4, "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "协作式自动执行", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" },
+      { "type": "text", "selector": "heading", "name": "可训练，也会学习", "expected": null, "i18nKey": "homepage.features.coreFeatures.trainedByYou.title" },
+      { "type": "text", "selector": "heading", "name": "不是 Demo，而是工程化系统", "expected": null, "i18nKey": "homepage.features.coreFeatures.topTierModels.title" },
+      { "type": "text", "selector": "heading", "name": "无缝融入现有工具", "expected": null, "i18nKey": "homepage.features.coreFeatures.integratedTools.title" },
+      { "type": "text", "selector": "heading", "name": "申请抢先体验", "expected": null, "i18nKey": "homepage.cta.title" },
+      { "type": "visible", "selector": "link", "name": "加入等待名单 (bottom)", "expected": null, "i18nKey": "homepage.cta.button" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-002",
+    "storyId": "US-CDP-NAV",
+    "criterionId": "CDP-mira-home-002",
+    "source": "cdp",
+    "title": "导航"登录"链接跳转到 /task",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "登录", "action": "click", "value": null, "locatorHint": "a[href='/task']", "i18nKey": "homepage.nav.signIn" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/task", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-003",
+    "storyId": "US-CDP-HERO",
+    "criterionId": "CDP-mira-home-003",
+    "source": "cdp",
+    "title": "Hero CTA"加入等待名单"跳转到 /join-waitlist",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "加入等待名单", "action": "click", "value": null, "locatorHint": "a[href='/join-waitlist']", "i18nKey": "homepage.hero.getStarted" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/join-waitlist", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-004",
+    "storyId": "US-CDP-TABS",
+    "criterionId": "CDP-mira-home-004",
+    "source": "cdp",
+    "title": "点击"招聘"tab 切换显示招聘功能卡片",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页，核心 tab 激活"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "tab", "name": "招聘", "action": "click", "value": null, "locatorHint": "button[role='tab']", "i18nKey": "homepage.features.recruiting" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "候选人数据获取", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.candidateData.title" },
+      { "type": "text", "selector": "heading", "name": "沟通与跟进", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.communication.title" },
+      { "type": "text", "selector": "heading", "name": "招聘技能", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.recruitingSkills.title" },
+      { "type": "text", "selector": "heading", "name": "安全与可信", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.securityTrust.title" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-005",
+    "storyId": "US-CDP-TABS",
+    "criterionId": "CDP-mira-home-005",
+    "source": "cdp",
+    "title": "点击"核心"tab 切换显示核心功能卡片",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页，招聘 tab 激活"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "tab", "name": "招聘", "action": "click", "value": null, "locatorHint": "button[role='tab']", "i18nKey": "homepage.features.recruiting" },
+      { "role": "tab", "name": "核心", "action": "click", "value": null, "locatorHint": "button[role='tab']", "i18nKey": "homepage.features.core" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "协作式自动执行", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" },
+      { "type": "text", "selector": "heading", "name": "可训练，也会学习", "expected": null, "i18nKey": "homepage.features.coreFeatures.trainedByYou.title" },
+      { "type": "text", "selector": "heading", "name": "不是 Demo，而是工程化系统", "expected": null, "i18nKey": "homepage.features.coreFeatures.topTierModels.title" },
+      { "type": "text", "selector": "heading", "name": "无缝融入现有工具", "expected": null, "i18nKey": "homepage.features.coreFeatures.integratedTools.title" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-006",
+    "storyId": "US-CDP-LANG",
+    "criterionId": "CDP-mira-home-006",
+    "source": "cdp",
+    "title": "语言切换：中文→英文，验证文本 i18n 正确",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页（中文）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "combobox", "name": "简体中文", "action": "click", "value": null, "locatorHint": "button[role=combobox]", "i18nKey": null },
+      { "role": "option", "name": "English", "action": "select", "value": "English", "locatorHint": "option", "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "link", "name": "Sign in", "expected": "Sign in", "i18nKey": "homepage.nav.signIn" },
+      { "type": "text", "selector": "link", "name": "Join Waitlist", "expected": "Join Waitlist", "i18nKey": "homepage.nav.getStarted" },
+      { "type": "text", "selector": "tab", "name": "Core", "expected": "Core", "i18nKey": "homepage.features.core" },
+      { "type": "text", "selector": "tab", "name": "Recruiting", "expected": "Recruiting", "i18nKey": "homepage.features.recruiting" },
+      { "type": "text", "selector": "heading", "name": "Request Early Access", "expected": "Request Early Access", "i18nKey": "homepage.cta.title" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-007",
+    "storyId": "US-CDP-BOTTOM",
+    "criterionId": "CDP-mira-home-007",
+    "source": "cdp",
+    "title": "底部 CTA"加入等待名单"跳转到 /task",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "加入等待名单", "action": "click", "value": null, "locatorHint": "a[href='/task']", "i18nKey": "homepage.cta.button" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/task", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-008",
+    "storyId": "US-CDP-NAV",
+    "criterionId": "CDP-mira-home-008",
+    "source": "cdp",
+    "title": "导航"加入等待名单"链接跳转到 /join-waitlist",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "加入等待名单", "action": "click", "value": null, "locatorHint": "a[href='/join-waitlist']", "i18nKey": "homepage.nav.getStarted" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/join-waitlist", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-009",
+    "storyId": "US-CDP-TABS",
+    "criterionId": "CDP-mira-home-009",
+    "source": "cdp",
+    "title": "Tab 切换 round-trip：核心→招聘→核心",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["用户在首页，核心 tab 激活"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "tab", "name": "招聘", "action": "click", "value": null, "locatorHint": "button[role='tab']", "i18nKey": "homepage.features.recruiting" },
+      { "role": "tab", "name": "核心", "action": "click", "value": null, "locatorHint": "button[role='tab']", "i18nKey": "homepage.features.core" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "协作式自动执行", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" },
+      { "type": "text", "selector": "heading", "name": "无缝融入现有工具", "expected": null, "i18nKey": "homepage.features.coreFeatures.integratedTools.title" }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-010",
+    "storyId": "US-CDP-LANG",
+    "criterionId": "CDP-mira-home-010",
+    "source": "cdp",
+    "title": "语言切换 round-trip：中文→英文→中文",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["用户在首页（中文）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "combobox", "name": "简体中文", "action": "click", "value": null, "locatorHint": "button[role=combobox]", "i18nKey": null },
+      { "role": "option", "name": "English", "action": "select", "value": "English", "locatorHint": "option", "i18nKey": null },
+      { "role": "combobox", "name": "language selector", "action": "click", "value": null, "locatorHint": "button[role=combobox]", "i18nKey": null },
+      { "role": "option", "name": "简体中文", "action": "select", "value": "简体中文", "locatorHint": "option", "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "link", "name": "登录", "expected": null, "i18nKey": "homepage.nav.signIn" },
+      { "type": "text", "selector": "heading", "name": "申请抢先体验", "expected": null, "i18nKey": "homepage.cta.title" }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-HOME-011",
+    "storyId": "US-CDP-LANG",
+    "criterionId": "CDP-mira-home-011",
+    "source": "cdp",
+    "title": "语言切换后 tab 状态保持",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["用户在首页，招聘 tab 激活"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "tab", "name": "招聘", "action": "click", "value": null, "locatorHint": "button[role='tab']", "i18nKey": "homepage.features.recruiting" },
+      { "role": "combobox", "name": "简体中文", "action": "click", "value": null, "locatorHint": "button[role=combobox]", "i18nKey": null },
+      { "role": "option", "name": "English", "action": "select", "value": "English", "locatorHint": "option", "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "Candidate Data", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.candidateData.title" }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

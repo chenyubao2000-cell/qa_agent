@@ -1,0 +1,29 @@
+{
+  "name": "mira_online",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npx playwright test",
+    "smoke": "npx playwright test --grep @smoke",
+    "smoke:en": "APP_LANGUAGES=en npx playwright test --grep @smoke",
+    "smoke:zh": "APP_LANGUAGES=zh npx playwright test --grep @smoke",
+    "smoke:ja": "APP_LANGUAGES=ja npx playwright test --grep @smoke",
+    "smoke:ko": "APP_LANGUAGES=ko npx playwright test --grep @smoke",
+    "regression": "npx playwright test --grep @regression",
+    "p0": "npx playwright test --grep @P0",
+    "headed": "npx playwright test --grep @smoke --headed",
+    "report": "npx playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "dotenv": "^17.3.1"
+  }
+}

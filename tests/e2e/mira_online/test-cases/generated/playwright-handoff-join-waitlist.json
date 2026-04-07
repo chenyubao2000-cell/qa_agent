@@ -1,0 +1,229 @@
+[
+  {
+    "id": "TC-CDP-JW-001",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "使用合法邮箱填写表单（覆盖 V1-V5）",
+    "priority": "P1",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Work Email", "action": "fill", "value": "test_fill@company.com", "i18nKey": "joinWaitlist.workEmail", "locatorHint": "getByRole('textbox', { name: /work email|工作邮箱/i })" },
+      { "role": "textbox", "name": "Name", "action": "fill", "value": "Test User", "i18nKey": "joinWaitlist.name", "locatorHint": "getByRole('textbox', { name: /^name$|^姓名$/i })" },
+      { "role": "textbox", "name": "Company", "action": "fill", "value": "Test Corp", "i18nKey": "joinWaitlist.company", "locatorHint": "getByRole('textbox', { name: /company|公司/i })" },
+      { "role": "textbox", "name": "Role / Position", "action": "fill", "value": "Engineer", "i18nKey": "joinWaitlist.role", "locatorHint": "getByRole('textbox', { name: /role|岗位/i })" },
+      { "role": "textbox", "name": "Use Case", "action": "fill", "value": "Automation testing", "i18nKey": "joinWaitlist.useCase", "locatorHint": "getByRole('textbox', { name: /use.*mira|如何使用/i })" }
+    ],
+    "assertions": [
+      { "type": "enabled", "selector": "button", "name": "Send Verify Code", "i18nKey": "joinWaitlist.sendOtp" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "join-waitlist"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-002",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "邮箱为空时提交",
+    "priority": "P1",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "Submit Application", "action": "click", "value": null, "i18nKey": "joinWaitlist.submit", "locatorHint": "getByRole('button', { name: /submit application|提交申请/i })" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "li[role='status'], [role='alert'], li", "name": "toast error", "expected": "Please verify your email before submitting", "i18nKey": "joinWaitlist.errors.emailNotVerified" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "validation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-003",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "无效邮箱格式",
+    "priority": "P1",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Work Email", "action": "fill", "value": "notanemail", "i18nKey": "joinWaitlist.workEmail", "locatorHint": "getByRole('textbox', { name: /work email|工作邮箱/i })" }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Send Verify Code", "i18nKey": "joinWaitlist.sendOtp" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "validation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-004",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "邮箱已填写但未验证时提交 → toast 错误",
+    "priority": "P0",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Work Email", "action": "fill", "value": "test@company.com", "i18nKey": "joinWaitlist.workEmail", "locatorHint": "getByRole('textbox', { name: /work email|工作邮箱/i })" },
+      { "role": "textbox", "name": "Name", "action": "fill", "value": "Test User", "i18nKey": "joinWaitlist.name", "locatorHint": "getByRole('textbox', { name: /^name$|^姓名$/i })" },
+      { "role": "textbox", "name": "Company", "action": "fill", "value": "Test Corp", "i18nKey": "joinWaitlist.company", "locatorHint": "getByRole('textbox', { name: /company|公司/i })" },
+      { "role": "textbox", "name": "Role / Position", "action": "fill", "value": "Engineer", "i18nKey": "joinWaitlist.role", "locatorHint": "getByRole('textbox', { name: /role|岗位/i })" },
+      { "role": "textbox", "name": "Use Case", "action": "fill", "value": "Testing automation", "i18nKey": "joinWaitlist.useCase", "locatorHint": "getByRole('textbox', { name: /use.*mira|如何使用/i })" },
+      { "role": "button", "name": "Submit Application", "action": "click", "value": null, "i18nKey": "joinWaitlist.submit", "locatorHint": "getByRole('button', { name: /submit application|提交申请/i })" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "li[role='status'], [role='alert'], li", "name": "toast error", "expected": "Please verify your email before submitting", "i18nKey": "joinWaitlist.errors.emailNotVerified" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "validation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-005",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "填写邮箱后发送验证码按钮从禁用变为启用（S0 → S2）",
+    "priority": "P0",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "Send Verify Code", "action": "assert-disabled", "value": null, "i18nKey": "joinWaitlist.sendOtp", "locatorHint": "getByRole('button', { name: /send verify code|发送验证码/i })" },
+      { "role": "textbox", "name": "Work Email", "action": "fill", "value": "test@company.com", "i18nKey": "joinWaitlist.workEmail", "locatorHint": "getByRole('textbox', { name: /work email|工作邮箱/i })" }
+    ],
+    "assertions": [
+      { "type": "enabled", "selector": "button", "name": "Send Verify Code", "i18nKey": "joinWaitlist.sendOtp" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "state-transition"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-006",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "点击发送验证码后按钮进入倒计时（S2 → S3）",
+    "priority": "P1",
+    "preconditions": ["导航到 /join-waitlist", "邮箱字段已填写有效邮箱"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Work Email", "action": "fill", "value": "test@company.com", "i18nKey": "joinWaitlist.workEmail", "locatorHint": "getByRole('textbox', { name: /work email|工作邮箱/i })" },
+      { "role": "button", "name": "Send Verify Code", "action": "click", "value": null, "i18nKey": "joinWaitlist.sendOtp", "locatorHint": "getByRole('button', { name: /send verify code|发送验证码/i })" }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Send Verify Code", "i18nKey": "joinWaitlist.sendOtp" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "state-transition"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-007",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "完整申请流程 — 打开页面 → 确认表单元素",
+    "priority": "P0",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Join Waitlist", "i18nKey": "joinWaitlist.title" },
+      { "type": "visible", "selector": "text", "name": "description", "i18nKey": "joinWaitlist.description" },
+      { "type": "visible", "selector": "textbox", "name": "Work Email", "i18nKey": "joinWaitlist.workEmail" },
+      { "type": "visible", "selector": "textbox", "name": "Name", "i18nKey": "joinWaitlist.name" },
+      { "type": "visible", "selector": "textbox", "name": "Company", "i18nKey": "joinWaitlist.company" },
+      { "type": "visible", "selector": "textbox", "name": "Role / Position", "i18nKey": "joinWaitlist.role" },
+      { "type": "visible", "selector": "textbox", "name": "Use Case", "i18nKey": "joinWaitlist.useCase" },
+      { "type": "visible", "selector": "button", "name": "Submit Application", "i18nKey": "joinWaitlist.submit" },
+      { "type": "visible", "selector": "button", "name": "Cancel", "i18nKey": "joinWaitlist.cancel" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "smoke"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-008",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "取消操作 — 点击取消按钮返回上一页",
+    "priority": "P1",
+    "preconditions": ["从首页导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "url": "/" } }
+    ],
+    "uiElements": [
+      { "role": "button", "name": "Cancel", "action": "click", "value": null, "i18nKey": "joinWaitlist.cancel", "locatorHint": "getByRole('button', { name: /cancel|取消/i })" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "navigation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-009",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "多次快速点击提交按钮",
+    "priority": "P2",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "Submit Application", "action": "dblclick", "value": null, "i18nKey": "joinWaitlist.submit", "locatorHint": "getByRole('button', { name: /submit application|提交申请/i })" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "li[role='status'], [role='alert'], li", "name": "toast count", "expected": 1 }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-JW-010",
+    "storyId": "cdp-join-waitlist",
+    "source": "cdp",
+    "title": "发送验证码按钮初始状态为禁用",
+    "priority": "P1",
+    "preconditions": ["导航到 /join-waitlist"],
+    "pageUrl": "https://www.mira.day/join-waitlist",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Send Verify Code", "i18nKey": "joinWaitlist.sendOtp" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "form", "validation"],
+    "timeout": null
+  }
+]

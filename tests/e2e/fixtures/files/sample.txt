@@ -1,2 +1,0 @@
-This is a test file for E2E upload testing.
-Line 2 of test content.

@@ -1,0 +1,303 @@
+{
+  "meta": {
+    "url": "https://www.mira.day/task",
+    "title": "Mira - Task App",
+    "mode": "full",
+    "areasCompleted": ["sidebar", "main-input", "task-detail", "user-menu"],
+    "exploredAt": "2026-03-23",
+    "requiresAuth": true
+  },
+  "states": {
+    "S0": {
+      "name": "Task home — New task view (sidebar expanded)",
+      "trigger": null,
+      "url": "https://www.mira.day/task",
+      "sourceArea": null,
+      "fingerprint": "sidebar(expanded)+newTaskBtn+taskList+userMenu+main(heading+input+suggestions)",
+      "regions": {
+        "sidebar": {
+          "elements": [
+            { "tag": "button", "text": "Mira", "role": "logo" },
+            { "tag": "button", "text": "Toggle Sidebar", "action": "collapse/expand sidebar" },
+            { "tag": "button", "text": "新建任务", "i18n": "TaskPage.newTask", "action": "create new task → S0" },
+            { "tag": "button", "text": "任务", "expandable": true, "expanded": true, "i18n": "TaskPage.tasks", "action": "collapse/expand task list" },
+            { "tag": "button[]", "role": "task-items", "note": "List of existing tasks, each with a 'More' context menu" },
+            { "tag": "button", "text": "陈 陈玉宝 chenyubao2000@163.com", "expandable": true, "haspopup": "menu", "role": "user-menu" }
+          ]
+        },
+        "main": {
+          "elements": [
+            { "tag": "h1", "text": "我能为你做什么？", "i18n": "TaskPage.welcomeHeading" },
+            { "tag": "textarea", "placeholder": "请输入...", "i18n": "TaskPage.inputPlaceholder" },
+            { "tag": "button", "text": "添加照片或文件", "i18n": "TaskPage.addFile" },
+            { "tag": "button", "text": "Submit", "disabled": true, "enabledWhen": "input is non-empty" },
+            { "tag": "button[]", "role": "scenario-suggestions", "count": 4, "note": "Pre-filled prompt suggestions for recruiting tasks" }
+          ]
+        }
+      }
+    },
+    "S1": {
+      "name": "Sidebar collapsed",
+      "trigger": { "action": "click", "label": "Toggle Sidebar" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "sidebar",
+      "fingerprint": "sidebar(collapsed)+newTaskBtn+userMenu+main",
+      "note": "Task list hidden, only New Task button and user menu icon visible"
+    },
+    "S2": {
+      "name": "Task list collapsed (section toggle)",
+      "trigger": { "action": "click", "label": "Click '任务' section header" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "sidebar",
+      "fingerprint": "sidebar(expanded)+taskList(collapsed)+main",
+      "note": "Section header toggles task list visibility while keeping sidebar open"
+    },
+    "S3": {
+      "name": "Task context menu open (More button)",
+      "trigger": { "action": "click", "label": "Click 'More' button on a task" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "sidebar",
+      "fingerprint": "S0+contextMenu(分享,重命名,删除)",
+      "regions": {
+        "contextMenu": {
+          "elements": [
+            { "tag": "menuitem", "text": "分享", "i18n": "TaskPage.share" },
+            { "tag": "menuitem", "text": "重命名", "i18n": "TaskPage.rename" },
+            { "tag": "menuitem", "text": "删除", "i18n": "TaskPage.delete" }
+          ]
+        }
+      }
+    },
+    "S4": {
+      "name": "User menu open",
+      "trigger": { "action": "click", "label": "Click user menu button" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "user-menu",
+      "fingerprint": "S0+userMenu(语言,主题,退出登录)",
+      "regions": {
+        "userMenu": {
+          "elements": [
+            { "tag": "menuitem", "text": "语言", "expandable": true, "i18n": "UserMenu.language" },
+            { "tag": "menuitem", "text": "主题", "expandable": true, "i18n": "UserMenu.theme" },
+            { "tag": "menuitem", "text": "退出登录", "i18n": "UserMenu.logout" }
+          ]
+        }
+      }
+    },
+    "S5": {
+      "name": "Language submenu open",
+      "trigger": { "action": "click", "label": "Click '语言' in user menu" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "user-menu",
+      "fingerprint": "S4+languageSubmenu(简体中文[checked],English)",
+      "regions": {
+        "languageSubmenu": {
+          "elements": [
+            { "tag": "menuitemcheckbox", "text": "简体中文", "checked": true },
+            { "tag": "menuitemcheckbox", "text": "English", "checked": false }
+          ]
+        }
+      }
+    },
+    "S6": {
+      "name": "Theme submenu open",
+      "trigger": { "action": "click", "label": "Click '主题' in user menu" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "user-menu",
+      "fingerprint": "S4+themeSubmenu(浅色,深色,系统[checked])",
+      "regions": {
+        "themeSubmenu": {
+          "elements": [
+            { "tag": "menuitemcheckbox", "text": "浅色", "i18n": "UserMenu.theme.light" },
+            { "tag": "menuitemcheckbox", "text": "深色", "i18n": "UserMenu.theme.dark" },
+            { "tag": "menuitemcheckbox", "text": "系统", "checked": true, "i18n": "UserMenu.theme.system" }
+          ]
+        }
+      }
+    },
+    "S7": {
+      "name": "Task detail — Chat view",
+      "trigger": { "action": "click", "label": "Click a task in sidebar" },
+      "url": "https://www.mira.day/task/{taskId}",
+      "sourceArea": "task-detail",
+      "fingerprint": "sidebar+main(taskTitle+shareBtn+moreBtn+chatLog+inputArea)",
+      "regions": {
+        "header": {
+          "elements": [
+            { "tag": "span", "text": "{taskTitle}", "role": "heading" },
+            { "tag": "button", "role": "share", "note": "Share task button" },
+            { "tag": "button", "role": "more-actions", "expandable": true, "haspopup": "menu" }
+          ]
+        },
+        "chatLog": {
+          "elements": [
+            { "tag": "div[role=log]", "note": "Chat message history" },
+            { "tag": "button", "text": "复制", "i18n": "TaskPage.copy", "note": "Copy user message" },
+            { "tag": "span", "text": "Mira", "note": "AI assistant name label" },
+            { "tag": "span", "text": "人才搜索", "note": "Tool call: talent search" },
+            { "tag": "span", "text": "人才数据生成", "note": "Tool call: talent data generation" },
+            { "tag": "button", "text": "下载文件", "i18n": "TaskPage.downloadFile", "note": "Download generated file" },
+            { "tag": "span", "text": "任务已完成", "i18n": "TaskPage.taskCompleted" }
+          ]
+        },
+        "input": {
+          "elements": [
+            { "tag": "textarea", "placeholder": "请输入..." },
+            { "tag": "button", "text": "添加照片或文件" },
+            { "tag": "button", "text": "Submit", "disabled": true }
+          ]
+        }
+      }
+    },
+    "S8": {
+      "name": "Share session dialog",
+      "trigger": { "action": "click", "label": "Click '分享' in context menu" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "sidebar",
+      "fingerprint": "S0+dialog(分享会话+创建分享链接+Close)",
+      "regions": {
+        "shareDialog": {
+          "elements": [
+            { "tag": "dialog", "heading": "分享会话", "i18n": "TaskPage.shareSession" },
+            { "tag": "p", "text": "创建一个分享链接，让其他人可以查看此会话", "i18n": "TaskPage.shareDescription" },
+            { "tag": "button", "text": "创建分享链接", "i18n": "TaskPage.createShareLink" },
+            { "tag": "button", "text": "Close", "action": "close dialog → S0" }
+          ]
+        }
+      }
+    },
+    "S9": {
+      "name": "Rename task dialog",
+      "trigger": { "action": "click", "label": "Click '重命名' in context menu" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "sidebar",
+      "fingerprint": "S0+dialog(编辑标题+input+取消+保存)",
+      "regions": {
+        "renameDialog": {
+          "elements": [
+            { "tag": "dialog", "heading": "编辑标题", "i18n": "TaskPage.editTitle" },
+            { "tag": "p", "text": "请输入任务名称", "i18n": "TaskPage.enterTaskName" },
+            { "tag": "input", "placeholder": "请输入任务名称", "value": "{currentTaskTitle}", "i18n": "TaskPage.enterTaskName" },
+            { "tag": "button", "text": "取消", "i18n": "Common.cancel", "action": "close dialog → S0" },
+            { "tag": "button", "text": "保存", "i18n": "Common.save", "action": "save new name → S0 (task renamed)" },
+            { "tag": "button", "text": "Close", "action": "close dialog → S0" }
+          ]
+        }
+      }
+    },
+    "S10": {
+      "name": "Delete task confirmation dialog",
+      "trigger": { "action": "click", "label": "Click '删除' in context menu" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "sidebar",
+      "fingerprint": "S0+alertdialog(确认删除任务+取消+删除)",
+      "regions": {
+        "deleteDialog": {
+          "elements": [
+            { "tag": "alertdialog", "heading": "确认删除任务", "i18n": "TaskPage.confirmDeleteTask" },
+            { "tag": "p", "text": "此操作无法撤销。这将永久删除该任务及其所有消息。", "i18n": "TaskPage.deleteWarning" },
+            { "tag": "button", "text": "取消", "i18n": "Common.cancel", "action": "close dialog → S0" },
+            { "tag": "button", "text": "删除", "i18n": "TaskPage.delete", "action": "delete task → S0 (task removed from list)" }
+          ]
+        }
+      }
+    }
+  },
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "to": "S1", "action": "click", "target": "Toggle Sidebar", "label": "Collapse sidebar", "sourceArea": "sidebar" },
+      { "from": "S1", "to": "S0", "action": "click", "target": "Toggle Sidebar", "label": "Expand sidebar", "sourceArea": "sidebar" },
+      { "from": "S0", "to": "S2", "action": "click", "target": "任务 section header", "label": "Collapse task list", "sourceArea": "sidebar" },
+      { "from": "S2", "to": "S0", "action": "click", "target": "任务 section header", "label": "Expand task list", "sourceArea": "sidebar" },
+      { "from": "S0", "to": "S3", "action": "click", "target": "More button", "label": "Open task context menu", "sourceArea": "sidebar" },
+      { "from": "S3", "to": "S0", "action": "press", "target": "Escape", "label": "Close context menu", "sourceArea": "sidebar" },
+      { "from": "S3", "to": "S8", "action": "click", "target": "分享 menuitem", "label": "Open share dialog", "sourceArea": "sidebar" },
+      { "from": "S8", "to": "S0", "action": "click", "target": "Close button", "label": "Close share dialog", "sourceArea": "sidebar" },
+      { "from": "S3", "to": "S9", "action": "click", "target": "重命名 menuitem", "label": "Open rename dialog", "sourceArea": "sidebar" },
+      { "from": "S9", "to": "S0", "action": "click", "target": "取消 button", "label": "Cancel rename", "sourceArea": "sidebar" },
+      { "from": "S9", "to": "S0", "action": "click", "target": "保存 button", "label": "Save renamed task", "sourceArea": "sidebar" },
+      { "from": "S3", "to": "S10", "action": "click", "target": "删除 menuitem", "label": "Open delete confirmation", "sourceArea": "sidebar" },
+      { "from": "S10", "to": "S0", "action": "click", "target": "取消 button", "label": "Cancel delete", "sourceArea": "sidebar" },
+      { "from": "S10", "to": "S0", "action": "click", "target": "删除 button", "label": "Confirm delete task", "sourceArea": "sidebar" },
+      { "from": "S0", "to": "S4", "action": "click", "target": "User menu button", "label": "Open user menu", "sourceArea": "user-menu" },
+      { "from": "S4", "to": "S5", "action": "click", "target": "语言 menuitem", "label": "Open language submenu", "sourceArea": "user-menu" },
+      { "from": "S4", "to": "S6", "action": "click", "target": "主题 menuitem", "label": "Open theme submenu", "sourceArea": "user-menu" },
+      { "from": "S4", "to": "page:/sign-in", "action": "click", "target": "退出登录", "label": "Logout → redirect to sign-in", "sourceArea": "user-menu", "crossPage": true },
+      { "from": "S0", "to": "S7", "action": "click", "target": "Task item in sidebar", "label": "Open task detail", "sourceArea": "task-detail" },
+      { "from": "S7", "to": "S0", "action": "click", "target": "新建任务 button", "label": "Create new task → back to empty view", "sourceArea": "sidebar" }
+    ]
+  },
+  "areas": {
+    "sidebar": {
+      "status": "done",
+      "stateIds": ["S0", "S1", "S2", "S3", "S8", "S9", "S10"],
+      "type": "navigation",
+      "name": "Sidebar (Toggle, Task List, Context Menu, Share/Rename/Delete Dialogs)",
+      "priority": 1,
+      "coverageReport": {
+        "toggleSidebar": true,
+        "taskListCollapse": true,
+        "contextMenuItems": ["分享", "重命名", "删除"],
+        "contextMenuActions": {
+          "share": "S8 — dialog with 创建分享链接 button",
+          "rename": "S9 — dialog with input + 取消/保存",
+          "delete": "S10 — alertdialog with 取消/删除"
+        },
+        "statesExplored": 7,
+        "edgesExplored": 15
+      },
+      "selectors": {
+        "sidebar": "[data-sidebar='sidebar']",
+        "toggleSidebar": "[data-sidebar='trigger']",
+        "sidebarRail": "[data-sidebar='rail']",
+        "newTaskBtn": "[data-sidebar='menu-button']:has-text('新建任务')",
+        "taskSectionHeader": "[data-sidebar='menu-button'][aria-expanded]",
+        "taskItem": "[data-sidebar='group-content'] [data-sidebar='menu-button']",
+        "moreButton": "[data-sidebar='menu-action']",
+        "contextMenu": "menu[role='menu']",
+        "shareMenuItem": "menuitem:has-text('分享')",
+        "renameMenuItem": "menuitem:has-text('重命名')",
+        "deleteMenuItem": "menuitem:has-text('删除')",
+        "userMenuBtn": "[data-sidebar='footer'] [data-sidebar='menu-button']"
+      }
+    },
+    "user-menu": {
+      "status": "done",
+      "stateIds": ["S4", "S5", "S6"],
+      "type": "menu",
+      "name": "User Menu (Language, Theme, Logout)",
+      "priority": 2,
+      "coverageReport": {
+        "menuItems": ["语言", "主题", "退出登录"],
+        "languageOptions": ["简体中文", "English"],
+        "themeOptions": ["浅色", "深色", "系统"],
+        "statesExplored": 3,
+        "edgesExplored": 3
+      }
+    },
+    "main-input": {
+      "status": "done",
+      "stateIds": ["S0"],
+      "type": "form",
+      "name": "Chat Input Area",
+      "priority": 3,
+      "coverageReport": {
+        "elements": ["textarea", "file-upload-button", "submit-button(disabled)", "4 scenario suggestions"],
+        "note": "Submit button enables when text entered. Scenario suggestions are pre-filled prompts."
+      }
+    },
+    "task-detail": {
+      "status": "done",
+      "stateIds": ["S7"],
+      "type": "content",
+      "name": "Task Detail (Chat History)",
+      "priority": 4,
+      "coverageReport": {
+        "urlPattern": "/task/{taskId}",
+        "chatElements": ["user-message", "copy-button", "ai-response", "tool-calls", "file-download", "task-completed-status"],
+        "headerActions": ["share", "more-menu"]
+      }
+    }
+  },
+  "nextStateId": 11
+}

@@ -1,0 +1,1193 @@
+[
+  {
+    "id": "TC-PRD-VF-001",
+    "storyId": "US-VF-ENTRY",
+    "criterionId": "AC-VF-001",
+    "source": "prd",
+    "title": "任务有文件时两处入口均可见",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "存在包含至少 1 个文件的任务（任意类型）"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "hover",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "View all files toolbar button",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "查看此任务中所有文件",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-002",
+    "storyId": "US-VF-ENTRY",
+    "criterionId": "AC-VF-002",
+    "source": "prd",
+    "title": "任务文件数为 0 时不显示入口",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已登录", "存在无文件的任务（仅含文本消息）"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "View all files toolbar button",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-003",
+    "storyId": "US-VF-MODAL",
+    "criterionId": "AC-VF-003",
+    "source": "prd",
+    "title": "点击顶部工具栏入口打开弹窗",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "存在包含文件的任务"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "dialog",
+        "name": "task files dialog",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "All files in this task",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-004",
+    "storyId": "US-VF-MODAL",
+    "criterionId": "AC-VF-004",
+    "source": "prd",
+    "title": "点击任务结果区底部入口打开弹窗",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "存在包含文件的任务"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "查看此任务中所有文件",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "dialog",
+        "name": "task files dialog",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-005",
+    "storyId": "US-VF-MODAL",
+    "criterionId": "AC-VF-005",
+    "source": "prd",
+    "title": "文件列表按日期分组展示",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "任务包含不同日期创建的文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "date group label",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-006",
+    "storyId": "US-VF-MODAL",
+    "criterionId": "AC-VF-006",
+    "source": "prd",
+    "title": "文件列表加载失败显示刷新按钮",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已登录", "模拟网络故障使文件列表 API 返回错误"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Refresh now",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "load error message",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-007",
+    "storyId": "US-VF-ENTRY",
+    "criterionId": "AC-VF-007",
+    "source": "prd",
+    "title": "文件数恰好为 1 时显示入口",
+    "priority": "P0",
+    "scenarioType": "boundary",
+    "preconditions": ["已登录", "存在仅包含 1 个文件的任务"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "View all files toolbar button",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-008",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-008",
+    "source": "prd",
+    "title": "批量模式未选文件时批量下载按钮禁用",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["已登录", "任务包含至少 1 个文件", "弹窗已打开"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Batch download footer button",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-009",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-009",
+    "source": "prd",
+    "title": "批量模式选中 1 个文件后批量下载按钮启用",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["已登录", "任务包含至少 1 个文件", "弹窗已打开", "已进入多选模式"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "checkbox",
+        "name": "first file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "enabled",
+        "selector": "button",
+        "name": "Batch download footer button",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-010",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-010",
+    "source": "prd",
+    "title": "全选后取消全选恢复空选择",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["已登录", "任务包含至少 2 个文件", "弹窗已打开", "已进入多选模式"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Select all",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Select all",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Batch download footer button",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-011",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-011",
+    "source": "prd",
+    "title": "进入批量选择模式后文件卡片出现多选框",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "任务包含至少 1 个文件", "查看所有文件弹窗已打开"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "checkbox",
+        "name": "file selection checkbox",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Select all",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Cancel",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-012",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-012",
+    "source": "prd",
+    "title": "批量选择模式下点击取消退出多选",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "弹窗已打开", "已进入批量选择模式并选中部分文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download icon",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Cancel",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "checkbox",
+        "name": "file selection checkbox",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "Cancel",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-013",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-013",
+    "source": "prd",
+    "title": "批量选中所有文件后点击批量下载触发打包",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "任务包含至少 1 个文件", "弹窗已打开", "已进入批量选择模式"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download icon",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Select all",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Packing...",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-014",
+    "storyId": "US-VF-MODAL",
+    "criterionId": "AC-VF-014",
+    "source": "prd",
+    "title": "点击弹窗关闭按钮关闭弹窗",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "查看所有文件弹窗已打开"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Close",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "dialog",
+        "name": "task files dialog",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-015",
+    "storyId": "US-VF-PREVIEW",
+    "criterionId": "AC-VF-015",
+    "source": "prd",
+    "title": "点击文件卡片进入全屏预览",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "查看所有文件弹窗已打开", "弹窗中有文件卡片"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "region",
+        "name": "fullscreen preview overlay",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-016",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-016",
+    "source": "prd",
+    "title": "批量下载完成后退出选择模式",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "弹窗已打开", "处于批量选择模式且已选中文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download icon",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Select all",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "Cancel",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-017",
+    "storyId": "US-VF-E2E",
+    "criterionId": "AC-VF-017",
+    "source": "prd",
+    "title": "端到端：打开弹窗 → 全屏预览 → 关闭预览 → 单文件下载",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "存在包含至少 2 个文件的已完成任务"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "file card 1",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "key",
+        "name": "Escape",
+        "action": "press",
+        "value": "Escape",
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "download file 2",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "dialog",
+        "name": "task files dialog",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-018",
+    "storyId": "US-VF-E2E",
+    "criterionId": "AC-VF-018",
+    "source": "prd",
+    "title": "端到端：批量下载全部文件",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "存在包含至少 2 个文件的任务"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download icon",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Select all",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Packing...",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-019",
+    "storyId": "US-VF-MODAL",
+    "criterionId": "AC-VF-019",
+    "source": "prd",
+    "title": "批量下载图标 hover 显示 tooltip",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "查看所有文件弹窗已打开"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download icon",
+        "action": "hover",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "tooltip",
+        "name": "Batch download",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-020",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-020",
+    "source": "prd",
+    "title": "无文件时批量下载图标按钮禁用",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已登录", "弹窗已打开", "文件列表加载完成但为空"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Batch download icon",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-021",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-021",
+    "source": "prd",
+    "title": "打包中状态下批量下载按钮禁用",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "弹窗已打开", "处于批量选择模式并已选中文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download icon",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Select all",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Batch download",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-022",
+    "storyId": "US-VF-PREVIEW",
+    "criterionId": "AC-VF-022",
+    "source": "prd",
+    "title": "按 Escape 键关闭全屏预览",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "弹窗已打开", "已点击文件卡片进入全屏预览"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "key",
+        "name": "Escape",
+        "action": "press",
+        "value": "Escape",
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "dialog",
+        "name": "task files dialog",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-VF-023",
+    "storyId": "US-VF-BATCH",
+    "criterionId": "AC-VF-023",
+    "source": "prd",
+    "title": "批量下载打包失败显示 toast 提示",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["已登录", "弹窗已打开", "处于批量选择模式且已选中文件", "网络不稳定或服务器错误"],
+    "setup": [
+      { "type": "navigate", "url": "/task", "action": "navigate" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "View all files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download icon",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Select all",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Batch download",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "alert",
+        "name": "packing failed toast",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  }
+]

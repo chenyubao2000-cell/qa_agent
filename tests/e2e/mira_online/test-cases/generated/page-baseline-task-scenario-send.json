@@ -1,0 +1,140 @@
+{
+  "pageSlug": "task-scenario-send",
+  "pageUrl": "https://mira-bff-preview.up.railway.app/task",
+  "explorationMode": "targeted",
+  "targetArea": "scenario suggestion cards + input box + send button",
+  "timestamp": "2026-04-07T00:00:00Z",
+  "locatorProfile": {
+    "hasTestIds": false,
+    "primaryStrategy": "aria-label + role + name + CSS class"
+  },
+  "i18nKeys": {
+    "task.welcome": { "zh": "我能为你做什么？", "en": "What can I do for you?" },
+    "task.tryScenarios": { "zh": "试试以下场景", "en": "Try these scenarios" },
+    "chatbot.placeholder": { "zh": "请输入...", "en": "Please enter..." },
+    "chatbot.addAttachments": { "zh": "添加照片或文件", "en": "Add photos or files" }
+  },
+  "states": [
+    {
+      "stateId": "S0",
+      "name": "Task creation page (initial)",
+      "url": "/task",
+      "elements": {
+        "heading": {
+          "role": "heading",
+          "level": 1,
+          "text": { "zh": "我能为你做什么？", "en": "What can I do for you?" },
+          "locatorHint": "page.getByRole('heading', { level: 1 })"
+        },
+        "inputBox": {
+          "role": "textbox",
+          "tag": "textarea",
+          "name": "message",
+          "placeholder": { "zh": "请输入...", "en": "Please enter..." },
+          "locatorHint": "page.getByRole('textbox', { name: /请输入|Please enter/ })",
+          "altLocator": "page.locator('textarea[name=\"message\"]')"
+        },
+        "submitButton": {
+          "role": "button",
+          "ariaLabel": "Submit",
+          "initialState": "disabled",
+          "locatorHint": "page.getByRole('button', { name: 'Submit' })",
+          "altLocator": "page.locator('button[aria-label=\"Submit\"]')"
+        },
+        "addAttachmentButton": {
+          "role": "button",
+          "ariaLabel": { "zh": "添加照片或文件", "en": "Add photos or files" },
+          "locatorHint": "page.getByRole('button', { name: /添加照片或文件|Add photos or files/ })"
+        },
+        "scenarioLabel": {
+          "type": "staticText",
+          "text": { "zh": "试试以下场景", "en": "Try these scenarios" },
+          "locatorHint": "page.getByText(/试试以下场景|Try these scenarios/)"
+        },
+        "scenarioCards": {
+          "role": "button",
+          "count": 4,
+          "containerSelector": "div.grid.grid-cols-1.sm\\:grid-cols-2",
+          "locatorHint": "page.locator('main').getByRole('button').filter({ hasNot: page.locator('[aria-label]') })",
+          "altLocator": "page.locator('main .grid button')",
+          "items": [
+            { "text_zh": "分析一份市场调研报告的关键发现", "index": 0 },
+            { "text_zh": "撰写一封项目进展汇报邮件", "index": 1 },
+            { "text_zh": "设计一套用户反馈收集流程", "index": 2 },
+            { "text_zh": "整理本周会议要点与待办事项", "index": 3 }
+          ],
+          "cssClass": "bg-secondary cursor-pointer rounded-xl p-3 text-left"
+        }
+      }
+    },
+    {
+      "stateId": "S1",
+      "name": "After clicking scenario card (input filled)",
+      "url": "/task",
+      "trigger": "click any scenario card button",
+      "changes": [
+        "textbox value is set to the scenario card text",
+        "Submit button becomes enabled (no longer disabled)"
+      ],
+      "elements": {
+        "inputBox": {
+          "role": "textbox",
+          "hasValue": true,
+          "locatorHint": "page.getByRole('textbox', { name: /请输入|Please enter/ })"
+        },
+        "submitButton": {
+          "role": "button",
+          "ariaLabel": "Submit",
+          "state": "enabled",
+          "locatorHint": "page.getByRole('button', { name: 'Submit' })"
+        }
+      }
+    },
+    {
+      "stateId": "S2",
+      "name": "Conversation page (after send)",
+      "url": "/task/{taskId}",
+      "urlPattern": "/task/[a-zA-Z0-9]+",
+      "trigger": "click Submit button when input has text",
+      "navigationOccurred": true,
+      "elements": {
+        "conversationLog": {
+          "role": "log",
+          "ariaLive": "polite",
+          "locatorHint": "page.getByRole('log')"
+        },
+        "userMessage": {
+          "description": "The user's sent message appears in the log area",
+          "locatorHint": "page.getByRole('log').locator('div').first()"
+        },
+        "aiResponse": {
+          "description": "Mira's AI response streams below the user message",
+          "locatorHint": "page.getByRole('log').getByText('Mira')"
+        },
+        "conversationInputBox": {
+          "role": "textbox",
+          "name": "message",
+          "placeholder": { "zh": "请输入...", "en": "Please enter..." },
+          "state": "empty",
+          "locatorHint": "page.getByRole('textbox', { name: /请输入|Please enter/ })"
+        },
+        "conversationSubmitButton": {
+          "role": "button",
+          "ariaLabel": "Submit",
+          "locatorHint": "page.getByRole('button', { name: 'Submit' })"
+        }
+      }
+    }
+  ],
+  "stateFlowEdges": [
+    { "from": "S0", "action": "click scenario card", "to": "S1" },
+    { "from": "S1", "action": "click Submit button", "to": "S2", "navigation": true }
+  ],
+  "explorationStats": {
+    "terminationReason": "targeted_complete",
+    "statesDiscovered": 3,
+    "interactionsPerformed": 2,
+    "elementsFound": 9,
+    "duration": "lightweight"
+  }
+}

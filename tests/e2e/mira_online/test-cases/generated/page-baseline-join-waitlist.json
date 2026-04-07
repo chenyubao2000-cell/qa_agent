@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "url": "https://www.mira.day/join-waitlist",
+    "title": "Mira - Join Waitlist",
+    "mode": "full",
+    "areasCompleted": ["form-join-waitlist", "combobox-lang"],
+    "exploredAt": "2026-03-23"
+  },
+  "states": {
+    "S0": {
+      "name": "Join Waitlist — Empty form",
+      "trigger": null,
+      "url": "https://www.mira.day/join-waitlist",
+      "sourceArea": null,
+      "fingerprint": "banner+heading(加入等待名单)+emailInput+sendCodeBtn(disabled)+4fields+submitBtn+cancelBtn",
+      "regions": {
+        "banner": {
+          "elements": [
+            { "tag": "a", "text": "Mira", "href": "/", "role": "logo" },
+            { "tag": "button", "role": "combobox", "text": "简体中文" }
+          ]
+        },
+        "form": {
+          "fields": [
+            { "label": "工作邮箱", "tag": "input", "type": "email", "placeholder": "name@company.com", "i18n": "JoinWaitlistPage.emailLabel", "required": true },
+            { "label": "姓名", "tag": "input", "type": "text", "i18n": "JoinWaitlistPage.nameLabel" },
+            { "label": "公司", "tag": "input", "type": "text", "i18n": "JoinWaitlistPage.companyLabel" },
+            { "label": "岗位/角色", "tag": "input", "type": "text", "i18n": "JoinWaitlistPage.roleLabel" },
+            { "label": "你打算如何使用 Mira", "tag": "textarea", "i18n": "JoinWaitlistPage.usageLabel" }
+          ],
+          "actions": [
+            { "tag": "button", "text": "发送验证码", "i18n": "JoinWaitlistPage.sendCode", "disabled": true, "enabledWhen": "email is non-empty" },
+            { "tag": "button", "text": "提交申请", "i18n": "JoinWaitlistPage.submit" },
+            { "tag": "button", "text": "取消", "i18n": "JoinWaitlistPage.cancel", "action": "history.back()" }
+          ],
+          "heading": { "text": "加入等待名单", "i18n": "JoinWaitlistPage.title" },
+          "description": [
+            { "text": "填写以下信息，我们将在审核通过后发送邀请码。", "i18n": "JoinWaitlistPage.desc1" },
+            { "text": "信息真实详尽，审核更快通过。", "i18n": "JoinWaitlistPage.desc2" }
+          ]
+        }
+      }
+    },
+    "S1": {
+      "name": "Submit without email verification → toast error",
+      "trigger": { "action": "click", "label": "Click Submit with unverified email" },
+      "url": "https://www.mira.day/join-waitlist",
+      "sourceArea": "form-join-waitlist",
+      "fingerprint": "S0+toast(请先验证邮箱后再提交)",
+      "regions": {
+        "toast": {
+          "elements": [
+            { "tag": "li", "text": "请先验证邮箱后再提交", "i18n": "JoinWaitlistPage.emailNotVerifiedError", "role": "notification" }
+          ]
+        }
+      }
+    },
+    "S2": {
+      "name": "Email filled → Send code button enabled",
+      "trigger": { "action": "fill", "field": "email", "value": "valid-email" },
+      "url": "https://www.mira.day/join-waitlist",
+      "sourceArea": "form-join-waitlist",
+      "fingerprint": "S0+emailFilled+sendCodeBtn(enabled)",
+      "regions": {
+        "emailField": {
+          "elements": [
+            { "tag": "input", "value": "chenyubao2000@163.com" },
+            { "tag": "button", "text": "发送验证码", "disabled": false }
+          ]
+        }
+      }
+    },
+    "S3": {
+      "name": "Verification code sent → button briefly disabled (countdown)",
+      "trigger": { "action": "click", "label": "Click Send Code" },
+      "url": "https://www.mira.day/join-waitlist",
+      "sourceArea": "form-join-waitlist",
+      "fingerprint": "S2+sendCodeBtn(disabled/countdown)",
+      "note": "Button disables briefly (countdown/loading), then re-enables. No separate code input field — verification likely happens server-side on submit."
+    }
+  },
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "to": "S1", "action": "click", "target": "提交申请 button", "label": "Submit without email verification", "sourceArea": "form-join-waitlist" },
+      { "from": "S0", "to": "S2", "action": "fill", "target": "email input", "label": "Fill valid email → enable send code", "sourceArea": "form-join-waitlist" },
+      { "from": "S2", "to": "S3", "action": "click", "target": "发送验证码 button", "label": "Send verification code", "sourceArea": "form-join-waitlist" },
+      { "from": "S0", "to": "page:history.back()", "action": "click", "target": "取消 button", "label": "Cancel → history.back()", "sourceArea": "form-join-waitlist", "crossPage": true, "note": "Uses history.back(), destination depends on navigation history" }
+    ]
+  },
+  "areas": {
+    "form-join-waitlist": {
+      "status": "done",
+      "stateIds": ["S0", "S1", "S2", "S3"],
+      "type": "form",
+      "name": "Join Waitlist Form",
+      "priority": 1,
+      "coverageReport": {
+        "fields": 5,
+        "emailVerification": "send-code-button with countdown",
+        "validationErrors": ["submit-without-email-verification"],
+        "cancelBehavior": "history.back()",
+        "statesExplored": 4,
+        "edgesExplored": 4
+      }
+    },
+    "combobox-lang": {
+      "status": "done",
+      "stateIds": ["S0"],
+      "type": "combobox",
+      "name": "Language Selector",
+      "priority": 2,
+      "note": "Same shared component"
+    }
+  },
+  "nextStateId": 4
+}

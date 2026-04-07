@@ -1,0 +1,805 @@
+[
+  {
+    "id": "TC-PRD-UPINP-001",
+    "storyId": "US-UPINP-DISPLAY",
+    "criterionId": "AC-001",
+    "source": "prd",
+    "title": "上传单个合法文件后展示完整文件胶囊信息",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId，可进行文件上传）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Add photos or files",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "chatbot.addAttachments"
+      },
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "text",
+        "selector": "text",
+        "name": "filename",
+        "expected": "sample.pdf",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "PDF type label",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-002",
+    "storyId": "US-UPINP-DISPLAY",
+    "criterionId": "AC-002",
+    "source": "prd",
+    "title": "上传多个文件后胶囊列表纵向/换行展示",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.pdf,sample.xlsx,sample.png",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "sample.pdf",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "sample.xlsx",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "sample.png",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-003",
+    "storyId": "US-UPINP-ERROR",
+    "criterionId": "AC-003",
+    "source": "prd",
+    "title": "上传不支持格式文件时显示类型错误提示",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.exe",
+        "locatorHint": "input[type='file']",
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Unsupported file type",
+        "expected": null,
+        "i18nKey": "chatbot.uploadErrorAccept"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-004",
+    "storyId": "US-UPINP-ERROR",
+    "criterionId": "AC-004",
+    "source": "prd",
+    "title": "上传超过 20MB 的文件时显示大小限制错误提示",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）",
+      "本地存在一个大于 20MB 的文件"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "oversized_file.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "oversized",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "File size exceeds the limit",
+        "expected": null,
+        "i18nKey": "chatbot.uploadErrorMaxFileSize"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-005",
+    "storyId": "US-UPINP-DISPLAY",
+    "criterionId": "AC-005",
+    "source": "prd",
+    "title": "文件大小无法获取时胶囊大小栏显示 --",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）",
+      "本地存在一个空文件（size=0）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "empty.txt",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "empty",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-006",
+    "storyId": "US-UPINP-ERROR",
+    "criterionId": "AC-006",
+    "source": "prd",
+    "title": "上传文件数超过 10 个时显示数量限制错误提示",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）",
+      "本地准备 11 个小文件"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "11 files",
+        "locatorHint": "input[type='file']",
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Maximum number of files exceeded",
+        "expected": null,
+        "i18nKey": "chatbot.uploadErrorMaxFiles"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-007",
+    "storyId": "US-UPINP-DISPLAY",
+    "criterionId": "AC-007",
+    "source": "prd",
+    "title": "文件大小恰好为 20MB 时展示完整胶囊（边界值允许）",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）",
+      "本地准备一个精确为 20MB 的文件"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "exactly_20mb.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "exactly_20mb.pdf",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-008",
+    "storyId": "US-UPINP-DISPLAY",
+    "criterionId": "AC-008",
+    "source": "prd",
+    "title": "文件名超长时胶囊截断展示不溢出布局",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）",
+      "本地准备一个文件名超过 40 字符的文件"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "this_is_a_very_long_filename_exceeding_the_display_limit.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-009",
+    "storyId": "US-UPINP-STATE",
+    "criterionId": "AC-009",
+    "source": "prd",
+    "title": "上传中状态胶囊显示 Uploading... 动画而非大小信息",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Uploading...",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-010",
+    "storyId": "US-UPINP-DISPLAY",
+    "criterionId": "AC-010",
+    "source": "prd",
+    "title": "图片文件胶囊展示缩略图预览",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.png",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.image",
+        "dataVariant": "png",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "img",
+        "name": "thumbnail image",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Image type label",
+        "expected": null,
+        "i18nKey": "files.types.image"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-011",
+    "storyId": "US-UPINP-STATE",
+    "criterionId": "AC-011",
+    "source": "prd",
+    "title": "上传成功后胶囊从上传中状态迁移至展示完整信息",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "sample.pdf",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "PDF",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-012",
+    "storyId": "US-UPINP-STATE",
+    "criterionId": "AC-012",
+    "source": "prd",
+    "title": "上传失败后展示失败提示且支持移除",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "File upload failed please try again",
+        "expected": null,
+        "i18nKey": "chatbot.uploadErrorUpload"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-013",
+    "storyId": "US-UPINP-STATE",
+    "criterionId": "AC-013",
+    "source": "prd",
+    "title": "点击移除按钮后胶囊消失且上传列表同步更新",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task",
+      "已有至少一个文件处于已上传状态胶囊"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "upload", "pomMethod": "attachFile", "data": { "filePath": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Remove attachment",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Submit",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-014",
+    "storyId": "US-UPINP-FLOW",
+    "criterionId": "AC-014",
+    "source": "prd",
+    "title": "完整单文件上传展示移除主流程",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Remove attachment",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "sample.pdf",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-015",
+    "storyId": "US-UPINP-FLOW",
+    "criterionId": "AC-015",
+    "source": "prd",
+    "title": "多文件上传后换行排列且不影响文本输入",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "sample.pdf,sample.xlsx,sample.png",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "action": "fill",
+        "value": "test message",
+        "locatorHint": "textarea",
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "sample.pdf",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "sample.xlsx",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "value",
+        "selector": "textbox",
+        "name": "chat input",
+        "expected": "test message",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-016",
+    "storyId": "US-UPINP-ERROR",
+    "criterionId": "AC-016",
+    "source": "prd",
+    "title": "MIME 类型为空时胶囊类型标签降级显示 File",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）",
+      "文件 MIME 类型被设为空字符串"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "unknown_type_file.bin",
+        "locatorHint": "input[type='file']",
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "File type label fallback",
+        "expected": null,
+        "i18nKey": "tools.complete.fileType"
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-UPINP-017",
+    "storyId": "US-UPINP-ERROR",
+    "criterionId": "AC-017",
+    "source": "prd",
+    "title": "文件名包含 HTML 特殊字符时胶囊安全展示",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户已登录",
+      "停留在任务页 /task（已有 taskId）",
+      "准备一个文件名含 HTML 特殊字符的文件"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "input",
+        "name": "file input",
+        "action": "upload",
+        "value": "xss_test.pdf",
+        "locatorHint": "input[type='file']",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Remove attachment",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

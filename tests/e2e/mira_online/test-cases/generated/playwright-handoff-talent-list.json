@@ -1,0 +1,617 @@
+[
+  {
+    "id": "TC-ISS-TL-001",
+    "storyId": "MIRA-1249-grid-bug",
+    "title": "单人才 + 1920px视口：最大化面板网格列数验证（Bug主场景）",
+    "priority": "P0",
+    "source": "issue",
+    "preconditions": ["直接访问分享链接，无需登录（公开页面）", "视口设置为1920×1080"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "onePersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最大化后'还原'按钮可见"
+      },
+      {
+        "type": "custom",
+        "selector": "gridChildCount",
+        "locatorHint": null,
+        "expected": "1",
+        "description": "全屏面板中人才卡片数量为1",
+        "jsEval": "document.querySelector('.@\\\\[782px\\\\]:grid-cols-2, [class*=\"grid-cols\"]')?.childElementCount"
+      },
+      {
+        "type": "custom",
+        "selector": "gridTemplateColumns",
+        "locatorHint": null,
+        "expected": "Bug: 4 columns with 1 card",
+        "description": "记录实际gridTemplateColumns值用于Bug验证"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-009",
+    "storyId": "MIRA-1249-navigation",
+    "title": "分享页面加载与人才结果卡片显示",
+    "priority": "P0",
+    "source": "issue",
+    "preconditions": ["无前置条件，直接访问分享链接"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "onePersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "1 人结果卡片",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "expected": null,
+        "description": "页面加载后可见1人才结果卡片"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "6 人结果卡片",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*6 人/ })",
+        "expected": null,
+        "description": "页面加载后可见6人才结果卡片"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "最大化按钮",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "expected": null,
+        "description": "点击1人卡片后侧边面板显示最大化按钮"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-010",
+    "storyId": "MIRA-1249-navigation",
+    "title": "侧边面板最大化：按钮状态切换验证",
+    "priority": "P0",
+    "source": "issue",
+    "preconditions": ["分享页面已打开", "1人才侧边面板已展开"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoSharePage", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickOnePersonCard", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最大化后'还原'按钮出现"
+      },
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "最大化",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "expected": null,
+        "description": "最大化后'最大化'按钮消失"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-013",
+    "storyId": "MIRA-1249-grid-bug",
+    "title": "完整Bug复现场景：单人才最大化面板空列问题",
+    "priority": "P0",
+    "source": "issue",
+    "preconditions": ["无前置条件，直接访问分享链接", "视口1920×1080"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "onePersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "restoreButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "closeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '关闭' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "1 人结果卡片（初始可见）",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "expected": null,
+        "description": "分享页面初始加载，1人才卡片可见"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最大化成功，还原按钮可见"
+      },
+      {
+        "type": "custom",
+        "selector": "talentCardVisible",
+        "locatorHint": null,
+        "expected": "true",
+        "description": "全屏面板中人才卡片可见"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "最大化",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "expected": null,
+        "description": "还原后最大化按钮重新出现"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-003",
+    "storyId": "MIRA-1249-responsive",
+    "title": "视口800px（2列断点触发）单人才空列验证",
+    "priority": "P0",
+    "source": "issue",
+    "preconditions": ["无前置条件", "视口设置为800×900"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "onePersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最大化按钮切换为还原按钮"
+      },
+      {
+        "type": "custom",
+        "selector": "gridBugAt800px",
+        "locatorHint": null,
+        "expected": "Bug: 2 columns with 1 card at 800px",
+        "description": "800px视口下2列断点触发，1卡片仅占50%（Bug验证点）"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-004",
+    "storyId": "MIRA-1249-responsive",
+    "title": "视口700px（1列，正确显示）基准验证",
+    "priority": "P1",
+    "source": "issue",
+    "preconditions": ["无前置条件", "视口设置为700×900"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "onePersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最大化成功"
+      },
+      {
+        "type": "custom",
+        "selector": "gridCorrectAt700px",
+        "locatorHint": null,
+        "expected": "1 column, full width",
+        "description": "700px视口：1列布局，卡片全宽显示（正确行为）"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-005",
+    "storyId": "MIRA-1249-responsive",
+    "title": "视口1200px（3列断点触发）单人才空列验证",
+    "priority": "P1",
+    "source": "issue",
+    "preconditions": ["无前置条件", "视口设置为1200×900"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "onePersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最大化成功"
+      },
+      {
+        "type": "custom",
+        "selector": "gridBugAt1200px",
+        "locatorHint": null,
+        "expected": "Bug: 3 columns with 1 card at 1200px",
+        "description": "1200px视口下3列断点触发，1卡片仅占33%（Bug验证点）"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-011",
+    "storyId": "MIRA-1249-navigation",
+    "title": "全屏面板'还原'操作：恢复侧边面板模式",
+    "priority": "P1",
+    "source": "issue",
+    "preconditions": ["分享页面已打开", "1人才侧边面板已展开", "已点击最大化"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoSharePage", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickOnePersonCard", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickMaximize", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "restoreButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "最大化",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "expected": null,
+        "description": "还原后最大化按钮重新出现"
+      },
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "还原后还原按钮消失"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-012",
+    "storyId": "MIRA-1249-navigation",
+    "title": "侧边面板'关闭'操作：返回主视图",
+    "priority": "P1",
+    "source": "issue",
+    "preconditions": ["分享页面已打开", "1人才侧边面板已展开"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoSharePage", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickOnePersonCard", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "closeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '关闭' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "1 人结果卡片",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+        "expected": null,
+        "description": "关闭后主聊天视图恢复可见"
+      },
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "最大化",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "expected": null,
+        "description": "侧边面板关闭后最大化按钮消失"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-002",
+    "storyId": "MIRA-1249-comparison",
+    "title": "6人才最大化面板布局对比验证",
+    "priority": "P1",
+    "source": "issue",
+    "preconditions": ["无前置条件", "视口1920×1080"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "sixPersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*6 人/ })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "6人才面板成功最大化"
+      },
+      {
+        "type": "custom",
+        "selector": "sixTalentCardsVisible",
+        "locatorHint": null,
+        "expected": "6",
+        "description": "全屏面板中可见6张人才卡片"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-014",
+    "storyId": "MIRA-1249-comparison",
+    "title": "对比场景：6人才最大化布局完整验证",
+    "priority": "P1",
+    "source": "issue",
+    "preconditions": ["无前置条件"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "sixPersonResultCard",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: /case01_技术人才.*6 人/ })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "closeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '关闭' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最大化成功"
+      },
+      {
+        "type": "custom",
+        "selector": "sixTalentCardsVisible",
+        "locatorHint": null,
+        "expected": "6",
+        "description": "全屏面板中6张人才卡片全部可见"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-015",
+    "storyId": "MIRA-1249-edge-cases",
+    "title": "快速重复最大化/还原操作（竞态条件）",
+    "priority": "P2",
+    "source": "issue",
+    "preconditions": ["分享页面已打开", "1人才侧边面板已展开"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoSharePage", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickOnePersonCard", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "name": "maximizeButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "restoreButton",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "action": "click",
+        "value": null
+      },
+      {
+        "name": "maximizeButton2",
+        "role": "button",
+        "locatorHint": "getByRole('button', { name: '最大化' })",
+        "action": "click",
+        "value": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "还原",
+        "locatorHint": "getByRole('button', { name: '还原' })",
+        "expected": null,
+        "description": "最终处于全屏状态（最后操作为最大化），还原按钮可见"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P2", "@full"]
+  },
+  {
+    "id": "TC-ISS-TL-016",
+    "storyId": "MIRA-1249-responsive",
+    "title": "动态视口调整时的网格响应性验证",
+    "priority": "P2",
+    "source": "issue",
+    "preconditions": ["最大化面板已打开（1人才）", "初始视口1920×1080"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoSharePage", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickOnePersonCard", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickMaximize", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "custom",
+        "selector": "gridAt600px",
+        "locatorHint": null,
+        "expected": "1 column correct",
+        "description": "缩窄至600px后：1列布局（正确）"
+      },
+      {
+        "type": "custom",
+        "selector": "gridAt1920pxAgain",
+        "locatorHint": null,
+        "expected": "Bug: multiple columns with 1 card",
+        "description": "恢复1920px后：Bug重现（多列但1卡片）"
+      }
+    ],
+    "timeout": 30000,
+    "tags": ["@P2", "@full"]
+  }
+]

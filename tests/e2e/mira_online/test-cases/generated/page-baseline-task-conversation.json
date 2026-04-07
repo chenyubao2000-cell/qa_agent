@@ -1,0 +1,270 @@
+{
+  "meta": {
+    "url": "https://www.mira.day/task",
+    "title": "Mira - Task Conversation",
+    "mode": "deep",
+    "areasCompleted": ["chat-input", "file-upload", "chat-response", "workspace-panel", "file-preview"],
+    "exploredAt": "2026-03-24",
+    "requiresAuth": true,
+    "description": "Deep exploration of task conversation flow: file upload, message send, AI tool execution, workspace panel"
+  },
+  "states": {
+    "S0": {
+      "name": "New task view — empty conversation",
+      "trigger": null,
+      "url": "https://www.mira.day/task",
+      "sourceArea": null,
+      "fingerprint": "heading(我能为你做什么)+textarea+fileUploadBtn+submitBtn(disabled)+4suggestions",
+      "regions": {
+        "main": {
+          "elements": [
+            { "tag": "h1", "text": "我能为你做什么？", "i18n": "dashboard.welcome" },
+            { "tag": "textarea", "placeholder": "请输入...", "i18n": "chatbot.inputPlaceholder" },
+            { "tag": "button", "text": "添加照片或文件", "i18n": "chatbot.addAttachments", "action": "triggers hidden file input" },
+            { "tag": "button", "text": "Submit", "disabled": true, "enabledWhen": "input is non-empty or file attached" },
+            { "tag": "button[]", "role": "scenario-suggestions", "count": 4, "note": "Pre-filled prompt suggestions" }
+          ]
+        },
+        "hiddenFileInput": {
+          "elements": [
+            { "tag": "input[type=file]", "accept": ".md,.txt,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.json", "multiple": true, "hidden": true }
+          ]
+        }
+      }
+    },
+    "S1": {
+      "name": "File attached — ready to send",
+      "trigger": { "action": "upload", "element": "file input", "fromState": "S0" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "file-upload",
+      "fingerprint": "S0+fileAttachment(filename+removeBtn)+submitBtn(enabled)",
+      "regions": {
+        "attachment": {
+          "elements": [
+            { "tag": "button", "text": "Remove attachment", "action": "remove file → S0" },
+            { "tag": "span", "text": "{filename}", "note": "Displays uploaded file name (e.g., sample.pdf)" },
+            { "tag": "button", "text": "Submit", "disabled": false, "note": "Enabled after file attached" }
+          ]
+        }
+      }
+    },
+    "S2": {
+      "name": "Message sent — AI thinking",
+      "trigger": { "action": "click", "element": "Submit button", "fromState": "S0 or S1" },
+      "url": "https://www.mira.day/task/{taskId}",
+      "sourceArea": "chat-input",
+      "fingerprint": "taskHeader+chatLog(userMsg+fileBtn+copyBtn)+aiLabel+thinking",
+      "regions": {
+        "taskHeader": {
+          "elements": [
+            { "tag": "span", "text": "{taskTitle}", "note": "AI-generated task title" },
+            { "tag": "button", "role": "share", "note": "Share button" },
+            { "tag": "button", "expandable": true, "haspopup": "menu", "note": "More actions menu" }
+          ]
+        },
+        "chatLog": {
+          "elements": [
+            { "tag": "div[role=log]", "live": "polite", "note": "Chat message log area" },
+            { "tag": "button", "text": "{filename} {type} | {size}", "role": "uploaded-file", "note": "Clickable file attachment in user message" },
+            { "tag": "span", "text": "{userMessage}", "note": "User's text message" },
+            { "tag": "button", "text": "复制", "i18n": "chatbot.copy", "note": "Copy user message" },
+            { "tag": "span", "text": "Mira", "note": "AI assistant label" },
+            { "tag": "span", "text": "思考中...", "i18n": "chatbot.thinking", "note": "AI thinking indicator" }
+          ]
+        },
+        "input": {
+          "elements": [
+            { "tag": "textarea", "placeholder": "请输入..." },
+            { "tag": "button", "text": "添加照片或文件" },
+            { "tag": "button", "text": "Submit", "disabled": true }
+          ]
+        }
+      }
+    },
+    "S3": {
+      "name": "AI executing tools — tool cards appearing",
+      "trigger": { "action": "ai-response", "fromState": "S2" },
+      "url": "https://www.mira.day/task/{taskId}",
+      "sourceArea": "chat-response",
+      "fingerprint": "S2+aiText+toolCards(inProgress=colorBorder,completed=grayBorder)",
+      "regions": {
+        "aiResponse": {
+          "elements": [
+            { "tag": "span", "text": "我将为您执行以下任务：", "note": "AI response text (structured)" },
+            { "tag": "span", "text": "搜索10位软件测试专业人员", "note": "Numbered task list" },
+            { "tag": "span", "text": "生成所有支持的文件格式示例", "note": "Numbered task list" }
+          ]
+        },
+        "toolCards": {
+          "note": "Expandable tool call cards, each is a div[role=button] with rounded-xl border, cursor-pointer, chevron icon",
+          "elements": [
+            { "tag": "div[role=button]", "type": "talent-search", "text": "人才搜索 {keywords}", "i18n": "tools.talentSearch", "action": "click → S5 workspace panel" },
+            { "tag": "div[role=button]", "type": "talent-data-gen", "text": "人才数据生成 {filename}.json", "i18n": "tools.talentDataGen", "action": "click → S5 workspace panel" },
+            { "tag": "div[role=button]", "type": "file-create", "text": "文件创建 {filename}", "note": "For txt, json, md, csv" },
+            { "tag": "div[role=button]", "type": "create-word", "text": "创建 Word 文档 {filename}.docx" },
+            { "tag": "div[role=button]", "type": "create-excel", "text": "创建 Excel 电子表格 {filename}.xlsx" },
+            { "tag": "div[role=button]", "type": "create-ppt", "text": "创建 PowerPoint 演示文稿 {filename}.pptx" },
+            { "tag": "div[role=button]", "type": "create-pdf", "text": "创建 PDF 文档 {filename}.pdf" },
+            { "tag": "div[role=button]", "type": "create-image", "text": "创建图片 {filename}.{png|jpg|gif|bmp|svg}" },
+            { "tag": "div[role=button]", "type": "exec-command", "text": "执行命令 {command}", "note": "Shell commands like cp, rm, libreoffice" }
+          ],
+          "statusIndicators": {
+            "inProgress": "colored border (purple/blue/orange), text prefixed with '正在'",
+            "completed": "gray border, no '正在' prefix"
+          }
+        }
+      }
+    },
+    "S5": {
+      "name": "Workspace panel open — tool execution details",
+      "trigger": { "action": "click", "element": "tool card", "fromState": "S3 or S4" },
+      "url": "https://www.mira.day/task/{taskId}",
+      "sourceArea": "workspace-panel",
+      "fingerprint": "S3+workspacePanel(title+status+results+navigation)",
+      "regions": {
+        "panelHeader": {
+          "elements": [
+            { "tag": "h2", "text": "Mira 的工作区", "i18n": "workspace.title" },
+            { "tag": "button", "action": "close panel → S3", "note": "X close button" },
+            { "tag": "span", "text": "Mira 正在使用 {toolName}", "note": "Current tool status" }
+          ]
+        },
+        "panelContent": {
+          "note": "Content varies by tool type. For talent-data-gen:",
+          "elements": [
+            { "tag": "span", "text": "{toolName}", "note": "Tool title" },
+            { "tag": "span", "text": "已完成{toolName}", "note": "Completion status with ✅ icon" },
+            { "tag": "span", "text": "{filename}.json", "note": "Generated file name" },
+            { "tag": "span", "text": "总计：{N} 人", "note": "Result count" }
+          ]
+        },
+        "candidateCards": {
+          "note": "For talent search results, displays candidate profile cards",
+          "elements": [
+            { "tag": "div", "role": "candidate-card", "note": "One card per candidate" },
+            { "tag": "span", "text": "{candidateName}", "note": "Candidate name" },
+            { "tag": "a", "text": "LinkedIn 主页", "href": "https://linkedin.com/in/{profileId}", "note": "LinkedIn profile link" },
+            { "tag": "img", "alt": "LinkedIn", "note": "LinkedIn icon" },
+            { "tag": "span", "text": "{location}", "note": "Location (city, province, country)" },
+            { "tag": "span", "text": "最近工作经历", "note": "Work experience section header" },
+            { "tag": "span", "text": "{jobTitle} · {company}", "note": "Job entry" },
+            { "tag": "span", "text": "{startDate} ~ {endDate|至今}", "note": "Date range" }
+          ]
+        },
+        "panelNavigation": {
+          "elements": [
+            { "tag": "button", "note": "Previous page (<<)" },
+            { "tag": "button", "note": "Next page (>>)" },
+            { "tag": "slider", "orientation": "horizontal", "valuemin": 0, "valuemax": 21, "note": "Tool history slider" },
+            { "tag": "span", "text": "实时", "note": "Real-time toggle" }
+          ]
+        }
+      }
+    }
+  },
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "to": "S1", "action": "upload", "target": "file input via Add button", "label": "Upload file attachment", "sourceArea": "file-upload" },
+      { "from": "S1", "to": "S0", "action": "click", "target": "Remove attachment button", "label": "Remove file attachment", "sourceArea": "file-upload" },
+      { "from": "S0", "to": "S2", "action": "click", "target": "Submit button (after typing)", "label": "Send text message", "sourceArea": "chat-input" },
+      { "from": "S1", "to": "S2", "action": "click", "target": "Submit button", "label": "Send message with file", "sourceArea": "chat-input" },
+      { "from": "S0", "to": "S2", "action": "click", "target": "Scenario suggestion button", "label": "Send pre-filled prompt", "sourceArea": "chat-input" },
+      { "from": "S2", "to": "S3", "action": "auto", "target": "AI response begins", "label": "AI starts responding with tools", "sourceArea": "chat-response" },
+      { "from": "S3", "to": "S5", "action": "click", "target": "Tool card", "label": "Open workspace panel", "sourceArea": "workspace-panel" },
+      { "from": "S5", "to": "S3", "action": "click", "target": "Close (X) button", "label": "Close workspace panel", "sourceArea": "workspace-panel" }
+    ]
+  },
+  "areas": {
+    "chat-input": {
+      "status": "done",
+      "stateIds": ["S0", "S1", "S2"],
+      "type": "form",
+      "name": "Chat Input (Message + File Upload + Send)",
+      "priority": 1,
+      "coverageReport": {
+        "elements": ["textarea", "file-upload-btn", "submit-btn", "4-scenario-suggestions", "hidden-file-input"],
+        "fileTypes": ".md,.txt,.pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.json",
+        "multipleFiles": true
+      }
+    },
+    "file-upload": {
+      "status": "done",
+      "stateIds": ["S0", "S1"],
+      "type": "form",
+      "name": "File Upload (Attach + Preview + Remove)",
+      "priority": 2,
+      "coverageReport": {
+        "attachmentDisplay": "filename + type + size",
+        "removeButton": true,
+        "submitEnablement": "enabled when file attached or text entered"
+      }
+    },
+    "chat-response": {
+      "status": "done",
+      "stateIds": ["S2", "S3"],
+      "type": "content",
+      "name": "AI Response (Tool Cards + Text + Status)",
+      "priority": 3,
+      "coverageReport": {
+        "toolTypes": ["人才搜索", "人才数据生成", "文件创建", "创建Word文档", "创建Excel电子表格", "创建PowerPoint演示文稿", "创建PDF文档", "创建图片", "执行命令"],
+        "statusIndicators": ["正在(inProgress)", "completed(gray)"],
+        "userMessageActions": ["复制(copy)"]
+      }
+    },
+    "workspace-panel": {
+      "status": "done",
+      "stateIds": ["S5"],
+      "type": "modal",
+      "name": "Workspace Panel (Tool Details + Candidate Cards + Navigation)",
+      "priority": 4,
+      "coverageReport": {
+        "panelHeader": "title + close + status",
+        "candidateCards": "name + LinkedIn + location + experience",
+        "navigation": "prev/next buttons + slider + real-time toggle"
+      }
+    }
+  },
+  "selectors": {
+    "chatLog": "[role='log']",
+    "textarea": "textarea",
+    "fileUploadBtn": "button:has-text('添加照片或文件')",
+    "submitBtn": "button:has-text('Submit')",
+    "hiddenFileInput": "input[type='file']",
+    "toolCard": "div[role='button'].rounded-xl.border.cursor-pointer",
+    "copyBtn": "button:has-text('复制')",
+    "workspacePanel": "[class*='workspace'], div:has(> h2:has-text('工作区'))",
+    "workspaceCloseBtn": "h2:has-text('工作区') ~ button",
+    "scenarioSuggestion": "main button.bg-secondary",
+    "attachmentRemoveBtn": "button:has-text('Remove attachment')"
+  },
+  "areas_file_preview": {
+    "file-preview": {
+      "status": "done",
+      "stateIds": ["S6", "S7", "S8"],
+      "type": "content",
+      "name": "File Preview Panel (Text/Spreadsheet/PDF/Image/Unsupported)",
+      "priority": 5,
+      "coverageReport": {
+        "previewTypes": {
+          "text": { "formats": ["txt", "json", "md"], "renderer": "plain text", "controls": "header only" },
+          "spreadsheet": { "formats": ["csv", "xlsx", "xls"], "renderer": "grid with row/col headers", "controls": "header only" },
+          "pdf": { "formats": ["pdf"], "renderer": "PDF canvas", "controls": "page nav + zoom" },
+          "image": { "formats": ["png", "jpg", "jpeg", "gif"], "renderer": "image viewer", "controls": "zoom + reset" },
+          "document": { "formats": ["docx", "doc"], "renderer": "formatted HTML", "controls": "header only" },
+          "unsupported": { "formats": ["pptx", "ppt", "tiff"], "renderer": "placeholder + download button", "controls": "download fallback" }
+        },
+        "panelStructure": {
+          "header": "file-type-icon + filename + download-btn + close-btn",
+          "content": "type-specific renderer",
+          "interaction": "click file card → open panel; click different card → switch content"
+        },
+        "fileGrid": {
+          "layout": "2-column grid",
+          "cardStructure": "icon + filename + type-label + optional-size + download-btn",
+          "count": "17 files in test session"
+        }
+      }
+    }
+  },
+  "nextStateId": 9
+}

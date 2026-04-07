@@ -1,0 +1,1185 @@
+{
+  "common": {
+    "welcome": "欢迎",
+    "logout": "退出登录",
+    "settings": "设置",
+    "home": "首页",
+    "dashboard": "Dashboard",
+    "language": "语言"
+  },
+  "email": {
+    "verification": {
+      "subject": "验证您的邮箱 - {appName}",
+      "title": "验证您的邮箱",
+      "heading": "验证您的邮箱地址",
+      "body": "感谢您注册 {appName}！为了保证账户安全，我们需要验证您的邮箱地址。请点击下方的按钮完成验证：",
+      "button": "验证邮箱",
+      "linkHint": "或者复制以下链接到浏览器：",
+      "ignoreHint": "如果您没有注册 {appName}，请忽略此邮件。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "resetPassword": {
+      "subject": "重置密码 - {appName}",
+      "title": "重置密码",
+      "heading": "重置您的密码",
+      "body": "我们收到了您的密码重置请求。请点击下面的按钮设置新密码：",
+      "button": "重置密码",
+      "linkHint": "如果按钮无法点击，请复制以下链接到浏览器：",
+      "ignoreHint": "如果您没有请求重置密码，请忽略此邮件，您的密码将保持不变。"
+    },
+    "otp": {
+      "subject": "您的验证码已发送，请查收",
+      "title": "邮箱验证码",
+      "greeting": "您好，",
+      "body": "您正在验证 Mira 账户邮箱，请使用以下验证码完成验证：",
+      "expireHint": "验证码 10 分钟内有效，请勿分享给他人。",
+      "ignoreHint": "如果您没有注册 Mira，请忽略此邮件。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "waitlistOtp": {
+      "subject": "您的验证码 - {appName} 等待名单",
+      "title": "邮箱验证码",
+      "greeting": "您好，",
+      "body": "您正在申请加入 {appName} 等待名单，请使用以下验证码验证您的工作邮箱：",
+      "expireHint": "验证码 10 分钟内有效，请勿分享给他人。",
+      "ignoreHint": "如果您没有申请加入 {appName} 等待名单，请忽略此邮件。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "invitation": {
+      "subject": "{appName} 邀请码已就绪",
+      "title": "您的 Mira 邀请码已就绪",
+      "greeting": "你好 {name}，",
+      "body": "感谢您申请 Mira 内测资格！您的申请已通过审核，请使用以下专属邀请码完成激活：",
+      "activateButton": "前往激活",
+      "ignoreHint": "如果您未申请 Mira 内测，请忽略此邮件。",
+      "footer": "© 2025 {appName}. 保留所有权利。"
+    }
+  },
+  "files": {
+    "types": {
+      "text": "文本",
+      "wordDocument": "文档",
+      "excelSpreadsheet": "表格",
+      "csvSpreadsheet": "表格",
+      "ppt": "演示文稿",
+      "image": "图片",
+      "peopleData": "人才数据"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "概览",
+    "statistics": "统计数据",
+    "welcome": "我能为你做什么？",
+    "tryScenarios": "试试以下场景"
+  },
+  "chatbot": {
+    "sendMessage": "发送消息",
+    "placeholder": "请输入...",
+    "addAttachments": "添加照片或文件",
+    "uploadLocalFile": "上传本地文件",
+    "uploadError": "文件上传失败",
+    "uploadErrorMaxFiles": "文件数量超出限制",
+    "uploadErrorMaxFileSize": "文件大小超出限制",
+    "uploadErrorAccept": "不支持的文件类型",
+    "uploadErrorAcceptPartial": "{count} 个文件格式不支持已被忽略",
+    "uploadErrorMaxFileSizePartial": "{count} 个文件超过大小限制已被忽略",
+    "uploadErrorUpload": "文件上传失败，请重试",
+    "typing": "正在输入...",
+    "thinking": "思考中...",
+    "aborted": "Mira 已停止，发送新消息以继续",
+    "waitingForUser": "Mira 将在你回复后继续工作",
+    "completed": "任务已完成",
+    "retry": "重试",
+    "copy": "复制",
+    "search": "搜索",
+    "searchPlaceholder": "搜索任务...",
+    "newChat": "新建任务",
+    "taskList": "任务",
+    "taskListDescription": "管理和查看所有任务",
+    "taskId": "任务 ID",
+    "confirmDelete": "确认删除任务",
+    "deleteWarning": "此操作无法撤销。这将永久删除该任务及其所有消息。",
+    "cancel": "取消",
+    "delete": "删除",
+    "rename": "重命名",
+    "renameTask": "重命名任务",
+    "editTitle": "编辑标题",
+    "enterTaskName": "请输入任务名称",
+    "newTaskName": "新任务名称",
+    "taskName": "任务名称",
+    "save": "保存",
+    "moreActions": "更多操作",
+    "taskDetails": "任务详情",
+    "taskTitle": "任务标题",
+    "creditsConsumed": "消耗积分",
+    "createdTime": "创建时间",
+    "history": "任务历史",
+    "noHistory": "暂无任务记录",
+    "noSearchResults": "未找到匹配的任务",
+    "deleteChat": "删除任务",
+    "today": "今天",
+    "yesterday": "昨天",
+    "thisWeek": "本周",
+    "last7Days": "最近7天",
+    "last30Days": "最近30天",
+    "older": "更早",
+    "tasks": "任务",
+    "projects": "项目",
+    "library": "库",
+    "chatNotFound": "会话不存在",
+    "chatNotFoundDescription": "抱歉，您访问的任务不存在或已被删除。",
+    "noPermission": "无权限访问",
+    "noPermissionDescription": "抱歉，您没有权限访问此任务。",
+    "share": "分享",
+    "shareChat": "分享会话",
+    "shareChatDescription": "通过链接分享此会话给其他人",
+    "shareLink": "分享链接",
+    "copyLink": "复制链接",
+    "copied": "已复制",
+    "createShareLink": "创建分享链接",
+    "creating": "创建中...",
+    "removeShare": "移除分享",
+    "removing": "移除中...",
+    "shareDescription": "任何拥有此链接的人都可以查看此会话",
+    "createShareDescription": "创建一个分享链接，让其他人可以查看此会话",
+    "close": "关闭",
+    "emptyStateTitle": "暂无消息",
+    "emptyStateDescription": "发送消息开始对话",
+    "errors": {
+      "renameUnauthorized": "您没有权限重命名此任务",
+      "renameChatNotFound": "任务不存在或已被删除",
+      "renameTitleTooLong": "任务名称过长，最多只能输入 {maxLength} 个字符",
+      "renameTitleEmpty": "任务名称不能为空",
+      "renameFailed": "重命名失败，请稍后重试",
+      "updateFailed": "更新失败，请稍后重试"
+    }
+  },
+  "share": {
+    "notFound": "会话不存在",
+    "notFoundDescription": "抱歉，您访问的会话不存在或已被删除。",
+    "invalidLink": "链接无效",
+    "invalidLinkDescription": "抱歉，此分享链接无效或已过期。",
+    "backToHome": "返回首页"
+  },
+  "homepage": {
+    "nav": {
+      "features": "功能",
+      "getStarted": "加入等待名单",
+      "signIn": "登录",
+      "goToHomepage": "回到首页"
+    },
+    "hero": {
+      "title": "你的数字延伸",
+      "subtitle1": "从招聘开始，",
+      "subtitle2": "远不止于此",
+      "description": "Mira 不仅仅是 Agent，它是你的数字伙伴",
+      "getStarted": "加入等待名单"
+    },
+    "features": {
+      "label": "功能",
+      "core": "核心",
+      "recruiting": "招聘",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "协作式自动执行",
+          "desc1": "Mira 可自主完成任务，也会在关键决策点与你协作。",
+          "desc2": "你们共享时间、上下文与目标。"
+        },
+        "trainedByYou": {
+          "title": "可训练，也会学习",
+          "desc1": "你可以显式定义技能并训练 Mira，",
+          "desc2": "也可以让它在真实工作中持续学习你的行为方式。"
+        },
+        "topTierModels": {
+          "title": "不是 Demo，而是工程化系统",
+          "desc1": "基于顶尖模型，配合严肃的工程能力，",
+          "desc2": "并由真实业务专家参与设计。"
+        },
+        "integratedTools": {
+          "title": "无缝融入现有工具",
+          "desc1": "无需迁移工作方式，Mira 直接连接 Airtable、Slack、Gmail、",
+          "desc2": "OneDrive 等常用工具。"
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "候选人数据获取",
+          "desc1": "聚合来自多个数据源的海量结构化与非结构化数据。",
+          "desc2": "通过 Mira Chrome 扩展，在需要时补充更多网页来源与公开线索。"
+        },
+        "communication": {
+          "title": "沟通与跟进",
+          "desc1": "支持电话与邮件的发送与跟进。",
+          "desc2": "所有沟通记录自动关联到对应的候选人。"
+        },
+        "recruitingSkills": {
+          "title": "招聘技能",
+          "desc1": "内置专家级招聘技能，用于职位澄清、",
+          "desc2": "候选人评估与招聘决策支持。"
+        },
+        "securityTrust": {
+          "title": "安全与可信",
+          "desc1": "面向企业级场景设计，符合 GDPR 等数据合规要求。",
+          "desc2": "支持零数据保留（Zero Data Retention, ZDR）等高级隐私选项。"
+        }
+      }
+    },
+    "cta": {
+      "title": "申请抢先体验",
+      "description": "Mira 目前处于内测阶段。",
+      "button": "加入等待名单"
+    }
+  },
+  "Layout": {
+    "signOut": "退出登录",
+    "language": "语言",
+    "theme": "主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "系统",
+    "mockUserName": "测试用户"
+  },
+  "admin": {
+    "nav": {
+      "management": "管理",
+      "dashboard": "仪表盘",
+      "waitlist": "等待名单",
+      "invitationCodes": "邀请码",
+      "scenarioCards": "场景卡片",
+      "admins": "管理员",
+      "backToApp": "返回应用"
+    },
+    "dashboard": {
+      "title": "仪表盘",
+      "description": "系统运营数据概览",
+      "sections": {
+        "overview": "数据概览",
+        "quickActions": "快捷操作"
+      },
+      "stats": {
+        "totalUsers": "总用户数",
+        "activatedUsers": "已激活 {count} 人",
+        "pendingWaitlist": "待处理申请",
+        "totalWaitlist": "等待名单共 {count} 人",
+        "availableCodes": "可用邀请码",
+        "totalCodes": "邀请码共 {count} 个",
+        "activationRate": "激活率",
+        "activatedOfTotal": "{activated}/{total} 已激活",
+        "needsAttention": "待处理"
+      },
+      "quickLinks": {
+        "waitlist": "等待名单管理",
+        "waitlistDesc": "审核申请、发送邀请码",
+        "invitationCodes": "邀请码管理",
+        "invitationCodesDesc": "生成、查看和导出邀请码",
+        "pendingCount": "条待处理",
+        "availableCount": "个可用"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "邀请码池管理",
+      "description": "批量管理邀请码，运营可提前生成并分发",
+      "refresh": "刷新",
+      "export": "导出",
+      "generate": "生成邀请码",
+      "generating": "生成中...",
+      "loading": "加载中...",
+      "noCodes": "暂无邀请码",
+      "copy": "复制",
+      "copied": "已复制",
+      "copyFailed": "复制失败",
+      "generatePrompt": "请输入生成数量（1-1000）",
+      "generateCountError": "数量必须在 1-1000 之间",
+      "generateSuccess": "成功生成 {count} 个邀请码",
+      "generateFailed": "生成失败，请重试",
+      "exportSuccess": "导出成功",
+      "searchPlaceholder": "搜索邀请码...",
+      "stats": {
+        "total": "总数",
+        "unused": "未使用",
+        "used": "已使用",
+        "expired": "已过期"
+      },
+      "filter": {
+        "all": "全部",
+        "unused": "未使用",
+        "used": "已使用",
+        "expired": "已过期"
+      },
+      "status": {
+        "unused": "未使用",
+        "used": "已使用",
+        "expired": "已过期"
+      },
+      "table": {
+        "code": "邀请码",
+        "status": "状态",
+        "usedBy": "使用者",
+        "batch": "批次",
+        "createdAt": "创建时间",
+        "usedAt": "使用时间",
+        "actions": "操作"
+      },
+      "pagination": {
+        "previous": "上一页",
+        "next": "下一页",
+        "page": "第 {current} / {total} 页",
+        "total": "共 {count} 条"
+      }
+    },
+    "admins": {
+      "title": "管理员管理",
+      "description": "查看和管理系统管理员",
+      "refresh": "刷新",
+      "loading": "加载中...",
+      "loadFailed": "加载失败",
+      "noAdmins": "暂无管理员",
+      "addAdmin": "添加管理员",
+      "addSuccess": "管理员添加成功",
+      "addFailed": "添加失败，请重试",
+      "remove": "移除",
+      "removeSuccess": "管理员已移除",
+      "removeFailed": "移除失败，请重试",
+      "addDialog": {
+        "title": "添加管理员",
+        "description": "搜索用户姓名或邮箱，将其设置为管理员",
+        "searchPlaceholder": "搜索姓名或邮箱...",
+        "searching": "搜索中...",
+        "noResults": "未找到匹配的用户",
+        "cancel": "取消",
+        "confirm": "确认添加"
+      },
+      "removeDialog": {
+        "title": "确认移除管理员",
+        "description": "确定要移除 {name} 的管理员权限吗？此操作可以撤销。",
+        "cancel": "取消",
+        "confirm": "确认移除"
+      },
+      "table": {
+        "user": "用户",
+        "email": "邮箱",
+        "createdAt": "注册时间",
+        "actions": "操作"
+      }
+    },
+    "waitlist": {
+      "title": "等待名单管理",
+      "description": "管理加入等待名单的用户，向通过审核的用户发送邀请码邮件",
+      "refresh": "刷新",
+      "loading": "加载中...",
+      "noItems": "暂无申请记录",
+      "searchPlaceholder": "搜索邮箱或姓名...",
+      "sendInvitation": "发送邀请码",
+      "sendBatch": "批量发送邀请码",
+      "sending": "发送中...",
+      "confirmSend": "确认发送邀请码",
+      "confirmSendDesc": "即将向 {count} 位申请者发送包含专属邀请码的邀请邮件，将消耗 {count} 个邀请码，确认继续？",
+      "sendSuccess": "成功发送 {count} 份邀请邮件",
+      "sendPartialSuccess": "成功发送 {success} 份，{fail} 份发送失败",
+      "sendFailed": "发送失败，请重试",
+      "noPendingSelected": "所选条目均已处理",
+      "resend": "重新发送",
+      "resendSuccess": "邀请邮件已重新发送",
+      "resendFailed": "重新发送失败，请重试",
+      "copyCode": "复制邀请码",
+      "copySuccess": "邀请码已复制",
+      "copyFailed": "复制失败，请手动复制",
+      "filter": {
+        "all": "全部",
+        "pending": "待处理",
+        "approved": "已发送",
+        "rejected": "已拒绝",
+        "activated": "已激活"
+      },
+      "status": {
+        "pending": "待处理",
+        "approved": "已发送",
+        "rejected": "已拒绝",
+        "activated": "已激活"
+      },
+      "table": {
+        "name": "姓名",
+        "company": "公司",
+        "role": "岗位",
+        "email": "邮箱",
+        "useCase": "申请用途",
+        "locale": "语言",
+        "createdAt": "申请时间",
+        "invitationCode": "邀请码",
+        "status": "状态",
+        "actions": "操作"
+      },
+      "pagination": {
+        "previous": "上一页",
+        "next": "下一页",
+        "page": "第 {current} / {total} 页",
+        "total": "共 {count} 条"
+      }
+    },
+    "scenarioCards": {
+      "title": "预设场景卡片",
+      "description": "管理任务创建页展示的预设招聘场景卡片，用户点击后可一键发起寻访任务",
+      "refresh": "刷新",
+      "loading": "加载中...",
+      "noItems": "暂无场景卡片",
+      "addCard": "新建卡片",
+      "editCard": "编辑卡片",
+      "deleteCard": "删除",
+      "deleteConfirm": "确定删除这张卡片吗？此操作不可撤销。",
+      "saveSuccess": "保存成功",
+      "saveFailed": "保存失败，请重试",
+      "deleteSuccess": "删除成功",
+      "deleteFailed": "删除失败，请重试",
+      "createSuccess": "创建成功",
+      "createFailed": "创建失败，请重试",
+      "table": {
+        "caseId": "Case ID",
+        "contentZh": "中文内容",
+        "contentEn": "英文内容",
+        "sortOrder": "排序",
+        "isActive": "状态",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "已启用",
+        "inactive": "已禁用"
+      },
+      "form": {
+        "caseId": "Case ID",
+        "caseIdPlaceholder": "如 case_fullstack（创建后不可修改）",
+        "contentZh": "中文内容",
+        "contentZhPlaceholder": "输入中文场景描述...",
+        "contentEn": "英文内容",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "排序（数字越小越靠前）",
+        "isActive": "启用此卡片",
+        "cancel": "取消",
+        "save": "保存",
+        "create": "创建"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "登录",
+    "signUp": "注册",
+    "signOut": "退出登录",
+    "signInDescription": "输入您的邮箱和密码登录",
+    "signUpDescription": "创建一个新账户",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "name": "姓名",
+    "signInSuccess": "登录成功",
+    "signUpSuccess": "注册成功！请检查您的邮箱完成验证",
+    "emailVerificationRequired": "需要验证邮箱",
+    "emailVerificationSent": "验证邮件已发送",
+    "emailVerificationMessage": "我们已向您的邮箱发送了一封验证邮件，请点击邮件中的链接完成验证后再登录。",
+    "emailVerificationResend": "重新发送验证邮件",
+    "checkYourEmail": "请检查您的邮箱",
+    "emailNotVerified": "邮箱未验证，请先验证邮箱",
+    "orContinueWith": "或",
+    "continueWithGitHub": "使用 GitHub 登录",
+    "continueWithGoogle": "使用 Google 登录",
+    "continueWithMicrosoft": "使用 Microsoft 登录",
+    "continueWithApple": "使用 Apple 登录",
+    "forgotPassword": "忘记密码",
+    "forgotPasswordTitle": "忘记密码",
+    "forgotPasswordDescription": "输入您的邮箱地址，我们将向您发送重置密码的链接",
+    "forgotPasswordConfirmDescription": "点击\"继续\"向<emailLink>{email}</emailLink>发送重置密码链接",
+    "continueButton": "继续",
+    "returnToLogin": "返回登录",
+    "resetPasswordTitle": "重置密码",
+    "resetPasswordDescription": "请输入您的新密码",
+    "sendResetLink": "发送重置链接",
+    "resetPassword": "重置密码",
+    "resetPasswordSuccess": "密码重置成功！正在跳转到登录页面...",
+    "resetPasswordError": "重置密码失败，请重试",
+    "resetPasswordEmailSent": "重置密码邮件已发送",
+    "resetPasswordEmailError": "发送重置密码邮件失败",
+    "resetPasswordEmailMessage": "我们已向您的邮箱发送了重置密码的链接，请查收邮件并点击链接完成密码重置。",
+    "invalidResetToken": "无效的重置令牌",
+    "invalidResetLink": "重置链接无效或已过期",
+    "invalidResetLinkMessage": "此重置密码链接无效或已过期，请重新申请重置密码。",
+    "requestNewLink": "重新申请重置链接",
+    "backToSignIn": "返回登录",
+    "rememberPassword": "想起密码了？",
+    "newPassword": "新密码",
+    "confirmNewPassword": "确认新密码",
+    "noAccount": "没有账户？",
+    "hasAccount": "已有账户？",
+    "passwordMismatch": "两次输入的密码不一致",
+    "agreeToTerms": "我同意",
+    "termsOfService": "服务条款",
+    "and": "和",
+    "privacyPolicy": "隐私政策",
+    "settings": "设置",
+    "validation": {
+      "emailInvalid": "请输入有效的邮箱地址",
+      "passwordMinLength": "密码至少需要 12 个字符",
+      "passwordStrength": "密码需至少12个字符，并包含字母、数字和符号",
+      "nameMinLength": "姓名至少需要 2 个字符",
+      "termsRequired": "您必须同意服务条款和隐私政策",
+      "fieldRequired": "此字段不能为空"
+    },
+    "checkSpamFolder": "没有收到邮件？请检查垃圾邮件文件夹",
+    "backToLogin": "返回登录",
+    "unifiedTitle": "登录或注册",
+    "unifiedSubtitle": "唤醒你的Mira",
+    "continueTitle": "继续",
+    "emailPlaceholder": "请输入您的电子邮件地址",
+    "emailLabel": "电子邮件",
+    "editLink": "编辑",
+    "enterPasswordTitle": "输入密码",
+    "createPasswordTitle": "创建密码",
+    "createAccountTitle": "创建账户",
+    "createAccountDescription": "为 {email} 设置密码",
+    "editEmail": "编辑邮箱",
+    "passwordStrengthHint": "密码需至少12个字符，并包含字母、数字和符号",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码",
+    "verifyEmailTitle": "验证邮箱",
+    "verifyEmailDescription": "我们已向 {email} 发送了验证码，前往邮箱",
+    "enterOtp": "请输入验证码",
+    "otpPlaceholder": "请输入验证码",
+    "resendCode": "重新发送验证码",
+    "resendCodeCountdown": "已重新发送，{seconds}s 后再次尝试",
+    "changeEmail": "更改登录邮箱",
+    "otpError": "验证码错误，请重新输入",
+    "otpExpired": "验证码已失效，请重新发送",
+    "otpResendSuccess": "验证码已发送",
+    "otpResendFailed": "发送失败，请稍后重试",
+    "checkSpamFolderHint": "未收到邮件？请检查垃圾邮件文件夹",
+    "verifyEmail": {
+      "title": "验证您的邮箱",
+      "description": "我们已向",
+      "descriptionSuffix": "发送了验证码",
+      "goToEmail": "前往邮箱",
+      "otpLabel": "验证码",
+      "otpPlaceholder": "请输入验证码",
+      "otpInputLabel": "第{index}位验证码",
+      "verifying": "验证中...",
+      "resend": "重新发送",
+      "resendCountdown": "{seconds}s",
+      "resendSuccess": "验证码已重新发送",
+      "resendFailed": "发送失败，请稍后重试",
+      "changeEmail": "更改登录邮箱",
+      "invalidOtp": "验证码错误，请重新输入",
+      "success": "邮箱验证成功"
+    },
+    "activateVerifyTitle": "验证你的邀请码",
+    "activateCurrentEmail": "当前邮箱 ",
+    "activateNoCode": "没有邀请码？",
+    "activateApplyNow": "立即申请",
+    "signOutLink": "退出登录",
+    "waitlistTitle": "加入等待名单",
+    "waitlistDescription": "填写以下信息，审核通过后我们将发送专属邀请码。",
+    "waitlistName": "姓名",
+    "waitlistCompany": "公司名称",
+    "waitlistRole": "岗位/角色",
+    "waitlistUseCase": "应用场景",
+    "waitlistSubmit": "提交申请",
+    "waitlistSubmitting": "提交中...",
+    "waitlistJoined": "已于 {time} 加入等待名单",
+    "waitlistLearnMore": "了解详情",
+    "joinWaitlist": {
+      "title": "加入等待名单",
+      "description": "填写以下信息，我们将在审核通过后发送邀请码。",
+      "descriptionHint": "信息真实详尽，审核更快通过。",
+      "workEmail": "工作邮箱",
+      "emailPlaceholder": "name@company.com",
+      "sendOtp": "发送验证码",
+      "resendOtp": "重新发送",
+      "otpCountdown": "{seconds}s",
+      "otpLabel": "验证码",
+      "otpPlaceholder": "请输入验证码",
+      "verifyOtp": "验证",
+      "changeEmail": "更改邮箱",
+      "name": "姓名",
+      "namePlaceholder": "请输入你的姓名",
+      "company": "公司",
+      "companyPlaceholder": "请输入公司名称",
+      "role": "岗位/角色",
+      "rolePlaceholder": "请输入你的岗位/角色",
+      "useCase": "你打算如何使用 Mira",
+      "useCasePlaceholder": "请输入你的应用场景",
+      "submit": "提交申请",
+      "submitting": "提交中...",
+      "cancel": "取消",
+      "successTitle": "提交成功",
+      "successDescription": "审核通过后，我们会把邀请码发送至：",
+      "backToHome": "返回官网",
+      "otpSent": "验证码已发送",
+      "emailVerified": "验证成功！",
+      "errors": {
+        "otpExpired": "验证码已过期，请重新发送",
+        "otpIncorrect": "验证码不正确，请重试",
+        "otpLengthRequired": "请输入6位验证码",
+        "sendFailed": "发送失败，请稍后重试",
+        "verifyFailed": "验证失败，请稍后重试",
+        "submitFailed": "提交失败，请稍后重试",
+        "nameRequired": "请输入姓名",
+        "companyRequired": "请输入公司名称",
+        "roleRequired": "请输入岗位/角色",
+        "useCaseRequired": "请输入应用场景",
+        "accountAlreadyActivated": "该账号已激活，请去登录！",
+        "alreadySubmitted": "当前邮箱已提交过申请，请耐心等待！",
+        "emailInvalid": "请输入有效的邮箱地址",
+        "emailNotVerified": "请先验证邮箱后再提交",
+        "otpNotVerified": "请输入验证码并完成验证后再提交"
+      }
+    },
+    "activate": "激活",
+    "activateAccount": "激活账户",
+    "activateTitle": "激活您的账户",
+    "activateDescription": "请输入您的邀请码以继续使用 Mira",
+    "yourActivationCode": "您的邀请码是：",
+    "activationCode": "邀请码",
+    "enterActivationCode": "输入邀请码",
+    "activationCodePlaceholder": "请输入邀请码",
+    "activating": "激活中...",
+    "activationSuccess": "账户激活成功！",
+    "activationSuccessDescription": "正在跳转到主页...",
+    "activationCodeRequired": "请输入邀请码",
+    "activationCodeTooShort": "邀请码长度不足",
+    "activationCodeIncorrect": "邀请码无效，请重试",
+    "invalidInvitationCode": "邀请码无效",
+    "activationContactAdmin": "如果您没有收到邀请码，请联系管理员",
+    "accountActivated": "账户已激活",
+    "accountNotActivated": "账户未激活，请先激活账户",
+    "errors": {
+      "emailAlreadyRegistered": "该邮箱已被注册，请使用其他邮箱或直接登录",
+      "invalidEmailOrPassword": "邮箱或密码错误，请检查后重试",
+      "emailNotVerified": "邮箱未验证，请先验证邮箱",
+      "passwordTooShort": "密码长度不足，请设置更长的密码",
+      "passwordTooLong": "密码过长，请设置较短的密码",
+      "passwordAlreadySet": "该账户已设置密码",
+      "invalidEmail": "邮箱格式不正确",
+      "emailAlreadyVerified": "邮箱已验证",
+      "emailMismatch": "邮箱不匹配",
+      "sessionExpired": "会话已过期，请重新登录",
+      "sessionNotFresh": "会话已过期，请重新认证",
+      "invalidOrExpiredToken": "令牌无效或已过期",
+      "accountAlreadyLinked": "该账户已关联",
+      "cannotUnlinkLastAccount": "无法取消关联最后一个账户",
+      "accountNotFound": "账户不存在",
+      "rateLimitExceeded": "请求过于频繁，请稍后再试",
+      "securityError": "安全验证失败，请重试",
+      "validationError": "输入信息验证失败，请检查",
+      "serverError": "服务器错误，请稍后再试",
+      "providerError": "第三方登录服务错误",
+      "invalidInput": "输入信息有误，请检查后重试",
+      "unauthorized": "未授权，请先登录",
+      "forbidden": "权限不足",
+      "notFound": "资源不存在",
+      "unprocessableEntity": "请求无法处理",
+      "unknown": "未知错误，请稍后再试"
+    }
+  },
+  "workspace": {
+    "title": "Mira 的工作区",
+    "backToLiveView": "返回实时视图",
+    "selectTool": "选择一个工具查看详情",
+    "noToolsEnabled": "未启用工具",
+    "usingTool": "Mira 正在使用",
+    "processing": "处理中",
+    "completed": "完成",
+    "failed": "失败",
+    "realTime": "实时",
+    "goToStart": "到开始",
+    "previous": "上一个",
+    "next": "下一个"
+  },
+  "search": {
+    "aiSummary": "AI 摘要",
+    "noResults": "暂无搜索结果"
+  },
+  "toolStatus": {
+    "processing": "处理中...",
+    "searching": "搜索中...",
+    "crawling": "爬取中...",
+    "mapping": "映射中...",
+    "extracting": "提取中...",
+    "items": "项数据",
+    "suggestions": "个建议",
+    "screenshotComplete": "截图完成",
+    "operationFailed": "操作失败",
+    "crawlFailed": "爬取失败",
+    "extractFailed": "提取失败",
+    "mapFailed": "映射失败",
+    "searchFailed": "搜索失败",
+    "pages": "个页面",
+    "links": "个链接",
+    "results": "条结果",
+    "fullPage": "完整页面",
+    "visibleArea": "可视区域",
+    "clickToView": "点击查看大图",
+    "unknownQuery": "未知查询",
+    "processingUrls": "处理 {count} 个 URL...",
+    "websiteCrawl": "网站爬取",
+    "contentExtract": "内容提取",
+    "websiteMap": "网站映射"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "确认请求",
+      "description": "请求用户确认操作"
+    },
+    "clarifyQuestion": {
+      "name": "问题澄清",
+      "description": "向用户询问更多信息"
+    },
+    "maps_weather": {
+      "name": "天气查询",
+      "description": "查询城市天气"
+    },
+    "exa_search": {
+      "name": "网络搜索",
+      "description": "使用 Exa AI 进行神经语义搜索，返回高质量相关结果"
+    },
+    "exa_company_search": {
+      "name": "企业搜索",
+      "description": "专门搜索公司、组织和企业信息，优化市场研究和商务拓展",
+      "action": "正在搜索企业"
+    },
+    "exa_people_search": {
+      "name": "人才搜索",
+      "description": "专门搜索专业人士、候选人和 LinkedIn 档案，优化招聘和人才寻访",
+      "action": "正在搜索人才"
+    },
+    "generate_people_data": {
+      "name": "人才数据生成",
+      "description": "将人才搜索结果整理并生成可下载的数据文件",
+      "action": "正在生成人才数据"
+    },
+    "export_data": {
+      "name": "导出数据",
+      "description": "数据已导出",
+      "action": "正在导出数据"
+    },
+    "sb_file_create": {
+      "name": "文件创建",
+      "description": "在沙箱中创建新文件",
+      "action": "正在创建文件"
+    },
+    "sb_file_rewrite": {
+      "name": "文件重写",
+      "description": "完全重写文件内容",
+      "action": "正在重写文件"
+    },
+    "sb_file_delete": {
+      "name": "文件删除",
+      "description": "删除指定文件",
+      "action": "正在删除文件"
+    },
+    "sb_file_edit": {
+      "name": "文件编辑",
+      "description": "使用 AI 辅助编辑文件",
+      "action": "正在编辑文件"
+    },
+    "sb_docx_create": {
+      "name": "创建 Word 文档",
+      "description": "在沙箱中创建 Word 文档（.docx 格式）",
+      "action": "正在创建 Word 文档"
+    },
+    "sb_pptx_create": {
+      "name": "创建 PowerPoint 演示文稿",
+      "description": "在沙箱中创建 PowerPoint 演示文稿（.pptx 格式）",
+      "action": "正在创建 PowerPoint 演示文稿"
+    },
+    "sb_xlsx_create": {
+      "name": "创建 Excel 电子表格",
+      "description": "在沙箱中创建 Excel 电子表格（.xlsx 格式）",
+      "action": "正在创建 Excel 电子表格"
+    },
+    "sb_pdf_create": {
+      "name": "创建 PDF 文档",
+      "description": "在沙箱中创建 PDF 文档（.pdf 格式）",
+      "action": "正在创建 PDF 文档"
+    },
+    "sb_image_create": {
+      "name": "创建图片",
+      "description": "在沙箱中创建图片（支持 PNG、JPG、SVG 等格式）",
+      "action": "正在创建图片"
+    },
+    "sb_command_execute": {
+      "name": "执行命令",
+      "description": "在沙箱中执行 Shell 命令",
+      "action": "正在执行命令"
+    },
+    "reflect_tool": {
+      "name": "反思",
+      "description": "研究规划与策略反思"
+    },
+    "browserNavigate": {
+      "name": "浏览器导航",
+      "description": "导航到指定网页"
+    },
+    "browserAct": {
+      "name": "页面操作",
+      "description": "执行页面交互操作"
+    },
+    "browserExtract": {
+      "name": "数据提取",
+      "description": "从页面提取结构化数据"
+    },
+    "browserObserve": {
+      "name": "观察操作",
+      "description": "预览操作而不执行"
+    },
+    "browserScreenshot": {
+      "name": "页面截图",
+      "description": "截取当前页面"
+    },
+    "browserGetContent": {
+      "name": "获取内容",
+      "description": "获取页面内容"
+    },
+    "browserWait": {
+      "name": "等待",
+      "description": "等待指定条件"
+    },
+    "browserAgentTask": {
+      "name": "智能任务",
+      "description": "执行复杂多步骤任务"
+    },
+    "browserClose": {
+      "name": "关闭浏览器",
+      "description": "关闭浏览器会话"
+    },
+    "browserStatus": {
+      "name": "浏览器状态",
+      "description": "查看浏览器状态"
+    },
+    "complete": {
+      "name": "交付文件",
+      "description": "交付文件给用户",
+      "createdTime": "创建时间：",
+      "downloadFile": "下载文件",
+      "deliveryFailed": "交付失败",
+      "previewNotImplemented": "文件预览功能待实现",
+      "download": "下载",
+      "preview": "预览",
+      "previewMetadataLoading": "文件信息加载中，请稍后再试",
+      "completed": "任务已完成",
+      "downloadSuccess": "文件下载成功",
+      "downloadFailed": "文件下载失败，请重试",
+      "fileType": "文件",
+      "text": "文本",
+      "wordDocument": "文档",
+      "excelSpreadsheet": "表格",
+      "csvSpreadsheet": "表格",
+      "ppt": "演示文稿",
+      "image": "图片",
+      "peopleData": "人才数据"
+    },
+    "code_interpreter": {
+      "name": "执行代码",
+      "description": "在沙箱环境中执行 Python 代码",
+      "action": "正在执行代码",
+      "pre_action": "正在编写代码"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "正在生成澄清问题...",
+      "defaultTitle": "需要更多信息",
+      "submit": "提交",
+      "skip": "跳过（使用默认值）",
+      "skipHint": "跳过将使用推荐的默认选项继续",
+      "submitted": "已提交",
+      "loadFailed": "表单加载失败",
+      "loadFailedDescription": "抱歉，问题表单生成时遇到了一些问题，请重试。",
+      "skipped": "已跳过",
+      "aborted": "已停止生成澄清问题"
+    },
+    "askForConfirmation": {
+      "loading": "正在加载确认请求...",
+      "needConfirmation": "需要确认",
+      "confirm": "确认",
+      "deny": "拒绝",
+      "confirmed": "已确认",
+      "denied": "已拒绝",
+      "failed": "确认请求失败",
+      "skipped": "已跳过",
+      "aborted": "已停止生成确认请求"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "创建文件",
+      "rewriteFile": "重写文件",
+      "deleteFile": "删除文件",
+      "editFile": "编辑文件",
+      "fileOperation": "文件操作",
+      "executing": "执行中...",
+      "executionError": "执行出错",
+      "success": "成功",
+      "failed": "失败"
+    },
+    "shell": {
+      "executeCommand": "执行命令",
+      "checkOutput": "检查输出",
+      "terminateCommand": "终止命令",
+      "listSessions": "列出会话",
+      "shellCommand": "Shell 命令",
+      "executionError": "执行出错",
+      "executing": "执行中...",
+      "sending": "发送中...",
+      "completed": "已完成",
+      "sent": "已发送",
+      "failed": "失败",
+      "sessions": "个会话"
+    },
+    "parallelResearch": {
+      "deepResearch": "深度研究",
+      "researchReport": "研究报告",
+      "researchFailed": "研究失败",
+      "researching": "研究中...",
+      "completed": "已完成",
+      "executeResearch": "执行研究",
+      "characters": "字符",
+      "citations": "引用"
+    },
+    "reflect": {
+      "reflecting": "反思",
+      "reflectingText": "正在反思...",
+      "completed": "完成"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "成功",
+      "failed": "失败",
+      "inputParams": "输入参数",
+      "executionResult": "执行结果",
+      "error": "错误",
+      "waiting": "等待执行...",
+      "noOutput": "暂无输出数据",
+      "noResults": "暂无结果",
+      "noCrawlResults": "暂无爬取结果",
+      "noExtractResults": "暂无提取结果",
+      "noMapResults": "暂无映射结果",
+      "noReflection": "暂无反思内容",
+      "waitingTask": "等待任务开始...",
+      "title": "标题",
+      "url": "URL",
+      "session": "会话",
+      "activeSessions": "活跃会话",
+      "output": "输出",
+      "parameters": "参数",
+      "executeCommand": "执行命令",
+      "updatedContent": "更新后的内容",
+      "editInstructions": "编辑说明：",
+      "extractedData": "提取的数据:",
+      "suggestions": "个建议:",
+      "screenshot": "截图",
+      "fullPage": "完整页面",
+      "visibleArea": "可视区域",
+      "pageContent": "页面内容",
+      "characters": "字符",
+      "taskResult": "任务结果:",
+      "initializationStatus": "初始化状态:",
+      "initialized": "已初始化",
+      "notInitialized": "未初始化",
+      "viewBrowserSession": "查看浏览器会话",
+      "clickToViewFullImage": "点击查看原图",
+      "screenshotFullSize": "截图 (完整页面)",
+      "screenshotVisible": "截图 (可视区域)",
+      "pageCount": "页面数:",
+      "timeTaken": "耗时:",
+      "linkCount": "链接数:",
+      "extractFailed": "提取失败:",
+      "charactersCount": "字符"
+    },
+    "browser": {
+      "browserNavigation": "浏览器导航",
+      "pageAction": "页面操作",
+      "dataExtract": "数据提取",
+      "observeAction": "观察操作",
+      "pageScreenshot": "页面截图",
+      "getContent": "获取内容",
+      "wait": "等待",
+      "smartTask": "智能任务",
+      "closeBrowser": "关闭浏览器",
+      "browserStatus": "浏览器状态",
+      "browserOperation": "浏览器操作",
+      "executingBrowserOperation": "正在执行浏览器操作..."
+    },
+    "files": {
+      "createFile": "创建文件",
+      "rewriteFile": "重写文件",
+      "deleteFile": "删除文件",
+      "editFile": "编辑文件",
+      "fileOperation": "文件操作",
+      "createDocx": "创建 Word 文档",
+      "createPptx": "创建 PowerPoint 演示文稿",
+      "createXlsx": "创建 Excel 电子表格",
+      "createPdf": "创建 PDF 文档",
+      "createImage": "创建图片",
+      "generatePeopleData": "生成人才数据",
+      "documentContent": "文档内容"
+    },
+    "shell": {
+      "executeCommand": "执行命令",
+      "checkOutput": "检查输出",
+      "terminateCommand": "终止命令",
+      "listSessions": "列出会话",
+      "shellCommand": "Shell 命令"
+    },
+    "codeInterpreter": {
+      "description": "功能描述",
+      "envVariables": "环境变量",
+      "timeout": "超时时间",
+      "seconds": "秒",
+      "stdout": "标准输出",
+      "stderr": "标准错误",
+      "executing": "正在执行代码..."
+    },
+    "parallelResearch": {
+      "researchQuery": "研究查询",
+      "reportGuidance": "报告指导:",
+      "executingDeepResearch": "正在执行深度研究...",
+      "mayTakeMinutes": "这可能需要 5-45 分钟，取决于研究复杂度",
+      "researchExecutionFailed": "研究执行失败",
+      "citations": "引用数",
+      "characters": "字符数",
+      "completionTime": "完成时间",
+      "structuredDataOutput": "结构化数据输出",
+      "noResearchData": "暂无研究数据"
+    },
+    "reflect": {
+      "reflection": "反思",
+      "researchPlanning": "AI 的研究规划与反思",
+      "reflectionNotes": "反思笔记",
+      "noReflection": "暂无反思内容"
+    },
+    "generateReport": {
+      "reportConfig": "报告配置",
+      "viewDetailedConfig": "查看详细配置",
+      "topic": "主题",
+      "focusAreas": "重点领域",
+      "researchData": "研究数据",
+      "generatingReport": "正在生成报告",
+      "reportGenerated": "报告已生成",
+      "analyzingData": "正在分析数据并生成报告...",
+      "reportContent": "报告内容",
+      "generating": "生成中...",
+      "reportGenerationComplete": "报告生成完成",
+      "generationFailed": "生成失败",
+      "reportGenerationError": "报告生成过程中发生错误",
+      "comparisonAnalysis": "比较分析",
+      "listDirectory": "清单目录",
+      "topicOverview": "主题概述",
+      "directAnswer": "直接回答"
+    },
+    "peopleData": {
+      "organizing": "正在生成人才数据...",
+      "exportSuccess": "已完成人才数据生成",
+      "exportFailed": "人才数据生成失败",
+      "totalCount": "总计：{count} 人",
+      "noData": "暂无人才数据"
+    }
+  },
+  "canvas": {
+    "selectFile": "请选择一个文件进行预览",
+    "loading": "正在加载文件...",
+    "loadingDefault": "加载中...",
+    "unsupportedFormat": "不支持的文件格式",
+    "downloadFile": "下载文件",
+    "maximize": "最大化",
+    "restore": "还原",
+    "close": "关闭",
+    "fileTypes": {
+      "text": "文本文件",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "图片",
+      "pdf": "PDF 文档",
+      "word": "Word 文档",
+      "excel": "Excel 表格",
+      "ppt": "演示文稿",
+      "people-data": "人员数据",
+      "unsupported": "不支持的格式"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "未知",
+        "notSupported": ".{ext} 格式暂不支持在线预览",
+        "downloadButton": "下载文件",
+        "tip": "提示：下载后可使用对应的应用程序打开查看"
+      },
+      "word": {
+        "converting": "正在转换文档...",
+        "convertingDoc": "正在转换 .doc 文件...",
+        "loading": "加载中...",
+        "convertFailed": "文档转换失败，请尝试下载后查看"
+      },
+      "excel": {
+        "converting": "正在转换旧版格式...",
+        "parsing": "正在解析表格...",
+        "loading": "加载中...",
+        "parseFailed": "表格解析失败，请尝试下载后查看",
+        "emptyTable": "表格为空"
+      },
+      "ppt": {
+        "notSupported": "{format} 演示文稿暂不支持在线预览",
+        "downloadButton": "下载文件",
+        "tip": "提示：下载后可使用 {format} 或兼容软件打开查看完整内容"
+      },
+      "peopleData": {
+        "parsing": "正在解析人员数据...",
+        "loading": "加载中...",
+        "parseFailed": "人员数据解析失败，请检查数据格式",
+        "noData": "暂无人员数据",
+        "csvHeaders": ["姓名", "地点", "当前公司", "当前职位", "最近工作经历", "详情链接"],
+        "workExperience": "工作经历",
+        "recentWorkExperience": "最近工作经历",
+        "noWorkExperience": "暂无工作经历",
+        "present": "至今",
+        "more": "更多",
+        "linkedinProfile": "LinkedIn 主页",
+        "viewDetails": "查看详情"
+      },
+      "html": {
+        "loading": "加载中...",
+        "securityWarning": "此 HTML 内容在沙箱环境中运行以保障安全",
+        "emptyHtml": "HTML 内容为空"
+      },
+      "json": {
+        "loading": "加载中...",
+        "parseFailed": "JSON 解析失败，请检查数据格式",
+        "emptyJson": "JSON 内容为空",
+        "validJson": "有效 JSON",
+        "characters": "字符",
+        "copy": "复制",
+        "copied": "已复制",
+        "rawContent": "原始内容："
+      },
+      "image": {
+        "loading": "加载中...",
+        "reset": "重置"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "待执行",
+      "running": "任务执行中",
+      "paused": "任务已停止",
+      "completed": "任务已完成",
+      "failed": "任务失败",
+      "cancelled": "已取消",
+      "waiting_for_user": "等待用户"
+    },
+    "maximize": "最大化",
+    "expandWorkspace": "展开工作区",
+    "restore": "还原",
+    "durationRunning": "已运行",
+    "durationCompleted": "用时",
+    "taskProgress": "任务进度",
+    "expandTaskList": "展开任务列表",
+    "collapseTaskList": "收起任务列表"
+  }
+}

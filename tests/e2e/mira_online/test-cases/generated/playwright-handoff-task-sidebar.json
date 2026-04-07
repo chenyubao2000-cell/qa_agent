@@ -1,0 +1,391 @@
+[
+  {
+    "id": "TC-CDP-SB-001",
+    "title": "侧边栏展开状态下点击 Toggle 折叠侧边栏",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S0→S1",
+    "userStory": "US-SIDEBAR-01",
+    "preconditions": "登录后访问 /task，侧边栏展开（S0）",
+    "steps": [
+      "点击 Toggle Sidebar 按鈕"
+    ],
+    "expected": "侧边栏折叠，任务列表隐藏，仅显示新建任务按鈕图标和用户菜单图标（S1）",
+    "locators": {
+      "toggleBtn": "[data-sidebar='trigger']",
+      "sidebar": "[data-sidebar='sidebar']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-002",
+    "title": "侧边栏折叠状态下点击 Toggle 展开侧边栏",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S1→S0",
+    "userStory": "US-SIDEBAR-01",
+    "preconditions": "侧边栏处于折叠状态（S1）",
+    "steps": [
+      "折叠侧边栏",
+      "点击 Toggle Sidebar 按鈕"
+    ],
+    "expected": "侧边栏展开，任务列表重新可见（S0）",
+    "locators": {
+      "toggleBtn": "[data-sidebar='trigger']",
+      "tasksSection": "[data-sidebar='menu-button'][aria-expanded]"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-003",
+    "title": "点击\"任务\"区块标题折叠任务列表",
+    "priority": "P1",
+    "type": "正向",
+    "stateTransition": "S0→S2",
+    "userStory": "US-SIDEBAR-02",
+    "preconditions": "登录后访问 /task，侧边栏展开，任务列表展开（S0）",
+    "steps": [
+      "点击任务区块标题按鈕"
+    ],
+    "expected": "任务列表折叠隐藏，侧边栏保持展开（S2）",
+    "locators": {
+      "tasksSection": "[data-sidebar='menu-button'][aria-expanded]",
+      "collapsible": "[data-slot='collapsible'][data-state='closed']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-004",
+    "title": "重命名任务输入空字符串不允许保存",
+    "priority": "P1",
+    "type": "负向",
+    "stateTransition": "S9",
+    "userStory": "US-SIDEBAR-05",
+    "preconditions": "先通过UI创建任务，打开重命名弹窗",
+    "steps": [
+      "清空重命名输入框",
+      "点击\"保存\"按鈕"
+    ],
+    "expected": "保存按鈕禁用或显示错误提示，任务名称不变",
+    "locators": {
+      "renameInput": "dialog input",
+      "saveBtn": "dialog [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-005",
+    "title": "重命名任务输入单个字符可正常保存",
+    "priority": "P1",
+    "type": "边界",
+    "stateTransition": "S9",
+    "userStory": "US-SIDEBAR-05",
+    "preconditions": "通过UI创建一个任务，打开重命名弹窗",
+    "steps": [
+      "清空输入框",
+      "输入单个字符 \"A\"",
+      "点击\"保存\"按鈕"
+    ],
+    "expected": "弹窗关闭，侧边栏任务名更新为 \"A\"",
+    "locators": {
+      "renameInput": "dialog input",
+      "saveBtn": "dialog [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-006",
+    "title": "重命名任务输入超长字符串（200字）显示错误提示",
+    "priority": "P2",
+    "type": "边界",
+    "stateTransition": "S9",
+    "userStory": "US-SIDEBAR-05",
+    "preconditions": "通过UI创建一个任务，打开重命名弹窗",
+    "steps": [
+      "清空输入框",
+      "输入 200 个字符",
+      "点击\"保存\"按鈕"
+    ],
+    "expected": "显示任务名过长的错误提示，任务名称不变",
+    "locators": {
+      "renameInput": "dialog input"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-007",
+    "title": "点击任务 More 按鈕打开右键菜单并显示三个操作项",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S0→S3",
+    "userStory": "US-SIDEBAR-03",
+    "preconditions": "通过UI创建一个任务，访问 /task，侧边栏展开",
+    "steps": [
+      "点击任务列表中某任务的 More 按鈕"
+    ],
+    "expected": "右键菜单弹出，显示\"分享\"、\"重命名\"、\"删除\"三个菜单项（S3）",
+    "locators": {
+      "moreBtn": "[data-sidebar='menu-action']",
+      "contextMenu": "[role='menu']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-008",
+    "title": "删除弹窗点击取消后任务保留",
+    "priority": "P1",
+    "type": "负向",
+    "stateTransition": "S10→S0",
+    "userStory": "US-SIDEBAR-06",
+    "preconditions": "通过UI创建一个任务，打开删除确认弹窗",
+    "steps": [
+      "点击\"取消\"按鈕"
+    ],
+    "expected": "弹窗关闭，任务仍在侧边栏列表中可见（S0）",
+    "locators": {
+      "deleteDialog": "[role='alertdialog']",
+      "cancelBtn": "[role='alertdialog'] [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-009",
+    "title": "右键菜单按 ESC 键关闭",
+    "priority": "P2",
+    "type": "负向",
+    "stateTransition": "S3→S0",
+    "userStory": "US-SIDEBAR-03",
+    "preconditions": "通过UI创建一个任务，打开右键菜单（S3）",
+    "steps": [
+      "按键盘 Escape 键"
+    ],
+    "expected": "右键菜单关闭，返回正常状态（S0）",
+    "locators": {
+      "contextMenu": "[role='menu']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-010",
+    "title": "从 S3 点击\"分享\"打开分享弹窗（S8）",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S3→S8",
+    "userStory": "US-SIDEBAR-04",
+    "preconditions": "通过UI创建任务，打开右键菜单（S3）",
+    "steps": [
+      "点击菜单中\"分享\"选项"
+    ],
+    "expected": "分享弹窗打开，显示标题\"分享会话\"和\"创建分享链接\"按鈕（S8）",
+    "locators": {
+      "shareMenuItem": "[role='menuitem']",
+      "dialog": "dialog"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-011",
+    "title": "分享弹窗点击 Close 关闭并返回 S0",
+    "priority": "P1",
+    "type": "正向",
+    "stateTransition": "S8→S0",
+    "userStory": "US-SIDEBAR-04",
+    "preconditions": "通过UI创建任务，打开分享弹窗（S8）",
+    "steps": [
+      "点击弹窗中的 Close 按鈕"
+    ],
+    "expected": "弹窗关闭，返回任务页面主视图（S0）",
+    "locators": {
+      "dialog": "dialog",
+      "closeBtn": "dialog [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-012",
+    "title": "从 S3 点击\"重命名\"打开重命名弹窗（S9）",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S3→S9",
+    "userStory": "US-SIDEBAR-05",
+    "preconditions": "通过UI创建任务，打开右键菜单（S3）",
+    "steps": [
+      "点击菜单中\"重命名\"选项"
+    ],
+    "expected": "重命名弹窗打开，显示标题\"编辑标题\"、输入框和取消/保存按鈕（S9）",
+    "locators": {
+      "renameMenuItem": "[role='menuitem']",
+      "dialog": "dialog",
+      "renameInput": "dialog input"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-013",
+    "title": "重命名弹窗点击\"取消\"关闭并保留原名称",
+    "priority": "P1",
+    "type": "负向",
+    "stateTransition": "S9→S0",
+    "userStory": "US-SIDEBAR-05",
+    "preconditions": "通过UI创建任务，打开重命名弹窗（S9）",
+    "steps": [
+      "点击\"取消\"按鈕"
+    ],
+    "expected": "弹窗关闭，侧边栏任务名称未变化（S0）",
+    "locators": {
+      "dialog": "dialog",
+      "cancelBtn": "dialog [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-014",
+    "title": "重命名任务输入新名称后点击\"保存\"更新任务名",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S9→S0",
+    "userStory": "US-SIDEBAR-05",
+    "preconditions": "通过UI创建任务，打开重命名弹窗（S9）",
+    "steps": [
+      "清空输入框",
+      "输入新名称",
+      "点击\"保存\"按鈕"
+    ],
+    "expected": "弹窗关闭，侧边栏中任务名称更新（S0）",
+    "locators": {
+      "dialog": "dialog",
+      "renameInput": "dialog input",
+      "saveBtn": "dialog [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-015",
+    "title": "从 S3 点击\"删除\"打开删除确认弹窗（S10）",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S3→S10",
+    "userStory": "US-SIDEBAR-06",
+    "preconditions": "通过UI创建任务，打开右键菜单（S3）",
+    "steps": [
+      "点击菜单中\"删除\"选项"
+    ],
+    "expected": "删除确认弹窗打开，显示警告文本和\"取消\"/\"删除\"按鈕（S10）",
+    "locators": {
+      "deleteMenuItem": "[role='menuitem']",
+      "deleteDialog": "[role='alertdialog']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-016",
+    "title": "删除确认弹窗点击\"删除\"后任务从列表移除",
+    "priority": "P0",
+    "type": "正向",
+    "stateTransition": "S10→S0",
+    "userStory": "US-SIDEBAR-06",
+    "preconditions": "通过UI创建任务，打开删除确认弹窗（S10）",
+    "steps": [
+      "点击弹窗中的\"删除\"按鈕"
+    ],
+    "expected": "弹窗关闭，该任务不再出现在侧边栏任务列表中（S0）",
+    "locators": {
+      "deleteDialog": "[role='alertdialog']",
+      "confirmBtn": "[role='alertdialog'] [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-017",
+    "title": "完整场景：创建任务后通过右键菜单重命名并在侧边栏中反映更新",
+    "priority": "P1",
+    "type": "场景",
+    "stateTransition": "S0→S3→S9→S0",
+    "userStory": "US-SIDEBAR-05",
+    "preconditions": "登录后访问 /task",
+    "steps": [
+      "点击\"新建任务\"按鈕创建任务",
+      "在侧边栏找到该任务，点击 More 按鈕",
+      "点击菜单中的\"重命名\"",
+      "清空输入框，输入新名称",
+      "点击\"保存\""
+    ],
+    "expected": "任务名在侧边栏更新，弹窗关闭",
+    "locators": {
+      "moreBtn": "[data-sidebar='menu-action']",
+      "renameInput": "dialog input"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-018",
+    "title": "完整场景：创建任务后通过右键菜单删除并从侧边栏消失",
+    "priority": "P1",
+    "type": "场景",
+    "stateTransition": "S0→S3→S10→S0",
+    "userStory": "US-SIDEBAR-06",
+    "preconditions": "登录后访问 /task",
+    "steps": [
+      "通过UI创建任务",
+      "点击该任务的 More 按鈕",
+      "点击菜单中的\"删除\"",
+      "点击确认弹窗中的\"删除\"按鈕"
+    ],
+    "expected": "任务从侧边栏列表中消失",
+    "locators": {
+      "moreBtn": "[data-sidebar='menu-action']",
+      "deleteDialog": "[role='alertdialog']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-019",
+    "title": "场景：折叠侧边栏后主内容区域正常展示",
+    "priority": "P1",
+    "type": "场景",
+    "stateTransition": "S0→S1",
+    "userStory": "US-SIDEBAR-01",
+    "preconditions": "登录后访问 /task，侧边栏展开（S0）",
+    "steps": [
+      "点击 Toggle Sidebar 按鈕折叠侧边栏"
+    ],
+    "expected": "侧边栏折叠，主内容区域（欢迎标题、输入区）正常显示，页面无错位",
+    "locators": {
+      "toggleBtn": "[data-sidebar='trigger']",
+      "welcomeHeading": "h1"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-020",
+    "title": "分享弹窗显示正确描述文本",
+    "priority": "P2",
+    "type": "内容验证",
+    "stateTransition": "S8",
+    "userStory": "US-SIDEBAR-04",
+    "preconditions": "通过UI创建任务，打开分享弹窗（S8）",
+    "steps": [
+      "查看分享弹窗内容"
+    ],
+    "expected": "弹窗显示描述文本\"创建一个分享链接，让其他人可以查看此会话\"和\"创建分享链接\"按鈕",
+    "locators": {
+      "dialog": "dialog",
+      "createShareLinkBtn": "dialog [role='button']"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-021",
+    "title": "删除确认弹窗显示不可撤销警告文本",
+    "priority": "P1",
+    "type": "内容验证",
+    "stateTransition": "S10",
+    "userStory": "US-SIDEBAR-06",
+    "preconditions": "通过UI创建任务，打开删除确认弹窗（S10）",
+    "steps": [
+      "查看弹窗内容"
+    ],
+    "expected": "弹窗显示警告文本\"此操作无法撤销。这将永久删除该任务及其所有消息。\"",
+    "locators": {
+      "deleteDialog": "[role='alertdialog']",
+      "warningText": "[role='alertdialog'] p"
+    }
+  },
+  {
+    "id": "TC-CDP-SB-022",
+    "title": "快速连续点击 Toggle 侧边栏不出现异常",
+    "priority": "P2",
+    "type": "错误推测",
+    "stateTransition": "S0⇔S1",
+    "userStory": "US-SIDEBAR-01",
+    "preconditions": "登录后访问 /task",
+    "steps": [
+      "连续快速点击 Toggle 按鈕 3 次"
+    ],
+    "expected": "侧边栏状态与最终点击次数奇偶对应，页面无崩溃或元素错位",
+    "locators": {
+      "toggleBtn": "[data-sidebar='trigger']",
+      "sidebar": "[data-sidebar='sidebar']"
+    }
+  }
+]

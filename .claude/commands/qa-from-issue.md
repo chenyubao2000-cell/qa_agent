@@ -477,7 +477,11 @@ After report-analyzer returns, check if there are failures to report:
 ```
 Parse report-analyzer's return for the `failures` array.
 
-If failures.length > 0:
+// Filter: only keep "append" actions (write back to source issue).
+// "create" actions (new bug issues) are DISABLED.
+appendFailures = failures.filter(f => f.action === "append")
+
+If appendFailures.length > 0:
 
   Launch bug-reporter (haiku):
 
@@ -487,11 +491,11 @@ If failures.length > 0:
   - linearTeamId: "{reportAnalyzerResult.linearConfig.linearTeamId}"
   - linearProjectId: "{reportAnalyzerResult.linearConfig.linearProjectId}"
   - previewUrl: "{reportAnalyzerResult.linearConfig.previewUrl}"
-  - failures: {reportAnalyzerResult.failures}
+  - failures: {appendFailures}
 
-  Execute per .claude/agents/bug-reporter.md: process each failure entry
-  (create new issues or append comments based on action field).
-  Return created/appended issue list.
+  IMPORTANT: Only process action="append" entries (comment on existing source issues).
+  Do NOT create any new Linear issues. Skip any action="create" entries.
+  Return appended issue list.
 
 If allPassed is true or failures is empty:
   report-analyzer already handled the success write-back to source issues.
@@ -500,11 +504,11 @@ If allPassed is true or failures is empty:
 
 ### Post-processing — Update Summary with Linear URLs
 
-After bug-reporter returns `{ created, appended }`:
+After bug-reporter returns `{ appended }`:
 1. Read `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`
 2. Replace the "Linear 上报（待命令层执行）" section with actual results:
-   - 新建 Bug: N 条 — {issue URLs}
    - 回写源 Issue: N 条 — {issue URLs}
+   - 新发现的 Bug: N 条（已跳过，未创建 Linear issue）
 3. Write updated summary back
 
 ---

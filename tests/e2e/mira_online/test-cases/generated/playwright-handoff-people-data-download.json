@@ -1,0 +1,471 @@
+[
+  {
+    "id": "TC-PRD-PDD-001",
+    "storyId": "US-PDD-DOWNLOAD",
+    "criterionId": "AC-PDD-001",
+    "source": "prd",
+    "title": "People Data 任务结果区域 — 下载按钮触发 XLSX 下载",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已登录",
+      "存在包含 People Data 结果的任务（任务侧边栏可见）",
+      "导航至该任务详情页"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data results", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "People Data",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.peopleData"
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFile"
+      },
+      {
+        "type": "url",
+        "selector": "page",
+        "name": "download triggered",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-002",
+    "storyId": "US-PDD-DOWNLOAD",
+    "criterionId": "AC-PDD-002",
+    "source": "prd",
+    "title": "无 People Data 任务 — 不出现 People Data 卡片和下载入口",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": [
+      "已登录",
+      "导航至不含 People Data 的普通任务详情页"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task without People Data", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "People Data",
+        "expected": null,
+        "i18nKey": "tools.complete.peopleData"
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-003",
+    "storyId": "US-PDD-XLSX",
+    "criterionId": "AC-PDD-003",
+    "source": "prd",
+    "title": "XLSX 列宽不超过最大宽度限制（80）",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "已登录",
+      "存在包含 People Data 结果的任务"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data results", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-004",
+    "storyId": "US-PDD-DOWNLOAD",
+    "criterionId": "AC-PDD-004",
+    "source": "prd",
+    "title": "下载成功后下载按钮短暂显示成功状态",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已登录",
+      "存在含 People Data 的任务",
+      "已打开 People Data 面板"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data and open panel", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-005",
+    "storyId": "US-PDD-XLSX",
+    "criterionId": "AC-PDD-005",
+    "source": "prd",
+    "title": "文件名扩展名正确替换为 .xlsx",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已登录",
+      "存在含 People Data 结果的任务"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data results", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "download",
+        "name": "filename ends with .xlsx",
+        "expected": ".xlsx",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-006",
+    "storyId": "US-PDD-ERROR",
+    "criterionId": "AC-PDD-006",
+    "source": "prd",
+    "title": "下载失败时显示 toast 错误提示",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": [
+      "已登录",
+      "存在含 People Data 的任务",
+      "网络请求被拦截使下载失败"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data results", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "alert",
+        "name": "download error toast",
+        "expected": "Failed to download file, please try again",
+        "i18nKey": "tools.complete.downloadFailed"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-007",
+    "storyId": "US-PDD-E2E",
+    "criterionId": "AC-PDD-007",
+    "source": "prd",
+    "title": "完整端到端流程 — 从查看 People Data 面板到下载 XLSX",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已登录",
+      "存在包含已完成 People Search 工具调用结果的任务"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data results", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "People Data Generation",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.generate_people_data.name"
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "People Data panel header filename",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFile"
+      },
+      {
+        "type": "text",
+        "selector": "download",
+        "name": "downloaded filename ends with .xlsx",
+        "expected": ".xlsx",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-008",
+    "storyId": "US-PDD-E2E",
+    "criterionId": "AC-PDD-008",
+    "source": "prd",
+    "title": "People Data 面板头部显示正确的文件名和操作按钮",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已登录",
+      "进入包含 People Data 的任务详情页",
+      "点击 People Data 工具卡片打开面板"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data and open panel", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "People Data Generation",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.generate_people_data.name"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "paragraph",
+        "name": "People Data panel filename text",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFile"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "close panel button",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-009",
+    "storyId": "US-PDD-ERROR",
+    "criterionId": "AC-PDD-009",
+    "source": "prd",
+    "title": "下载按钮 loading 期间处于 disabled 状态",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": [
+      "已登录",
+      "存在含 People Data 的任务",
+      "People Data 面板已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data and open panel", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PDD-010",
+    "storyId": "US-PDD-E2E",
+    "criterionId": "AC-PDD-010",
+    "source": "prd",
+    "title": "People Data 面板关闭按钮可正常关闭面板",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已登录",
+      "People Data 面板已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/task" },
+      { "type": "ui", "action": "navigate to a task with People Data and open panel", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "People Data Generation",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": "tools.generate_people_data.name"
+      },
+      {
+        "role": "button",
+        "name": "close panel",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "dataType": null,
+        "dataVariant": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "region",
+        "name": "People Data panel",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  }
+]

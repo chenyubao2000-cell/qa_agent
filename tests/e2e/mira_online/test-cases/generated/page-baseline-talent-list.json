@@ -1,0 +1,306 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/share/C2J66q10Qw3Fw1uS?token=Gi5-TZFZeyKP96B3352xtxTAHW8qK9GigLCMPT8IbGA",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-04-07T03:49:10.931Z",
+    "mode": "targeted",
+    "targetArea": "talent list / people search result cards",
+    "issueKey": "MIRA-1249",
+    "issueTitle": "返回单人才时，人才列表显示bug【老问题】",
+    "sourceProjectDir": null,
+    "sourceContextDegraded": true,
+    "explorationStats": {
+      "statesDiscovered": 5,
+      "interactionsPerformed": 12,
+      "elementsFound": 98,
+      "duration": "4m",
+      "terminationReason": "targeted_complete"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Share page - chat view with two search results",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "header": {
+          "interactives": [
+            {
+              "tag": "A",
+              "role": null,
+              "text": "",
+              "href": "/",
+              "class": "flex shrink-0 items-center gap-2",
+              "locatorHint": "getByRole('link')",
+              "region": "header"
+            }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "text": "复制",
+              "class": "inline-flex items-center justify-center cursor-pointer...",
+              "locatorHint": "getByRole('button', { name: '复制' })",
+              "region": "main",
+              "note": "Multiple copy buttons exist"
+            },
+            {
+              "tag": "DIV",
+              "role": "button",
+              "text": "case01_技术人才 人才数据 | 1 人 下载文件",
+              "class": "flex items-center justify-between rounded-xl border p-3...",
+              "locatorHint": "getByRole('button', { name: /case01_技术人才.*1 人/ })",
+              "region": "main",
+              "note": "1-person talent result card - CLICK opens right panel"
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "text": "下载文件",
+              "class": "text-foreground hover:bg-secondary/80...",
+              "locatorHint": "getByRole('button', { name: '下载文件' })",
+              "region": "main"
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "text": "查看此任务中所有文件",
+              "class": "border-border flex h-full min-h-16...",
+              "locatorHint": "getByRole('button', { name: '查看此任务中所有文件' })",
+              "region": "main"
+            },
+            {
+              "tag": "DIV",
+              "role": "button",
+              "text": "case01_技术人才 人才数据 | 6 人 下载文件",
+              "class": "flex items-center justify-between rounded-xl border p-3...",
+              "locatorHint": "getByRole('button', { name: /case01_技术人才.*6 人/ })",
+              "region": "main",
+              "note": "6-person talent result card - CLICK opens right panel"
+            }
+          ],
+          "headings": []
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+
+    "S1": {
+      "name": "Side panel - single talent detail (1 person)",
+      "sourceArea": "talent-list",
+      "trigger": { "action": "click", "element": "button:case01_技术人才 人才数据 | 1 人", "fromState": "S0" },
+      "regions": {
+        "panel": {
+          "interactives": [
+            { "tag": "BUTTON", "text": "下载文件", "locatorHint": "getByRole('button', { name: '下载文件' })" },
+            { "tag": "BUTTON", "text": "最大化", "locatorHint": "getByRole('button', { name: '最大化' })" },
+            { "tag": "BUTTON", "text": "关闭", "locatorHint": "getByRole('button', { name: '关闭' })" },
+            { "tag": "BUTTON", "text": "展开2条", "locatorHint": "getByRole('button', { name: '展开2条' })" },
+            { "tag": "BUTTON", "text": "获取邮箱", "disabled": true, "locatorHint": "getByRole('button', { name: '获取邮箱' })" },
+            { "tag": "BUTTON", "text": "获取电话", "disabled": true, "locatorHint": "getByRole('button', { name: '获取电话' })" }
+          ],
+          "headings": [
+            { "level": "4", "text": "工作经历" },
+            { "level": "4", "text": "教育背景" }
+          ]
+        }
+      },
+      "talentCards": [
+        {
+          "name": "陈晓·Apollo正式版",
+          "title": "高级产品经理·Apollo",
+          "company": "蚂蚁集团·Apollo",
+          "location": "上海, 上海市, 中国",
+          "experience": "9年经验",
+          "socialLinks": ["LinkedIn", "GitHub", "X (Twitter)"]
+        }
+      ]
+    },
+
+    "S2": {
+      "name": "Maximized panel - single talent grid (1 person) - BUG STATE",
+      "sourceArea": "talent-list",
+      "trigger": { "action": "click", "element": "button:最大化", "fromState": "S1" },
+      "regions": {
+        "fullscreenPanel": {
+          "interactives": [
+            { "tag": "BUTTON", "text": "下载文件", "locatorHint": "getByRole('button', { name: '下载文件' })" },
+            { "tag": "BUTTON", "text": "还原", "locatorHint": "getByRole('button', { name: '还原' })" },
+            { "tag": "BUTTON", "text": "关闭", "locatorHint": "getByRole('button', { name: '关闭' })" }
+          ],
+          "headings": []
+        }
+      },
+      "gridLayout": {
+        "containerClass": "grid gap-3 grid-cols-1 @[782px]:grid-cols-2 @[1158px]:grid-cols-3 @[1534px]:grid-cols-4",
+        "containerQueryAncestorClass": "@container h-full w-full",
+        "containerQueryAncestorType": "inline-size",
+        "childCount": 1,
+        "breakpoints": {
+          "default": { "columns": 1, "note": "grid-cols-1 (below 782px container width)" },
+          "@782px": { "columns": 2, "note": "grid-cols-2" },
+          "@1158px": { "columns": 3, "note": "grid-cols-3" },
+          "@1534px": { "columns": 4, "note": "grid-cols-4" }
+        },
+        "responsiveTests": [
+          {
+            "viewport": 1920,
+            "containerWidth": 1920,
+            "activeBreakpoint": "@[1534px]:grid-cols-4",
+            "gridTemplateColumns": "463px 463px 463px 463px",
+            "cardWidth": 463,
+            "emptySpacePercent": "75.5%",
+            "bugVisible": true,
+            "description": "4 columns created, only 1 card fills position 1. 3 empty grid slots (75.5% wasted space)."
+          },
+          {
+            "viewport": 1200,
+            "containerWidth": 1200,
+            "activeBreakpoint": "@[1158px]:grid-cols-3",
+            "gridTemplateColumns": "381px 381px 381px",
+            "cardWidth": 381,
+            "emptySpacePercent": "67.4%",
+            "bugVisible": true,
+            "description": "3 columns created, only 1 card fills position 1. 2 empty grid slots (67.4% wasted space)."
+          },
+          {
+            "viewport": 800,
+            "containerWidth": 800,
+            "activeBreakpoint": "@[782px]:grid-cols-2",
+            "gridTemplateColumns": "378px 378px",
+            "cardWidth": 378,
+            "emptySpacePercent": "50.8%",
+            "bugVisible": true,
+            "description": "2 columns created, only 1 card fills position 1. 1 empty grid slot (50.8% wasted space)."
+          },
+          {
+            "viewport": 700,
+            "containerWidth": 700,
+            "activeBreakpoint": "grid-cols-1 (default)",
+            "gridTemplateColumns": "668px",
+            "cardWidth": 668,
+            "emptySpacePercent": "0.0%",
+            "bugVisible": false,
+            "description": "1 column, card fills full width. No wasted space. Correct layout."
+          }
+        ]
+      },
+      "bugAnalysis": {
+        "issueConfirmed": true,
+        "rootCause": "CSS container query grid layout creates multiple columns based on container width breakpoints regardless of the number of child elements. When only 1 talent is returned, the grid still creates 2-4 columns depending on container width, leaving empty positions that appear as wasted whitespace.",
+        "cssRule": "grid gap-3 grid-cols-1 @[782px]:grid-cols-2 @[1158px]:grid-cols-3 @[1534px]:grid-cols-4",
+        "suggestedFix": "When childCount <= 1, limit max grid columns (e.g. use max(childCount, grid-cols) or add a conditional CSS class like 'grid-cols-1' when only 1 result). Alternatively, set max-width on the single card or use CSS :only-child pseudo-class to override grid-template-columns."
+      }
+    },
+
+    "S3": {
+      "name": "Side panel - 6 talents detail",
+      "sourceArea": "talent-list",
+      "trigger": { "action": "click", "element": "button:case01_技术人才 人才数据 | 6 人", "fromState": "S0" },
+      "regions": {
+        "panel": {
+          "interactives": [
+            { "tag": "BUTTON", "text": "下载文件", "locatorHint": "getByRole('button', { name: '下载文件' })" },
+            { "tag": "BUTTON", "text": "最大化", "locatorHint": "getByRole('button', { name: '最大化' })" },
+            { "tag": "BUTTON", "text": "关闭", "locatorHint": "getByRole('button', { name: '关闭' })" }
+          ],
+          "headings": []
+        }
+      },
+      "talentCards": [
+        { "name": "陈晓梅", "title": "高级产品经理", "company": "蚂蚁集团", "location": "上海", "experience": "9年经验", "lastActive": "20天前" },
+        { "name": "张伟", "title": "高级软件工程师", "company": "字节跳动", "location": "北京", "experience": "12年经验", "lastActive": "8周前" },
+        { "name": "赵敏", "title": "设计总监", "company": "小米", "location": "北京", "experience": "14年经验", "lastActive": "1年前" },
+        { "name": "孙浩", "title": "基础架构总监", "company": "美团", "location": "北京", "experience": "12年经验", "lastActive": "11周前" },
+        { "name": "李芳", "title": "数据科学家", "company": "腾讯", "location": "深圳", "experience": "11年经验", "lastActive": "4个月前" },
+        { "name": "王军", "title": "产品总监", "company": "华为", "location": "深圳", "experience": "14年经验", "lastActive": "8个月前" }
+      ]
+    },
+
+    "S4": {
+      "name": "Maximized panel - 6 talents grid (comparison reference)",
+      "sourceArea": "talent-list",
+      "trigger": { "action": "click", "element": "button:最大化", "fromState": "S3" },
+      "gridLayout": {
+        "containerClass": "grid gap-3 grid-cols-1 @[782px]:grid-cols-2 @[1158px]:grid-cols-3 @[1534px]:grid-cols-4",
+        "childCount": 6,
+        "at1920px": {
+          "gridTemplateColumns": "463px 463px 463px 463px",
+          "gridTemplateRows": "463px 463px",
+          "note": "4 columns x 2 rows. 6 cards fill 6/8 positions. Last row has 2 empty slots. Acceptable layout."
+        }
+      }
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:case01_技术人才 人才数据 | 1 人", "to": "S1", "sourceArea": "talent-list" },
+      { "from": "S1", "action": "click", "element": "button:最大化", "to": "S2", "sourceArea": "talent-list" },
+      { "from": "S2", "action": "click", "element": "button:还原", "to": "S1", "sourceArea": "talent-list" },
+      { "from": "S2", "action": "click", "element": "button:关闭", "to": "S0", "sourceArea": "talent-list" },
+      { "from": "S1", "action": "click", "element": "button:关闭", "to": "S0", "sourceArea": "talent-list" },
+      { "from": "S0", "action": "click", "element": "button:case01_技术人才 人才数据 | 6 人", "to": "S3", "sourceArea": "talent-list" },
+      { "from": "S3", "action": "click", "element": "button:最大化", "to": "S4", "sourceArea": "talent-list" },
+      { "from": "S4", "action": "click", "element": "button:还原", "to": "S3", "sourceArea": "talent-list" },
+      { "from": "S4", "action": "click", "element": "button:关闭", "to": "S0", "sourceArea": "talent-list" },
+      { "from": "S3", "action": "click", "element": "button:关闭", "to": "S0", "sourceArea": "talent-list" }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "dominantStrategy": "role+name"
+  },
+
+  "behaviorAnalysis": {
+    "expected": "When returning a single talent, the talent list should display correctly without empty placeholder positions. The single card should fill the available width or be centered.",
+    "actual": "When returning a single talent and maximizing the panel, the CSS container query grid creates multiple columns (2-4 depending on width), but only 1 card exists. This leaves 50-75% of the grid area as empty whitespace. At 1920px viewport, 4 columns are created with 75.5% wasted space.",
+    "matches": false,
+    "severity": "medium",
+    "reproSteps": [
+      "Open the share link https://mira-bff-preview.up.railway.app/share/C2J66q10Qw3Fw1uS?token=...",
+      "Click the '1 人' talent result card to open the side panel",
+      "Click '最大化' (maximize) button to expand the panel to fullscreen",
+      "Observe: single talent card occupies only ~25% of the width at 1920px, rest is empty",
+      "For comparison: close panel, click '6 人' card, maximize - 6 cards fill the grid reasonably"
+    ],
+    "technicalDetails": {
+      "gridClass": "grid gap-3 grid-cols-1 @[782px]:grid-cols-2 @[1158px]:grid-cols-3 @[1534px]:grid-cols-4",
+      "containerQuery": "@container with inline-size, ancestor class '@container h-full w-full'",
+      "containerWidthAtMaximize": "1920px (full viewport)",
+      "columnsCreated": 4,
+      "cardsFilling": 1,
+      "emptySlots": 3
+    }
+  },
+
+  "summary": {
+    "totalStates": 5,
+    "totalInteractives": 98,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["panel-drawer", "maximize-restore", "responsive-grid", "container-query"],
+    "scrollMode": "overflow-auto",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 0.85
+  }
+}

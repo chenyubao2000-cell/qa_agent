@@ -1,0 +1,886 @@
+[
+  {
+    "id": "TC-PRD-CDLD-001",
+    "storyId": "US-CDLD-FORMAT",
+    "title": "docx 文件下载格式选项展示三个（原格式 / PDF / MD）",
+    "priority": "P0",
+    "preconditions": [
+      "已登录",
+      "进入包含 docx 文件的任务页面",
+      "Canvas 已打开该 docx 文件（r2Key+taskId 有效）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "docx file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "原格式",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "PDF",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "MD",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDLD-002",
+    "storyId": "US-CDLD-FORMAT",
+    "title": "png 图片文件下载格式选项仅展示原格式",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "进入包含 png 图片的任务页面",
+      "Canvas 已打开该图片"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "png file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "count",
+        "selector": "listitem",
+        "name": "format options",
+        "expected": 1,
+        "i18nKey": null
+      }
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDLD-003",
+    "storyId": "US-CDLD-FORMAT",
+    "title": "People Data 文件下载直接触发 xlsx 下载，不弹格式选择",
+    "priority": "P0",
+    "preconditions": [
+      "已登录",
+      "进入包含 People Data 文件的任务页面",
+      "Canvas 已打开该文件"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "people data file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-004",
+    "storyId": "US-CDLD-FORMAT",
+    "title": "pdf 文件下载格式选项展示原格式和 docx 两个",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "进入包含 pdf 文件的任务页面",
+      "Canvas 已打开该 pdf"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "pdf file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "count",
+        "selector": "listitem",
+        "name": "format options",
+        "expected": 2,
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "docx",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDLD-005",
+    "storyId": "US-CDLD-STATUS",
+    "title": "下载进行中时下载按钮禁用并显示加载 spinner",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开 docx 文件（有效 r2Key+taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "docx file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "PDF",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-006",
+    "storyId": "US-CDLD-STATUS",
+    "title": "下载成功后按钮短暂显示绿色成功状态后恢复空闲",
+    "priority": "P2",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开可下载的原格式文件（如 txt）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "txt file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "原格式",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-007",
+    "storyId": "US-CDLD-FLOW",
+    "title": "选择原格式时直接触发浏览器下载并 toast 提示成功",
+    "priority": "P0",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开 txt 文件（有效 r2Key+taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "txt file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "原格式",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-008",
+    "storyId": "US-CDLD-FLOW",
+    "title": "选择 PDF 格式时显示转换 spinner，完成后触发下载并提示成功",
+    "priority": "P0",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开 docx 文件（有效 r2Key+taskId）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "docx file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "PDF",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      }
+    ],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-PRD-CDLD-009",
+    "storyId": "US-CDLD-FLOW",
+    "title": "格式转换失败时 toast 显示错误提示，按钮恢复可用",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开 docx 文件",
+      "网络拦截使转换接口返回错误"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "docx file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "PDF",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download error toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFailed"
+      },
+      {
+        "type": "enabled",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-010",
+    "storyId": "US-CDLD-STATUS",
+    "title": "下载按钮完整状态流转：idle→generating→downloading→success→idle",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开 docx 文件",
+      "网络正常"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "docx file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "PDF",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      },
+      {
+        "type": "enabled",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-PRD-CDLD-011",
+    "storyId": "US-CDLD-STATUS",
+    "title": "任务区文件卡片下载完成后可重复下载",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "任务结果区包含文件卡片（ArtifactEntry）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "artifact download button",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      },
+      {
+        "type": "enabled",
+        "selector": "button",
+        "name": "artifact download button",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-012",
+    "storyId": "US-CDLD-E2E",
+    "title": "用户在 Canvas 内完成 xlsx 文件原格式下载端到端流程",
+    "priority": "P0",
+    "preconditions": [
+      "已登录",
+      "进入包含 xlsx 文件的任务页面（文件有效）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "xlsx file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "原格式",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      },
+      {
+        "type": "enabled",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-013",
+    "storyId": "US-CDLD-E2E",
+    "title": "用户在任务结果区文件卡片直接下载文件",
+    "priority": "P0",
+    "preconditions": [
+      "已登录",
+      "任务已生成包含文件的结果区域（至少一个文件卡片）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "artifact download button",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": "tools.complete.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      }
+    ],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-CDLD-014",
+    "storyId": "US-CDLD-E2E",
+    "title": "md 文件转换为 PDF 格式下载",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开 md 文件（元数据完整）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "md file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "PDF",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      }
+    ],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-PRD-CDLD-015",
+    "storyId": "US-CDLD-E2E",
+    "title": "csv 文件转换为 xlsx 格式下载",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开 csv 文件（元数据完整）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "csv file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      },
+      {
+        "role": "button",
+        "name": "xlsx",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "status",
+        "name": "download success toast",
+        "expected": null,
+        "i18nKey": "tools.complete.downloadSuccess"
+      }
+    ],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-PRD-CDLD-016",
+    "storyId": "US-CDLD-ERROR",
+    "title": "Canvas 文件加载失败时不展示下载入口",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "模拟文件加载失败（Canvas 进入错误状态）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDLD-017",
+    "storyId": "US-CDLD-ERROR",
+    "title": "文件元数据不完整时下载按钮禁用或提示错误",
+    "priority": "P1",
+    "preconditions": [
+      "已登录",
+      "文件缺少 r2Key 或 taskId（metadata 不完整）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDLD-018",
+    "storyId": "US-CDLD-ERROR",
+    "title": "多次快速点击下载按钮只触发一次下载请求",
+    "priority": "P2",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开可下载文件"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "txt file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "click",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Download file",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDLD-019",
+    "storyId": "US-CDLD-UX",
+    "title": "Canvas 头部下载按钮 hover 显示 tooltip 文字",
+    "priority": "P2",
+    "preconditions": [
+      "已登录",
+      "Canvas 已打开任意文件"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithFiles", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "txt file card",
+        "action": "click",
+        "value": null,
+        "locatorHint": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Download file",
+        "action": "hover",
+        "value": null,
+        "locatorHint": "button[title='Download file']",
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "tooltip",
+        "name": "Download file tooltip",
+        "expected": null,
+        "i18nKey": "canvas.downloadFile"
+      }
+    ],
+    "timeout": null
+  }
+]

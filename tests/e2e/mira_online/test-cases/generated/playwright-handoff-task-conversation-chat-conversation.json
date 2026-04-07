@@ -1,0 +1,877 @@
+[
+  {
+    "id": "TC-CDP-CONV-001",
+    "storyId": "US-CONV-FILEUPLOAD",
+    "source": "cdp",
+    "title": "附加支持格式文件后 Submit 按钮变为可点击",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "通过隐藏文件 input 上传 sample.pdf",
+    "expectedOutcome": "附件区显示文件名，Submit 按钮变为可点击状态",
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "添加照片或文件",
+        "i18nKey": "chatbot.addAttachments",
+        "action": "trigger",
+        "locatorHint": "button:has-text('添加照片或文件')"
+      },
+      {
+        "role": "input",
+        "tag": "input[type=file]",
+        "action": "setInputFiles",
+        "value": "tests/e2e/test-data/files/sample.pdf",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "locatorHint": "input[type='file']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button:has-text('Remove attachment')",
+        "description": "附件移除按钮可见"
+      },
+      {
+        "type": "enabled",
+        "selector": "button:has-text('Submit')",
+        "description": "Submit 按钮变为可点击"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "file-upload", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": 15000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S1"
+  },
+  {
+    "id": "TC-CDP-CONV-002",
+    "storyId": "US-CONV-FILEUPLOAD",
+    "source": "cdp",
+    "title": "同时附加多个文件时均显示在附件区",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "通过隐藏 file input 同时上传 sample.pdf 和 sample.txt",
+    "expectedOutcome": "两个文件名均显示在附件区，Submit 按钮启用",
+    "uiElements": [
+      {
+        "role": "input",
+        "tag": "input[type=file]",
+        "action": "setInputFiles",
+        "value": ["tests/e2e/test-data/files/sample.pdf", "tests/e2e/test-data/files/sample.txt"],
+        "locatorHint": "input[type='file']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "enabled",
+        "selector": "button:has-text('Submit')",
+        "description": "Submit 按钮已启用"
+      },
+      {
+        "type": "visible",
+        "selector": "button:has-text('Remove attachment')",
+        "description": "至少一个移除按钮可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "file-upload", "@P1", "@regression", "@full"],
+    "timeout": 15000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S1"
+  },
+  {
+    "id": "TC-CDP-CONV-003",
+    "storyId": "US-CONV-MSGSEND",
+    "source": "cdp",
+    "title": "仅上传文件（无文字）点击 Submit 后导航至任务详情",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "上传 sample.txt，点击 Submit",
+    "expectedOutcome": "URL 变为 /task/{taskId}，聊天日志中出现文件按钮",
+    "uiElements": [
+      {
+        "role": "input",
+        "tag": "input[type=file]",
+        "action": "setInputFiles",
+        "value": "tests/e2e/test-data/files/sample.txt",
+        "dataType": "file.document",
+        "dataVariant": "txt",
+        "locatorHint": "input[type='file']"
+      },
+      {
+        "role": "button",
+        "name": "Submit",
+        "action": "click",
+        "locatorHint": "button:has-text('Submit')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "expected": "/task/.+",
+        "description": "URL 匹配 /task/{taskId}"
+      },
+      {
+        "type": "visible",
+        "selector": "div[role='log']",
+        "description": "聊天日志区域可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "file-upload", "message-send", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": 30000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S2"
+  },
+  {
+    "id": "TC-CDP-CONV-004",
+    "storyId": "US-CONV-MSGSEND",
+    "source": "cdp",
+    "title": "未附加任何内容时 Submit 按钮保持禁用",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0），未输入文字，未上传文件"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "不执行任何输入，观察 Submit 状态",
+    "expectedOutcome": "Submit 按钮为禁用状态",
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Submit",
+        "action": "observe",
+        "locatorHint": "button:has-text('Submit')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button:has-text('Submit')",
+        "description": "Submit 按钮保持禁用"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "message-send", "@P1", "@regression", "@full"],
+    "timeout": 10000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S0"
+  },
+  {
+    "id": "TC-CDP-CONV-005",
+    "storyId": "US-CONV-FILEUPLOAD",
+    "source": "cdp",
+    "title": "附加单个文件后文件名和 Remove 按钮显示",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "上传 sample.pdf，观察附件显示区域",
+    "expectedOutcome": "显示文件信息区域，显示 Remove attachment 按钮",
+    "uiElements": [
+      {
+        "role": "input",
+        "tag": "input[type=file]",
+        "action": "setInputFiles",
+        "value": "tests/e2e/test-data/files/sample.pdf",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "locatorHint": "input[type='file']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button:has-text('Remove attachment')",
+        "description": "Remove attachment 按钮可见"
+      },
+      {
+        "type": "visible",
+        "selector": "span:has-text('sample')",
+        "description": "文件名显示在附件区"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "file-upload", "@P1", "@regression", "@full"],
+    "timeout": 15000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S1"
+  },
+  {
+    "id": "TC-CDP-CONV-006",
+    "storyId": "US-CONV-MSGSEND",
+    "source": "cdp",
+    "title": "点击场景建议按钮自动提交并导航至任务详情",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0），显示 4 个场景建议"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "点击第一个场景建议按钮",
+    "expectedOutcome": "自动提交，URL 导航至 /task/{taskId}",
+    "uiElements": [
+      {
+        "role": "button",
+        "selector": "main button.bg-secondary",
+        "action": "click",
+        "index": 0,
+        "locatorHint": "main button[class*='bg-secondary']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "expected": "/task/.+",
+        "description": "URL 变为 /task/{taskId}"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "message-send", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S2"
+  },
+  {
+    "id": "TC-CDP-CONV-007",
+    "storyId": "US-CONV-FILEUPLOAD",
+    "source": "cdp",
+    "title": "点击 Remove attachment 后文件被移除且 Submit 重新禁用",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} },
+      { "type": "ui", "action": "upload", "pomMethod": "attachFile", "data": { "filePath": "tests/e2e/test-data/files/sample.pdf" } }
+    ],
+    "action": "点击 Remove attachment 按钮",
+    "expectedOutcome": "附件区消失，Submit 按钮回到禁用状态",
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Remove attachment",
+        "action": "click",
+        "locatorHint": "button:has-text('Remove attachment')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "button:has-text('Remove attachment')",
+        "description": "Remove attachment 按钮消失"
+      },
+      {
+        "type": "disabled",
+        "selector": "button:has-text('Submit')",
+        "description": "Submit 按钮重新禁用"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "file-upload", "@P1", "@regression", "@full"],
+    "timeout": 15000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S1",
+    "toState": "S0"
+  },
+  {
+    "id": "TC-CDP-CONV-008",
+    "storyId": "US-CONV-CHATRESPONSE",
+    "source": "cdp",
+    "title": "发送消息后聊天日志显示 AI 标签和思考中状态",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "输入'帮我找10个测试工程师'，点击 Submit",
+    "expectedOutcome": "URL 变为 /task/{taskId}，聊天日志中出现 Mira 标签，出现思考中...指示",
+    "uiElements": [
+      {
+        "role": "textbox",
+        "selector": "textarea",
+        "action": "fill",
+        "value": "帮我找10个测试工程师",
+        "locatorHint": "textarea"
+      },
+      {
+        "role": "button",
+        "name": "Submit",
+        "action": "click",
+        "locatorHint": "button:has-text('Submit')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "expected": "/task/.+",
+        "description": "URL 包含任务 ID"
+      },
+      {
+        "type": "visible",
+        "selector": "span:has-text('Mira')",
+        "description": "AI 标签 Mira 可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "chat-response", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S2"
+  },
+  {
+    "id": "TC-CDP-CONV-009",
+    "storyId": "US-CONV-CHATRESPONSE",
+    "source": "cdp",
+    "title": "用户消息发送后显示在聊天日志中并带复制按钮",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "输入'测试'，点击 Submit，等待 URL 导航完成",
+    "expectedOutcome": "聊天日志中可见用户消息文字，出现复制按钮",
+    "uiElements": [
+      {
+        "role": "textbox",
+        "selector": "textarea",
+        "action": "fill",
+        "value": "测试",
+        "locatorHint": "textarea"
+      },
+      {
+        "role": "button",
+        "name": "Submit",
+        "action": "click",
+        "locatorHint": "button:has-text('Submit')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "div[role='log']",
+        "description": "聊天日志区域可见"
+      },
+      {
+        "type": "visible",
+        "selector": "button:has-text('复制')",
+        "i18nKey": "chatbot.copy",
+        "description": "复制按钮显示在用户消息旁"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "chat-response", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S2"
+  },
+  {
+    "id": "TC-CDP-CONV-010",
+    "storyId": "US-CONV-FILEUPLOAD",
+    "source": "cdp",
+    "title": "文件附加与移除的完整状态流转（S0→S1→S0）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "上传 sample.pdf → 确认 S1 → 点击 Remove attachment → 确认 S0",
+    "expectedOutcome": "全程状态转换正确，Submit 按钮状态与附件状态联动",
+    "uiElements": [
+      {
+        "role": "input",
+        "tag": "input[type=file]",
+        "action": "setInputFiles",
+        "value": "tests/e2e/test-data/files/sample.pdf",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "locatorHint": "input[type='file']"
+      },
+      {
+        "role": "button",
+        "name": "Remove attachment",
+        "action": "click",
+        "locatorHint": "button:has-text('Remove attachment')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "enabled",
+        "selector": "button:has-text('Submit')",
+        "description": "文件附加后 Submit 启用（S1 验证点）"
+      },
+      {
+        "type": "disabled",
+        "selector": "button:has-text('Submit')",
+        "description": "文件移除后 Submit 重新禁用（S0 验证点）"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "file-upload", "state-transition", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": 15000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S0"
+  },
+  {
+    "id": "TC-CDP-CONV-011",
+    "storyId": "US-CONV-WORKSPACE",
+    "source": "cdp",
+    "title": "点击工具卡片打开工作区面板（S3→S5）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，任务详情页有工具卡片（通过侧边栏第一个任务导航）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} },
+      { "type": "ui", "action": "navigate", "pomMethod": "clickFirstTask", "data": {} }
+    ],
+    "action": "找到第一个工具卡（div[role=button].rounded-xl.border），点击",
+    "expectedOutcome": "工作区面板显示，面板标题包含'工作区'",
+    "uiElements": [
+      {
+        "role": "button",
+        "selector": "div[role='button'].rounded-xl.border.cursor-pointer",
+        "action": "click",
+        "locatorHint": "div[role='button'].rounded-xl.border.cursor-pointer"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "h2:has-text('工作区')",
+        "i18nKey": "workspace.title",
+        "description": "工作区面板标题可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "workspace-panel", "tool-cards", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task/{taskId}",
+    "fromState": "S3",
+    "toState": "S5"
+  },
+  {
+    "id": "TC-CDP-CONV-012",
+    "storyId": "US-CONV-WORKSPACE",
+    "source": "cdp",
+    "title": "点击工作区面板关闭按钮后面板消失（S5→S3）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，工作区面板已打开（S5）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} },
+      { "type": "ui", "action": "navigate", "pomMethod": "clickFirstTask", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickFirstToolCard", "data": {} }
+    ],
+    "action": "点击工作区面板的关闭（X）按钮",
+    "expectedOutcome": "工作区面板消失，聊天日志仍然可见",
+    "uiElements": [
+      {
+        "role": "button",
+        "selector": "h2:has-text('工作区') ~ button",
+        "action": "click",
+        "locatorHint": "h2:has-text('工作区') ~ button"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "h2:has-text('工作区')",
+        "description": "工作区面板标题消失"
+      },
+      {
+        "type": "visible",
+        "selector": "div[role='log']",
+        "description": "聊天日志仍然可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "workspace-panel", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task/{taskId}",
+    "fromState": "S5",
+    "toState": "S3"
+  },
+  {
+    "id": "TC-CDP-CONV-013",
+    "storyId": "US-CONV-MSGSEND",
+    "source": "cdp",
+    "title": "上传文件 + 输入文字 + 发送，验证聊天记录同时显示文件和文字",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "上传 sample.pdf + 输入'请分析这份文件' + Submit",
+    "expectedOutcome": "聊天日志中可见文件附件按钮和用户文字消息，Mira 标签出现",
+    "uiElements": [
+      {
+        "role": "input",
+        "tag": "input[type=file]",
+        "action": "setInputFiles",
+        "value": "tests/e2e/test-data/files/sample.pdf",
+        "dataType": "file.document",
+        "dataVariant": "pdf",
+        "locatorHint": "input[type='file']"
+      },
+      {
+        "role": "textbox",
+        "selector": "textarea",
+        "action": "fill",
+        "value": "请分析这份文件",
+        "locatorHint": "textarea"
+      },
+      {
+        "role": "button",
+        "name": "Submit",
+        "action": "click",
+        "locatorHint": "button:has-text('Submit')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "expected": "/task/.+",
+        "description": "URL 包含任务 ID"
+      },
+      {
+        "type": "visible",
+        "selector": "div[role='log']",
+        "description": "聊天日志区域可见"
+      },
+      {
+        "type": "visible",
+        "selector": "span:has-text('Mira')",
+        "description": "AI 标签 Mira 可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "file-upload", "message-send", "cross-flow", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": 30000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S2"
+  },
+  {
+    "id": "TC-CDP-CONV-014",
+    "storyId": "US-CONV-WORKSPACE",
+    "source": "cdp",
+    "title": "工作区面板打开后显示工具执行详情",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，任务详情页有已完成的工具卡片（通过侧边栏任务导航）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} },
+      { "type": "ui", "action": "navigate", "pomMethod": "clickFirstTask", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickFirstToolCard", "data": {} }
+    ],
+    "action": "工作区面板打开后查看面板内容",
+    "expectedOutcome": "工作区面板标题可见，面板显示工具相关内容",
+    "uiElements": [
+      {
+        "role": "heading",
+        "selector": "h2",
+        "action": "observe",
+        "locatorHint": "h2:has-text('工作区')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "h2:has-text('工作区')",
+        "i18nKey": "workspace.title",
+        "description": "工作区面板标题可见"
+      },
+      {
+        "type": "visible",
+        "selector": "[class*='workspace'], div:has(> h2:has-text('工作区'))",
+        "description": "工作区面板容器可见"
+      }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "click", "pomMethod": "closeWorkspacePanel", "data": {} }
+    ],
+    "tags": ["cdp-inferred", "workspace-panel", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task/{taskId}",
+    "fromState": "S5",
+    "toState": "S5"
+  },
+  {
+    "id": "TC-CDP-CONV-015",
+    "storyId": "US-CONV-MSGSEND",
+    "source": "cdp",
+    "title": "点击场景建议按钮直接触发任务创建",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0），显示场景建议按钮"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "点击页面中任意一个场景建议按钮",
+    "expectedOutcome": "自动提交，URL 导航至 /task/{taskId}，聊天日志可见",
+    "uiElements": [
+      {
+        "role": "button",
+        "selector": "main button[class*='bg-secondary']",
+        "action": "click",
+        "index": 0,
+        "locatorHint": "main button[class*='bg-secondary']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "expected": "/task/.+",
+        "description": "URL 变为 /task/{taskId}"
+      },
+      {
+        "type": "visible",
+        "selector": "div[role='log']",
+        "description": "聊天日志区域可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "message-send", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S2"
+  },
+  {
+    "id": "TC-CDP-CONV-016",
+    "storyId": "US-CONV-WORKSPACE",
+    "source": "cdp",
+    "title": "工作区面板打开后文件上传按钮仍可访问",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已登录，工作区面板已打开（S5）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} },
+      { "type": "ui", "action": "navigate", "pomMethod": "clickFirstTask", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickFirstToolCard", "data": {} }
+    ],
+    "action": "工作区面板打开时检查文件上传按钮可访问性",
+    "expectedOutcome": "聊天输入区的文件上传按钮仍可见",
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "添加照片或文件",
+        "i18nKey": "chatbot.addAttachments",
+        "action": "observe",
+        "locatorHint": "button:has-text('添加照片或文件')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button:has-text('添加照片或文件')",
+        "i18nKey": "chatbot.addAttachments",
+        "description": "文件上传按钮仍可见"
+      }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "click", "pomMethod": "closeWorkspacePanel", "data": {} }
+    ],
+    "tags": ["cdp-inferred", "workspace-panel", "file-upload", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task/{taskId}",
+    "fromState": "S5",
+    "toState": "S5"
+  },
+  {
+    "id": "TC-CDP-CONV-017",
+    "storyId": "US-CONV-TOOLCARDS",
+    "source": "cdp",
+    "title": "工具卡片在进行中状态下显示有色边框",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，任务处于 AI 执行工具中（S3）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "发送消息后快速等待工具卡片出现，在完成前观察边框",
+    "expectedOutcome": "进行中的工具卡有彩色边框，文字包含'正在'前缀",
+    "uiElements": [
+      {
+        "role": "textbox",
+        "selector": "textarea",
+        "action": "fill",
+        "value": "帮我搜索候选人",
+        "locatorHint": "textarea"
+      },
+      {
+        "role": "button",
+        "name": "Submit",
+        "action": "click",
+        "locatorHint": "button:has-text('Submit')"
+      },
+      {
+        "role": "button",
+        "selector": "div[role='button'].rounded-xl.border.cursor-pointer",
+        "action": "waitFor",
+        "locatorHint": "div[role='button'].rounded-xl.border.cursor-pointer"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "div[role='button'].rounded-xl.border.cursor-pointer",
+        "description": "工具卡片可见"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "tool-cards", "@P2", "@full"],
+    "timeout": 30000,
+    "pageUrl": "https://www.mira.day/task/{taskId}",
+    "fromState": "S3",
+    "toState": "S3"
+  },
+  {
+    "id": "TC-CDP-CONV-018",
+    "storyId": "US-CONV-CHATRESPONSE",
+    "source": "cdp",
+    "title": "聊天日志区域有 role=log aria-live=polite 可访问性属性",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 任意有聊天日志的页面"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} },
+      { "type": "ui", "action": "navigate", "pomMethod": "clickFirstTask", "data": {} }
+    ],
+    "action": "检查聊天日志区域的 ARIA 属性",
+    "expectedOutcome": "聊天日志容器具有 role=log 和 aria-live=polite 属性",
+    "uiElements": [
+      {
+        "role": "log",
+        "selector": "div[role='log']",
+        "action": "observe",
+        "locatorHint": "div[role='log']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "div[role='log']",
+        "description": "聊天日志 role=log 元素可见"
+      },
+      {
+        "type": "attribute",
+        "selector": "div[role='log']",
+        "attribute": "aria-live",
+        "expected": "polite",
+        "description": "aria-live=polite 可访问性属性存在"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "accessibility", "@P1", "@regression", "@full"],
+    "timeout": 15000,
+    "pageUrl": "https://www.mira.day/task/{taskId}",
+    "fromState": "S2",
+    "toState": "S2"
+  },
+  {
+    "id": "TC-CDP-CONV-019",
+    "storyId": "US-CONV-I18N",
+    "source": "cdp",
+    "title": "添加照片或文件按钮 i18n 文本正确",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，位于 /task 空会话页面（S0）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "action": "检查文件上传按钮文本与 i18n key 一致",
+    "expectedOutcome": "按钮文本与 i18n.t('chatbot.addAttachments') 一致",
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "添加照片或文件",
+        "i18nKey": "chatbot.addAttachments",
+        "action": "observe",
+        "locatorHint": "button:has-text('添加照片或文件')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "i18nKey": "chatbot.addAttachments",
+        "description": "文件上传按钮文本与 i18n.t('chatbot.addAttachments') 一致"
+      }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "i18n", "@P2", "@full"],
+    "timeout": 10000,
+    "pageUrl": "https://www.mira.day/task",
+    "fromState": "S0",
+    "toState": "S0"
+  },
+  {
+    "id": "TC-CDP-CONV-020",
+    "storyId": "US-CONV-I18N",
+    "source": "cdp",
+    "title": "工作区面板标题 i18n 文本正确",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，工作区面板已打开（S5）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} },
+      { "type": "ui", "action": "navigate", "pomMethod": "clickFirstTask", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "clickFirstToolCard", "data": {} }
+    ],
+    "action": "检查工作区面板标题文本",
+    "expectedOutcome": "面板标题文本与 i18n.t('workspace.title') 一致",
+    "uiElements": [
+      {
+        "role": "heading",
+        "selector": "h2",
+        "i18nKey": "workspace.title",
+        "action": "observe",
+        "locatorHint": "h2:has-text('工作区')"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "h2",
+        "i18nKey": "workspace.title",
+        "description": "工作区面板标题文本 = i18n.t('workspace.title')"
+      }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "click", "pomMethod": "closeWorkspacePanel", "data": {} }
+    ],
+    "tags": ["cdp-inferred", "i18n", "workspace-panel", "@P1", "@regression", "@full"],
+    "timeout": 20000,
+    "pageUrl": "https://www.mira.day/task/{taskId}",
+    "fromState": "S5",
+    "toState": "S5"
+  }
+]

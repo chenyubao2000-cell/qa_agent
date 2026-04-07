@@ -1,0 +1,86 @@
+// POM fragment: canvas-preview area
+// Merge target: tests/e2e/pages/task.page.ts
+// generated: 2026-03-29T00:00:00Z
+
+import { type Page, type Locator } from '@playwright/test';
+import type { I18n } from '../fixtures';
+
+export class CanvasPreviewFragment {
+  private readonly page: Page;
+  private readonly i18n?: I18n;
+
+  private readonly canvasPanel: Locator;
+  private readonly canvasDownloadBtn: Locator;
+  private readonly canvasCloseBtn: Locator;
+  private readonly pdfPrevPageBtn: Locator;
+  private readonly pdfNextPageBtn: Locator;
+  private readonly pdfZoomInBtn: Locator;
+  private readonly pdfZoomOutBtn: Locator;
+  private readonly pdfPageCount: Locator;
+  private readonly pdfZoomPercent: Locator;
+  private readonly pptThumbnailSidebar: Locator;
+  private readonly pptPageIndicator: Locator;
+  private readonly pptMainArea: Locator;
+  private readonly canvasRetryBtn: Locator;
+  private readonly canvasLoadingIndicator: Locator;
+
+  constructor(page: Page, i18n?: I18n) {
+    this.page = page;
+    this.i18n = i18n;
+
+    // Canvas panel: the right-side border-l container
+    this.canvasPanel = page.locator('div.flex.flex-col.border-l.bg-background').last();
+
+    // Download button: first button in header actions group
+    this.canvasDownloadBtn = this.canvasPanel.locator('div.flex.items-center.gap-1 button').first();
+
+    // Close button: last button in header actions group
+    this.canvasCloseBtn = this.canvasPanel.locator('div.flex.items-center.gap-1 button').last();
+
+    // PDF toolbar controls
+    const pdfToolbar = this.canvasPanel.locator(String.raw`div[class*="bg-muted"]`);
+    this.pdfPrevPageBtn = pdfToolbar.locator('button').first();
+    this.pdfNextPageBtn = pdfToolbar.locator('button').nth(1);
+    this.pdfZoomOutBtn = pdfToolbar.locator('button').nth(2);
+    this.pdfZoomInBtn = pdfToolbar.locator('button').nth(3);
+    this.pdfPageCount = pdfToolbar.locator('span.text-sm').first();
+    this.pdfZoomPercent = pdfToolbar.locator('span.text-xs').first();
+
+    // PPT thumbnail sidebar
+    this.pptThumbnailSidebar = this.canvasPanel.locator(String.raw`div[class*="md:flex"]`).filter({
+      has: page.locator('[data-slide]'),
+    }).first();
+    this.pptPageIndicator = this.canvasPanel.locator('span.tabular-nums').last();
+    this.pptMainArea = this.canvasPanel.locator(String.raw`div[class*="flex-1"][class*="overflow-hidden"]`).last();
+
+    // Retry button
+    this.canvasRetryBtn = this.i18n
+      ? page.getByRole('button', { name: this.i18n.t('canvas.retry') })
+      : page.getByRole('button', { name: /Retry|重试/i });
+
+    this.canvasLoadingIndicator = page.locator(String.raw`[class*="animate-spin"]`).first();
+  }
+
+  getCanvasMaximizeBtn(): Locator {
+    return this.i18n
+      ? this.page.locator(`button[title="${this.i18n.t("canvas.maximize")}"]`)
+      : this.page.locator(String.raw`button[title="Maximize"], button[title="最大化"]`).first();
+  }
+
+  getCanvasRestoreBtn(): Locator {
+    return this.i18n
+      ? this.page.locator(`button[title="${this.i18n.t("canvas.restore")}"]`)
+      : this.page.locator(String.raw`button[title="Restore"], button[title="还原"]`).first();
+  }
+
+  getCanvasDownloadBtn(): Locator {
+    return this.i18n
+      ? this.page.locator(`button[title="${this.i18n.t("canvas.downloadFile")}"]`)
+      : this.page.locator(String.raw`button[title="Download file"], button[title="下载文件"]`).first();
+  }
+
+  getCanvasCloseBtn(): Locator {
+    return this.i18n
+      ? this.page.locator(`button[title="${this.i18n.t("canvas.close")}"]`)
+      : this.page.locator(String.raw`button[title="Close"], button[title="关闭"]`).first();
+  }

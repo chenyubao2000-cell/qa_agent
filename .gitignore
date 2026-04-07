@@ -2,3 +2,23 @@ node_modules/
 .specstory
 tests/reports/
 .claude/settings.local.json
+playwright-report/
+
+# Env files (contain credentials)
+# .env
+
+# Playwright auth state (contains session tokens)
+playwright/.auth/
+.auth/
+
+# Test execution artifacts (screenshots, traces, videos)
+test-results/
+screenshots/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.code-workspace

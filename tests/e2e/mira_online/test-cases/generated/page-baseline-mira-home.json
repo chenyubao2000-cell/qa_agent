@@ -1,0 +1,264 @@
+{
+  "meta": {
+    "url": "https://www.mira.day/",
+    "title": "Mira",
+    "mode": "full",
+    "areasCompleted": ["tabs-features", "combobox-lang", "nav-top", "cta-hero", "cta-bottom"],
+    "exploredAt": "2026-03-23",
+    "siteMap": {
+      "discoveredPages": [
+        { "path": "/", "name": "Homepage", "auth": false },
+        { "path": "/sign-in", "name": "Sign In / Sign Up", "auth": false },
+        { "path": "/forgot-password", "name": "Forgot Password", "auth": false },
+        { "path": "/join-waitlist", "name": "Join Waitlist Form", "auth": false },
+        { "path": "/task", "name": "Task App (main)", "auth": true },
+        { "path": "/task/{taskId}", "name": "Task Detail (chat)", "auth": true }
+      ],
+      "crossPageFlows": [
+        { "name": "Homepage → Join Waitlist", "steps": ["Click CTA on homepage", "Fill join-waitlist form", "Submit or Cancel → back to homepage"] },
+        { "name": "Homepage → Sign In → Task", "steps": ["Click '登录' on homepage", "Redirect to /sign-in", "Email → Password → /task"] },
+        { "name": "Sign In → Forgot Password → Sign In", "steps": ["Click '忘记密码'", "Enter email", "Send reset link", "Click '返回登录'"] },
+        { "name": "Unauthenticated /task → Sign In", "steps": ["Navigate to /task without auth", "Redirect to /sign-in"] },
+        { "name": "Task → Logout → Sign In", "steps": ["Click user menu", "Click '退出登录'", "Redirect to /sign-in"] }
+      ]
+    }
+  },
+  "states": {
+    "S0": {
+      "name": "Initial homepage — Core tab active (zh)",
+      "trigger": null,
+      "url": "https://www.mira.day/",
+      "sourceArea": null,
+      "fingerprint": "nav+hero+tabs(core[active],recruiting)+4coreCards+bottomCTA",
+      "regions": {
+        "navigation": {
+          "elements": [
+            { "uid": "1_2", "tag": "button", "text": "Mira", "role": "logo/home" },
+            { "uid": "1_3", "tag": "button", "text": "功能", "role": "scroll-to-features", "i18n": "HomePage.features.label" },
+            { "uid": "1_4", "tag": "button", "role": "combobox", "text": "简体中文", "ariaExpanded": "false" },
+            { "uid": "1_5", "tag": "a", "text": "登录", "href": "/task", "i18n": "Layout.login" },
+            { "uid": "1_7", "tag": "a", "text": "加入等待名单", "href": "/join-waitlist", "i18n": "HomePage.hero.getStarted" }
+          ]
+        },
+        "hero": {
+          "elements": [
+            { "uid": "1_9", "tag": "img", "alt": "Mira Hero" },
+            { "uid": "1_14", "tag": "a", "text": "加入等待名单", "href": "/join-waitlist", "i18n": "HomePage.hero.getStarted" }
+          ]
+        },
+        "featureTabs": {
+          "elements": [
+            { "uid": "1_17", "tag": "button", "text": "核心", "role": "tab", "state": "active", "i18n": "HomePage.features.core" },
+            { "uid": "1_18", "tag": "button", "text": "招聘", "role": "tab", "state": "inactive", "i18n": "HomePage.features.recruiting" }
+          ]
+        },
+        "featureCards": {
+          "note": "Core feature cards (visible when Core tab active)",
+          "elements": [
+            {
+              "uid": "1_19", "tag": "h2", "text": "协作式自动执行",
+              "i18n": "HomePage.features.coreFeatures.workWithYou.title",
+              "desc": ["Mira 可自主完成任务，也会在关键决策点与你协作。", "你们共享时间、上下文与目标。"],
+              "descI18n": ["HomePage.features.coreFeatures.workWithYou.desc1", "HomePage.features.coreFeatures.workWithYou.desc2"],
+              "image": "/home/core-1-v2.webp"
+            },
+            {
+              "uid": "1_23", "tag": "h2", "text": "可训练，也会学习",
+              "i18n": "HomePage.features.coreFeatures.trainedByYou.title",
+              "desc": ["你可以显式定义技能并训练 Mira，", "也可以让它在真实工作中持续学习你的行为方式。"],
+              "descI18n": ["HomePage.features.coreFeatures.trainedByYou.desc1", "HomePage.features.coreFeatures.trainedByYou.desc2"],
+              "image": "/home/core-2-v2.webp"
+            },
+            {
+              "uid": "1_27", "tag": "h2", "text": "不是 Demo，而是工程化系统",
+              "i18n": "HomePage.features.coreFeatures.topTierModels.title",
+              "desc": ["基于顶尖模型，配合严肃的工程能力，", "并由真实业务专家参与设计。"],
+              "descI18n": ["HomePage.features.coreFeatures.topTierModels.desc1", "HomePage.features.coreFeatures.topTierModels.desc2"],
+              "image": "/home/core-3-v2.webp"
+            },
+            {
+              "uid": "1_31", "tag": "h2", "text": "无缝融入现有工具",
+              "i18n": "HomePage.features.coreFeatures.integratedTools.title",
+              "desc": ["无需迁移工作方式，Mira 直接连接 Airtable、Slack、Gmail、", "OneDrive 等常用工具。"],
+              "descI18n": ["HomePage.features.coreFeatures.integratedTools.desc1", "HomePage.features.coreFeatures.integratedTools.desc2"],
+              "image": "/home/core-4-v2.webp"
+            }
+          ]
+        },
+        "bottomCTA": {
+          "elements": [
+            { "uid": "1_35", "tag": "h2", "text": "申请抢先体验", "i18n": "HomePage.cta.title" },
+            { "uid": "1_37", "tag": "a", "text": "加入等待名单", "href": "/task", "i18n": "HomePage.cta.button" }
+          ]
+        }
+      }
+    },
+    "S1": {
+      "name": "Recruiting tab active",
+      "trigger": { "action": "click", "uid": "1_18", "label": "招聘 tab" },
+      "url": "https://www.mira.day/",
+      "sourceArea": "tabs-features",
+      "fingerprint": "nav+hero+tabs(core,recruiting[active])+4recruitingCards+bottomCTA",
+      "regions": {
+        "featureTabs": {
+          "elements": [
+            { "uid": "1_17", "tag": "button", "text": "核心", "role": "tab", "state": "inactive", "i18n": "HomePage.features.core" },
+            { "uid": "1_18", "tag": "button", "text": "招聘", "role": "tab", "state": "active", "i18n": "HomePage.features.recruiting" }
+          ]
+        },
+        "featureCards": {
+          "note": "Recruiting feature cards (visible when Recruiting tab active)",
+          "elements": [
+            {
+              "uid": "3_0", "tag": "h2", "text": "候选人数据获取",
+              "i18n": "HomePage.features.recruitingFeatures.candidateData.title",
+              "desc": ["聚合来自多个数据源的海量结构化与非结构化数据。", "通过 Mira Chrome 扩展，在需要时补充更多网页来源与公开线索。"],
+              "descI18n": ["HomePage.features.recruitingFeatures.candidateData.desc1", "HomePage.features.recruitingFeatures.candidateData.desc2"],
+              "image": "/home/Recruiting-1-v2.webp"
+            },
+            {
+              "uid": "3_4", "tag": "h2", "text": "沟通与跟进",
+              "i18n": "HomePage.features.recruitingFeatures.communication.title",
+              "desc": ["支持电话与邮件的发送与跟进。", "所有沟通记录自动关联到对应的候选人。"],
+              "descI18n": ["HomePage.features.recruitingFeatures.communication.desc1", "HomePage.features.recruitingFeatures.communication.desc2"],
+              "image": "/home/Recruiting-2-v2.webp"
+            },
+            {
+              "uid": "3_8", "tag": "h2", "text": "招聘技能",
+              "i18n": "HomePage.features.recruitingFeatures.recruitingSkills.title",
+              "desc": ["内置专家级招聘技能，用于职位澄清、", "候选人评估与招聘决策支持。"],
+              "descI18n": ["HomePage.features.recruitingFeatures.recruitingSkills.desc1", "HomePage.features.recruitingFeatures.recruitingSkills.desc2"],
+              "image": "/home/Recruiting-3-v2.webp"
+            },
+            {
+              "uid": "3_12", "tag": "h2", "text": "安全与可信",
+              "i18n": "HomePage.features.recruitingFeatures.securityTrust.title",
+              "desc": ["面向企业级场景设计，符合 GDPR 等数据合规要求。", "支持零数据保留（Zero Data Retention, ZDR）等高级隐私选项。"],
+              "descI18n": ["HomePage.features.recruitingFeatures.securityTrust.desc1", "HomePage.features.recruitingFeatures.securityTrust.desc2"],
+              "image": "/home/Recruiting-4-v2.webp"
+            }
+          ]
+        }
+      }
+    },
+    "S2": {
+      "name": "Language dropdown open",
+      "trigger": { "action": "click", "uid": "1_4", "label": "Language combobox" },
+      "url": "https://www.mira.day/",
+      "sourceArea": "combobox-lang",
+      "fingerprint": "langDropdown(zh[selected],en)",
+      "regions": {
+        "dropdown": {
+          "elements": [
+            { "tag": "option", "text": "简体中文", "selected": true },
+            { "tag": "option", "text": "English", "selected": false }
+          ]
+        }
+      }
+    },
+    "S3": {
+      "name": "Homepage in English",
+      "trigger": { "action": "select", "value": "English", "label": "Switch to English" },
+      "url": "https://www.mira.day/",
+      "sourceArea": "combobox-lang",
+      "fingerprint": "nav(en)+hero(en)+tabs(core[active],recruiting)+4coreCards(en)+bottomCTA(en)",
+      "i18nVerification": {
+        "navigation": {
+          "登录": "Sign in",
+          "加入等待名单": "Join Waitlist",
+          "功能": "Features"
+        },
+        "hero": {
+          "你的数字延伸": "Extension of You",
+          "从招聘开始，远不止于此": "Starting with Recruiting. More to Come.",
+          "Mira 不仅仅是 Agent，它是你的数字伙伴": "Mira isn't just an agent. It's your digital counterpart."
+        },
+        "tabs": {
+          "核心": "Core",
+          "招聘": "Recruiting"
+        },
+        "featureCards": {
+          "协作式自动执行": "Work With You, Not For You",
+          "可训练，也会学习": "Trained by You — Or Learns From You",
+          "不是 Demo，而是工程化系统": "Built on Top-Tier Models, Engineered for Reality",
+          "无缝融入现有工具": "Integrated Into Your Existing Tools"
+        },
+        "bottomCTA": {
+          "申请抢先体验": "Request Early Access"
+        }
+      }
+    }
+  },
+  "stateGraph": {
+    "edges": [
+      {
+        "from": "S0", "to": "S1", "action": "click",
+        "target": { "uid": "1_18", "selector": "button", "i18n": "HomePage.features.recruiting" },
+        "label": "Click Recruiting tab", "sourceArea": "tabs-features"
+      },
+      {
+        "from": "S1", "to": "S0", "action": "click",
+        "target": { "uid": "1_17", "selector": "button", "i18n": "HomePage.features.core" },
+        "label": "Click Core tab", "sourceArea": "tabs-features"
+      },
+      {
+        "from": "S0", "to": "S2", "action": "click",
+        "target": { "uid": "1_4", "selector": "button[role=combobox]" },
+        "label": "Open language dropdown", "sourceArea": "combobox-lang"
+      },
+      {
+        "from": "S2", "to": "S3", "action": "select",
+        "target": { "selector": "option", "value": "English" },
+        "label": "Select English", "sourceArea": "combobox-lang"
+      },
+      {
+        "from": "S3", "to": "S0", "action": "select",
+        "target": { "selector": "option", "value": "简体中文" },
+        "label": "Select 简体中文 (round-trip)", "sourceArea": "combobox-lang"
+      },
+      {
+        "from": "S0", "to": "page:/join-waitlist", "action": "click",
+        "target": { "uid": "1_14", "selector": "a[href='/join-waitlist']", "i18n": "HomePage.hero.getStarted" },
+        "label": "Hero CTA → Join Waitlist page", "sourceArea": "cta-hero", "crossPage": true
+      },
+      {
+        "from": "S0", "to": "page:/join-waitlist", "action": "click",
+        "target": { "uid": "1_7", "selector": "a[href='/join-waitlist']", "i18n": "HomePage.hero.getStarted" },
+        "label": "Nav 'Join Waitlist' → Join Waitlist page", "sourceArea": "nav-top", "crossPage": true
+      },
+      {
+        "from": "S0", "to": "page:/task", "action": "click",
+        "target": { "uid": "1_5", "selector": "a[href='/task']", "i18n": "Layout.login" },
+        "label": "Nav 'Sign in' → Task (or Sign-in if unauth)", "sourceArea": "nav-top", "crossPage": true
+      },
+      {
+        "from": "S0", "to": "page:/task", "action": "click",
+        "target": { "uid": "1_37", "selector": "a[href='/task']", "i18n": "HomePage.cta.button" },
+        "label": "Bottom CTA → Task page", "sourceArea": "cta-bottom", "crossPage": true
+      }
+    ]
+  },
+  "areas": {
+    "tabs-features": {
+      "status": "done", "stateIds": ["S0", "S1"], "type": "tabs", "name": "Feature Tab Switching", "priority": 1,
+      "coverageReport": { "tabCount": 2, "statesExplored": 2, "edgesExplored": 2, "roundTripVerified": true }
+    },
+    "combobox-lang": {
+      "status": "done", "stateIds": ["S0", "S2", "S3"], "type": "combobox", "name": "Language Selector", "priority": 2,
+      "coverageReport": { "options": ["简体中文", "English"], "statesExplored": 2, "edgesExplored": 3, "roundTripVerified": true, "i18nVerified": true }
+    },
+    "nav-top": {
+      "status": "done", "stateIds": ["S0"], "type": "navigation", "name": "Top Navigation", "priority": 3,
+      "coverageReport": { "links": ["/task (登录)", "/join-waitlist (加入等待名单)"], "buttons": ["Mira (logo)", "功能 (scroll)"], "crossPageEdges": 2 }
+    },
+    "cta-hero": {
+      "status": "done", "stateIds": ["S0"], "type": "content", "name": "Hero CTA", "priority": 4,
+      "coverageReport": { "links": ["/join-waitlist"], "crossPageEdges": 1 }
+    },
+    "cta-bottom": {
+      "status": "done", "stateIds": ["S0"], "type": "content", "name": "Bottom CTA", "priority": 5,
+      "coverageReport": { "links": ["/task"], "crossPageEdges": 1 }
+    }
+  },
+  "nextStateId": 4
+}

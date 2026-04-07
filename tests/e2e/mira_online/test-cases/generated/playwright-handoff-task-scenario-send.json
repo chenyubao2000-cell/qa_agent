@@ -1,0 +1,223 @@
+[
+  {
+    "id": "TC-VF-TSS-001",
+    "storyId": "MIRA-1318-verify-fix",
+    "title": "[VERIFY-FIX] TC-VF-TSS-001 点击场景建议后填入内容，点击发送应导航到新对话页",
+    "priority": "P0",
+    "mode": "verify-fix",
+    "preconditions": ["已登录", "位于 /task 页面", "场景建议卡片可见"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "description": "导航到 /task 页面",
+        "action": "navigate",
+        "locatorHint": null,
+        "role": null,
+        "name": null
+      },
+      {
+        "description": "等待场景建议卡片出现",
+        "action": "wait",
+        "locatorHint": "page.locator('main .grid button')",
+        "role": "button",
+        "name": null
+      },
+      {
+        "description": "点击第一个场景建议卡片",
+        "action": "click",
+        "locatorHint": "page.locator('main .grid button').first()",
+        "role": "button",
+        "name": null
+      },
+      {
+        "description": "获取输入框当前值（记录场景文本）",
+        "action": "getValue",
+        "locatorHint": "page.getByRole('textbox')",
+        "role": "textbox",
+        "name": null
+      },
+      {
+        "description": "等待发送按钮启用",
+        "action": "wait",
+        "locatorHint": "page.getByRole('button', { name: 'Submit' })",
+        "role": "button",
+        "name": "Submit"
+      },
+      {
+        "description": "点击发送按钮",
+        "action": "click",
+        "locatorHint": "page.getByRole('button', { name: 'Submit' })",
+        "role": "button",
+        "name": "Submit"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": null,
+        "expected": "/task/[a-zA-Z0-9]+",
+        "i18nKey": null,
+        "description": "URL 应匹配 /task/{taskId} 模式（严格匹配，/task 本身不满足）"
+      },
+      {
+        "type": "visible",
+        "selector": "log",
+        "expected": null,
+        "i18nKey": null,
+        "description": "新对话页的对话日志区域（role=log）应可见"
+      }
+    ],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-VF-TSS-002",
+    "storyId": "MIRA-1318-verify-fix",
+    "title": "[VERIFY-FIX] TC-VF-TSS-002 新对话页应显示已发送的场景消息内容",
+    "priority": "P0",
+    "mode": "verify-fix",
+    "preconditions": ["已登录", "位于 /task 页面", "场景建议卡片可见"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "description": "导航到 /task 页面",
+        "action": "navigate",
+        "locatorHint": null,
+        "role": null,
+        "name": null
+      },
+      {
+        "description": "点击第一个场景建议卡片，记录填入的文本",
+        "action": "click",
+        "locatorHint": "page.locator('main .grid button').first()",
+        "role": "button",
+        "name": null
+      },
+      {
+        "description": "点击发送按钮",
+        "action": "click",
+        "locatorHint": "page.getByRole('button', { name: 'Submit' })",
+        "role": "button",
+        "name": "Submit"
+      },
+      {
+        "description": "等待导航到 /task/{taskId}",
+        "action": "wait",
+        "locatorHint": null,
+        "role": null,
+        "name": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": null,
+        "expected": "/task/[a-zA-Z0-9]+",
+        "i18nKey": null,
+        "description": "URL 应匹配 /task/{taskId} 模式"
+      },
+      {
+        "type": "visible",
+        "selector": "log",
+        "expected": null,
+        "i18nKey": null,
+        "description": "对话日志区域可见"
+      },
+      {
+        "type": "text",
+        "selector": "log",
+        "expected": null,
+        "i18nKey": null,
+        "description": "对话日志内容包含已发送的场景文本（动态内容，运行时验证）"
+      }
+    ],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-VF-TSS-003",
+    "storyId": "MIRA-1318-verify-fix",
+    "title": "[VERIFY-FIX] TC-VF-TSS-003 输入框为空时发送按钮应禁用，不应导航到新对话页",
+    "priority": "P1",
+    "mode": "verify-fix",
+    "preconditions": ["已登录", "位于 /task 页面", "输入框为空（未点击场景建议）"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "description": "导航到 /task 页面",
+        "action": "navigate",
+        "locatorHint": null,
+        "role": null,
+        "name": null
+      },
+      {
+        "description": "获取发送按钮",
+        "action": "inspect",
+        "locatorHint": "page.getByRole('button', { name: 'Submit' })",
+        "role": "button",
+        "name": "Submit"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "expected": null,
+        "i18nKey": null,
+        "description": "发送按钮在输入框为空时应处于 disabled 状态"
+      },
+      {
+        "type": "url",
+        "selector": null,
+        "expected": "https://mira-bff-preview.up.railway.app/task",
+        "i18nKey": null,
+        "description": "URL 保持为 /task，不发生导航"
+      }
+    ],
+    "timeout": 15000
+  },
+  {
+    "id": "TC-VF-TSS-004",
+    "storyId": "MIRA-1318-verify-fix",
+    "title": "[VERIFY-FIX] TC-VF-TSS-004 场景建议卡片在 /task 页面可见且可点击（回归验证）",
+    "priority": "P1",
+    "mode": "verify-fix",
+    "preconditions": ["已登录", "位于 /task 页面"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      {
+        "description": "导航到 /task 页面",
+        "action": "navigate",
+        "locatorHint": null,
+        "role": null,
+        "name": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "expected": null,
+        "i18nKey": "task.tryScenarios",
+        "description": "场景区域标签文字（试试以下场景）可见"
+      },
+      {
+        "type": "count",
+        "selector": "button",
+        "expected": ">=1",
+        "i18nKey": null,
+        "description": "场景建议卡片数量至少 1 个"
+      },
+      {
+        "type": "enabled",
+        "selector": "button",
+        "expected": null,
+        "i18nKey": null,
+        "description": "第一个场景建议卡片处于 enabled（可点击）状态"
+      }
+    ],
+    "timeout": 15000
+  }
+]

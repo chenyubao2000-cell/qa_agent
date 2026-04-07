@@ -1,0 +1,507 @@
+[
+  {
+    "id": "TC-CDP-SIGNIN-001",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "输入有效邮箱后继续按钮可用并进入密码步骤",
+    "priority": "P0",
+    "preconditions": ["用户在 /sign-in 页面"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "email",
+        "action": "fill",
+        "value": "test@example.com",
+        "i18nKey": "auth.emailPlaceholder",
+        "locatorHint": "getByRole('textbox', { name: /email/i })"
+      },
+      {
+        "role": "button",
+        "name": "继续",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.continueButton",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueButton') })"
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "输入密码", "i18nKey": "auth.enterPasswordTitle" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-002",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "输入无效邮箱格式后显示验证错误",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 页面"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "email",
+        "action": "fill",
+        "value": "invalid-email",
+        "i18nKey": "auth.emailPlaceholder",
+        "locatorHint": "getByRole('textbox', { name: /email/i })"
+      },
+      {
+        "role": "button",
+        "name": "继续",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.continueButton",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueButton') })"
+      }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "span", "expected": "请输入有效的邮箱地址", "i18nKey": "auth.validation.emailInvalid" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-003",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "邮箱输入框为空时继续按钮禁用",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 页面"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "继续", "i18nKey": "auth.continueButton" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-004",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "密码输入框为空时继续按钮禁用",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 密码步骤"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "继续", "i18nKey": "auth.continueButton" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-005",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "输入正确密码后登录成功跳转到 /task",
+    "priority": "P0",
+    "preconditions": ["用户在 /sign-in 密码步骤"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "密码",
+        "action": "fill",
+        "value": "correct-password",
+        "i18nKey": "auth.password",
+        "locatorHint": "getByLabel(i18n.t('auth.password'))"
+      },
+      {
+        "role": "button",
+        "name": "继续",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.continueButton",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueButton') })"
+      }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/task" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-006",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "输入错误密码后显示凭证错误信息",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 密码步骤"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "密码",
+        "action": "fill",
+        "value": "wrongpassword",
+        "i18nKey": "auth.password",
+        "locatorHint": "getByLabel(i18n.t('auth.password'))"
+      },
+      {
+        "role": "button",
+        "name": "继续",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.continueButton",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueButton') })"
+      }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "span", "expected": "邮箱或密码错误，请检查后重试", "i18nKey": "auth.errors.invalidEmailOrPassword" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-007",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "密码步骤点击编辑返回邮箱步骤",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 密码步骤"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "编辑",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.editLink",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.editLink') })"
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "登录或注册", "i18nKey": "auth.unifiedTitle" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-008",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "密码步骤点击返回登录返回邮箱步骤",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 密码步骤"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "返回登录",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.backToLogin",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.backToLogin') })"
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "登录或注册", "i18nKey": "auth.unifiedTitle" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-009",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "点击显示密码切换为明文显示",
+    "priority": "P2",
+    "preconditions": ["用户在 /sign-in 密码步骤，已输入密码"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillPassword", "data": { "password": "somepassword" } }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "显示密码",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.showPassword",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.showPassword') })"
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "隐藏密码", "i18nKey": "auth.hidePassword" },
+      { "type": "value", "selector": "input[type='text']", "expected": "somepassword" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-010",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "点击隐藏密码切换回密文显示",
+    "priority": "P2",
+    "preconditions": ["用户在 /sign-in 密码步骤，密码已为明文显示"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S3",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillPassword", "data": { "password": "somepassword" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickShowPassword" }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "隐藏密码",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.hidePassword",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.hidePassword') })"
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "显示密码", "i18nKey": "auth.showPassword" },
+      { "type": "value", "selector": "input[type='password']", "expected": "somepassword" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-011",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "完整登录流程 — 邮箱 → 密码 → 成功跳转",
+    "priority": "P0",
+    "preconditions": ["用户在 /sign-in 页面"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "uiElements": [
+      {
+        "role": "heading",
+        "name": "登录或注册",
+        "action": null,
+        "value": null,
+        "i18nKey": "auth.unifiedTitle",
+        "locatorHint": "getByRole('heading', { name: i18n.t('auth.unifiedTitle') })"
+      },
+      {
+        "role": "button",
+        "name": "使用 Google 登录",
+        "action": null,
+        "value": null,
+        "i18nKey": "auth.continueWithGoogle",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueWithGoogle') })"
+      },
+      {
+        "role": "button",
+        "name": "使用 Microsoft 登录",
+        "action": null,
+        "value": null,
+        "i18nKey": "auth.continueWithMicrosoft",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueWithMicrosoft') })"
+      },
+      {
+        "role": "textbox",
+        "name": "email",
+        "action": "fill",
+        "value": "test@example.com",
+        "i18nKey": "auth.emailPlaceholder",
+        "locatorHint": "getByRole('textbox', { name: /email/i })"
+      },
+      {
+        "role": "button",
+        "name": "继续",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.continueButton",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueButton') })"
+      },
+      {
+        "role": "textbox",
+        "name": "密码",
+        "action": "fill",
+        "value": "correct-password",
+        "i18nKey": "auth.password",
+        "locatorHint": "getByLabel(i18n.t('auth.password'))"
+      },
+      {
+        "role": "button",
+        "name": "继续",
+        "action": "click",
+        "value": null,
+        "i18nKey": "auth.continueButton",
+        "locatorHint": "getByRole('button', { name: i18n.t('auth.continueButton') })"
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "登录或注册", "i18nKey": "auth.unifiedTitle" },
+      { "type": "visible", "selector": "button", "name": "使用 Google 登录", "i18nKey": "auth.continueWithGoogle" },
+      { "type": "visible", "selector": "button", "name": "使用 Microsoft 登录", "i18nKey": "auth.continueWithMicrosoft" },
+      { "type": "visible", "selector": "heading", "name": "输入密码", "i18nKey": "auth.enterPasswordTitle" },
+      { "type": "url", "expected": "/task" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-012",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "验证 Google OAuth 按钮可见",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 页面"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "使用 Google 登录", "i18nKey": "auth.continueWithGoogle" },
+      { "type": "enabled", "selector": "button", "name": "使用 Google 登录", "i18nKey": "auth.continueWithGoogle" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-013",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "验证 Microsoft OAuth 按钮可见",
+    "priority": "P1",
+    "preconditions": ["用户在 /sign-in 页面"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S0",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "使用 Microsoft 登录", "i18nKey": "auth.continueWithMicrosoft" },
+      { "type": "enabled", "selector": "button", "name": "使用 Microsoft 登录", "i18nKey": "auth.continueWithMicrosoft" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-014",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "密码步骤验证忘记密码链接可见",
+    "priority": "P2",
+    "preconditions": ["用户在 /sign-in 密码步骤"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "link", "name": "忘记密码", "i18nKey": "auth.forgotPassword" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNIN-015",
+    "storyId": "cdp-sign-in",
+    "source": "cdp",
+    "title": "密码步骤邮箱显示为只读",
+    "priority": "P2",
+    "preconditions": ["用户在 /sign-in 密码步骤"],
+    "pageUrl": "https://www.mira.day/sign-in",
+    "snapshotDate": "2026-03-23",
+    "fromState": "S2",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "fill", "pomMethod": "fillEmail", "data": { "email": "test@example.com" } },
+      { "type": "ui", "action": "click", "pomMethod": "clickContinue" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "textbox", "name": "email", "expected": "test@example.com" }
+    ],
+    "teardown": [],
+    "tags": ["cdp-inferred", "authentication", "@P2", "@full"],
+    "timeout": null
+  }
+]

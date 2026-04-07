@@ -1,0 +1,349 @@
+[
+  {
+    "id": "TC-CDP-TASK-001",
+    "storyId": "US-TASK-INPUT",
+    "title": "输入非空文本后 Submit 按钮启用",
+    "priority": "P1",
+    "preconditions": ["已登录", "位于 /task 页面"],
+    "setup": [],
+    "uiElements": [
+      { "role": "textbox", "name": "chatInput", "locatorHint": "textarea", "action": "fill", "value": "帮我找候选人", "i18nKey": null },
+      { "role": "button", "name": "Submit", "locatorHint": "button[type='submit'], button:has-text('Submit')", "action": null, "value": null }
+    ],
+    "assertions": [
+      { "type": "enabled", "selector": "button", "name": "Submit" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-002",
+    "storyId": "US-TASK-INPUT",
+    "title": "输入框为空时 Submit 按钮禁用",
+    "priority": "P1",
+    "preconditions": ["已登录", "位于 /task 页面"],
+    "setup": [],
+    "uiElements": [
+      { "role": "textbox", "name": "chatInput", "locatorHint": "textarea", "action": null, "value": null },
+      { "role": "button", "name": "Submit", "locatorHint": "button[type='submit'], button:has-text('Submit')", "action": null, "value": null }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Submit" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-003",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "无任务时侧边栏任务列表区域为空",
+    "priority": "P2",
+    "preconditions": ["已登录", "新账户无历史任务"],
+    "setup": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "hidden", "selector": "button", "name": "taskItem", "note": "No task items visible" }
+    ],
+    "teardown": [],
+    "tags": ["@P2", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-004",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "点击 Toggle Sidebar 折叠侧边栏",
+    "priority": "P0",
+    "preconditions": ["已登录", "侧边栏展开状态"],
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "Toggle Sidebar", "locatorHint": "button:has-text('Toggle Sidebar'), button[aria-label='Toggle Sidebar']", "action": "click", "value": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "button", "name": "taskListSection", "i18nKey": "chatbot.tasks", "note": "Task list section hidden after collapse" }
+    ],
+    "teardown": [],
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-005",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "折叠后再次点击展开侧边栏",
+    "priority": "P0",
+    "preconditions": ["已登录", "侧边栏已折叠"],
+    "setup": [
+      { "action": "click", "target": "Toggle Sidebar", "pomMethod": "toggleSidebar" }
+    ],
+    "uiElements": [
+      { "role": "button", "name": "Toggle Sidebar", "locatorHint": "button:has-text('Toggle Sidebar'), button[aria-label='Toggle Sidebar']", "action": "click", "value": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "taskListSection", "i18nKey": "chatbot.tasks", "note": "Task list section visible after expand" }
+    ],
+    "teardown": [],
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-006",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "点击"任务"区段标题折叠任务列表",
+    "priority": "P1",
+    "preconditions": ["已登录", "侧边栏展开", "任务列表展开"],
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "tasksSection", "locatorHint": "button:has-text('任务')", "action": "click", "value": null, "i18nKey": "chatbot.tasks" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "button", "name": "taskItems", "note": "Task items hidden after section collapse" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-007",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "折叠后再次点击展开任务列表",
+    "priority": "P1",
+    "preconditions": ["已登录", "任务列表已折叠"],
+    "setup": [
+      { "action": "click", "target": "tasksSection", "pomMethod": "clickTasksSection" }
+    ],
+    "uiElements": [
+      { "role": "button", "name": "tasksSection", "locatorHint": "button:has-text('任务')", "action": "click", "value": null, "i18nKey": "chatbot.tasks" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "taskItems", "note": "Task items visible again" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-008",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "点击任务 More 按钮打开上下文菜单",
+    "priority": "P1",
+    "preconditions": ["已登录", "侧边栏有至少一个任务"],
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "moreActions", "locatorHint": "button[aria-label='More actions'], button:has-text('More')", "action": "click", "value": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "menuitem", "name": "share", "i18nKey": "chatbot.share" },
+      { "type": "visible", "selector": "menuitem", "name": "rename", "i18nKey": "chatbot.rename" },
+      { "type": "visible", "selector": "menuitem", "name": "delete", "i18nKey": "chatbot.delete" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-009",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "按 Escape 关闭上下文菜单",
+    "priority": "P1",
+    "preconditions": ["已登录", "上下文菜单已打开"],
+    "setup": [
+      { "action": "click", "target": "moreActions", "pomMethod": "openTaskContextMenu" }
+    ],
+    "uiElements": [
+      { "role": "keyboard", "name": "Escape", "action": "press", "value": "Escape" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "menuitem", "name": "share", "i18nKey": "chatbot.share" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-010",
+    "storyId": "US-TASK-USERMENU",
+    "title": "点击用户菜单按钮打开用户菜单",
+    "priority": "P1",
+    "preconditions": ["已登录"],
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "userMenu", "locatorHint": "button[aria-haspopup='menu']", "action": "click", "value": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "menuitem", "name": "language", "i18nKey": "Layout.language" },
+      { "type": "visible", "selector": "menuitem", "name": "theme", "i18nKey": "Layout.theme" },
+      { "type": "visible", "selector": "menuitem", "name": "signOut", "i18nKey": "Layout.signOut" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-011",
+    "storyId": "US-TASK-USERMENU",
+    "title": "打开语言子菜单并查看选项",
+    "priority": "P1",
+    "preconditions": ["已登录", "用户菜单已打开"],
+    "setup": [
+      { "action": "click", "target": "userMenu", "pomMethod": "openUserMenu" }
+    ],
+    "uiElements": [
+      { "role": "menuitem", "name": "language", "locatorHint": "menuitem:has-text('语言')", "action": "click", "value": null, "i18nKey": "Layout.language" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "menuitemcheckbox", "name": "简体中文" },
+      { "type": "visible", "selector": "menuitemcheckbox", "name": "English" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-012",
+    "storyId": "US-TASK-USERMENU",
+    "title": "打开主题子菜单并查看选项",
+    "priority": "P1",
+    "preconditions": ["已登录", "用户菜单已打开"],
+    "setup": [
+      { "action": "click", "target": "userMenu", "pomMethod": "openUserMenu" }
+    ],
+    "uiElements": [
+      { "role": "menuitem", "name": "theme", "locatorHint": "menuitem:has-text('主题')", "action": "click", "value": null, "i18nKey": "Layout.theme" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "menuitemcheckbox", "name": "light", "i18nKey": "Layout.light" },
+      { "type": "visible", "selector": "menuitemcheckbox", "name": "dark", "i18nKey": "Layout.dark" },
+      { "type": "visible", "selector": "menuitemcheckbox", "name": "system", "i18nKey": "Layout.system" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-013",
+    "storyId": "US-TASK-DETAIL",
+    "title": "点击侧边栏任务项进入任务详情页",
+    "priority": "P0",
+    "preconditions": ["已登录", "侧边栏有至少一个任务"],
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "taskItem", "locatorHint": "sidebar task item button", "action": "click", "value": null }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/task/", "matchType": "contains" },
+      { "type": "visible", "selector": "div[role='log']", "name": "chatLog", "note": "Chat log visible" }
+    ],
+    "teardown": [],
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-014",
+    "storyId": "US-TASK-DETAIL",
+    "title": "在任务详情页点击"新建任务"返回空白视图",
+    "priority": "P0",
+    "preconditions": ["已登录", "已在任务详情页"],
+    "setup": [
+      { "action": "click", "target": "taskItem", "pomMethod": "clickFirstTask" }
+    ],
+    "uiElements": [
+      { "role": "button", "name": "newTask", "locatorHint": "button:has-text('新建任务')", "action": "click", "value": null, "i18nKey": "chatbot.newChat" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/task" },
+      { "type": "visible", "selector": "heading", "name": "welcomeHeading", "i18nKey": "dashboard.welcome" }
+    ],
+    "teardown": [],
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-015",
+    "storyId": "US-TASK-INPUT",
+    "title": "新任务页面显示欢迎标题、输入框和场景建议",
+    "priority": "P0",
+    "preconditions": ["已登录", "导航至 /task"],
+    "setup": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "welcomeHeading", "i18nKey": "dashboard.welcome" },
+      { "type": "visible", "selector": "textarea", "name": "chatInput" },
+      { "type": "disabled", "selector": "button", "name": "Submit" },
+      { "type": "count", "selector": "scenarioSuggestions", "expected": 4, "note": "4 scenario suggestion buttons" }
+    ],
+    "teardown": [],
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-016",
+    "storyId": "US-TASK-INPUT",
+    "title": "点击场景建议填充输入框",
+    "priority": "P1",
+    "preconditions": ["已登录", "位于 /task 空白视图"],
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "scenarioSuggestion", "locatorHint": "scenario suggestion button (first)", "action": "click", "value": null }
+    ],
+    "assertions": [
+      { "type": "value", "selector": "textarea", "name": "chatInput", "expected": "non-empty", "note": "Textarea filled with suggestion text" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-017",
+    "storyId": "US-TASK-DETAIL",
+    "title": "任务详情页显示聊天历史元素",
+    "priority": "P0",
+    "preconditions": ["已登录", "进入已有任务的详情页"],
+    "setup": [
+      { "action": "click", "target": "taskItem", "pomMethod": "clickFirstTask" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "div[role='log']", "name": "chatLog" },
+      { "type": "visible", "selector": "span", "name": "aiLabel", "note": "Mira AI label visible" }
+    ],
+    "teardown": [],
+    "tags": ["@P0", "@smoke", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-018",
+    "storyId": "US-TASK-DETAIL",
+    "title": "任务详情页显示文件下载按钮",
+    "priority": "P1",
+    "preconditions": ["已登录", "进入包含生成文件的任务详情页"],
+    "setup": [
+      { "action": "click", "target": "taskWithFile", "pomMethod": "clickFirstTask" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "downloadFile", "i18nKey": "chatbot.downloadFile" }
+    ],
+    "teardown": [],
+    "tags": ["@P1", "@regression", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-019",
+    "storyId": "US-TASK-USERMENU",
+    "title": "退出登录后重定向至登录页",
+    "priority": "P2",
+    "preconditions": ["已登录", "用户菜单已打开"],
+    "setup": [
+      { "action": "click", "target": "userMenu", "pomMethod": "openUserMenu" }
+    ],
+    "uiElements": [
+      { "role": "menuitem", "name": "signOut", "locatorHint": "menuitem:has-text('退出登录')", "action": "click", "value": null, "i18nKey": "Layout.signOut" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/sign-in" }
+    ],
+    "teardown": [],
+    "tags": ["@P2", "@full"]
+  },
+  {
+    "id": "TC-CDP-TASK-020",
+    "storyId": "US-TASK-SIDEBAR",
+    "title": "快速连续切换侧边栏状态",
+    "priority": "P2",
+    "preconditions": ["已登录"],
+    "setup": [],
+    "uiElements": [
+      { "role": "button", "name": "Toggle Sidebar", "action": "click", "value": null },
+      { "role": "button", "name": "Toggle Sidebar", "action": "click", "value": null },
+      { "role": "button", "name": "Toggle Sidebar", "action": "click", "value": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "taskListSection", "i18nKey": "chatbot.tasks", "note": "Sidebar ends in collapsed state (odd number of toggles) — task list hidden, but sidebar responsive" }
+    ],
+    "teardown": [],
+    "tags": ["@P2", "@full"]
+  }
+]

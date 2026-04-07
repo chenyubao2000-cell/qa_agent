@@ -1,0 +1,670 @@
+[
+  {
+    "id": "TC-PRD-CVPV-001",
+    "storyId": "US-CVPV-FULLSCREEN",
+    "criterionId": "AC-CVPV-001",
+    "source": "prd",
+    "title": "Canvas 面板全屏按钮可最大化面板",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已打开任务详情页，Canvas 面板中已加载 PDF 文件（非全屏状态）"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click file card to open canvas", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Maximize", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.maximize" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "Restore", "expected": null, "i18nKey": "canvas.restore" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-002",
+    "storyId": "US-CVPV-FULLSCREEN",
+    "criterionId": "AC-CVPV-002",
+    "source": "prd",
+    "title": "Canvas 全屏状态下点击还原按钮恢复正常尺寸",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板已处于全屏（Maximize）状态"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click file card to open canvas", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } },
+      { "type": "ui", "action": "click maximize button", "pomMethod": "clickCanvasMaximize" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Restore", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.restore" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "Maximize", "expected": null, "i18nKey": "canvas.maximize" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-003",
+    "storyId": "US-CVPV-HEADER",
+    "criterionId": "AC-CVPV-003",
+    "source": "prd",
+    "title": "Canvas 头部 Close 按钮可关闭面板",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板已加载文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click file card to open canvas", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Close", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.close" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "region", "name": "canvas-panel", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-004",
+    "storyId": "US-CVPV-PPT",
+    "criterionId": "AC-CVPV-004",
+    "source": "prd",
+    "title": "PPT 文件在 Canvas 中显示幻灯片主视图与缩略图侧栏",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["任务中存在 .pptx 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pptx file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pptx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "generic", "name": "ppt-thumbnail-sidebar", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "generic", "name": "ppt-main-slide", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-005",
+    "storyId": "US-CVPV-UNSUPPORTED",
+    "criterionId": "AC-CVPV-005",
+    "source": "prd",
+    "title": "不支持预览的文件类型在 Canvas 显示兜底页与下载按钮",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": ["任务中存在不支持预览的文件格式（如 .key 或 unsupported 类型）"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "Download file", "expected": null, "i18nKey": "canvas.renderers.unsupported.downloadButton" },
+      { "type": "visible", "selector": "paragraph", "name": "not supported text", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-006",
+    "storyId": "US-CVPV-ERROR",
+    "criterionId": "AC-CVPV-006",
+    "source": "prd",
+    "title": "文件加载失败时显示错误提示与 Retry 按钮",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": ["Canvas 文件加载失败（网络错误或文件损坏）"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "Retry", "expected": null, "i18nKey": "canvas.retry" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-007",
+    "storyId": "US-CVPV-PPT",
+    "criterionId": "AC-CVPV-007",
+    "source": "prd",
+    "title": "PPT 第一张幻灯片时上一页无法继续翻页",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["Canvas 中已加载多页 PPT 文件，当前显示第1张幻灯片"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pptx file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pptx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "page-indicator-first", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-008",
+    "storyId": "US-CVPV-PPT",
+    "criterionId": "AC-CVPV-008",
+    "source": "prd",
+    "title": "PPT 最后一张幻灯片时下一页无法继续翻页",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["Canvas 中已加载多页 PPT，已导航至最后一张幻灯片"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pptx file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pptx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "page-indicator-last", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-009",
+    "storyId": "US-CVPV-PDF",
+    "criterionId": "AC-CVPV-009",
+    "source": "prd",
+    "title": "PDF 第一页时前翻按钮禁用",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["Canvas 中已加载多页 PDF 文件，当前为第1页"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "prev-page", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "paragraph", "name": "page-count", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-010",
+    "storyId": "US-CVPV-PDF",
+    "criterionId": "AC-CVPV-010",
+    "source": "prd",
+    "title": "PDF 最后一页时后翻按钮禁用",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["Canvas 中已加载多页 PDF，已翻至最后一页"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "next-page", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "next-page", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-011",
+    "storyId": "US-CVPV-TOOLTIP",
+    "criterionId": "AC-CVPV-011",
+    "source": "prd",
+    "title": "hover Canvas 下载按钮显示 tooltip",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板已加载文件（非 People Data）"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Download file", "action": "hover", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.downloadFile" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "tooltip", "name": "Download file", "expected": "Download file", "i18nKey": "canvas.downloadFile" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-012",
+    "storyId": "US-CVPV-TOOLTIP",
+    "criterionId": "AC-CVPV-012",
+    "source": "prd",
+    "title": "hover Canvas Maximize 按钮显示 'Maximize' tooltip",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板已加载文件，处于非全屏状态"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Maximize", "action": "hover", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.maximize" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "tooltip", "name": "Maximize", "expected": "Maximize", "i18nKey": "canvas.maximize" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-013",
+    "storyId": "US-CVPV-TOOLTIP",
+    "criterionId": "AC-CVPV-013",
+    "source": "prd",
+    "title": "全屏状态下 hover Restore 按钮显示 'Restore' tooltip",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板处于全屏状态"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } },
+      { "type": "ui", "action": "click maximize button", "pomMethod": "clickCanvasMaximize" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Restore", "action": "hover", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.restore" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "tooltip", "name": "Restore", "expected": "Restore", "i18nKey": "canvas.restore" }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-014",
+    "storyId": "US-CVPV-TOOLTIP",
+    "criterionId": "AC-CVPV-014",
+    "source": "prd",
+    "title": "hover Canvas Close 按钮显示 'Close' tooltip",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板已加载文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Close", "action": "hover", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.close" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "tooltip", "name": "Close", "expected": "Close", "i18nKey": "canvas.close" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-015",
+    "storyId": "US-CVPV-STATE",
+    "criterionId": "AC-CVPV-015",
+    "source": "prd",
+    "title": "Canvas 从空状态打开文件后进入预览状态",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["任务详情页无打开的 Canvas 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "file-card", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "canvas-filename", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-016",
+    "storyId": "US-CVPV-STATE",
+    "criterionId": "AC-CVPV-016",
+    "source": "prd",
+    "title": "Canvas 预览中点击 Close 返回空状态",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板正在预览某文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Close", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.close" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "paragraph", "name": "canvas-filename", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-017",
+    "storyId": "US-CVPV-FULLSCREEN",
+    "criterionId": "AC-CVPV-017",
+    "source": "prd",
+    "title": "Canvas 预览 → 全屏 → 还原完整状态迁移",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 面板正在预览文件，处于正常尺寸状态"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Maximize", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.maximize" },
+      { "role": "button", "name": "Restore", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.restore" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "Maximize", "expected": null, "i18nKey": "canvas.maximize" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-018",
+    "storyId": "US-CVPV-ERROR",
+    "criterionId": "AC-CVPV-018",
+    "source": "prd",
+    "title": "加载失败后点击 Retry 重新触发加载",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["Canvas 加载文件失败，显示错误提示和 Retry 按钮"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Retry", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.retry" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "generic", "name": "canvas-loading", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-019",
+    "storyId": "US-CVPV-PPT",
+    "criterionId": "AC-CVPV-019",
+    "source": "prd",
+    "title": "PPT 完整预览流程：打开 → 缩略图导航 → 翻页",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["任务中存在多页 .pptx 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pptx file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pptx" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "thumbnail-slide-2", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "page-indicator", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-020",
+    "storyId": "US-CVPV-PPT",
+    "criterionId": "AC-CVPV-020",
+    "source": "prd",
+    "title": "PPT 预览通过上/下方向导航逐张切换",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Canvas 中已加载多页 PPT，当前第1张"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pptx file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pptx" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "generic", "name": "ppt-main-area", "action": "press", "value": "ArrowRight", "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "page-indicator-2", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-021",
+    "storyId": "US-CVPV-PDF",
+    "criterionId": "AC-CVPV-021",
+    "source": "prd",
+    "title": "PDF 完整预览流程：打开 → 翻页 → 缩放",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["任务中存在多页 PDF 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "next-page", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-out", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "pdf-page-count", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "paragraph", "name": "pdf-zoom-percent", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-022",
+    "storyId": "US-CVPV-FULLSCREEN",
+    "criterionId": "AC-CVPV-022",
+    "source": "prd",
+    "title": "全屏查看文件后还原完整用户旅程",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["任务中存在 PDF 或图片文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Maximize", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.maximize" },
+      { "role": "button", "name": "Restore", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.restore" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "canvas-filename-visible", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-023",
+    "storyId": "US-CVPV-UNSUPPORTED",
+    "criterionId": "AC-CVPV-023",
+    "source": "prd",
+    "title": "不支持格式文件：兜底页显示 → 点击下载",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["任务中存在不支持预览的格式文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Download file", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.renderers.unsupported.downloadButton" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "Download file", "expected": null, "i18nKey": "canvas.renderers.unsupported.downloadButton" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-024",
+    "storyId": "US-CVPV-PPT",
+    "criterionId": "AC-CVPV-024",
+    "source": "prd",
+    "title": "PPT 单页文件不出现翻页错误",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["任务中存在只有1张幻灯片的 pptx 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "ppt-page-indicator-1-of-1", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-025",
+    "storyId": "US-CVPV-FULLSCREEN",
+    "criterionId": "AC-CVPV-025",
+    "source": "prd",
+    "title": "快速连续点击 Maximize/Restore 不出现布局错乱",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["Canvas 面板正在预览文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Maximize", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.maximize" },
+      { "role": "button", "name": "Restore", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.restore" },
+      { "role": "button", "name": "Maximize", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": "canvas.maximize" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "paragraph", "name": "canvas-filename", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-026",
+    "storyId": "US-CVPV-STATE",
+    "criterionId": "AC-CVPV-026",
+    "source": "prd",
+    "title": "切换不同类型文件时 Canvas 内容正确更新",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["任务中同时存在 PDF 和 PPT 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card first", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "pptx-file-card", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "generic", "name": "ppt-thumbnail-sidebar", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-027",
+    "storyId": "US-CVPV-HEADER",
+    "criterionId": "AC-CVPV-027",
+    "source": "prd",
+    "title": "文件名超长时 Canvas 头部不破坏布局",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["任务中存在文件名很长（>50字符）的文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "canvas-download-btn", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "canvas-close-btn", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-028",
+    "storyId": "US-CVPV-PDF",
+    "criterionId": "AC-CVPV-028",
+    "source": "prd",
+    "title": "PDF 缩放到最小值后 ZoomOut 按钮禁用",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["Canvas 中已加载 PDF 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "zoom-out", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-out", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-out", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "zoom-out", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "paragraph", "name": "zoom-percent", "expected": "50%", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CVPV-029",
+    "storyId": "US-CVPV-PDF",
+    "criterionId": "AC-CVPV-029",
+    "source": "prd",
+    "title": "PDF 缩放到最大值后 ZoomIn 按钮禁用",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["Canvas 中已加载 PDF 文件"],
+    "setup": [
+      { "type": "navigate", "url": "/task/7tOJcKIb2cwD4Mfo" },
+      { "type": "ui", "action": "click pdf file card", "pomMethod": "clickFileCard", "data": { "filename": "sample.pdf" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "zoom-in", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "zoom-in", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "paragraph", "name": "zoom-percent", "expected": "300%", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "url": "https://www.mira.day/sign-in",
+    "title": "Mira - Sign In",
+    "mode": "full",
+    "areasCompleted": ["form-sign-in", "combobox-lang"],
+    "exploredAt": "2026-03-23"
+  },
+  "states": {
+    "S0": {
+      "name": "Sign-in Step 1 — Email input",
+      "trigger": null,
+      "url": "https://www.mira.day/sign-in",
+      "sourceArea": null,
+      "fingerprint": "banner+heading(登录或注册)+googleBtn+msBtn+emailInput+continueBtn(disabled)",
+      "regions": {
+        "banner": {
+          "elements": [
+            { "tag": "a", "text": "Mira", "href": "/", "role": "logo" },
+            { "tag": "button", "role": "combobox", "text": "简体中文", "ariaExpanded": "false" }
+          ]
+        },
+        "form": {
+          "elements": [
+            { "tag": "h1", "text": "登录或注册", "i18n": "SignInPage.title" },
+            { "tag": "p", "text": "唤醒你的Mira", "i18n": "SignInPage.subtitle" },
+            { "tag": "button", "text": "使用 Google 登录", "i18n": "SignInPage.googleButton", "action": "oauth-google" },
+            { "tag": "button", "text": "使用 Microsoft 登录", "i18n": "SignInPage.microsoftButton", "action": "oauth-microsoft" },
+            { "tag": "input", "placeholder": "请输入您的电子邮件地址", "type": "email", "i18n": "SignInPage.emailPlaceholder" },
+            { "tag": "button", "text": "继续", "disabled": true, "i18n": "SignInPage.continueButton", "enabledWhen": "email is non-empty" }
+          ]
+        }
+      }
+    },
+    "S1": {
+      "name": "Email validation error",
+      "trigger": { "action": "fill+click", "value": "invalid-email", "label": "Enter invalid email then click Continue" },
+      "url": "https://www.mira.day/sign-in",
+      "sourceArea": "form-sign-in",
+      "fingerprint": "S0+emailInput(invalid)+errorMsg",
+      "regions": {
+        "validation": {
+          "elements": [
+            { "tag": "input", "invalid": true, "value": "invalid-email" },
+            { "tag": "span", "text": "请输入有效的邮箱地址", "i18n": "SignInPage.emailValidationError", "role": "error" }
+          ]
+        }
+      }
+    },
+    "S2": {
+      "name": "Sign-in Step 2 — Password input",
+      "trigger": { "action": "fill+click", "value": "valid-email", "label": "Enter valid email then click Continue" },
+      "url": "https://www.mira.day/sign-in",
+      "sourceArea": "form-sign-in",
+      "fingerprint": "banner+heading(输入密码)+emailReadonly+passwordInput+showPwdBtn+forgotPwdLink+continueBtn(disabled)+backBtn",
+      "regions": {
+        "form": {
+          "elements": [
+            { "tag": "h1", "text": "输入密码", "i18n": "SignInPage.passwordTitle" },
+            { "tag": "input", "label": "电子邮件", "readonly": true, "value": "chenyubao2000@163.com" },
+            { "tag": "button", "text": "编辑", "i18n": "SignInPage.editButton", "action": "back-to-email-step" },
+            { "tag": "input", "label": "密码", "type": "password", "i18n": "SignInPage.passwordLabel" },
+            { "tag": "button", "text": "显示密码", "i18n": "SignInPage.showPassword", "toggle": "隐藏密码" },
+            { "tag": "a", "text": "忘记密码", "href": "/forgot-password?email=...", "i18n": "SignInPage.forgotPassword" },
+            { "tag": "button", "text": "继续", "disabled": true, "i18n": "SignInPage.continueButton", "enabledWhen": "password is non-empty" },
+            { "tag": "button", "text": "返回登录", "i18n": "SignInPage.backToLogin", "action": "back-to-email-step" }
+          ]
+        }
+      }
+    },
+    "S3": {
+      "name": "Password show/hide toggled",
+      "trigger": { "action": "click", "label": "Click show password button" },
+      "url": "https://www.mira.day/sign-in",
+      "sourceArea": "form-sign-in",
+      "fingerprint": "S2+passwordVisible+hidePasswordBtn",
+      "regions": {
+        "toggle": {
+          "elements": [
+            { "tag": "input", "type": "text", "label": "密码", "note": "password now visible" },
+            { "tag": "button", "text": "隐藏密码", "i18n": "SignInPage.hidePassword" }
+          ]
+        }
+      }
+    },
+    "S4": {
+      "name": "Wrong password error",
+      "trigger": { "action": "fill+click", "value": "wrongpassword", "label": "Enter wrong password then click Continue" },
+      "url": "https://www.mira.day/sign-in",
+      "sourceArea": "form-sign-in",
+      "fingerprint": "S2+passwordInput(invalid)+errorMsg",
+      "regions": {
+        "validation": {
+          "elements": [
+            { "tag": "input", "invalid": true, "label": "密码" },
+            { "tag": "span", "text": "邮箱或密码错误，请检查后重试", "i18n": "SignInPage.credentialError", "role": "error" }
+          ]
+        }
+      }
+    },
+    "S5": {
+      "name": "Login success → redirect to /task",
+      "trigger": { "action": "fill+click", "value": "correct-password", "label": "Enter correct password then click Continue" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "form-sign-in",
+      "fingerprint": "redirect-to-task-app",
+      "crossPage": true
+    }
+  },
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "to": "S1", "action": "fill+click", "label": "Submit invalid email", "sourceArea": "form-sign-in" },
+      { "from": "S0", "to": "S2", "action": "fill+click", "label": "Submit valid email → password step", "sourceArea": "form-sign-in" },
+      { "from": "S1", "to": "S0", "action": "clear", "label": "Clear email input", "sourceArea": "form-sign-in" },
+      { "from": "S2", "to": "S0", "action": "click", "target": "编辑 button", "label": "Click Edit → back to email", "sourceArea": "form-sign-in" },
+      { "from": "S2", "to": "S0", "action": "click", "target": "返回登录 button", "label": "Click Back to Login → back to email", "sourceArea": "form-sign-in" },
+      { "from": "S2", "to": "S3", "action": "click", "target": "显示密码 button", "label": "Toggle show password", "sourceArea": "form-sign-in" },
+      { "from": "S3", "to": "S2", "action": "click", "target": "隐藏密码 button", "label": "Toggle hide password", "sourceArea": "form-sign-in" },
+      { "from": "S2", "to": "S4", "action": "fill+click", "label": "Submit wrong password", "sourceArea": "form-sign-in" },
+      { "from": "S2", "to": "S5", "action": "fill+click", "label": "Submit correct password → redirect /task", "sourceArea": "form-sign-in", "crossPage": true },
+      { "from": "S2", "to": "page:/forgot-password", "action": "click", "target": "忘记密码 link", "label": "Click Forgot Password", "sourceArea": "form-sign-in", "crossPage": true }
+    ]
+  },
+  "areas": {
+    "form-sign-in": {
+      "status": "done",
+      "stateIds": ["S0", "S1", "S2", "S3", "S4", "S5"],
+      "type": "form",
+      "name": "Sign In Multi-Step Form",
+      "priority": 1,
+      "coverageReport": {
+        "steps": ["email-input", "password-input"],
+        "oauthProviders": ["Google", "Microsoft"],
+        "validationErrors": ["invalid-email", "wrong-password"],
+        "toggles": ["show/hide-password"],
+        "backNavigation": ["edit-button", "back-to-login-button"],
+        "crossPageLinks": ["forgot-password", "login-success→task"],
+        "statesExplored": 6,
+        "edgesExplored": 10,
+        "roundTripVerified": true
+      }
+    },
+    "combobox-lang": {
+      "status": "done",
+      "stateIds": ["S0"],
+      "type": "combobox",
+      "name": "Language Selector",
+      "priority": 2,
+      "note": "Same component as homepage — shared language selector, same options (简体中文, English)"
+    }
+  },
+  "nextStateId": 6
+}
