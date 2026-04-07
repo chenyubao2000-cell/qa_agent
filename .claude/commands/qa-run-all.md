@@ -7,13 +7,17 @@ You are a test executor. Do not generate cases, export Excel, or generate specs 
 
 ```
 /qa-run-all [spec-file-path] [--suite smoke|regression|full] [--source <source-code-dir>]
+            [--sentry] [--sentry-query "keyword"] [--sentry-minutes N]
      |
 Phase 0: Load project context (.env -> target project config)
      |
 Phase 1: Sequential launch (execute in order)
-         test-executor -> execute existing specs -> produce reports
-              | after completion
-         report-analyzer -> analyze reports -> bug-reporter -> Linear
+         ┌─ sentry-monitor (background, optional) ─── polls Sentry ──┐
+         test-executor -> execute existing specs -> produce reports   │
+              | after completion                                      │
+         report-analyzer -> analyze reports -> bug-reporter -> Linear │
+              | after completion                                      │
+         ← sentry-monitor results (merge into summary) ──────────────┘
 ```
 
 ## Phase 0: Load Project Context
@@ -29,6 +33,7 @@ Only need to extract:
 
 Not needed: PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in auth.setup.ts).
 Also extract: `SOURCE_PROJECT_DIR` — passed to report-analyzer for source code enrichment in bug reports.
+Also extract: `SENTRY_KEY`, `SENTRY_PROJECT`, `SENTRY_ENV` — needed if `--sentry` flag is used.
 No initialization — only runs existing specs. Workspace must have been initialized by `/qa-explore` or similar commands.
 Required files: `playwright.config.ts`, `tests/e2e/fixtures.ts`, `tests/e2e/testcases/**/*.test.ts`, `node_modules/@playwright/test`. If `E2E_TEST_EMAIL` is set: also `tests/e2e/auth.setup.ts` + `playwright/.auth/` directory.
 
@@ -93,6 +98,29 @@ Suite to Playwright --grep mapping:
 ### Headless Mode Detection
 
 If the prompt contains `_trigger: git-watcher_`, set `headless: true` for report-analyzer (skip opening browser).
+
+### Sentry Monitor Detection
+
+Parse `$ARGUMENTS` for Sentry monitoring flags:
+- `--sentry` → enable Sentry monitoring (launches sentry-monitor as background agent)
+- `--sentry-query "keyword"` → filter Sentry issues by keyword (e.g., `--sentry-query "Failed to pause E2B"`)
+- `--sentry-minutes N` → monitoring duration in minutes (default: 10)
+
+If `--sentry` is present (or `--sentry-query` is specified, which implies `--sentry`):
+
+```
+Launch sentry-monitor (haiku, run_in_background: true):
+
+You are sentry-monitor. First read .claude/agents/sentry-monitor.md to understand your full responsibilities.
+
+Input:
+- projectDir: "$QA_WORKSPACE_DIR"
+- query: "{parsed --sentry-query value, or null}"
+- durationMinutes: {parsed --sentry-minutes value, or 10}
+- pollIntervalSeconds: 60
+```
+
+This agent runs in the background. Continue immediately to test-executor.
 
 ### Agent 1 — test-executor (haiku)
 
@@ -178,6 +206,28 @@ If failures.length > 0:
 If allPassed is true or failures is empty:
   Skip bug-reporter. No Linear reporting needed.
 ```
+
+### Post-processing — Merge Sentry Monitor Results (conditional)
+
+If sentry-monitor was launched (background agent), check its results now:
+
+1. The background agent should have completed by this point (test execution + analysis typically takes longer than the Sentry monitoring window)
+2. If sentry-monitor returned issues:
+   - Append a **Sentry 监控** section to `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`:
+     ```markdown
+     ## Sentry 错误监控（测试期间）
+
+     环境: {env} | 项目: {project} | 监控时段: {monitorStart} ~ {monitorEnd}
+     {query ? "过滤条件: " + query : ""}
+
+     | # | Level | 次数 | 错误标题 | 调用栈顶帧 | 链接 |
+     |---|-------|------|----------|------------|------|
+     | 1 | error | 5    | Failed to pause E2B | file.ts:42 in fn | [查看](permalink) |
+     ```
+   - Cross-reference: if any Sentry error title matches a test failure name/error message, annotate the test failure with "Sentry 同步报错" in the summary
+
+3. If sentry-monitor returned 0 issues:
+   - Append: `## Sentry 错误监控（测试期间）\n\n监控期间无新增 Sentry 错误。`
 
 ### Post-processing — Update Summary with Linear URLs
 

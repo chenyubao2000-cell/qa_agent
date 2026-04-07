@@ -13,6 +13,27 @@
         "HTTP_PROXY": "http://127.0.0.1:7890"
       }
     },
+    "postgres": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-postgres", "postgresql://postgres:XUgQxjkYgvtBTeiGAwnWrSFnWpzyhyPo@switchback.proxy.rlwy.net:40072/mira"]
+    },
+    "e2b": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@e2b/mcp-server"],
+      "env": {
+        "E2B_API_KEY": "e2b_1ec0283336111644c56a22abc46b2abf0981348e",
+        "E2B_TEMPLATE": "mira-307a/mira-ci-v5"
+      }
+    },
+    "sentry": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@sentry/mcp-server"],
+      "env": {
+        "SENTRY_ACCESS_TOKEN": "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",
+        "HTTPS_PROXY": "http://127.0.0.1:7890",
+        "HTTP_PROXY": "http://127.0.0.1:7890"
+      }
+    },
     "linear": {
       "command": "cmd",
       "args": ["/c", "node", "--import", "./scripts/proxy-bootstrap.mjs", "node_modules/@calltelemetry/linear-mcp/build/index.js"],

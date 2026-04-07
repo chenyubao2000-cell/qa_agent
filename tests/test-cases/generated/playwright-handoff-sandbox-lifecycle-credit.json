@@ -1,0 +1,557 @@
+[
+  {
+    "id": "TC-PRD-SLC-001",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-01,AC-REQ001-04,AC-REQ002-01,AC-REQ002-02,AC-REQ003-01",
+    "source": "prd",
+    "title": "完整正向生命周期：创建→连续工具执行→COMPLETED→pause + 全链计费验证",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "mergedFrom": ["TC-001", "TC-004", "TC-005", "TC-009", "TC-016", "TC-019", "TC-024", "TC-027", "TC-029"],
+    "preconditions": ["用户已登录", "session 中无历史沙箱记录", "沙箱不存在（null）"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" }, "description": "点击新建任务" },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" }, "description": "等待我能为你做什么" },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot", "description": "获取页面快照" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "寻访互联网行业 10 年经验技术负责人，创建候选人档案并执行初步匹配" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot", "description": "获取新 uid" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='tool-execution-bubble']" }, "description": "等待工具调用气泡出现 S0→S1" },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "value": "寻访互联网行业 10 年经验技术负责人，创建候选人档案并执行初步匹配", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL", "description": "chats.sandboxId 非空（沙箱已创建）" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "running", "description": "E2B API 确认沙箱 running（S1）" },
+      { "type": "mcp_wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-completed']" }, "description": "等待 COMPLETED S1→S2" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused", "description": "E2B API 确认沙箱 paused（S2）" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\", \"usageId\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"resumeAt\" ASC", "field": "count", "expected": 1, "description": "仅 1 条 sandbox_run（连续工具调用不中断）" },
+      { "type": "db_formula", "formula": "runningSeconds = CEIL((pauseAt - resumeAt) / 1000)", "description": "runningSeconds = ceil((pauseAt - resumeAt)/1000)" },
+      { "type": "db_formula", "formula": "costUsd = runningSeconds * 0.000046", "description": "costUsd = runningSeconds × 0.000046" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\", \"vendorRequestId\", status FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run.id}' AND type = 'sandbox'", "field": "costSettled", "expected": "= sandbox_run.costUsd", "description": "mira_usage.costSettled = sandbox_run.costUsd" },
+      { "type": "db_query", "query": "SELECT quantity, \"meterName\", cost FROM mira_usage_meter WHERE \"usageId\" = '{mira_usage.id}'", "field": "meterName", "expected": "sandbox_running_seconds", "description": "meterName = sandbox_running_seconds" },
+      { "type": "db_query", "query": "SELECT \"rawCreditAmount\", \"creditsPerUnitSnapshot\" FROM mira_credit WHERE \"usageId\" = '{mira_usage.id}'", "field": "rawCreditAmount", "expected": "= costSettled * creditsPerUnitSnapshot", "description": "rawCreditAmount = costSettled × creditsPerUnitSnapshot" },
+      { "type": "db_query", "query": "SELECT \"creditsPerUnit\" FROM credit_rate WHERE currency = 'USD' AND \"effectiveAt\" <= NOW() AND (\"expireAt\" IS NULL OR \"expireAt\" > NOW()) ORDER BY \"effectiveAt\" DESC LIMIT 1", "field": "creditsPerUnit", "expected": "NOT NULL", "description": "当前汇率存在" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount, \"balanceAfter\" FROM mira_credit_ledger WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "amount", "expected": "= -floor(sumRaw + carryBefore)", "description": "amount = -floor(sumRaw + carryBefore)" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full", "@sandbox-lifecycle", "@billing-chain"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-002",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-02,AC-REQ001-06,AC-REQ002-03",
+    "source": "prd",
+    "title": "多轮 HITL 对话：WAITING→pause→resume→再次执行→COMPLETED（含多段计时累加）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "mergedFrom": ["TC-002", "TC-015", "TC-017", "TC-020", "TC-025", "TC-026", "TC-031"],
+    "preconditions": ["用户已登录", "任务需要人工确认（HITL 场景）"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "创建候选人档案，完成后请先确认再执行匹配脚本" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-waiting']" }, "description": "等待 WAITING_FOR_USER" },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "value": "创建候选人档案，完成后请先确认再执行匹配脚本", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL", "description": "sandboxId 非空" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused", "description": "WAITING_FOR_USER 后 E2B 确认 paused" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\", \"usageId\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"resumeAt\" ASC", "description": "第 1 段 sandbox_run：pauseAt 非空" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\", \"vendorRequestId\", status FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run_1.id}' AND type = 'sandbox'", "field": "costSettled", "expected": "= sandbox_run_1.costUsd", "description": "第 1 段 mira_usage 增量写入" },
+      { "type": "mcp_action", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "确认，请继续执行后续匹配步骤" }, "description": "用户确认继续" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "running", "description": "resume 后 E2B 确认 running" },
+      { "type": "mcp_wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-completed']" }, "description": "等待第 2 轮 COMPLETED" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused", "description": "COMPLETED 后 E2B 确认 paused" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\", \"usageId\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"resumeAt\" ASC", "field": "count", "expected": 2, "description": "2 条 sandbox_run 记录" },
+      { "type": "db_compare", "query": "SELECT * FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"resumeAt\" ASC", "assertion": "row[1].resumeAt > row[0].pauseAt", "description": "第 2 条 resumeAt > 第 1 条 pauseAt（跨轮间隙不计费）" },
+      { "type": "db_compare", "query": "SELECT * FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"resumeAt\" ASC", "assertion": "row[0].sandboxId === row[1].sandboxId", "description": "sandboxId 复用" },
+      { "type": "db_query", "query": "SELECT SUM(\"runningSeconds\") as total, SUM(\"costUsd\") as \"totalCost\" FROM sandbox_run WHERE \"taskId\" = '{taskId}'", "description": "各段 runningSeconds 之和 = 总运行时长" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount, \"balanceAfter\" FROM mira_credit_ledger WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "amount", "expected": "= -floor(sumRaw + carryBefore)", "description": "ledger amount 正确" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full", "@sandbox-lifecycle", "@hitl", "@billing-chain"],
+    "timeout": 900000
+  },
+  {
+    "id": "TC-PRD-SLC-003",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-03",
+    "source": "prd",
+    "title": "纯搜索任务：无沙箱工具调用 = 无沙箱记录 = 无沙箱计费",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "mergedFrom": ["TC-003", "TC-010", "TC-018", "TC-023", "TC-030"],
+    "preconditions": ["用户已登录", "Agent 仅使用 search / people_search 等非沙箱工具"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "搜索近期融资的科技公司" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-completed']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "value": "搜索近期融资的科技公司", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NULL", "description": "chats.sandboxId 为 NULL" },
+      { "type": "db_count", "query": "SELECT COUNT(*) as cnt FROM sandbox_run WHERE \"taskId\" = '{taskId}'", "field": "cnt", "expected": 0, "description": "sandbox_run 无记录" },
+      { "type": "db_count", "query": "SELECT COUNT(*) as cnt FROM mira_usage WHERE \"taskId\" = '{taskId}' AND type = 'sandbox'", "field": "cnt", "expected": 0, "description": "mira_usage 无 type='sandbox' 记录" },
+      { "type": "db_count", "query": "SELECT COUNT(*) as cnt FROM mira_credit WHERE \"usageId\" IN (SELECT id FROM mira_usage WHERE \"taskId\" = '{taskId}' AND type = 'sandbox')", "field": "cnt", "expected": 0, "description": "mira_credit 无沙箱相关记录" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@sandbox-lifecycle", "@no-sandbox"],
+    "timeout": 300000
+  },
+  {
+    "id": "TC-PRD-SLC-004",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-08",
+    "source": "prd",
+    "title": "用户主动中断 INTERRUPTED → 立即 pause + 按实际时长计费",
+    "priority": "P0",
+    "scenarioType": "alternative",
+    "mergedFrom": ["TC-022", "TC-033"],
+    "preconditions": ["任务运行中", "沙箱处于 running 状态", "用户将手动点击停止按钮"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "创建候选人档案并执行完整的数据处理流程" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='tool-execution-bubble']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "value": "创建候选人档案并执行完整的数据处理流程", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" },
+      { "role": "button", "name": "停止按钮", "action": "click", "locatorHint": "[data-testid='stop-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "running", "description": "中断前 E2B 确认 running" },
+      { "type": "mcp_action", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='stop-button']" }, "description": "点击停止按钮" },
+      { "type": "mcp_wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-interrupted']" }, "description": "等待 INTERRUPTED" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused", "description": "INTERRUPTED 后 E2B 确认 paused" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\", \"usageId\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"resumeAt\" ASC", "field": "pauseAt", "expected": "NOT NULL", "description": "pauseAt 非空" },
+      { "type": "db_formula", "formula": "runningSeconds = CEIL((pauseAt - resumeAt) / 1000)", "description": "按实际时长计算" },
+      { "type": "db_formula", "formula": "costUsd = runningSeconds * 0.000046" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\", \"vendorRequestId\", status FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run.id}' AND type = 'sandbox'", "field": "costSettled", "expected": "= sandbox_run.costUsd" },
+      { "type": "db_query", "query": "SELECT quantity, \"meterName\" FROM mira_usage_meter WHERE \"usageId\" = '{mira_usage.id}'", "field": "meterName", "expected": "sandbox_running_seconds" },
+      { "type": "db_query", "query": "SELECT \"rawCreditAmount\", \"creditsPerUnitSnapshot\" FROM mira_credit WHERE \"usageId\" = '{mira_usage.id}'", "field": "rawCreditAmount", "expected": "= costSettled * creditsPerUnitSnapshot" },
+      { "type": "db_query", "query": "SELECT \"creditsPerUnit\" FROM credit_rate WHERE currency = 'USD' AND \"effectiveAt\" <= NOW() AND (\"expireAt\" IS NULL OR \"expireAt\" > NOW()) ORDER BY \"effectiveAt\" DESC LIMIT 1", "field": "creditsPerUnit", "expected": "NOT NULL" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount, \"balanceAfter\" FROM mira_credit_ledger WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "amount", "expected": "= -floor(sumRaw + carryBefore)" }
+    ],
+    "tags": ["@P0", "@regression", "@full", "@sandbox-lifecycle", "@interrupted", "@billing-chain"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-005",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-07",
+    "source": "prd",
+    "title": "任务异常 FAILED → pause + 按实际时长计费，不触发 session 清算",
+    "priority": "P1",
+    "scenarioType": "alternative",
+    "mergedFrom": ["TC-021", "TC-032"],
+    "preconditions": ["任务运行中", "沙箱处于 running", "Agent 执行过程中发生系统异常"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "执行可能导致异常的复杂沙箱操作" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-failed']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused", "description": "FAILED 后 E2B 确认 paused" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\", \"usageId\" FROM sandbox_run WHERE \"taskId\" = '{taskId}'", "field": "pauseAt", "expected": "NOT NULL" },
+      { "type": "db_formula", "formula": "costUsd = runningSeconds * 0.000046" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\" FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run.id}' AND type = 'sandbox'", "field": "costSettled", "expected": "= sandbox_run.costUsd" },
+      { "type": "db_query", "query": "SELECT quantity, \"meterName\" FROM mira_usage_meter WHERE \"usageId\" = '{mira_usage.id}'", "field": "quantity", "expected": "= runningSeconds" },
+      { "type": "db_query", "query": "SELECT \"rawCreditAmount\", \"creditsPerUnitSnapshot\" FROM mira_credit WHERE \"usageId\" = '{mira_usage.id}'", "field": "rawCreditAmount", "expected": "= costSettled * creditsPerUnitSnapshot" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount FROM mira_credit_ledger WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "amount", "expected": "= -floor(sumRaw + carryBefore)" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@sandbox-lifecycle", "@failed", "@billing-chain"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-006",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-09",
+    "source": "prd",
+    "title": "断线重连：任务已非 RUNNING 但沙箱仍 running → 补偿 pause",
+    "priority": "P1",
+    "scenarioType": "alternative",
+    "mergedFrom": ["TC-028"],
+    "preconditions": ["任务已完成但沙箱可能未 pause（网络中断等异常）"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "创建候选人档案" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='tool-execution-bubble']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL" },
+      { "type": "mcp_action", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task/{taskId}" }, "description": "模拟断线重连" },
+      { "type": "db_query", "query": "SELECT * FROM sandbox_run WHERE \"taskId\" = '{taskId}' AND \"pauseAt\" IS NULL", "description": "检查未关闭 running 记录" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "pauseAt", "expected": "NOT NULL", "description": "补偿 pause 后 pauseAt 已填充" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused", "description": "E2B 确认 paused" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\" FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run.id}' AND type = 'sandbox'", "description": "计费链完整写入" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@sandbox-lifecycle", "@reconnect"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-007",
+    "storyId": "US-SLC-REQ002",
+    "criterionId": "AC-REQ002-01,AC-REQ002-02",
+    "source": "prd",
+    "title": "计时精度：毫秒向上取整至整秒 + 最小计费单位（1秒）验证",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "mergedFrom": ["TC-011", "TC-012"],
+    "preconditions": ["任务已完成", "沙箱运行时长可能为非整数秒"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "创建一个空文件 test.txt" } },
+      { "type": "mcp", "action": "snapshot", "tool": "mcp__chrome-devtools__take_snapshot" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-completed']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "value": "创建一个空文件 test.txt", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\", \"usageId\" FROM sandbox_run WHERE \"taskId\" = '{taskId}'", "field": "runningSeconds", "expected": ">= 1", "description": "最小计费 1 秒" },
+      { "type": "db_formula", "formula": "runningSeconds = CEIL(EXTRACT(EPOCH FROM (pauseAt - resumeAt)))", "description": "毫秒向上取整至整秒" },
+      { "type": "db_formula", "formula": "costUsd = runningSeconds * 0.000046" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\" FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run.id}' AND type = 'sandbox'", "field": "costSettled", "expected": "= sandbox_run.costUsd" },
+      { "type": "db_query", "query": "SELECT quantity, \"meterName\" FROM mira_usage_meter WHERE \"usageId\" = '{mira_usage.id}'", "field": "quantity", "expected": "= runningSeconds", "description": "quantity 为整数无精度丢失" },
+      { "type": "db_query", "query": "SELECT \"rawCreditAmount\", \"creditsPerUnitSnapshot\" FROM mira_credit WHERE \"usageId\" = '{mira_usage.id}'", "field": "rawCreditAmount", "expected": "= costSettled * creditsPerUnitSnapshot" },
+      { "type": "db_query", "query": "SELECT \"creditsPerUnit\" FROM credit_rate WHERE currency = 'USD' AND \"effectiveAt\" <= NOW() AND (\"expireAt\" IS NULL OR \"expireAt\" > NOW()) ORDER BY \"effectiveAt\" DESC LIMIT 1", "field": "creditsPerUnit", "expected": "NOT NULL" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@billing-precision", "@boundary"],
+    "timeout": 300000
+  },
+  {
+    "id": "TC-PRD-SLC-008",
+    "storyId": "US-SLC-REQ003",
+    "criterionId": "AC-REQ003-01,AC-REQ003-02,AC-REQ003-03",
+    "source": "prd",
+    "title": "多任务 Credit 累积完整场景：<1不进位 → 跨整数进位 → Session 结束清算",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "mergedFrom": ["TC-006", "TC-007", "TC-008", "TC-013", "TC-014", "TC-034"],
+    "preconditions": ["用户已登录", "session 中无历史沙箱记录", "将连续执行 3+ 个任务"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" },
+      { "role": "button", "name": "结束 Session", "action": "click", "locatorHint": "[data-testid='end-session-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount, \"balanceAfter\" FROM mira_credit_ledger WHERE \"taskId\" = '{taskId_1}' ORDER BY \"createdAt\" DESC LIMIT 1", "description": "任务 1：若 sumRaw+carryBefore < 1 则 amount=0, carryAfter=sumRaw+carryBefore" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount, \"balanceAfter\" FROM mira_credit_ledger WHERE \"taskId\" = '{taskId_2}' ORDER BY \"createdAt\" DESC LIMIT 1", "description": "任务 2：carryBefore = 任务 1 carryAfter（carry 链传递）" },
+      { "type": "db_compare", "assertion": "taskId_2.carryBefore === taskId_1.carryAfter", "description": "carry 链连续性" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount, \"balanceAfter\" FROM mira_credit_ledger WHERE \"taskId\" = '{taskId_3}' ORDER BY \"createdAt\" DESC LIMIT 1", "description": "任务 3：跨整数进位 |amount| >= 1" },
+      { "type": "db_formula", "formula": "amount = -floor(sumRaw + carryBefore)", "description": "进位公式正确" },
+      { "type": "db_formula", "formula": "carryAfter = (sumRaw + carryBefore) - floor(sumRaw + carryBefore)", "description": "carryAfter < 1.0" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount FROM mira_credit_ledger WHERE \"userId\" = '{userId}' ORDER BY \"createdAt\" DESC LIMIT 1", "description": "Session 清算：carryAfter = 0" }
+    ],
+    "tags": ["@P0", "@regression", "@full", "@credit-accumulation", "@session-settle"],
+    "timeout": 1200000
+  },
+  {
+    "id": "TC-PRD-SLC-009",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-10",
+    "source": "prd",
+    "title": "Resume 失败指数退避重试（1s/2s/4s）后返回错误",
+    "priority": "P1",
+    "scenarioType": "error",
+    "mergedFrom": ["TC-035"],
+    "preconditions": ["沙箱处于 paused 状态", "E2B API 出现超时异常（需模拟）"],
+    "setup": [
+      { "type": "prerequisite", "description": "确保前置任务已完成，沙箱 paused" },
+      { "type": "manual_simulate", "description": "【手动/模拟】通过网络层工具阻断 E2B API 访问" },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "继续执行数据处理" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='error-message']" } }
+    ],
+    "teardown": [
+      { "type": "manual_simulate", "description": "【手动/模拟】恢复 E2B API 网络访问" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "mcp_evaluate", "tool": "mcp__chrome-devtools__evaluate_script", "expression": "document.querySelector('[data-testid=\"error-message\"]')?.textContent?.includes('Something went wrong')", "expected": true, "description": "显示友好错误提示" },
+      { "type": "db_query", "query": "SELECT * FROM sandbox_run WHERE \"taskId\" = '{taskId}' AND \"pauseAt\" IS NULL", "field": "count", "expected": 0, "description": "无遗留 open 记录" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@error-handling", "@resume-retry"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-010",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-11",
+    "source": "prd",
+    "title": "Pause 失败：时间戳估算 + E2B onTimeout 兜底",
+    "priority": "P1",
+    "scenarioType": "error",
+    "mergedFrom": ["TC-037", "TC-040"],
+    "preconditions": ["任务即将完成", "sandbox.pause() 调用将失败（需模拟）"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "创建候选人档案" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" },
+      { "type": "manual_simulate", "description": "【手动/模拟】在任务即将完成时阻断 E2B pause API" }
+    ],
+    "teardown": [
+      { "type": "manual_simulate", "description": "【手动/模拟】恢复 E2B API 网络访问" }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "pauseAt", "expected": "NOT NULL", "description": "pauseAt 最终被填充（估算或兜底）" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "expected_status": "paused", "description": "E2B onTimeout 兜底后沙箱 paused" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\" FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run.id}' AND type = 'sandbox'", "description": "计费链最终写入" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@error-handling", "@pause-fallback"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-011",
+    "storyId": "US-SLC-REQ002",
+    "criterionId": "AC-REQ002-04",
+    "source": "prd",
+    "title": "服务重启后从 DB 恢复 running_seconds_total",
+    "priority": "P0",
+    "scenarioType": "error",
+    "mergedFrom": ["TC-036"],
+    "preconditions": ["任务运行中（沙箱 running 已 60s+）", "resume_ts 已写入 DB"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "执行耗时较长的数据处理流程" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='tool-execution-bubble']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT * FROM sandbox_run WHERE \"taskId\" = '{taskId}' AND \"pauseAt\" IS NULL", "field": "resumeAt", "expected": "NOT NULL", "description": "活跃 running 记录 resumeAt 已持久化" },
+      { "type": "manual_simulate", "description": "【手动/模拟】触发服务重启" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "resumeAt", "expected": "NOT NULL", "description": "重启后 resumeAt 数据完整" },
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "field": "sandboxId", "expected": "NOT NULL" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "description": "检查 E2B 沙箱状态" },
+      { "type": "db_query", "query": "SELECT id, \"costSettled\" FROM mira_usage WHERE \"vendorRequestId\" = '{sandbox_run.id}' AND type = 'sandbox'", "description": "最终计费数据完整" }
+    ],
+    "tags": ["@P0", "@regression", "@full", "@error-handling", "@service-restart"],
+    "timeout": 900000
+  },
+  {
+    "id": "TC-PRD-SLC-012",
+    "storyId": "US-SLC-REQ001",
+    "criterionId": "AC-REQ001-12",
+    "source": "prd",
+    "title": "E2B 异常回收后沙箱重建",
+    "priority": "P1",
+    "scenarioType": "error",
+    "mergedFrom": ["TC-039"],
+    "preconditions": ["任务运行中", "沙箱被 E2B 平台异常回收（需模拟）"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "创建候选人档案" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='tool-execution-bubble']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "output": "oldSandboxId", "description": "记录旧 sandboxId" },
+      { "type": "manual_simulate", "description": "【手动/模拟】通过 E2B 管理后台终止沙箱" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{oldSandboxId}", "expected_status": "404", "description": "旧沙箱返回 404" },
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "output": "newSandboxId", "description": "检查新 sandboxId" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{newSandboxId}", "expected_status": "running", "description": "新沙箱在 E2B 存在" },
+      { "type": "db_query", "query": "SELECT id, \"resumeAt\", \"pauseAt\", \"runningSeconds\", \"costUsd\" FROM sandbox_run WHERE \"taskId\" = '{taskId}' ORDER BY \"createdAt\" ASC", "description": "旧记录保留+新记录创建" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@error-handling", "@e2b-recovery"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-013",
+    "storyId": "US-SLC-REQ003",
+    "criterionId": "AC-REQ003-04",
+    "source": "prd",
+    "title": "浮点精度误差：连续多任务累积不超额",
+    "priority": "P2",
+    "scenarioType": "error",
+    "mergedFrom": ["TC-038"],
+    "preconditions": ["连续 10+ 个小任务", "每个 credit_raw 极小"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount FROM mira_credit_ledger WHERE \"taskId\" = '{taskId_N}' ORDER BY \"createdAt\" DESC LIMIT 1", "description": "每个任务 carryBefore = 上一任务 carryAfter" },
+      { "type": "db_formula", "formula": "|totalDeducted - FLOOR(totalRaw)| <= 1", "description": "浮点误差不超过 1 Credit" }
+    ],
+    "tags": ["@P2", "@regression", "@full", "@floating-point"],
+    "timeout": 1800000
+  },
+  {
+    "id": "TC-PRD-SLC-014",
+    "storyId": "US-SLC-REQ003",
+    "criterionId": "AC-REQ003-05",
+    "source": "prd",
+    "title": "浏览器异常关闭时 Session 清算完整性",
+    "priority": "P2",
+    "scenarioType": "error",
+    "mergedFrom": ["TC-041"],
+    "preconditions": ["carryAfter > 0", "用户将强制关闭浏览器"],
+    "setup": [
+      { "type": "prerequisite", "description": "先完成沙箱任务确认 carryAfter > 0" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"carryAfter\" FROM mira_credit_ledger WHERE \"userId\" = '{userId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "carryAfter", "expected": "> 0", "description": "清算前 carryAfter > 0" },
+      { "type": "mcp_action", "tool": "mcp__chrome-devtools__close_page", "description": "模拟浏览器关闭" },
+      { "type": "db_query", "query": "SELECT \"sumRaw\", \"carryBefore\", \"carryAfter\", amount, \"balanceAfter\" FROM mira_credit_ledger WHERE \"userId\" = '{userId}' ORDER BY \"createdAt\" DESC LIMIT 1", "field": "carryAfter", "expected": 0, "description": "清算后 carryAfter = 0" }
+    ],
+    "tags": ["@P2", "@regression", "@full", "@session-settle", "@browser-close"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-SLC-015",
+    "storyId": "US-SLC-REQ002",
+    "criterionId": "AC-REQ002-05",
+    "source": "prd",
+    "title": "E2B 账单与本地计算对账差异告警",
+    "priority": "P2",
+    "scenarioType": "error",
+    "mergedFrom": ["TC-042"],
+    "preconditions": ["本地已有 sandbox_run 计费记录", "E2B 账单 API 可访问"],
+    "setup": [
+      { "type": "prerequisite", "description": "完成沙箱任务获取 taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT \"sandboxId\" FROM chats WHERE id = '{taskId}'", "output": "sandboxId" },
+      { "type": "db_query", "query": "SELECT SUM(\"costUsd\") as \"localTotal\" FROM sandbox_run WHERE \"taskId\" = '{taskId}'", "output": "localTotal" },
+      { "type": "e2b_api", "endpoint": "https://api.e2b.dev/sandboxes/{sandboxId}", "description": "获取 E2B 侧使用记录" },
+      { "type": "formula", "formula": "ABS(e2bCost - localTotal) / localTotal * 100", "description": "计算差异率" }
+    ],
+    "tags": ["@P2", "@regression", "@full", "@billing-reconciliation"],
+    "timeout": 300000
+  },
+  {
+    "id": "TC-PRD-SLC-016",
+    "storyId": "US-SLC-REQ002",
+    "criterionId": "AC-REQ002-06",
+    "source": "prd",
+    "title": "幂等性验证：同一 sandbox_run.id 不产生重复 mira_usage",
+    "priority": "P1",
+    "scenarioType": "error",
+    "mergedFrom": [],
+    "isNew": true,
+    "preconditions": ["已有完成的沙箱任务", "sandbox_run 和 mira_usage 记录已存在"],
+    "setup": [
+      { "type": "mcp", "action": "navigate", "tool": "mcp__chrome-devtools__navigate_page", "params": { "url": "{PREVIEW_URL}/task" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='new-task-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-prompt']" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='message-input']" } },
+      { "type": "mcp", "action": "type", "tool": "mcp__chrome-devtools__type_text", "params": { "text": "创建候选人档案" } },
+      { "type": "mcp", "action": "click", "tool": "mcp__chrome-devtools__click", "params": { "selector": "[data-testid='send-button']" } },
+      { "type": "mcp", "action": "wait", "tool": "mcp__chrome-devtools__wait_for", "params": { "selector": "[data-testid='task-status-completed']" } },
+      { "type": "mcp", "action": "extract", "tool": "mcp__chrome-devtools__evaluate_script", "params": { "expression": "window.location.pathname.split('/').pop()" }, "output": "taskId" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "新建任务", "action": "click", "locatorHint": "[data-testid='new-task-button']" },
+      { "role": "textbox", "name": "消息输入框", "action": "type", "value": "创建候选人档案", "locatorHint": "[data-testid='message-input']" },
+      { "role": "button", "name": "Submit", "action": "click", "locatorHint": "[data-testid='send-button']" }
+    ],
+    "assertions": [
+      { "type": "db_query", "query": "SELECT id FROM sandbox_run WHERE \"taskId\" = '{taskId}'", "output": "sandboxRunId" },
+      { "type": "db_count", "query": "SELECT COUNT(*) as cnt FROM mira_usage WHERE \"sourceProvider\" = 'e2b' AND \"vendorRequestId\" = '{sandbox_run.id}'", "field": "cnt", "expected": 1, "description": "UNIQUE 约束保证仅 1 条" },
+      { "type": "db_count", "query": "SELECT COUNT(*) as cnt FROM mira_usage WHERE \"taskId\" = '{taskId}' AND type = 'sandbox'", "field": "cnt", "expected": "= sandbox_run count", "description": "1:1 对应" },
+      { "type": "db_query", "query": "SELECT u.id, u.\"vendorRequestId\", sr.id as \"sandboxRunId\" FROM mira_usage u JOIN sandbox_run sr ON u.\"vendorRequestId\" = sr.id WHERE sr.\"taskId\" = '{taskId}' AND u.type = 'sandbox'", "description": "JOIN 无重复行" },
+      { "type": "db_query", "query": "SELECT constraint_name FROM information_schema.table_constraints WHERE table_name = 'mira_usage' AND constraint_type = 'UNIQUE'", "description": "确认 UNIQUE 约束存在" }
+    ],
+    "tags": ["@P1", "@regression", "@full", "@idempotency", "@data-integrity"],
+    "timeout": 300000
+  }
+]
