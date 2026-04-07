@@ -26,6 +26,11 @@ Phase 0: Load project context (.env → config)
      |
 Phase 1: Read Issue → Extract expectedBehavior + actualBehavior
      |
+Phase 1.5: CDP Quick Verify → Follow reproSteps on real page
+         ├─ Bug reproduced → Report to user, STOP
+         ├─ Bug not reproduced → Ask user: add to test suite? (Y/N)
+         └─ Inconclusive → Continue pipeline
+     |
 Phase 2: CDP lightweight exploration → Locator discovery only (no full baseline)
      |
 Phase 3: Generate verify-fix spec:
@@ -99,7 +104,88 @@ If existing spec found:
 
 If no existing spec:
   → Mode N (New): Generate new verify-fix spec from scratch
-  → Continue to Phase 2 + Phase 3
+  → Continue to Phase 1.5 → Phase 2 + Phase 3
+```
+
+---
+
+## Phase 1.5: Bug Reproduction Pre-Check (CDP Quick Verify)
+
+> **Purpose**: Before investing in spec generation, quickly check whether the bug is still reproducible.
+> This saves time: if the bug still exists, no need to generate specs; if it's already fixed, ask the user whether to add regression coverage.
+
+### Step 1 — Navigate to Page
+
+```
+mcp__chrome-devtools__list_pages → match pageUrl
+  If no match → mcp__chrome-devtools__navigate_page url={issueContext.pageUrl}
+mcp__chrome-devtools__select_page pageId=<matched>
+mcp__chrome-devtools__wait_for selector="body" timeout=5000
+```
+
+If login wall detected (same logic as cdp-explorer Phase 1 Step 3):
+  → Auto-login with E2E_TEST_EMAIL / E2E_TEST_PASSWORD
+  → Navigate to original pageUrl after login
+
+### Step 2 — Follow Reproduction Steps
+
+Execute `reproSteps` from the issue sequentially via CDP:
+
+```
+For each step in issueContext.reproSteps:
+  - Parse the action: click / fill / hover / navigate / scroll / press key
+  - Execute via corresponding CDP tool:
+    mcp__chrome-devtools__click / fill / hover / press_key / navigate_page
+  - mcp__chrome-devtools__wait_for → wait for DOM to stabilize after each step
+```
+
+If a step cannot be executed (element not found, timeout):
+  → Log warning: "Reproduction step '{step}' failed — element not found or page structure changed"
+  → Skip pre-check, proceed to Phase 2 (cannot determine bug status, let the full pipeline decide)
+
+### Step 3 — Check Bug Status
+
+After completing reproSteps, verify whether `actualBehavior` (the bug) is observable:
+
+```
+mcp__chrome-devtools__take_snapshot → capture current DOM state
+mcp__chrome-devtools__take_screenshot → capture visual state
+
+Evaluate against issueContext.actualBehavior:
+  - Use mcp__chrome-devtools__evaluate_script to check DOM conditions
+    described in actualBehavior (e.g., column count, element visibility,
+    error message presence, layout measurements)
+  - Compare observed state against actualBehavior description
+```
+
+### Step 4 — Decide Next Action
+
+```
+If bug is REPRODUCED (observed state matches actualBehavior):
+  → Report to user:
+    "⚠️ Bug 仍可复现 — 在 {pageUrl} 按照复现步骤操作后，
+     观察到: {observed state summary}
+     与 issue 描述的 bug 行为一致: {actualBehavior}
+
+     Bug 尚未修复，跳过后续验证流程。请在修复后重新运行:
+     /qa-verify-fix {issueKey}"
+  → STOP pipeline (do not proceed to Phase 2/3/4/5)
+
+If bug is NOT reproduced (observed state matches expectedBehavior or differs from actualBehavior):
+  → Ask user:
+    "✅ Bug 行为未复现 — 在 {pageUrl} 按照复现步骤操作后，
+     观察到: {observed state summary}
+     与期望行为一致: {expectedBehavior}
+
+     Bug 似乎已修复。是否继续生成验证用例并加入用例库？
+     - 输入 Y：继续执行 Phase 2→5，生成 verify-fix spec 作为回归用例
+     - 输入 N：结束流程，不生成用例"
+  → If user answers Y → proceed to Phase 2 (Mode N) or Phase 3-R (Mode R)
+  → If user answers N → STOP pipeline
+
+If INCONCLUSIVE (cannot clearly determine from DOM/screenshot):
+  → Log: "Pre-check inconclusive — proceeding with full verification pipeline"
+  → Proceed to Phase 2 as normal
 ```
 
 ---
