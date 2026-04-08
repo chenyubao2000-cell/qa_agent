@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/qa-from-branch 流程图</title>
+<style>
+:root{
+  --bg:#faf6f1;--card:#fff;--border:#e0d6cc;--line:#bfb5a8;
+  --text:#3d3429;--dim:#7a7060;--bright:#1a1208;
+  --blue:#2563eb;--green:#16a34a;--orange:#d97706;--red:#dc2626;
+  --purple:#7c3aed;--pink:#db2777;--cyan:#0891b2;--yellow:#a16207;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:24px 16px}
+h1{text-align:center;font-size:22px;color:var(--bright);margin-bottom:4px}
+.sub{text-align:center;font-size:12px;color:var(--dim);font-family:'SF Mono','Fira Code',monospace;margin-bottom:20px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px}
+.legend span{font-size:10px;color:var(--dim);display:flex;align-items:center;gap:3px}
+.legend .d{width:7px;height:7px;border-radius:50%;display:inline-block}
+.flow{display:flex;flex-direction:column;align-items:center;max-width:1020px;margin:0 auto}
+.vc{width:2px;background:var(--line);flex-shrink:0}
+.vc.s{height:10px}.vc.m{height:16px}.vc.l{height:24px}
+
+.b{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.3px;white-space:nowrap;display:inline-block}
+.b.cmd{background:rgba(124,58,237,.1);color:var(--purple)}
+.b.user{background:rgba(219,39,119,.1);color:var(--pink)}
+.b.gh{background:rgba(37,99,235,.1);color:var(--blue)}
+.b.git{background:rgba(22,163,74,.1);color:var(--green)}
+.b.lin{background:rgba(161,98,7,.12);color:var(--yellow)}
+.b.cdp{background:rgba(8,145,178,.1);color:var(--cyan)}
+.b.opus{background:rgba(217,119,6,.1);color:var(--orange)}
+.b.son{background:rgba(37,99,235,.1);color:var(--blue)}
+.b.sk{background:rgba(122,112,96,.08);color:var(--dim);font-size:8px}
+
+.pt{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 12px;border-radius:12px;white-space:nowrap;margin:2px 0}
+.pt.p0{background:#e8e4df;color:var(--dim)}.pt.p1{background:#dbeafe;color:var(--blue)}.pt.p15{background:#fef3c7;color:var(--yellow)}.pt.p2{background:#ede9fe;color:var(--purple)}.pt.p3{background:#ffedd5;color:var(--orange)}.pt.p4{background:#dcfce7;color:var(--green)}.pt.p5{background:#fce7f3;color:var(--pink)}
+
+.nd{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .15s}
+.nd:hover{box-shadow:0 3px 10px rgba(0,0,0,.07)}
+.nd .t{font-size:12px;font-weight:600;color:var(--bright);margin:3px 0 4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.nd .il{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.nd .il.i{color:var(--cyan)}.nd .il.o{color:var(--green)}
+.nd .v{font-size:10px;font-family:'SF Mono','Fira Code',monospace;color:var(--dim);line-height:1.5}
+.nd .v code{color:var(--blue);font-size:10px}
+.nd.dash{border-style:dashed}
+.nd.sm{min-width:120px;max-width:190px}.nd.md{min-width:150px;max-width:250px}.nd.w{min-width:200px;max-width:360px}.nd.xw{min-width:280px;max-width:500px}
+.nd .eg{font-size:9px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;padding:4px 6px;margin-top:4px;line-height:1.6;font-family:'SF Mono','Fira Code',monospace;color:var(--dim)}
+.nd .eg b{color:var(--bright);font-weight:600}
+.nd .note{font-size:9px;color:var(--dim);margin-top:3px;font-style:italic}
+
+.hr{display:flex;gap:8px;align-items:stretch;flex-wrap:nowrap;overflow-x:auto;padding:2px}
+
+.dm{background:#fdf2f8;border:1.5px solid #f9a8d4;border-radius:10px;padding:10px 18px;text-align:center;box-shadow:0 1px 4px rgba(219,39,119,.08)}
+.dm .t{font-size:13px;font-weight:700;color:var(--pink);margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
+.dm .desc{font-size:10px;color:var(--dim)}
+
+.auto{background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:8px 14px;text-align:center}
+.auto .t{font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px}
+.auto .desc{font-size:10px;color:var(--dim)}
+
+.bx{display:flex;width:100%;position:relative}
+.bx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}
+.bx.b2::before{left:25%;right:25%}.bx.b3::before{left:16.5%;right:16.5%}.bx.b4::before{left:12.5%;right:12.5%}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;padding:0 3px;position:relative}
+.col::before{content:'';display:block;width:2px;height:14px;background:var(--line)}
+
+.mx{position:relative;width:100%;height:18px}
+.mx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}
+.mx.b2::before{left:25%;right:25%}.mx.b3::before{left:16.5%;right:16.5%}.mx.b4::before{left:12.5%;right:12.5%}
+.mx::after{content:'';position:absolute;bottom:0;left:50%;width:2px;height:16px;background:var(--line);transform:translateX(-50%)}
+.mx.sk1::before{left:37.5%;right:12.5%}
+/* merge A+B1, skip B2 (rightmost col) */
+.mx.ab::before{left:25%;right:33%}
+
+.bl{font-size:10px;font-weight:600;padding:3px 10px;border-radius:6px;margin-bottom:4px;white-space:nowrap;text-align:center}
+.bl.green{background:rgba(22,163,74,.08);color:var(--green);border:1px solid rgba(22,163,74,.15)}
+.bl.orange{background:rgba(217,119,6,.08);color:var(--orange);border:1px solid rgba(217,119,6,.15)}
+.bl.red{background:rgba(220,38,38,.08);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+.bl.purple{background:rgba(124,58,237,.08);color:var(--purple);border:1px solid rgba(124,58,237,.15)}
+.bl.gray{background:rgba(122,112,96,.06);color:var(--dim);border:1px solid rgba(122,112,96,.12)}
+.bl.blue{background:rgba(37,99,235,.08);color:var(--blue);border:1px solid rgba(37,99,235,.15)}
+.bl.cyan{background:rgba(8,145,178,.08);color:var(--cyan);border:1px solid rgba(8,145,178,.15)}
+
+.stop{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--red);text-align:center}
+.end{background:#f0fdf4;border:1.5px solid #86efac;border-radius:20px;padding:6px 20px;font-size:12px;font-weight:700;color:var(--green);text-align:center}
+
+.cond{border:2px dashed var(--orange);border-radius:12px;padding:10px;background:rgba(217,119,6,.02);width:100%;max-width:960px}
+.cond .cl{text-align:center;font-size:10px;color:var(--orange);font-weight:700;margin-bottom:6px}
+
+.art{margin-top:16px;padding:14px 18px;width:100%;max-width:960px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.art h3{font-size:13px;color:var(--bright);margin-bottom:8px}
+.art-g{display:flex;flex-wrap:wrap;gap:6px}
+.art-i{font-size:10px;padding:4px 8px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;gap:6px}
+.art-i code{color:var(--cyan);font-family:'SF Mono','Fira Code',monospace;font-size:10px}
+.art-i .w{font-size:8px;color:var(--dim)}
+</style>
+</head>
+<body>
+<h1>/qa-from-branch 流程图</h1>
+<p class="sub">/qa-from-branch [branch] [issue-key|url ...] [--source &lt;dir&gt;]</p>
+<div class="legend">
+  <span><span class="d" style="background:var(--purple)"></span>CMD 命令层</span>
+  <span><span class="d" style="background:var(--pink)"></span>USER 用户交互</span>
+  <span><span class="d" style="background:var(--green)"></span>GIT 本地 git</span>
+  <span><span class="d" style="background:var(--blue)"></span>GH GitHub API</span>
+  <span><span class="d" style="background:var(--yellow)"></span>LINEAR</span>
+  <span><span class="d" style="background:var(--cyan)"></span>CDP 页面探查</span>
+  <span><span class="d" style="background:var(--orange)"></span>OPUS 生成协调</span>
+  <span><span class="d" style="background:var(--blue)"></span>SONNET 执行/分析</span>
+</div>
+
+<div class="flow">
+
+<!-- ============ P0 ============ -->
+<span class="pt p0">P0 初始化</span>
+<div class="vc m"></div>
+<div class="hr">
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 读取配置</div>
+    <div class="il i">输入</div><div class="v"><code>.env</code>, <code>CLAUDE.md</code></div>
+    <div class="il o">输出</div><div class="v"><code>projectContext</code><br>(地址、凭证、配置、技术栈)</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 初始化工作区</div>
+    <div class="il i">输入</div><div class="v"><code>phase-0-init.md</code> 2a-2f</div>
+    <div class="il o">输出</div><div class="v">目录、.env 副本、playwright.config</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 解析参数</div>
+    <div class="il i">输入</div><div class="v"><code>$ARGUMENTS</code></div>
+    <div class="il o">输出</div><div class="v"><code>explicitBranch</code> | <code>null</code><br><code>issueInputs[]</code><br><code>sourceOverride</code> | <code>null</code></div>
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- ============ P1 ============ -->
+<span class="pt p1">P1 分支 + 差异提取</span>
+<div class="vc m"></div>
+
+<!-- ★ 决策1: 选择分支 (3路) ★ -->
+<div class="dm">
+  <div class="t"><span class="b user">USER</span> 选择分支</div>
+  <div class="desc">GraphQL 取 5 个分支 → 展示前 3 + "不使用分支" + Other = 5 选项</div>
+</div>
+
+<div class="bx b3" style="height:2px"></div>
+<div class="bx b3">
+
+  <!-- A: 有分支 -->
+  <div class="col" style="flex:2">
+    <span class="bl green">A: 有分支 (selectedBranch 有值)</span>
+    <div class="vc s"></div>
+
+    <!-- ★ 决策2: 对比策略 ★ -->
+    <div class="dm" style="padding:8px 12px">
+      <div class="t" style="font-size:11px"><span class="b user">USER</span> 选择对比方式</div>
+      <div class="desc">完整分支差异 vs 仅最新提交</div>
+    </div>
+
+    <div class="bx b2" style="height:2px"></div>
+    <div class="bx b2">
+
+      <!-- 完整分支差异 -->
+      <div class="col">
+        <span class="bl blue" style="font-size:9px">完整分支差异 (vs main)</span>
+        <div class="nd md">
+          <div class="t" style="font-size:11px"><span class="b gh">GH</span></div>
+          <div class="v" style="font-size:9px">
+            <code>gh api .../compare/main...{branch}</code>
+          </div>
+          <div class="il o">输出</div>
+          <div class="v"><code>changelist[]</code> 全部变更<br><code>commitCount</code><br><code>rawDiff</code> (80KB)</div>
+        </div>
+      </div>
+
+      <!-- 最新提交 -->
+      <div class="col">
+        <span class="bl orange" style="font-size:9px">最新提交 (vs parent)</span>
+        <div class="nd md">
+          <div class="t" style="font-size:11px"><span class="b gh">GH</span></div>
+          <div class="v" style="font-size:9px">
+            <code>gh api .../commits/{sha}</code>
+          </div>
+          <div class="il o">输出</div>
+          <div class="v"><code>changelist[]</code> 单次变更<br><code>commitMessage</code><br><code>rawDiff</code> (50KB)</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="mx b2"></div>
+
+    <!-- 共同: changeSummary -->
+    <div class="nd w">
+      <div class="t"><span class="b cmd">CMD</span> rawDiff → changeSummary</div>
+      <div class="il o">输出</div>
+      <div class="v"><code>changeSummary</code>: 每个改动区域的描述、文件行号、类型、影响页面</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+
+  <!-- B1: 无分支 + 有 issue -->
+  <div class="col">
+    <span class="bl orange">B1: 无分支 + 有 Issue</span>
+    <div class="vc s"></div>
+    <div class="nd md dash">
+      <div class="t" style="color:var(--dim)">跳过 Diff 提取</div>
+      <div class="v" style="font-style:italic"><code>changelist = []</code><br><code>changeSummary = ""</code></div>
+      <div class="note">由 Issue 驱动匹配和生成</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+
+  <!-- B2: 无分支 + 无 issue -->
+  <div class="col">
+    <span class="bl red">B2: 无分支 + 无 Issue</span>
+    <div class="vc s"></div>
+    <div class="stop">报错终止<br><span style="font-size:9px;font-weight:400">需至少 1 个 issue</span></div>
+  </div>
+
+</div>
+
+<!-- A + B1 汇合，B2 终止不参与 -->
+<div class="mx ab"></div>
+
+<!-- 源码读取 -->
+<div class="nd xw">
+  <div class="t"><span class="b gh">GH</span> 读取远程源码（无分支时回退本地）</div>
+  <div class="v" style="font-size:9px;margin-bottom:4px">
+    筛选 <code>changelist</code> 中 .tsx/.ts/.vue/.jsx（排除 .d.ts/test/removed），取前 10 个
+  </div>
+  <div style="display:flex;gap:8px;width:100%;margin:4px 0">
+    <div style="flex:1;padding:4px 6px;background:rgba(37,99,235,.04);border-radius:6px;border:1px solid rgba(37,99,235,.12)">
+      <div style="font-size:9px;font-weight:700;color:var(--blue)">🌐 有分支（默认）</div>
+      <div class="v" style="font-size:9px"><code>gh api .../contents/{file}?ref={branch}</code><br>base64 解码，保证与 diff 同版本</div>
+    </div>
+    <div style="flex:1;padding:4px 6px;background:rgba(22,163,74,.04);border-radius:6px;border:1px solid rgba(22,163,74,.12)">
+      <div style="font-size:9px;font-weight:700;color:var(--green)">📂 无分支时回退本地</div>
+      <div class="v" style="font-size:9px"><code>Read("$SOURCE_PROJECT_DIR/{file}")</code><br>仅当 selectedBranch = null 且 SOURCE_PROJECT_DIR 存在</div>
+    </div>
+  </div>
+  <div class="il o">输出</div>
+  <div class="v"><code>sourceContext</code>: { hasTestIds, routeSegments[], componentNames[], apiEndpoints[] }</div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- ★ 决策3: issueInputs ★ -->
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> issueInputs 是否非空？</div>
+</div>
+
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+
+  <div class="col">
+    <span class="bl green">A: 非空 → 拉取 Issue 上下文</span>
+    <span class="pt p15">P1.5 Issue 上下文</span>
+    <div class="vc s"></div>
+    <div class="nd w">
+      <div class="t"><span class="b lin">LINEAR</span> 解析并拉取 Issue</div>
+      <div class="il i">输入</div><div class="v"><code>issueInputs[]</code> (URL / key / UUID)</div>
+      <div class="il o">输出</div><div class="v"><code>issueContexts[]</code><br>{issueKey, pageUrl, feature, 描述, 优先级, 状态}</div>
+    </div>
+    <div class="vc s"></div>
+    <div class="nd md">
+      <div class="t"><span class="b cmd">CMD</span> 派生关键词 + URL</div>
+      <div class="il o">输出</div><div class="v"><code>issueModuleKeywords[]</code><br><code>issuePageUrls[]</code></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+
+  <div class="col">
+    <span class="bl gray">B: 空 → 跳过 P1.5</span>
+    <div class="vc s"></div>
+    <div class="nd md dash">
+      <div class="t" style="color:var(--dim)">无 Issue 上下文</div>
+      <div class="v" style="font-style:italic"><code>issueContexts = []</code><br><code>issueModuleKeywords = []</code><br><code>issuePageUrls = []</code></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+
+</div>
+<div class="mx b2"></div>
+
+<!-- ============ P2 ============ -->
+<span class="pt p2">P2 匹配已有 Spec → 策略</span>
+<div class="vc m"></div>
+
+<div class="nd w">
+  <div class="t"><span class="b cmd">CMD</span> 构建 slug → spec 映射</div>
+  <div class="il i">输入</div><div class="v">Glob <code>tests/e2e/testcases/generated/*.test.ts</code> + <code>pages/*.page.ts</code></div>
+  <div class="il o">输出</div><div class="v"><code>specMap: { slug → specPath }</code>, <code>pomMap</code></div>
+  <div class="eg"><b>示例：</b>task-cdp.test.ts → <b>"task"</b> / task-sidebar-cdp.test.ts → <b>"task-sidebar"</b></div>
+</div>
+
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b cmd">CMD</span> 提取模块关键词 + 匹配 specMap</div>
+  <div style="font-size:10px;color:var(--dim);margin:4px 0 2px;font-weight:600">① 从 changelist 提取关键词（3 种启发式）：</div>
+  <div class="eg">
+    <b>路由段：</b>src/app/(dashboard)/<b>task</b>/[id]/page.tsx → <b>"task"</b><br>
+    <b>组件名：</b>src/components/<b>TaskSidebar</b>.tsx → PascalCase→kebab → <b>"task-sidebar"</b><br>
+    <b>API 模块：</b>src/api/<b>canvas</b>.ts → <b>"canvas"</b><br>
+    <span style="color:var(--red)">跳过：</span>package.json, .d.ts, node_modules/ 等非 UI 文件
+  </div>
+  <div style="font-size:10px;color:var(--dim);margin:6px 0 2px;font-weight:600">② 合并 Issue 派生关键词：</div>
+  <div class="v"><code>allModuleKeywords = deduplicate(changelistKeywords + issueModuleKeywords)</code></div>
+  <div style="font-size:10px;color:var(--dim);margin:6px 0 2px;font-weight:600">③ 用 contains / starts-with 匹配 specMap：</div>
+  <div class="eg">
+    <b>"task"</b> → 匹配：task-cdp.test.ts, task-sidebar-cdp.test.ts, ...<br>
+    <b>"people-search"</b> → 无匹配 → 归入 <code>unmatchedModules</code>
+  </div>
+  <div class="il o">输出</div>
+  <div class="v"><code>matchedSpecs[]</code> — 已有用例路径<br><code>unmatchedModules[]</code> — 无对应 spec 的关键词</div>
+</div>
+
+<div class="vc m"></div>
+
+<!-- ★ 决策4: 策略 ★ -->
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> 确定执行策略</div>
+  <div class="desc">根据 matchedSpecs 与 unmatchedModules 是否为空判定</div>
+</div>
+
+<div class="bx b4" style="height:2px"></div>
+<div class="bx b4">
+
+  <div class="col">
+    <span class="bl red">skip</span>
+    <div class="nd sm" style="text-align:center">
+      <div class="v" style="font-size:10px">两者均为空<br>全是非 UI 文件</div>
+    </div>
+    <div class="vc s"></div>
+    <div class="stop">流水线终止</div>
+  </div>
+
+  <div class="col">
+    <span class="bl green">selective</span>
+    <div class="nd sm" style="text-align:center">
+      <div class="v" style="font-size:10px"><code>matched</code> 有值<br><code>unmatched</code> 为空</div>
+    </div>
+    <div class="vc s"></div>
+    <div class="nd sm" style="text-align:center;border-color:var(--green)">
+      <div class="t" style="font-size:11px;justify-content:center">仅跑已有</div>
+      <div class="v">跳 P3 → P4</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+
+  <div class="col">
+    <span class="bl orange">selective + generate</span>
+    <div class="nd sm" style="text-align:center">
+      <div class="v" style="font-size:10px">两者均有值<br>部分匹配</div>
+    </div>
+    <div class="vc s"></div>
+    <div class="dm" style="padding:5px 8px">
+      <div class="t" style="font-size:10px"><span class="b user">USER</span> 是否生成？</div>
+    </div>
+    <div class="bx b2" style="height:2px"></div>
+    <div class="bx b2">
+      <div class="col"><span class="bl green" style="font-size:9px">是</span><div class="v" style="font-size:9px;text-align:center">P3 + 已有<br>→ P4</div></div>
+      <div class="col"><span class="bl gray" style="font-size:9px">否</span><div class="v" style="font-size:9px;text-align:center;font-style:italic">降级 selective<br>跳 P3 → P4</div></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+
+  <div class="col">
+    <span class="bl purple">generate</span>
+    <div class="nd sm" style="text-align:center">
+      <div class="v" style="font-size:10px"><code>matched</code> 为空<br><code>unmatched</code> 有值</div>
+    </div>
+    <div class="vc s"></div>
+    <div class="dm" style="padding:5px 8px">
+      <div class="t" style="font-size:10px"><span class="b user">USER</span> 是否生成？</div>
+    </div>
+    <div class="bx b2" style="height:2px"></div>
+    <div class="bx b2">
+      <div class="col"><span class="bl green" style="font-size:9px">是</span><div class="v" style="font-size:9px;text-align:center">P3 全部<br>→ P4</div></div>
+      <div class="col"><span class="bl gray" style="font-size:9px">否</span><div class="v" style="font-size:9px;text-align:center;font-style:italic;color:var(--red)">无用例<br>终止</div></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+
+</div>
+<div class="mx sk1"></div>
+
+<!-- ============ P3 ============ -->
+<div class="cond">
+  <div class="cl">P3 条件生成 — 仅对 unmatchedModules（selective 和拒绝生成的路径跳过）</div>
+  <div style="display:flex;flex-direction:column;align-items:center">
+    <div class="hr">
+      <div class="nd md">
+        <div class="t"><span class="b cmd">CMD</span> 推断页面 URL</div>
+        <div class="il i">输入</div><div class="v"><code>unmatchedModules</code><br><code>issuePageUrls</code>（优先）<br><code>sourceContext.routeSegments</code></div>
+        <div class="il o">输出</div><div class="v">每个模块的 <code>pageUrl</code></div>
+      </div>
+      <div class="nd md">
+        <div class="t"><span class="b cdp">CDP</span> 定向页面探查</div>
+        <div class="il i">输入</div><div class="v"><code>pageUrl, targetArea</code><br><code>authSetup, appLanguages</code></div>
+        <div class="il o">输出</div><div class="v"><code>baselineFile</code>、定位器列表</div>
+      </div>
+      <div class="nd w">
+        <div class="t"><span class="b opus">OPUS</span> e2e-orchestrator 生成</div>
+        <div class="il i">输入</div><div class="v"><code>baselineFile, changelist</code><br><code>changeSummary, issueContexts</code></div>
+        <div class="il o">输出</div><div class="v"><code>*.md</code> <code>handoff.json</code> <code>*.xlsx</code><br><code>*.page.ts</code> <code>*.test.ts</code></div>
+      </div>
+      <div class="nd md">
+        <div class="t"><span class="b cmd">CMD</span> qa-fix-tests 校验</div>
+        <div class="il i">输入</div><div class="v">新生成的 spec</div>
+        <div class="il o">输出</div><div class="v"><code>newSpecs[]</code>（已校验）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- ============ P4 ============ -->
+<span class="pt p4">P4 执行测试</span>
+<div class="vc m"></div>
+<div class="nd w">
+  <div class="t"><span class="b son">SONNET</span> test-executor</div>
+  <div class="il i">输入</div><div class="v"><code>mode:"selective"</code>, <code>specFiles: matchedSpecs + newSpecs</code><br><code>projectDir</code>, <code>appLanguages</code></div>
+  <div class="il o">输出</div><div class="v"><code>playwright-results.json</code>, <code>playwright-report/index.html</code></div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- ============ P5 ============ -->
+<span class="pt p5">P5 报告</span>
+<div class="vc m"></div>
+<div class="hr">
+  <div class="nd md">
+    <div class="t"><span class="b son">SONNET</span> report-analyzer</div>
+    <div class="il i">输入</div><div class="v"><code>playwright-results.json</code><br><code>changeSummary</code></div>
+    <div class="il o">输出</div><div class="v">失败列表，每条标记<br><code>regression_likely</code> | <code>pre_existing</code></div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 展示结果</div>
+    <div class="il i">输入</div><div class="v">分析器结果</div>
+    <div class="il o">输出</div><div class="v">终端表格：分支、文件数<br>通过/失败 + 变更关联标签</div>
+  </div>
+</div>
+
+<div class="vc m"></div>
+
+<!-- ★ 决策6: Linear ★ -->
+<div class="dm">
+  <div class="t"><span class="b lin">LINEAR</span> 是否评论到 Linear？</div>
+</div>
+
+<div class="bx b3" style="height:2px"></div>
+<div class="bx b3">
+  <div class="col">
+    <span class="bl gray">A: 无 issue 传入</span>
+    <div class="nd sm dash" style="text-align:center">
+      <div class="v" style="font-style:italic;font-size:10px">自动跳过<br>仅本地输出</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl green">B: 有 issue + 确认「是」</span>
+    <div class="nd md" style="border-color:var(--green)">
+      <div class="t"><span class="b lin">LINEAR</span> 追加评论</div>
+      <div class="v">每个 issue 追加 QA 结果 markdown<br><em style="font-size:9px;color:var(--dim)">（仅信息性，不改状态）</em></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl orange">C: 有 issue + 确认「否」</span>
+    <div class="nd sm dash" style="text-align:center">
+      <div class="v" style="font-style:italic;font-size:10px">跳过评论<br>仅本地输出</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b3"></div>
+
+<div class="end">流水线结束</div>
+
+<!-- ============ 产出物 ============ -->
+<div class="art">
+  <h3>产出物</h3>
+  <div class="art-g">
+    <div class="art-i"><code>tests/reports/playwright-results.json</code><span class="w">始终</span></div>
+    <div class="art-i"><code>playwright-report/index.html</code><span class="w">始终</span></div>
+    <div class="art-i"><code>test-cases/generated/*.md</code><span class="w">P3 时</span></div>
+    <div class="art-i"><code>*-branch.test.ts</code><span class="w">P3 时</span></div>
+    <div class="art-i"><code>*.xlsx</code><span class="w">P3 时</span></div>
+    <div class="art-i"><code>Linear 评论</code><span class="w">传入 issue 且确认</span></div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

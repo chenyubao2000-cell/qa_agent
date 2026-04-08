@@ -14,7 +14,7 @@ You are a branch-driven QA executor. Given a GitHub branch, analyze its diff vs 
 /qa-from-branch [branch-name] [issue-key|url ...] [--source <source-code-dir>]
 
 Examples:
-/qa-from-branch                                           # interactive: list 5 branches, user picks
+/qa-from-branch                                           # interactive: list 7 branches (paginated), user picks
 /qa-from-branch feature/chat-redesign                     # explicit branch name, no issues
 /qa-from-branch feature/chat-redesign STE-42              # branch + single issue
 /qa-from-branch feature/xyz STE-42 STE-43                 # branch + multiple issues
@@ -31,10 +31,10 @@ Examples:
 Phase 0: Load project context (.env → config)
      |
 Phase 1: Branch Selection + Diff Extraction
-     ├─ Step 1: List 7 recent branches (incl. main) + "手动输入" + "不使用分支" → user picks
-     ├─ Step 2: (skip if no branch) Ask diff strategy: "完整分支差异" vs "仅最新提交"
-     ├─ Step 3: (skip if no branch) Get changelist + raw diff → summarize as changeSummary
-     └─ Step 4: Read remote source code via GitHub Contents API
+     ├─ Step 1: GraphQL fetch 5 recent branches → AskUserQuestion (3 branches + "不使用分支" + Other) → user picks
+     ├─ Step 2: (skip if no branch) Detect local vs remote + ask diff strategy (3 options if local available)
+     ├─ Step 3: (skip if no branch) Get changelist + raw diff (local git or GitHub API) → changeSummary
+     └─ Step 4: Read source code (local filesystem if available, otherwise GitHub Contents API)
      |
 Phase 1.5: (optional) Fetch Linear Issue Context
      ├─ Step 1: Parse issue keys/URLs from arguments
@@ -125,7 +125,8 @@ If explicitBranch is provided:
     If not found → error and stop
 
 Else (interactive mode):
-  Fetch 10 most recently updated branches (INCLUDING main/master):
+  ── IMPORTANT: Use ONLY the single GraphQL query below to fetch the branch list. ──
+  ── Do NOT make additional REST API calls (gh api repos/.../branches/xxx) for individual branches. ──
 
   Bash: GH_TOKEN=$GITHUB_TOKEN gh api graphql -f query='{
     repository(owner: "$OWNER", name: "$REPO") {
@@ -143,23 +144,23 @@ Else (interactive mode):
     }
   }'
 
-  Take first 7 branches (do NOT filter out main/master).
+  allBranches = first 5 branches from GraphQL results (do NOT filter out main/master).
 
   Present to user via AskUserQuestion:
     "请选择要分析的分支："
-    Options (up to 4 per AskUserQuestion, split into pages if needed):
-      1. main (2026-04-06) — latest commit message
-      2. feature/xxx (2026-04-05) — commit message
-      3. fix/yyy (2026-04-04) — commit message
-      ...
-      ── special options (always present) ──
-      "手动输入" — 用户自己输入分支名
-      "不使用分支" — 跳过 diff，仅用 issue + SOURCE_PROJECT_DIR 驱动
+    Options (4 options, AskUserQuestion max):
+      - allBranches[0..2] (first 3 branches, label: branch name, description: "(date) commit message")
+      - "不使用分支" — description: "跳过 diff，仅用 issue + SOURCE_PROJECT_DIR 驱动"
 
-  If user picks "手动输入":
-    → AskUserQuestion: "请输入分支名："
-    → selectedBranch = user input
-    → Validate branch exists
+    ── AskUserQuestion always provides a built-in "Other" for custom text input (replaces old "手动输入") ──
+    ── So user sees: 3 branches + "不使用分支" + "Other" = 5 choices total ──
+
+  If user picks "Other":
+    → Treat input as branch name (manual input)
+    → Validate branch exists:
+        Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/branches/$userInput" --jq '.name'
+    → If not found → error and stop
+    → selectedBranch = userInput
 
   If user picks "不使用分支":
     → selectedBranch = null  (branch-less mode)
@@ -175,7 +176,7 @@ Else (interactive mode):
 > Phase 2 matching relies solely on issue-derived module keywords (from Phase 1.5) + SOURCE_PROJECT_DIR source code scanning.
 > `changelist` and `changeSummary` are empty; Phase 5 report omits branch/diff fields.
 
-### Step 2 — Choose Diff Strategy
+### Step 2 — Detect Diff Source (local vs remote) + Choose Diff Strategy
 
 ```
 If selectedBranch is null (branch-less mode):
@@ -183,13 +184,37 @@ If selectedBranch is null (branch-less mode):
   changeSummary = ""
   Skip to Step 4.
 
+── Detect: can we use local git? ──
+
+useLocalGit = false
+
+If SOURCE_PROJECT_DIR is set and exists:
+  Bash: git -C "$SOURCE_PROJECT_DIR" rev-parse --is-inside-work-tree 2>/dev/null
+  If exit code == 0 (is a git repo):
+    Bash: git -C "$SOURCE_PROJECT_DIR" branch --show-current
+    → localBranch
+
+    If localBranch == selectedBranch:
+      useLocalGit = true
+      diffSource = "local"
+    Else:
+      diffSource = "remote"
+  Else:
+    diffSource = "remote"
+Else:
+  diffSource = "remote"
+
+── Choose diff strategy ──
+
 AskUserQuestion:
-  "请选择变更对比方式："
+  "请选择变更对比方式：{if useLocalGit: '（检测到本地仓库，将使用本地 git diff — 包含未 push 的改动）'}"
   Options:
     "完整分支差异（vs main）" — 对比分支与 main 的全部差异，适合多 commit 分支
-    "最新提交（vs 当前分支）" — 只看最后一个 commit 相对分支前一状态的改动，适合单次提交后快速验证
+    "最新提交" — 只看最后一个 commit 的改动，适合单次提交后快速验证
+    "本地未提交改动" — 对比工作区与 HEAD 的差异（含 unstaged + staged），适合开发中自测 {only show if useLocalGit}
 
-→ diffStrategy = "compare" | "latest-commit"
+→ diffStrategy = "compare" | "latest-commit" | "local-uncommitted"
+  Note: "local-uncommitted" forces useLocalGit = true
 ```
 
 ### Step 3 — Get Changelist + Raw Diff + Generate changeSummary
@@ -201,58 +226,99 @@ If selectedBranch is null (branch-less mode):
 
 ── Strategy A: 完整分支差异 (diffStrategy == "compare") ──
 
-# Get full diff of branch vs main (all commits merged)
-Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/compare/main...$selectedBranch" \
-  --jq '{
-    ahead_by: .ahead_by,
-    commits: [.commits[] | {sha: .sha[:7], message: .commit.message}],
-    files: [.files[] | {filename: .filename, status: .status, additions: .additions, deletions: .deletions}]
-  }'
-→ compareResult (JSON)
+If useLocalGit:
+  # Local: compare current branch vs main (includes unpushed commits)
+  Bash: git -C "$SOURCE_PROJECT_DIR" diff main...HEAD --stat --numstat
+  → parse into changelist [{filename, status, additions, deletions}]
 
-changelist = compareResult.files (all changed file paths across the branch)
-commitCount = compareResult.ahead_by
-commitMessages = compareResult.commits[].message
+  Bash: git -C "$SOURCE_PROJECT_DIR" log main..HEAD --oneline
+  → commitCount, commitMessages
 
-# Get raw diff for changeSummary generation
-Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/compare/main...$selectedBranch" \
-  -H "Accept: application/vnd.github.diff" | head -c 80000
+  Bash: git -C "$SOURCE_PROJECT_DIR" diff main...HEAD | head -c 80000
+  → rawDiff
 
-rawDiff = captured output
+  Report to user:
+    "📂 本地分支 {selectedBranch} vs main（含未 push 改动）:
+     提交数: {commitCount} 个
+     变更文件: {changelist.length} 个
+     {if rawDiff was truncated: '⚠️ diff 过大，已截断至 80KB'}"
+
+Else:
+  # Remote: GitHub Compare API
+  Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/compare/main...$selectedBranch" \
+    --jq '{
+      ahead_by: .ahead_by,
+      commits: [.commits[] | {sha: .sha[:7], message: .commit.message}],
+      files: [.files[] | {filename: .filename, status: .status, additions: .additions, deletions: .deletions}]
+    }'
+  → compareResult (JSON)
+
+  changelist = compareResult.files
+  commitCount = compareResult.ahead_by
+  commitMessages = compareResult.commits[].message
+
+  Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/compare/main...$selectedBranch" \
+    -H "Accept: application/vnd.github.diff" | head -c 80000
+  → rawDiff
+
+  Report to user:
+    "🌐 远程分支 {selectedBranch} vs main:
+     提交数: {commitCount} 个
+     变更文件: {changelist.length} 个
+     {if rawDiff was truncated: '⚠️ diff 过大，已截断至 80KB'}"
+
+── Strategy B: 最新提交 (diffStrategy == "latest-commit") ──
+
+If useLocalGit:
+  # Local: diff HEAD vs HEAD~1
+  Bash: git -C "$SOURCE_PROJECT_DIR" diff HEAD~1 --stat --numstat
+  → parse into changelist
+
+  Bash: git -C "$SOURCE_PROJECT_DIR" log -1 --format="%H %s"
+  → latestCommitSha, latestCommitMessage
+
+  Bash: git -C "$SOURCE_PROJECT_DIR" diff HEAD~1 | head -c 50000
+  → rawDiff
+
+  Report to user:
+    "📂 本地最新提交: {latestCommitSha[:7]}
+     提交信息: {latestCommitMessage}
+     变更文件: {changelist.length} 个"
+
+Else:
+  # Remote: GitHub Commits API
+  Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/branches/$selectedBranch" \
+    --jq '.commit.sha'
+  → latestCommitSha
+
+  Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/commits/$latestCommitSha" \
+    --jq '.files[] | {filename: .filename, status: .status, additions: .additions, deletions: .deletions}'
+  → changelist
+
+  Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/commits/$latestCommitSha" \
+    --jq '.commit.message'
+  → latestCommitMessage
+
+  Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/commits/$latestCommitSha" \
+    -H "Accept: application/vnd.github.diff" | head -c 50000
+  → rawDiff
+
+  Report to user:
+    "🌐 远程最新提交: {latestCommitSha[:7]}
+     提交信息: {latestCommitMessage}
+     变更文件: {changelist.length} 个"
+
+── Strategy C: 本地未提交改动 (diffStrategy == "local-uncommitted") ──
+
+# Always local — compare working tree vs HEAD (staged + unstaged)
+Bash: git -C "$SOURCE_PROJECT_DIR" diff HEAD --stat --numstat
+→ parse into changelist
+
+Bash: git -C "$SOURCE_PROJECT_DIR" diff HEAD | head -c 50000
+→ rawDiff
 
 Report to user:
-  "分支 {selectedBranch} vs main:
-   提交数: {commitCount} 个
-   变更文件: {changelist.length} 个
-   {if rawDiff was truncated: '⚠️ diff 过大，已截断至 80KB'}"
-
-── Strategy B: 仅最新提交 (diffStrategy == "latest-commit") ──
-
-# Get the latest commit SHA on the branch
-Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/branches/$selectedBranch" \
-  --jq '.commit.sha'
-→ latestCommitSha
-
-# Get the commit details (files changed in this commit vs its parent)
-Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/commits/$latestCommitSha" \
-  --jq '.files[] | {filename: .filename, status: .status, additions: .additions, deletions: .deletions}'
-
-changelist = [list of changed files in the latest commit only]
-
-# Also get commit message for context
-Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/commits/$latestCommitSha" \
-  --jq '.commit.message'
-→ latestCommitMessage
-
-# Get raw diff
-Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/commits/$latestCommitSha" \
-  -H "Accept: application/vnd.github.diff" | head -c 50000
-
-rawDiff = captured output
-
-Report to user:
-  "分支 {selectedBranch} 最新提交: {latestCommitSha[:7]}
-   提交信息: {latestCommitMessage}
+  "📂 本地未提交改动（工作区 vs HEAD）:
    变更文件: {changelist.length} 个"
 
 ── Common: Generate changeSummary from rawDiff ──
@@ -270,9 +336,10 @@ For each changed area in the diff, produce:
 Format as changeSummary string.
 ```
 
-### Step 4 — Read Remote Source Code via GitHub Contents API
+### Step 4 — Read Source Code (local-first, remote fallback)
 
-> **Why remote**: diff 来自 GitHub，源码也从 GitHub 读，保证两者在同一分支、同一版本，不依赖本地是否 checkout 了对应分支。
+> **Strategy**: If `useLocalGit = true`, read source files directly from local filesystem (faster, includes unpushed changes).
+> Otherwise, read from GitHub Contents API (remote fallback).
 
 ```
 # Filter changelist to UI-related source files only
@@ -283,12 +350,18 @@ sourceFiles = changelist
   .filter(f => !f.filename.includes('.test.') && !f.filename.includes('.spec.'))
   .filter(f => f.status !== 'removed')  # skip deleted files
 
-# Read at most 10 key files (avoid excessive API calls)
 filesToRead = sourceFiles.slice(0, 10)
 
-For each file in filesToRead:
-  Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/contents/{file.filename}?ref=$selectedBranch" \
-    --jq '.content' | base64 -d | head -c 20000
+If useLocalGit:
+  # Local: read files directly from filesystem
+  For each file in filesToRead:
+    Read("$SOURCE_PROJECT_DIR/{file.filename}")   # first 500 lines is enough
+
+Else:
+  # Remote: GitHub Contents API
+  For each file in filesToRead:
+    Bash: GH_TOKEN=$GITHUB_TOKEN gh api "repos/$OWNER/$REPO/contents/{file.filename}?ref=$selectedBranch" \
+      --jq '.content' | base64 -d | head -c 20000
 
   # Understand: route definitions, component names, exported functions,
   #             API endpoints, data-testid, aria-label, i18n keys
@@ -309,7 +382,7 @@ If selectedBranch is null (branch-less mode):
     Log: "Branch-less mode + no SOURCE_PROJECT_DIR, skipping source code reading"
 ```
 
-> **Rate limit**: GitHub Contents API has a rate limit of 5000 req/hour for authenticated requests. Reading 10 files per run is well within budget. If `sourceFiles` exceeds 10, prioritize: route files (page.tsx) > components > API/services.
+> **Note**: When `useLocalGit = true`, local reads have no API rate limit concerns. When remote, GitHub Contents API limit is 5000 req/hour — reading 10 files per run is well within budget. If `sourceFiles` exceeds 10, prioritize: route files (page.tsx) > components > API/services.
 
 ---
 

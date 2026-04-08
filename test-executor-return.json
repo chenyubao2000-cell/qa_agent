@@ -1,0 +1,92 @@
+{
+  "pipeline": "e2e",
+  "specs_executed": [
+    "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+    "tests/e2e/testcases/generated/task-cdp.test.ts",
+    "tests/e2e/testcases/generated/task-conversation-chat-conversation-cdp.test.ts",
+    "tests/e2e/testcases/generated/task-file-preview-cdp.test.ts",
+    "tests/e2e/testcases/generated/task-sidebar-cdp.test.ts",
+    "tests/e2e/testcases/generated/task-scenario-send-verify-fix.test.ts"
+  ],
+  "result_json": "tests/e2e/mira_online/tests/reports/playwright-results.json",
+  "test_results_dir": "tests/e2e/mira_online/test-results/",
+  "total": 187,
+  "passed": 125,
+  "failed": 10,
+  "flaky": 2,
+  "skipped": 50,
+  "summary": "125 passed, 10 failed, 2 flaky, 50 skipped in 23.0 minutes",
+  "failed_tests": [
+    {
+      "title": "TC-PRD-PDD-001 People Data 任务结果区域 — 下载按钮触发 XLSX 下载",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P0", "smoke", "regression", "full"]
+    },
+    {
+      "title": "TC-PRD-PDD-004 下载成功后下载按钮短暂显示成功状态（CheckIcon）",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P1", "regression", "full", "failing"]
+    },
+    {
+      "title": "TC-PRD-PDD-003 XLSX 下载文件扩展名为 .xlsx（列宽限制验证）",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P1", "regression", "full"]
+    },
+    {
+      "title": "TC-PRD-PDD-005 文件名扩展名正确替换为 .xlsx（原 .json/.peopledata）",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P1", "regression", "full"]
+    },
+    {
+      "title": "TC-PRD-PDD-006 下载失败时显示 toast 错误提示",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P1", "regression", "full"]
+    },
+    {
+      "title": "TC-PRD-PDD-007 完整端到端流程 — 从查看 People Data 面板到下载 XLSX",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P0", "smoke", "regression", "full"]
+    },
+    {
+      "title": "TC-PRD-PDD-008 People Data 面板头部显示正确的文件名和操作按钮",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P0", "smoke", "regression", "full"]
+    },
+    {
+      "title": "TC-PRD-PDD-010 People Data 面板关闭按钮可正常关闭面板",
+      "file": "tests/e2e/testcases/generated/people-data-download-prd.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P1", "regression", "full"]
+    },
+    {
+      "title": "TC-CDP-SB-005 重命名任务输入单个字符可正常保存",
+      "file": "tests/e2e/testcases/generated/task-sidebar-cdp.test.ts",
+      "project": "e2e-en",
+      "tags": ["P1", "regression", "full"],
+      "flaky": true
+    },
+    {
+      "title": "TC-CDP-SB-008 删除弹窗点击取消后任务保留",
+      "file": "tests/e2e/testcases/generated/task-sidebar-cdp.test.ts",
+      "project": "e2e-zh",
+      "tags": ["P1", "regression", "full"],
+      "flaky": true
+    }
+  ],
+  "execution_mode": "selective",
+  "app_languages": "en,zh",
+  "execution_time_minutes": 23.0,
+  "environment": {
+    "base_url": "http://localhost:3000 (or PLAYWRIGHT_BASE_URL/PREVIEW_URL)",
+    "auth_enabled": true,
+    "i18n_enabled": true,
+    "projects": ["setup", "e2e-en", "e2e-zh"]
+  }
+}
