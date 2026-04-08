@@ -153,22 +153,30 @@ h1{text-align:center;font-size:22px;color:var(--bright);margin-bottom:4px}
     <span class="bl green">A: 有分支 (selectedBranch 有值)</span>
     <div class="vc s"></div>
 
+    <!-- 自动检测 -->
+    <div class="auto">
+      <div class="t"><span class="b cmd">CMD</span> 检测是否启用本地模式</div>
+      <div class="desc">仅当 <code>PREVIEW_URL</code> 指向 localhost 或传了 <code>--local</code> 时<br>+ <code>SOURCE_PROJECT_DIR</code> 存在 + 本地分支 == selectedBranch<br>→ <code>useLocalGit = true</code>，否则走远程 GitHub API</div>
+    </div>
+    <div class="vc s"></div>
+
     <!-- ★ 决策2: 对比策略 ★ -->
     <div class="dm" style="padding:8px 12px">
       <div class="t" style="font-size:11px"><span class="b user">USER</span> 选择对比方式</div>
-      <div class="desc">完整分支差异 vs 仅最新提交</div>
+      <div class="desc">2 选项（远程）或 3 选项（本地模式多"未提交"）</div>
     </div>
 
-    <div class="bx b2" style="height:2px"></div>
-    <div class="bx b2">
+    <div class="bx b3" style="height:2px"></div>
+    <div class="bx b3">
 
       <!-- 完整分支差异 -->
       <div class="col">
         <span class="bl blue" style="font-size:9px">完整分支差异 (vs main)</span>
         <div class="nd md">
-          <div class="t" style="font-size:11px"><span class="b gh">GH</span></div>
+          <div class="t" style="font-size:11px"><span class="b git">GIT</span><span class="b gh">GH</span></div>
           <div class="v" style="font-size:9px">
-            <code>gh api .../compare/main...{branch}</code>
+            📂 本地: <code>git diff main...HEAD</code><br>
+            🌐 远程: <code>gh api .../compare/main...{branch}</code>
           </div>
           <div class="il o">输出</div>
           <div class="v"><code>changelist[]</code> 全部变更<br><code>commitCount</code><br><code>rawDiff</code> (80KB)</div>
@@ -179,17 +187,33 @@ h1{text-align:center;font-size:22px;color:var(--bright);margin-bottom:4px}
       <div class="col">
         <span class="bl orange" style="font-size:9px">最新提交 (vs parent)</span>
         <div class="nd md">
-          <div class="t" style="font-size:11px"><span class="b gh">GH</span></div>
+          <div class="t" style="font-size:11px"><span class="b git">GIT</span><span class="b gh">GH</span></div>
           <div class="v" style="font-size:9px">
-            <code>gh api .../commits/{sha}</code>
+            📂 本地: <code>git diff HEAD~1</code><br>
+            🌐 远程: <code>gh api .../commits/{sha}</code>
           </div>
           <div class="il o">输出</div>
           <div class="v"><code>changelist[]</code> 单次变更<br><code>commitMessage</code><br><code>rawDiff</code> (50KB)</div>
         </div>
       </div>
 
+      <!-- 本地未提交 -->
+      <div class="col">
+        <span class="bl cyan" style="font-size:9px">本地未提交 <span class="b sk">仅本地模式</span></span>
+        <div class="nd md" style="border-color:var(--green)">
+          <div class="t" style="font-size:11px"><span class="b git">GIT</span> 工作区 vs HEAD</div>
+          <div class="v" style="font-size:9px">
+            📂 <code>git diff HEAD</code><br>
+            含 unstaged + staged<br>
+            <em>需 localhost 或 --local</em>
+          </div>
+          <div class="il o">输出</div>
+          <div class="v"><code>changelist[]</code><br><code>rawDiff</code> (50KB)</div>
+        </div>
+      </div>
+
     </div>
-    <div class="mx b2"></div>
+    <div class="mx b3"></div>
 
     <!-- 共同: changeSummary -->
     <div class="nd w">
@@ -226,18 +250,18 @@ h1{text-align:center;font-size:22px;color:var(--bright);margin-bottom:4px}
 
 <!-- 源码读取 -->
 <div class="nd xw">
-  <div class="t"><span class="b gh">GH</span> 读取远程源码（无分支时回退本地）</div>
+  <div class="t"><span class="b git">GIT</span><span class="b gh">GH</span> 读取源码（远程默认，本地模式直读）</div>
   <div class="v" style="font-size:9px;margin-bottom:4px">
     筛选 <code>changelist</code> 中 .tsx/.ts/.vue/.jsx（排除 .d.ts/test/removed），取前 10 个
   </div>
   <div style="display:flex;gap:8px;width:100%;margin:4px 0">
     <div style="flex:1;padding:4px 6px;background:rgba(37,99,235,.04);border-radius:6px;border:1px solid rgba(37,99,235,.12)">
-      <div style="font-size:9px;font-weight:700;color:var(--blue)">🌐 有分支（默认）</div>
+      <div style="font-size:9px;font-weight:700;color:var(--blue)">🌐 远程（默认）</div>
       <div class="v" style="font-size:9px"><code>gh api .../contents/{file}?ref={branch}</code><br>base64 解码，保证与 diff 同版本</div>
     </div>
     <div style="flex:1;padding:4px 6px;background:rgba(22,163,74,.04);border-radius:6px;border:1px solid rgba(22,163,74,.12)">
-      <div style="font-size:9px;font-weight:700;color:var(--green)">📂 无分支时回退本地</div>
-      <div class="v" style="font-size:9px"><code>Read("$SOURCE_PROJECT_DIR/{file}")</code><br>仅当 selectedBranch = null 且 SOURCE_PROJECT_DIR 存在</div>
+      <div style="font-size:9px;font-weight:700;color:var(--green)">📂 本地模式（localhost / --local）</div>
+      <div class="v" style="font-size:9px"><code>Read("$SOURCE_PROJECT_DIR/{file}")</code><br>快速，含未 push 内容，与本地 diff 一致</div>
     </div>
   </div>
   <div class="il o">输出</div>

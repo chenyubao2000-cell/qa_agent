@@ -91,6 +91,7 @@ Execute `.claude/references/phase-0-workspace-init.md` Steps 2a–2f (skip-if-ex
 ```
 Parse $ARGUMENTS:
   --source <dir>          → sourceOverride (optional, overrides SOURCE_PROJECT_DIR)
+  --local                 → forceLocal = true (use local git for diff + source reading)
   
   Remaining tokens — classify each:
     1. Looks like a branch name (contains '/' or matches known branch): → explicitBranch
@@ -106,6 +107,7 @@ Result:
   explicitBranch: string | null
   issueInputs: string[]   # issue keys extracted from keys/URLs (may be empty)
   sourceOverride: string | null
+  forceLocal: boolean      # default false
 ```
 
 ---
@@ -185,10 +187,15 @@ If selectedBranch is null (branch-less mode):
   Skip to Step 4.
 
 ── Detect: can we use local git? ──
+── useLocalGit 仅当以下条件全部满足时启用，避免本地分析 vs 远程执行的版本割裂 ──
 
 useLocalGit = false
 
-If SOURCE_PROJECT_DIR is set and exists:
+# 前提条件：PREVIEW_URL 指向 localhost 或用户显式传了 --local
+isLocalTarget = PREVIEW_URL matches /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/
+canUseLocal = forceLocal || isLocalTarget
+
+If canUseLocal AND SOURCE_PROJECT_DIR is set and exists:
   Bash: git -C "$SOURCE_PROJECT_DIR" rev-parse --is-inside-work-tree 2>/dev/null
   If exit code == 0 (is a git repo):
     Bash: git -C "$SOURCE_PROJECT_DIR" branch --show-current
@@ -203,18 +210,20 @@ If SOURCE_PROJECT_DIR is set and exists:
     diffSource = "remote"
 Else:
   diffSource = "remote"
+  If forceLocal AND NOT isLocalTarget:
+    Log WARNING: "--local 已指定，但 PREVIEW_URL ({PREVIEW_URL}) 不是 localhost。本地代码分析与远程测试环境可能不一致。"
 
 ── Choose diff strategy ──
 
 AskUserQuestion:
-  "请选择变更对比方式：{if useLocalGit: '（检测到本地仓库，将使用本地 git diff — 包含未 push 的改动）'}"
+  "请选择变更对比方式：{if useLocalGit: '（本地模式：使用本地 git diff，含未 push 改动）'}"
   Options:
     "完整分支差异（vs main）" — 对比分支与 main 的全部差异，适合多 commit 分支
     "最新提交" — 只看最后一个 commit 的改动，适合单次提交后快速验证
-    "本地未提交改动" — 对比工作区与 HEAD 的差异（含 unstaged + staged），适合开发中自测 {only show if useLocalGit}
+    {if useLocalGit: "本地未提交改动" — 对比工作区与 HEAD 的差异（含 unstaged + staged），适合本地开发自测}
 
 → diffStrategy = "compare" | "latest-commit" | "local-uncommitted"
-  Note: "local-uncommitted" forces useLocalGit = true
+  Note: "local-uncommitted" 仅当 useLocalGit = true 时可选
 ```
 
 ### Step 3 — Get Changelist + Raw Diff + Generate changeSummary
@@ -336,10 +345,10 @@ For each changed area in the diff, produce:
 Format as changeSummary string.
 ```
 
-### Step 4 — Read Source Code (local-first, remote fallback)
+### Step 4 — Read Source Code (remote default, local when useLocalGit)
 
-> **Strategy**: If `useLocalGit = true`, read source files directly from local filesystem (faster, includes unpushed changes).
-> Otherwise, read from GitHub Contents API (remote fallback).
+> **Strategy**: Default reads from GitHub Contents API (remote), ensuring source and diff are from the same branch version.
+> When `useLocalGit = true` (localhost target or `--local` flag), reads from local filesystem (faster, includes unpushed changes).
 
 ```
 # Filter changelist to UI-related source files only
