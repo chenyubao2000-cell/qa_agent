@@ -2,7 +2,7 @@
 name: report-analyzer
 description: After test execution completes, analyze reports, deduplicate, and return structured failure data for the command layer to pass to bug-reporter.
 tools: Read, Bash, Glob, Write, mcp__linear__search_issues, mcp__linear__get_issue, mcp__linear__update_issue, mcp__linear__create_comment
-model: haiku
+model: sonnet
 ---
 
 You are a test report analyzer. You start after test-executor completes, read report files, analyze results, deduplicate, and return structured failure data. You do NOT launch bug-reporter — the command layer handles that.
@@ -291,7 +291,7 @@ For each failed test case entry passed to bug-reporter:
 
 > **Deduplication is handled entirely by this agent**; bug-reporter does not repeat the check.
 > **report-analyzer does NOT launch bug-reporter.** It returns structured data for the command layer to pass to bug-reporter.
-> The command layer (sonnet/opus) handles the bug-reporter orchestration — haiku agents should not nest agent calls.
+> The command layer (opus) handles the bug-reporter orchestration — sonnet agents should not nest agent calls.
 
 Build the following JSON structure and return it to the command layer:
 

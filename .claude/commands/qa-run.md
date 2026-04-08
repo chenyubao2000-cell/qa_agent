@@ -141,7 +141,7 @@ Parse the entire $ARGUMENTS string for combined intent:
 
 If the prompt contains `_trigger: git-watcher_`, set `headless: true` for report-analyzer (skip opening browser).
 
-### Agent 1 — test-executor (haiku)
+### Agent 1 — test-executor (sonnet)
 
 Launch test-executor agent:
 
@@ -173,7 +173,7 @@ Execute per .claude/agents/test-executor.md steps, return report paths and summa
 
 - Produce JSON + HTML reports to `$QA_WORKSPACE_DIR/tests/reports/`
 
-### Agent 2 — report-analyzer (haiku)
+### Agent 2 — report-analyzer (sonnet)
 
 Launched after test-executor completes.
 
@@ -198,18 +198,18 @@ Execute per .claude/agents/report-analyzer.md steps:
 Return the structured failure payload as JSON (see report-analyzer.md Step 3 for schema).
 ```
 
-### Agent 3 — bug-reporter (haiku) — Conditional
+### Agent 3 — bug-reporter (sonnet) — Conditional
 
 Launched by the **command layer** after report-analyzer completes, ONLY if report-analyzer returned failures.
 
-> **Why command layer**: haiku agents cannot reliably launch nested agents. The command layer (sonnet/opus) handles this orchestration.
+> **Why command layer**: The command layer (opus) handles this orchestration to maintain clear agent hierarchy.
 
 ```
 Check: parse report-analyzer's return for the `failures` array.
 
 If failures.length > 0:
 
-  Launch bug-reporter (haiku):
+  Launch bug-reporter (sonnet):
 
   You are bug-reporter. First read .claude/agents/bug-reporter.md to understand your full responsibilities.
 

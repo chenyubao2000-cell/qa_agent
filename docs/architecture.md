@@ -64,13 +64,13 @@ QA 平台是基于 Claude Code 的 QA 自动化测试插件。通过 Command →
 │ /qa-fix-tests                                                │
 │ ├ CDP explore (cdp-explorer SKILL)                           │
 │ ├ Fix locators/assertions (playwright-script-generator SKILL)│
-│ └ test-executor (haiku) → regression                         │
+│ └ test-executor (sonnet) → regression                        │
 └────────────┬────────────────────────────────────────────┬────┘
              │ (qa-from-issue + qa-run only)          │
              ▼                                             │
 ┌──────────────────────────────┐                           │
 │ Report Layer                  │                           │
-│ report-analyzer (haiku)       │                           │
+│ report-analyzer (sonnet)      │                           │
 │ └ bug-reporter → Linear API  │                           │
 └──────────────────────────────┘                           │
 ```
@@ -90,10 +90,10 @@ e2e-orchestrator 完成 → test-executor 启动 → report-analyzer 启动
 
 | Agent | 模型 | 职责 | 上下文 |
 |-------|------|------|--------|
-| e2e-orchestrator | sonnet | 去重 → 用例 → Excel → spec | 独立子 Agent |
-| test-executor | haiku | 执行 spec → 产出报告 | 独立子 Agent |
-| report-analyzer | haiku | 分析 → 路由 → Linear | 独立子 Agent |
-| bug-reporter | haiku | 格式化 → 创建/更新 Linear Issue | 独立子 Agent |
+| e2e-orchestrator | opus | 去重 → 用例 → Excel → spec | 独立子 Agent |
+| test-executor | sonnet | 执行 spec → 产出报告 | 独立子 Agent |
+| report-analyzer | sonnet | 分析 → 路由 → Linear | 独立子 Agent |
+| bug-reporter | sonnet | 格式化 → 创建/更新 Linear Issue | 独立子 Agent |
 
 ### 3.2 Skill 层
 
@@ -183,8 +183,8 @@ Phase 3: 委托 /qa-fix-tests --from-prd（CDP verify + fix + execute）
 ```
 Phase 0: 读取 .env（仅 QA_WORKSPACE_DIR，不做初始化）
 Phase 1: 检查是否有 spec 文件
-  → test-executor (haiku) → 执行全量/指定 spec
-  → report-analyzer (haiku) → 分析 + 报告
+  → test-executor (sonnet) → 执行全量/指定 spec
+  → report-analyzer (sonnet) → 分析 + 报告
 ```
 
 可选的 git-watcher 上下文：changelist、changeSummary、prSourceDir、headless。
@@ -216,7 +216,7 @@ Phase 2: 逐文件修复（每个失败文件一个独立子 Agent）
     TEST_ISSUE（locator 过期/选择器模糊）→ 修复测试
     POSSIBLE_BUG（功能真的坏了）→ 不修测试，记录为 Bug
     AMBIGUOUS（不确定）→ 深入调查后分类
-  → fix subagent uses test-executor (haiku) for verification runs
+  → fix subagent uses test-executor (sonnet) for verification runs
   → cross-file CDP sharing: fix agents share cdpFindings via fixContext
 Phase 2.5: Bug 汇总（仅通知用户，不上报 Linear）
   如有 classification="bug" 的失败 → 通知用户，建议运行 /qa-run 正式上报
@@ -234,7 +234,7 @@ Phase 3: 回归已修复文件 → 汇总报告（分三类：修复的测试问
   → 首次运行: 仅记录状态，不触发
   → 代码推送/新 PR:
     从 title+body 提取 Linear issue key
-    获取变更文件列表 + 生成 diff 摘要（claude -p --model haiku）
+    获取变更文件列表 + 生成 diff 摘要（claude -p --model sonnet）
     创建 worktree（PR 全量代码副本）
     有 issue → /qa-from-issue {issues}
     无 issue → /qa-run
@@ -346,10 +346,10 @@ $QA_WORKSPACE_DIR/
 
 | Agent | 模型 | 原因 |
 |-------|------|------|
-| e2e-orchestrator | claude-sonnet-4-6 | 代码生成需要强能力 |
-| test-executor | claude-haiku-4-5 | 确定性操作（执行 bash 命令） |
-| report-analyzer | claude-haiku-4-5 | 模板填充 + API 调用 |
-| bug-reporter | claude-haiku-4-5 | 格式化 + API 调用 |
+| e2e-orchestrator | claude-opus-4-6 | 代码生成需要最强能力 |
+| test-executor | claude-sonnet-4-6 | 执行 bash 命令 + 结果收集 |
+| report-analyzer | claude-sonnet-4-6 | 报告分析 + API 调用 |
+| bug-reporter | claude-sonnet-4-6 | 格式化 + API 调用 |
 
 ---
 

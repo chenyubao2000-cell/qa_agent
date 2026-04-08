@@ -315,7 +315,7 @@ This mode is handled directly by the command layer (no orchestrator needed):
 
 ## Phase 4: Execute Tests
 
-Launch **test-executor** (haiku):
+Launch **test-executor** (sonnet):
 
 ```
 prompt:

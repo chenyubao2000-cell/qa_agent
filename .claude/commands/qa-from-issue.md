@@ -421,7 +421,7 @@ detectedBugs = extract bug entries from qa-fix-tests output:
 
 // 2. Launch test-executor with "changed+smoke" mode
 //    Runs: (a) issue-related specs (all tests) + (b) all other specs (@smoke only)
-Launch test-executor (haiku):
+Launch test-executor (sonnet):
   mode: "changed+smoke"
   specFiles: allGeneratedSpecs
   projectDir: "$QA_WORKSPACE_DIR"
@@ -437,7 +437,7 @@ reportFile = "tests/reports/fix-regression.json"
 > qa-from-issue is the only generation entry point that reports to Linear.
 > After fix-tests completes, launch report-analyzer to analyze reports and submit.
 
-**Agent — report-analyzer** (haiku):
+**Agent — report-analyzer** (sonnet):
 - Launched after qa-fix-tests completes
 - Reads test reports produced by qa-fix-tests' test-executor
 - **Must pass sourceIssueKey**; report-analyzer uses this to distinguish writeback vs. new creation
@@ -470,7 +470,7 @@ Return structured failure payload as JSON (see report-analyzer.md Step 3). Do NO
 
 ### Step 4 — Launch bug-reporter (conditional)
 
-> **Why command layer**: haiku agents cannot reliably launch nested agents. The command layer (sonnet/opus) handles bug-reporter orchestration.
+> **Why command layer**: The command layer (opus) handles bug-reporter orchestration to maintain clear agent hierarchy.
 
 After report-analyzer returns, check if there are failures to report:
 
@@ -483,7 +483,7 @@ appendFailures = failures.filter(f => f.action === "append")
 
 If appendFailures.length > 0:
 
-  Launch bug-reporter (haiku):
+  Launch bug-reporter (sonnet):
 
   You are bug-reporter. First read .claude/agents/bug-reporter.md to understand your full responsibilities.
 

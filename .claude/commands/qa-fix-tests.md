@@ -110,7 +110,7 @@ If `$ARGUMENTS` specifies file paths, only process specified files.
 Launch **test-executor** agent to identify failures:
 
 ```
-Launch test-executor (haiku):
+Launch test-executor (sonnet):
   Input:
   - mode: "selective"
   - specFiles: <non-skip-file-list>
@@ -278,7 +278,7 @@ modifiedFiles = fixResults
   .filter(r => r.status === "fixed")
   .map(r => r.file)
 
-Launch test-executor (haiku):
+Launch test-executor (sonnet):
   Input:
   - mode: "changed"
   - specFiles: modifiedFiles  // only the files that were actually fixed

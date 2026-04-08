@@ -68,8 +68,8 @@ npx tsx scripts/git-watcher.ts
   └── git-watcher        轮询 PR → 路由到 /qa-from-issue 或 /qa-run
 
 生成层 → 修复层 → 报告层
-  e2e-orchestrator (sonnet) → /qa-fix-tests (CDP verify + fix + execute) → report-analyzer (haiku)
-       ↓ 读取                      ↓ CDP + test-executor (haiku)            ↓ 分析 + bug-reporter
+  e2e-orchestrator (opus) → /qa-fix-tests (CDP verify + fix + execute) → report-analyzer (sonnet)
+       ↓ 读取                      ↓ CDP + test-executor (sonnet)           ↓ 分析 + bug-reporter
   Skill 层                    cdp-explorer + playwright-script-gen       Linear API
   ├── cdp-explorer
   ├── test-case-generator
@@ -106,10 +106,10 @@ qa-platform/
 │   ├── qa-run          执行 + 报告
 │   └── qa-fix-tests        修复失败测试
 ├── agents/               4 个 Agent
-│   ├── e2e-orchestrator    生成引擎 (sonnet)
-│   ├── test-executor       测试执行器 (haiku)
-│   ├── report-analyzer     报告分析 (haiku)
-│   └── bug-reporter        Bug 上报 (haiku)
+│   ├── e2e-orchestrator    生成引擎 (opus)
+│   ├── test-executor       测试执行器 (sonnet)
+│   ├── report-analyzer     报告分析 (sonnet)
+│   └── bug-reporter        Bug 上报 (sonnet)
 ├── skills/               4 个 Skill
 │   ├── cdp-explorer              CDP 页面探查
 │   ├── test-case-generator       用例设计（6 种方法）

@@ -488,7 +488,7 @@ ${content}`;
   writeFileSync(promptFile, prompt);
   try {
     const raw = execSync(
-      `type "${promptFile}" | claude -p --model claude-haiku-4-5`,
+      `type "${promptFile}" | claude -p --model claude-sonnet-4-6`,
       { cwd: PROJECT_ROOT, encoding: "utf-8", timeout: 30_000 }
     ).trim();
     // 从输出中提取 JSON（模型可能包裹在 markdown code block 中）
