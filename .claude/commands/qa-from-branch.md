@@ -31,35 +31,39 @@ Examples:
 Phase 0: Load project context (.env → config)
      |
 Phase 1: Branch Selection + Diff Extraction
-     ├─ Step 1: GraphQL fetch 5 recent branches → AskUserQuestion (3 branches + "不使用分支" + Other) → user picks
-     ├─ Step 2: (skip if no branch) Detect local vs remote + ask diff strategy (3 options if local available)
-     ├─ Step 3: (skip if no branch) Get changelist + raw diff (local git or GitHub API) → changeSummary
-     └─ Step 4: Read source code (local filesystem if available, otherwise GitHub Contents API)
+     ├─ Step 1: GraphQL fetch 5 recent branches → AskUserQuestion → user picks
+     ├─ Step 2: (skip if no branch) Detect local vs remote + ask diff strategy
+     ├─ Step 3: (skip if no branch) Get changelist + raw diff → changeSummary
+     └─ Step 4: Read source code (local filesystem or GitHub Contents API)
      |
 Phase 1.5: (optional) Fetch Linear Issue Context
      ├─ Step 1: Parse issue keys/URLs from arguments
-     ├─ Step 2: mcp__linear__get_issue for each → extract pageUrl, feature, description
+     ├─ Step 2: mcp__linear__get_issue → extract pageUrl, feature, description
      └─ Step 3: Merge issue-derived modules + pageUrls into matching inputs
      |
 Phase 2: Match Changelist + Issues → Existing Specs
-     ├─ Step 1: Scan existing specs, build slug→spec mapping
-     ├─ Step 2: Extract module keywords from changelist + issues, match specs
-     └─ Step 3: Determine strategy + report to user
+     ├─ Step 1: Build slug→spec + POM selector index
+     ├─ Step 2: Pass 1 keyword candidates → Pass 2 import chain verification (POM/handoff selector vs rawDiff)
+     ├─ Step 2.5: Confirm maybe-affected specs with user
+     ├─ Step 3: Determine strategy (selective / selective+generate / generate / skip)
+     └─ Step 4: (skip if no branch) Change Impact Analysis — detect assertion_outdated in matched specs
           ├─ All matched → "selective" (run existing only)
           ├─ Partial match → "selective+generate"
           └─ No match → "generate"
      |
 Phase 3: Conditional Generation (only for unmatchedModules)
-     ├─ Step 1: CDP targeted exploration (infer page URLs from source + issues)
-     ├─ Step 2: e2e-orchestrator generates specs (with changelist + changeSummary + issueContexts)
-     └─ Step 3: qa-fix-tests verifies generated specs
+     ├─ Step 1: Infer page URLs from source + issues
+     ├─ Step 2: CDP targeted exploration
+     ├─ Step 3: e2e-orchestrator generates specs (with dedup + changelist + issueContexts)
+     ├─ Step 3.5: Verification Gate (V1-V5) + POM Merge + Excel Export
+     └─ Step 4: /qa-fix-tests --skip-baseline verifies generated specs
      |
 Phase 4: Execute Tests
      ├─ matchedSpecs + newSpecs → test-executor (selective)
      └─ Output report JSON
      |
 Phase 5: Report
-     ├─ report-analyzer analyzes (with changeSummary for change attribution)
+     ├─ report-analyzer analyzes (3-category: 🔴 regression / 🟡 assertion_outdated / ⚪ pre_existing)
      ├─ Display results to user
      └─ If issues provided → ask user before commenting on Linear issues
 ```
@@ -455,7 +459,7 @@ Report to user (appended to Phase 1 report):
 
 ## Phase 2: Match Changelist + Issues → Existing Specs
 
-### Step 1 — Build slug→spec Mapping
+### Step 1 — Build slug→spec Mapping + Import Chain Index
 
 ```
 Scan existing specs:
@@ -464,19 +468,34 @@ Scan existing specs:
 For each spec file:
   - Extract slug from filename: "task-cdp.test.ts" → "task"
   - Extract full slug: "task-sidebar-cdp.test.ts" → "task-sidebar"
-  - Store: specMap entries
+  - Read first 20 lines → extract import of POM file path
+  - Store: specMap entries { slug, fullSlug, specPath, pomPath }
 
 Scan existing POMs:
   Glob("$QA_WORKSPACE_DIR/tests/e2e/pages/*.page.ts")
 
 For each POM:
   - Extract slug: "task.page.ts" → "task"
-  - Store: pomMap entries
+  - Read file → extract all selector strings (data-testid, aria-label, role patterns, CSS selectors)
+  - Store: pomMap entries { slug, pomPath, selectors[] }
+
+Build handoff path index (lazy — do NOT read file contents yet):
+  Glob("$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-*.json")
+
+For each handoff:
+  - Extract slug: "playwright-handoff-task-sidebar.json" → "task-sidebar"
+  - Store: handoffIndex entries { slug, handoffPath }
+  - Do NOT read JSON contents here (deferred to Pass 2 for matched candidates only)
 ```
 
-### Step 2 — Extract Module Keywords from Changelist + Issues, then Match
+### Step 2 — Extract Module Keywords, Match, then Verify via Import Chain
+
+> **Two-pass matching**: Pass 1 (fast) uses filename keywords to produce candidates.
+> Pass 2 (precise) reads POM selectors + changelist diff to verify actual relevance.
 
 ```
+── Pass 1: Keyword-based candidate selection (same as before) ──
+
 For each changed file in changelist:
   Extract module keywords using these heuristics:
   
@@ -498,18 +517,56 @@ For each changed file in changelist:
      - Pure type definition files (.d.ts)
 
   Match each keyword against specMap (contains/starts-with):
-    "task" → matches: task-cdp.test.ts, task-sidebar-cdp.test.ts, task-file-preview-cdp.test.ts, ...
-    "sign-in" → matches: sign-in-cdp.test.ts
-    "canvas" → matches: canvas-download-prd.test.ts, canvas-preview-prd.test.ts
+    "task" → candidates: task-cdp.test.ts, task-sidebar-cdp.test.ts, task-file-preview-cdp.test.ts, ...
+    "sign-in" → candidates: sign-in-cdp.test.ts
 
 Merge issueModuleKeywords (from Phase 1.5) into the keyword pool:
   allModuleKeywords = deduplicate(changelistKeywords + issueModuleKeywords)
 
 Match each keyword against specMap (same logic as above).
 
+candidateSpecs = deduplicated list of candidate spec file paths
+
+── Pass 2: Import chain verification (precise) ──
+
+For each candidate spec in candidateSpecs:
+  1. Look up POM from specMap → pomPath
+  2. Get POM selectors from pomMap[pomPath].selectors[]
+     (data-testid values, aria-label values, role names, CSS selectors)
+  3. Lazy-load handoff for this candidate (only now, not upfront):
+     Look up handoffIndex by matching slug → handoffPath
+     If found → Read JSON → extract uiElements[].selector → handoffSelectors[]
+     If not found → handoffSelectors = []
+  4. Merge: allSelectors = deduplicate(pomSelectors + handoffSelectors)
+  5. For each selector in allSelectors:
+     Search in rawDiff (from Phase 1 Step 3) for the selector string
+     Example: selector = "sidebar-collapse" → grep rawDiff for "sidebar-collapse"
+  6. Classify:
+     - ANY selector found in rawDiff → "affected" (change directly touches tested elements)
+     - NO selector found but keyword matched → "maybe-affected" (same module, unclear impact)
+
 Produce:
-  matchedSpecs = deduplicated list of matched spec file paths
-  unmatchedModules = list of module keywords with no matching spec
+  affectedSpecs = specs classified as "affected"    (will definitely run)
+  maybeAffectedSpecs = specs classified as "maybe-affected" (ask user)
+  unmatchedModules = module keywords with no matching spec at all
+```
+
+### Step 2.5 — Confirm Maybe-Affected Specs
+
+```
+If maybeAffectedSpecs is non-empty:
+  AskUserQuestion:
+    "以下 spec 的模块名与变更文件匹配，但变更内容未直接涉及被测元素。是否执行？"
+    List: {for each: - spec filename (keyword: xxx)}
+    Options:
+      "全部执行" — 安全起见全跑
+      "跳过" — 只执行确认关联的 spec
+
+  If user picks "全部执行":
+    affectedSpecs = affectedSpecs + maybeAffectedSpecs
+  // else: keep affectedSpecs as is
+
+matchedSpecs = affectedSpecs
 ```
 
 ### Step 3 — Determine Strategy + Report
@@ -533,8 +590,9 @@ Report to user:
 📊 分支分析结果: {selectedBranch}
 
 变更文件: {changelist.length} 个
-匹配已有 spec: {matchedSpecs.length} 个
-  {for each: - spec filename}
+确认关联 spec: {affectedSpecs.length} 个
+  {for each: - spec filename (matched selectors: xxx, yyy)}
+模糊关联 spec: {maybeAffectedSpecs.length} 个 {user decision}
 未覆盖模块: {unmatchedModules.length} 个
   {for each: - module keyword}
 
@@ -549,6 +607,53 @@ If strategy involves "generate":
   → Ask user: "有 {unmatchedModules.length} 个模块没有已有用例，是否生成新的测试？"
     - Y → proceed to Phase 3
     - N → strategy = "selective" (run only matched, skip generation)
+
+### Step 4 — Change Impact Analysis on Matched Specs (pre-execution assertion check)
+
+> **Problem**: matched spec 是"代码变了才匹配上的"。代码变了，已有断言可能已过时。
+> 如果不检查就直接执行，测试失败后 report-analyzer 只能标 regression_likely，
+> 但无法区分"真回归"还是"断言该更新了"。
+>
+> **Goal**: 在执行前检测 rawDiff 是否直接修改了 handoff 里的断言目标（文案、状态、属性值），
+> 提前标记哪些 spec 的断言可能需要更新，执行后可据此辅助判断。
+
+```
+If selectedBranch is null (branch-less mode):
+  changeImpactHints = { assertionReviewSpecs: [] }
+  Skip to Phase 3.
+  // Branch-less mode has no rawDiff → no assertion impact to detect
+
+For each spec in matchedSpecs:
+  1. Read handoff JSON for this spec (from handoffMap built in Step 1)
+  2. Extract all assertion targets:
+     - Text assertions: exact strings in assertions[].expected (e.g., "Submit", "保存成功")
+     - State assertions: expected states (e.g., "disabled", "visible", "checked")
+     - Value assertions: expected values (e.g., placeholder text, default selections)
+  3. Search rawDiff for each assertion target string:
+     - Found in diff's REMOVED lines (- prefix) → "assertion_outdated"
+       (the old value was removed, assertion likely needs updating)
+     - Found in diff's ADDED lines (+ prefix) and NOT in removed → no issue
+       (value was added/kept, assertion still valid)
+  4. Classify spec:
+     - Any assertion_outdated found → mark spec as "needs_assertion_review"
+     - No assertion_outdated → mark as "assertions_likely_valid"
+
+assertionReviewSpecs = matchedSpecs.filter(s => s.classification === "needs_assertion_review")
+
+If assertionReviewSpecs is non-empty:
+  Report to user (informational, does NOT block execution):
+  ```
+  ⚠️ 以下已有 spec 的断言可能受变更影响：
+    {for each: - spec filename: "断言 '{oldValue}' 在 diff 中被移除"}
+  这些 spec 仍会执行。若测试失败，失败原因可能是断言需更新（非真回归）。
+  测试完成后可运行 /qa-fix-tests 自动修复。
+  ```
+
+// Store for Phase 5 report-analyzer to use
+changeImpactHints = {
+  assertionReviewSpecs: [{ specFile, outdatedAssertions: [{ tcId, field, oldValue }] }]
+}
+```
 
 ---
 
@@ -608,51 +713,107 @@ Write a minimal baseline with locators found.
 Return summary with baselineFile path and locators discovered.
 ```
 
-### Step 3 — e2e-orchestrator Generates Specs
+### Step 3 — e2e-orchestrator Generates Specs (with full cross-source dedup)
+
+> **Important**: The orchestrator's Step 2 (dedup-cross-source.md) runs automatically inside the orchestrator.
+> This ensures new branch-driven specs go through the full POM method overlap check against ALL existing specs
+> (from qa-explore, qa-run-prd, qa-from-issue), not just the filename-keyword match from Phase 2.
+> If an existing CDP/PRD spec already covers 70%+ of the same POM methods, the orchestrator will skip or append
+> instead of creating a duplicate spec.
 
 ```
-Launch e2e-orchestrator (sonnet):
+// Launch orchestrators (one per unmatched module, parallel if multiple)
+orchestratorAgents = []
 
-prompt:
-You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md.
+for module in unmatchedModules:
+  orchestratorAgents.push(
+    Launch e2e-orchestrator (sonnet) in background:
 
-Input:
-- source: "cdp"
-- baselineFile: {from CDP exploration}
-- projectContext:
-    targetProjectDir: $QA_WORKSPACE_DIR
-    sourceProjectDir: {resolved}
-    baseURL: $PREVIEW_URL
-    authSetup: {true/false}
-    testCredentials: {if authSetup}
-    existingTests: $QA_WORKSPACE_DIR/tests/e2e/testcases/generated/
-    techStack: {from CLAUDE.md}
-    appLanguages: {APP_LANGUAGES or null}
-    i18nMessagesDir: {if set}
-    changelist: {changelist from Phase 1}
-    changeSummary: {changeSummary from Phase 1}
-    issueContexts: {issueContexts from Phase 1.5, or [] if no issues}
+    prompt:
+    You are e2e-orchestrator. First read .claude/agents/e2e-orchestrator.md.
 
-BRANCH-DRIVEN MODE INSTRUCTIONS:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Focus test case generation on areas affected by the changelist
-2. Use changeSummary to understand WHAT changed and generate targeted assertions
-3. If issueContexts is non-empty, use issue descriptions as additional context:
-   - Issue descriptions clarify WHAT the feature/fix is about (business intent)
-   - Issue pageUrls confirm which pages to target
-   - Generate test cases that cover scenarios described in the issues
-4. Prioritize: regression scenarios for modified logic > issue-described scenarios > new feature coverage > edge cases
-5. Target: 5-10 test cases per module (focused, not exhaustive)
+    Input:
+    - source: "branch"
+    - baselineFile: {from CDP exploration for this module}
+    - projectContext:
+        targetProjectDir: $QA_WORKSPACE_DIR
+        sourceProjectDir: {resolved source directory per priority: --source > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
+        baseURL: $PREVIEW_URL
+        authSetup: {true/false}
+        testCredentials: {if authSetup}
+        existingTests: $QA_WORKSPACE_DIR/tests/e2e/testcases/generated/
+        techStack: {from CLAUDE.md}
+        appLanguages: {APP_LANGUAGES or null}
+        i18nMessagesDir: {if set}
+        changelist: {changelist from Phase 1}
+        changeSummary: {changeSummary from Phase 1}
+        issueContexts: {issueContexts from Phase 1.5, or [] if no issues}
 
-Return artifact paths.
+    BRANCH-DRIVEN MODE INSTRUCTIONS:
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    1. Focus test case generation on areas affected by the changelist
+    2. Use changeSummary to understand WHAT changed and generate targeted assertions
+    3. If issueContexts is non-empty, use issue descriptions as additional context:
+       - Issue descriptions clarify WHAT the feature/fix is about (business intent)
+       - Issue pageUrls confirm which pages to target
+       - Generate test cases that cover scenarios described in the issues
+    4. Prioritize: regression scenarios for modified logic > issue-described scenarios > new feature coverage > edge cases
+    5. Target: 5-10 test cases per module (focused, not exhaustive)
+    6. DEDUP IS MANDATORY: You MUST execute Step 2 (dedup-cross-source.md) before generating.
+       Existing specs from other sources (CDP/PRD/issue) that cover the same POM methods
+       must be detected. If overlap ≥ 70% → append missing cases to existing spec instead of
+       creating a new branch-source spec. This prevents duplicate coverage across sources.
+
+    Return artifact paths.
+  )
+
+// Wait for ALL orchestrators to complete
+results = await all(orchestratorAgents)
 ```
 
-### Step 4 — Verify Generated Specs
+### Step 3.5 — Verification Gate + POM Merge + Excel Export (mandatory post-generation)
+
+> **Consistent with qa-explore and qa-run-prd**: all three commands run the same post-generation checks.
 
 ```
-For each newly generated spec, run qa-fix-tests verification:
-  Launch qa-fix-tests subagent to verify locators and fix if needed.
-  
+// ══ MANDATORY VERIFICATION GATE ══
+// Execute `.claude/references/verification-gate-v1-v5.md` (Steps V1-V5) for EACH orchestrator result.
+// Pipeline STOPS if any check fails — do NOT proceed to Step 4.
+//
+// On failure:
+//   - Delete INCOMPLETE artifacts from the failed orchestrator (spec, POM, handoff for that module)
+//   - Keep artifacts from other orchestrators that passed verification
+//   - Report detailed error: module, V step, reason, deleted files, suggested action
+
+// ── POM Fragment Merge (when multiple orchestrators generated for the same page) ──
+Execute `.claude/references/pom-merge.md`
+
+// Collect all verified artifacts
+allNewSpecs = results.flatMap(r => r.specs + r.modified_specs)
+allPageObjects = results.flatMap(r => r.page_objects)
+
+// ── Excel Export (optional but consistent with other commands) ──
+// Branch QA is primarily quick feedback, but Excel ensures test case documentation completeness.
+If allNewSpecs is non-empty:
+  Execute `.claude/references/excel-export-gate.md` (with `{name}` = `branch-{selectedBranch}`)
+```
+
+### Step 4 — Verify Generated Specs via /qa-fix-tests
+
+> **Consistent with qa-explore and qa-run-prd**: delegate to /qa-fix-tests with --skip-baseline.
+
+```
+If allNewSpecs is empty:
+  // All modules were deduped (existing specs cover them) → nothing to fix
+  newSpecs = []
+  Skip to Phase 4.
+
+// Delegate to qa-fix-tests: CDP verify + fix locators/assertions + single-file verify
+Execute /qa-fix-tests with arguments: --skip-baseline --source {resolved sourceProjectDir} {allNewSpecs joined by space}
+// --skip-baseline: skip baseline execution (specs are brand new, go straight to fix)
+// --source: pass the SAME source directory used by orchestrator (critical for remote branch mode)
+// spec paths: explicit list of newly generated specs only
+
 newSpecs = list of verified/fixed spec file paths
 ```
 
@@ -699,9 +860,18 @@ Input:
 - sourceProjectDir: {resolved}
 - appLanguages: {APP_LANGUAGES or null}
 - headless: false
+- changeImpactHints: {changeImpactHints from Phase 2 Step 4}
 
-Analyze test results. For each failure, attribute whether it's likely caused by the branch changes
-(regression_likely) or pre-existing (pre_existing) using the changeSummary.
+Analyze test results. For each failure, attribute cause using THREE categories:
+1. **regression_likely** — failure caused by branch changes breaking existing behavior (真回归)
+2. **assertion_outdated** — failure matches changeImpactHints.assertionReviewSpecs
+   (branch intentionally changed the value, test assertion needs updating, not a bug)
+3. **pre_existing** — failure unrelated to branch changes
+
+Use changeImpactHints to distinguish category 1 vs 2:
+- If the failed test's spec + tcId appears in changeImpactHints.assertionReviewSpecs
+  AND the error message contains the outdatedAssertion's oldValue
+  → classify as "assertion_outdated" (🟡), not "regression_likely" (🔴)
 
 Return structured failure payload.
 ```
@@ -738,7 +908,11 @@ If any test failed:
   ### 失败用例
   | # | 用例 | 错误摘要 | 变更关联 |
   |---|------|----------|----------|
-  | 1 | {test name} | {error} | 🔴 regression_likely / ⚪ pre_existing |"
+  | 1 | {test name} | {error} | 🔴 regression_likely / 🟡 assertion_outdated / ⚪ pre_existing |
+
+  {if any assertion_outdated:}
+  > 🟡 标记为 assertion_outdated 的用例：分支变更了被测内容（如文案、状态），测试断言需更新。
+  > 这不是 bug，运行 `/qa-fix-tests {specFiles}` 可自动修复断言并同步 handoff + .md。"
 ```
 
 ### Step 3 — Optional Linear Commenting (only when issues were provided)
@@ -799,13 +973,15 @@ If issueContexts is non-empty:
 | # | 用例 | 错误摘要 | 变更关联 |
 |---|------|----------|----------|
 {for each failure:}
-| {n} | {test name} | {error message} | {🔴 regression_likely / ⚪ pre_existing} |
+| {n} | {test name} | {error message} | {🔴 regression_likely / 🟡 assertion_outdated / ⚪ pre_existing} |
 
 ### 变更摘要
 {changeSummary}
 
 ### 下一步
-请检查标记为 🔴 的用例，这些失败可能由本分支变更引起。
+- 🔴 regression_likely — 请检查，这些失败可能由本分支变更引起
+- 🟡 assertion_outdated — 分支有意修改了被测内容，测试断言需更新（非 bug），运行 `/qa-fix-tests` 自动修复
+- ⚪ pre_existing — 与本分支无关的已有问题
 ```
 
 ```
@@ -823,6 +999,9 @@ Do NOT update issue status (this is informational, not a bug report).
 |------|-------------|
 | `tests/reports/playwright-results.json` | Test execution report |
 | `playwright-report/index.html` | HTML report (auto-opened) |
-| `test-cases/generated/*.md` | Generated test cases (only when Phase 3 triggered) |
-| `tests/e2e/testcases/generated/*-branch.test.ts` | Generated specs (only when Phase 3 triggered) |
+| `test-cases/generated/{slug}-branch.md` | Generated test cases (only when Phase 3 triggered) |
+| `test-cases/generated/playwright-handoff-{slug}.json` | Handoff JSON (only when Phase 3 triggered) |
+| `test-cases/excel/{slug}-branch.xlsx` | Excel test cases (only when Phase 3 triggered) |
+| `tests/e2e/pages/{slug}.page.ts` | Page Object (only when Phase 3 triggered) |
+| `tests/e2e/testcases/generated/{slug}-branch.test.ts` | Generated specs — source: "branch" (only when Phase 3 triggered) |
 | Linear issue comment(s) | Optional, only when issues provided and user confirms |

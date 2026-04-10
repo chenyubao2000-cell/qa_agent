@@ -87,7 +87,7 @@ Layer 3 — Assertion semantic match (fallback, for edge cases):
 
 ## 2.4 Deduplication Rules
 
-- **TC ID must be globally unique**: Format `TC-{SOURCE}-{FEATURE}-{3-digit}`, e.g., `TC-CDP-NAV-001`, `TC-PRD-LOGIN-003`, `TC-ISS-VF-002`. The source prefix prevents collision across commands.
+- **TC ID must be globally unique**: Format `TC-{SOURCE}-{FEATURE}-{3-digit}`, e.g., `TC-CDP-NAV-001`, `TC-PRD-LOGIN-003`, `TC-ISS-VF-002`, `TC-BR-TASK-001`. The source prefix prevents collision across commands. Valid source prefixes: `CDP`, `PRD`, `ISS`, `BR` (branch), `VF` (verify-fix).
 - **Same POM method + same assertion** must not appear in two test cases (regardless of source)
 - **Cross-source is the norm**: PRD spec testing "Canvas maximize" and CDP spec testing "预览面板全屏" are duplicates if both call `canvas.clickMaximize()` + `expect(restoreBtn).toBeVisible()`
 - **URL is NOT a matching key** — different sources use different URLs (PRD: none, CDP: specific task URL). Match by POM interaction, not URL.
@@ -120,11 +120,23 @@ prdChangeMode: "updated" → Incremental update (this section)
 
 4. For each "Update" action:
    - Read the existing spec's test block
+   - Read the existing handoff entry for this TC → preserve `uiElements[].selector` values (these are fix-tests-verified real locators)
    - Regenerate the test case from the updated PRD requirement (using test-case-generator)
+   - **Merge handoff entry** (NOT full replace):
+     - assertions: use NEW values from regenerated TC (PRD requirement changed → expected behavior changed)
+     - steps: use NEW values (PRD flow may have changed)
+     - uiElements[].selector: **PRESERVE OLD values** when the element is the same (by matching locatorHint / role / testId)
+       - Same element (locatorHint matches) + old selector exists → keep old selector (fix-tests verified)
+       - Same element + old selector is empty/null → use new locatorHint (not yet verified)
+       - New element (no match in old entry) → use new locatorHint (will be verified by fix-tests)
+       - Removed element (in old but not in new) → drop from entry
    - Update the spec: replace the old test block with the new one (via Edit tool)
-   - **Update handoff**: replace the corresponding entry in `playwright-handoff-{slug}.json` with the new assertions/steps/uiElements
-   - Update the POM if locators/methods changed
+   - Update the POM: only add/remove methods for added/removed elements; do NOT regenerate locators for existing elements
    - Record in `modified_specs`
+
+   > **Why preserve selectors**: fix-tests has already verified these locators against the real page via CDP.
+   > Regenerating them from PRD text would revert to guessed locators, requiring another fix-tests cycle.
+   > Only assertions (expected behavior) should change when the PRD requirement changes.
 
 5. For each "Add" action:
    - Generate new test case (using test-case-generator)
@@ -141,7 +153,12 @@ prdChangeMode: "updated" → Incremental update (this section)
 
 7. Update the PRD hash in the .md file header: `<!-- PRD-hash: {new hash} -->`
 
-> **Handoff sync rule**: Every action that modifies .md or spec MUST also update handoff.json. The three files (.md, handoff, spec) must always be in sync. Handoff is the contract; spec is the implementation.
+> **Source of truth roles**:
+> - **.md** = design-time source of truth — describes WHAT to test and expected behavior. Updated when PRD changes or when fix-tests changes assertion expectations (not locators).
+> - **handoff.json** = runtime source of truth — describes HOW to test with exact selectors + assertions. Updated by: generation (from .md), fix-tests (locator + assertion fixes), PRD incremental update (assertions only, selectors preserved).
+> - **spec.test.ts** = executable implementation of handoff. Always regenerated from handoff, never edited independently.
+>
+> **Sync rule**: Every action that modifies assertions MUST update all three files (.md, handoff, spec). Locator-only changes update handoff + spec only (locators are not part of .md's scope).
 >
 > **Handoff sync responsibility**: The **command layer** is the sole owner of handoff file writes when assertions change during fix cycles. Subagents (fix agents, CDP agents) MUST NOT write to handoff directly — they return `{ assertionsChanged: true, changedAssertions: [...] }` and the command layer performs the write. This prevents race conditions and ensures atomic updates.
 

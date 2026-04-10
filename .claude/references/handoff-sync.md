@@ -32,8 +32,34 @@ for each result where result.assertionsChanged === true:
   11. Log: "Updated handoff {handoffPath}: {N} assertions synced"
 ```
 
+## Step B: .md Lightweight Writeback (after handoff sync)
+
+> **Scope**: Only assertion text changes are synced back to .md. Locator-only fixes do NOT trigger .md writeback.
+> **Rationale**: .md is the design-time source of truth — it describes expected behavior, not implementation details (selectors).
+> When expected behavior changes (e.g., button text "Submit" → "Save"), .md must reflect this.
+> When only a locator changes (CSS selector fix), .md is not affected.
+
+```
+for each result where result.assertionsChanged === true:
+  1. Filter: assertionChanges = result.changedAssertions.filter(c => c.field === "assertion")
+     If assertionChanges is empty → skip (locator-only fix)
+  2. Infer .md path from handoff path:
+     "playwright-handoff-{slug}.json" → Glob("test-cases/generated/{slug}*.md")
+  3. If .md file not found → WARNING, skip (handoff remains authoritative)
+  4. Read .md file
+  5. For each assertionChange:
+     - Find row in "## Merged Test Case List" table matching tcId
+     - Update "Expected Result" column: oldValue → newValue
+     - Do NOT touch other columns (steps, preconditions, priority, method)
+  6. Write updated .md
+  7. Log: "Updated .md {path}: {N} assertion descriptions synced"
+```
+
 ## Boundary Rules
 
 - **Fix subagent** returns `{ assertionsChanged: true/false, changedAssertions: [{ tcId, field, oldValue, newValue }] }`
-- **Command layer** reads this and performs the file write
+  - `field` values: `"assertion"` (expected behavior change) | `"selector"` (locator fix)
+- **Command layer** reads this and performs:
+  - Handoff write (Step A) — always when assertionsChanged
+  - .md writeback (Step B) — only when field === "assertion"
 - Atomic write pattern (backup → temp → rename) prevents partial corruption

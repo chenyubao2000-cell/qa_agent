@@ -72,7 +72,8 @@ PR 监控（独立流程）：
 - 文件名 `{area-id}` 规则：
   - `/qa-explore`（area 粒度）：含 area-id，如 `login-form-join-cdp.test.ts`
   - `/qa-from-issue`、`/qa-run-prd`（feature 粒度）：不含 area-id，如 `login-issue.test.ts`
-  - `{source}` 取值：`cdp` | `prd` | `issue` | `verify-fix`
+  - `/qa-from-branch`（feature 粒度）：不含 area-id，如 `task-sidebar-branch.test.ts`
+  - `{source}` 取值：`cdp` | `prd` | `issue` | `branch` | `verify-fix`
 - 所有测试流水线输出统一 JSON 格式（见设计文档第九章）
 - Subagent 模型选择：协调类用 opus，分析类用 sonnet，纯执行类用 haiku
 - 去重通过扫描已有 spec 完成，已覆盖的模块跳过重新生成

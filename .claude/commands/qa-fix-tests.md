@@ -235,10 +235,11 @@ For each failed file:
 
 > **qa-fix-tests does NOT report to Linear.** Its job is fixing scripts. If bugs are found, inform the user and let them decide whether to run `/qa-run` for formal reporting.
 
-**Handoff sync** (before bug summary): Execute `.claude/references/handoff-sync.md` procedure.
+**Handoff sync + .md sync** (before bug summary): Execute `.claude/references/handoff-sync.md` procedure.
 If any fix subagent returned `assertionsChanged: true`:
 ```
 for each result in fixResults where result.assertionsChanged === true:
+  ── Step A: Handoff sync (existing logic) ──
   1. Infer handoff path from spec header: Read spec file → extract `// handoff: ...` path
   2. Read handoff JSON
   3. For each entry in result.changedAssertions:
@@ -246,7 +247,30 @@ for each result in fixResults where result.assertionsChanged === true:
      - Update the assertion field: oldValue → newValue
   4. Write updated handoff JSON back to disk
   5. Log: "Updated handoff {path}: {N} assertions synced"
+
+  ── Step B: .md lightweight writeback (NEW) ──
+  Only sync assertion text changes back to .md. Locator-only fixes do NOT trigger .md writeback.
+
+  6. Filter: assertionChanges = result.changedAssertions.filter(c => c.field === "assertion")
+     If assertionChanges is empty → skip .md writeback (locator-only fix)
+  7. Infer .md path from handoff path:
+     "playwright-handoff-{slug}.json" → "{slug}-*.md" in test-cases/generated/
+     Glob("$QA_WORKSPACE_DIR/test-cases/generated/{slug}*.md") → pick the matching .md file
+  8. Read the .md file
+  9. For each assertionChange in assertionChanges:
+     - Find the row in "## Merged Test Case List" table matching tcId
+     - Update the "Expected Result" column: oldValue → newValue
+     - Do NOT modify other columns (steps, preconditions, priority)
+  10. Write updated .md back to disk
+  11. Log: "Updated .md {path}: {N} assertion descriptions synced"
+
+  If .md file not found → WARNING: "No .md file found for {slug}, skipping .md sync (handoff is still authoritative)"
 ```
+
+> **Design principle**: .md = design-time source of truth (describes WHAT to test and expected behavior).
+> Handoff = runtime source of truth (describes HOW to test with exact selectors).
+> When fix-tests changes an assertion (e.g., button text "Submit" → "Save"), both handoff AND .md must reflect this,
+> because the expected behavior itself changed. Locator changes (CSS selector updates) only affect handoff, not .md.
 
 After all fix subagents complete, check if any classified failures as application bugs:
 

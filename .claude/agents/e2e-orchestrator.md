@@ -37,11 +37,21 @@ Before calling each skill at every step, **you must first read the corresponding
 - If a corresponding spec already exists → append test cases to the existing file
 - If not → follow Mode B flow to create new ones
 
+### Mode D: Branch-driven (triggered by /qa-from-branch)
+- Input: CDP baseline (targeted exploration) + `changelist` + `changeSummary` + optional `issueContexts`
+- Follows Mode B flow (CDP baseline as input) with additional context from git diff
+- `changelist`: affected files from git diff — focus test case generation on changed areas
+- `changeSummary`: description of each change — generate targeted assertions for modified logic
+- `issueContexts`: optional Linear issue context — enrich with business intent
+- File naming: `{slug}-branch.test.ts` (distinguishes from CDP/PRD/issue sources)
+- Dedup via Step 2 is **mandatory** — branch specs must check overlap with existing CDP/PRD/issue specs
+
 The caller specifies the mode via the `source` field in the prompt:
 ```
 source: "prd"     → Mode A
 source: "cdp"     → Mode B
 source: "issue"   → Mode C
+source: "branch"  → Mode D
 ```
 
 ### Area Scope (Mode B only, from /qa-explore incremental loop)
@@ -368,7 +378,7 @@ The caller communicates which mode to use via `existingPageObjects` in the promp
 Every generated spec file MUST include a header comment with traceability metadata:
 
 ```typescript
-// source: cdp | prd | issue
+// source: cdp | prd | issue | branch
 // handoff: test-cases/generated/playwright-handoff-{slug}.json
 // baseline: test-cases/generated/page-baseline-{slug}.json  (CDP only)
 // generated: 2026-03-21T00:00:00Z
