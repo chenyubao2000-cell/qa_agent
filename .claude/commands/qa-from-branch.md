@@ -819,7 +819,14 @@ newSpecs = list of verified/fixed spec file paths
 
 ---
 
-## Phase 4: Execute Tests
+## Phase 4: Execute Tests via CDP
+
+> **Why CDP instead of Playwright scripts**: CDP execution is AI-driven — the agent sees the real
+> Accessibility Tree and DOM, adaptively finds elements when locators change, and avoids
+> Playwright script brittleness (stale selectors, timing issues). Handoff JSON is the execution
+> source; generated Playwright specs are retained as documentation only.
+
+### Step 1 — Resolve Handoff JSON for All Specs
 
 ```
 allSpecs = matchedSpecs + newSpecs (deduplicated)
@@ -827,19 +834,50 @@ allSpecs = matchedSpecs + newSpecs (deduplicated)
 If allSpecs is empty:
   → STOP: "没有可执行的测试用例"
 
-Launch test-executor (sonnet):
+// Map each spec to its handoff JSON
+handoffFiles = []
+
+For each spec in allSpecs:
+  // Extract slug from spec filename: "task-sidebar-cdp.test.ts" → "task-sidebar"
+  slug = spec.filename.replace(/-(cdp|prd|issue|branch|verify-fix)\.test\.ts$/, '')
+
+  // Look up handoff by slug
+  handoffPath = "$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-{slug}.json"
+
+  If file exists at handoffPath:
+    handoffFiles.push(handoffPath)
+  Else:
+    // Try broader match: glob for any handoff containing this slug
+    Glob("$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-*{slug}*.json")
+    If found → handoffFiles.push(first match)
+    Else → Log WARNING: "No handoff JSON found for {spec.filename}, skipping"
+
+handoffFiles = deduplicate(handoffFiles)
+
+If handoffFiles is empty:
+  → STOP: "没有找到可执行的 handoff JSON 文件"
+```
+
+### Step 2 — Launch CDP Test Executor
+
+```
+Launch cdp-test-executor (sonnet):
 
 prompt:
-You are test-executor. First read .claude/agents/test-executor.md.
+You are cdp-test-executor. First read .claude/agents/cdp-test-executor.md.
 
 Input:
-- mode: "selective"
-- specFiles: {allSpecs}
+- handoffFiles: {handoffFiles}
 - projectDir: "$QA_WORKSPACE_DIR"
+- baseURL: "$PREVIEW_URL"
+- authSetup: {true/false based on E2E_TEST_EMAIL presence}
+- testCredentials: { email: "$E2E_TEST_EMAIL", password: "$E2E_TEST_PASSWORD" }
 - appLanguages: {APP_LANGUAGES or null}
+- i18nMessagesDir: {I18N_MESSAGES_DIR or null}
+- changeImpactHints: {changeImpactHints from Phase 2 Step 4}
 
-Run ONLY the specified spec files.
-Output report to: tests/reports/playwright-results.json
+Execute ALL test cases from the handoff files via CDP.
+Output report to: tests/reports/cdp-results.json
 ```
 
 ---
@@ -855,12 +893,21 @@ prompt:
 You are report-analyzer. First read .claude/agents/report-analyzer.md.
 
 Input:
-- reportFile: "playwright-results.json"
+- reportFile: "cdp-results.json"
+- reportFormat: "cdp"
 - changeSummary: {changeSummary from Phase 1}
 - sourceProjectDir: {resolved}
 - appLanguages: {APP_LANGUAGES or null}
 - headless: false
 - changeImpactHints: {changeImpactHints from Phase 2 Step 4}
+
+IMPORTANT — CDP report format:
+The report file is `cdp-results.json`, NOT the standard Playwright JSON format.
+Structure: `{ executor, timestamp, baseURL, summary: { total, passed, failed, skipped }, results: [{ tcId, title, handoffFile, specFile, status, duration, steps, assertions, error, screenshot }] }`.
+- Use `results[].status` to count passed/failed
+- Use `results[].error.message` for error descriptions
+- Use `results[].screenshot` for failure screenshot paths (read with Read tool)
+- Use `results[].tcId` to match against changeImpactHints.assertionReviewSpecs
 
 Analyze test results. For each failure, attribute cause using THREE categories:
 1. **regression_likely** — failure caused by branch changes breaking existing behavior (真回归)
@@ -997,7 +1044,7 @@ Do NOT update issue status (this is informational, not a bug report).
 
 | File | Description |
 |------|-------------|
-| `tests/reports/playwright-results.json` | Test execution report |
+| `tests/reports/cdp-results.json` | CDP test execution report |
 | `playwright-report/index.html` | HTML report (auto-opened) |
 | `test-cases/generated/{slug}-branch.md` | Generated test cases (only when Phase 3 triggered) |
 | `test-cases/generated/playwright-handoff-{slug}.json` | Handoff JSON (only when Phase 3 triggered) |
