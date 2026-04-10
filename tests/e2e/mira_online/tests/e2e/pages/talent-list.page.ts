@@ -86,10 +86,12 @@ export class TalentListPage {
   }
 
   /**
-   * Returns the grid container element (used for JS assertions on gridTemplateColumns).
+   * Returns the grid container element inside the fullscreen/side panel
+   * (used for JS assertions on gridTemplateColumns).
+   * Scoped to the fixed overlay panel to avoid matching chat-log card grids.
    */
   getTalentGrid(): Locator {
-    return this.page.locator('[class*="grid-cols"]').first();
+    return this.page.locator('.fixed.inset-0 [class*="grid-cols"]').first();
   }
 
   // ── Getters for assertions ──
@@ -118,13 +120,22 @@ export class TalentListPage {
 
   /**
    * Returns the computed gridTemplateColumns value from the talent grid container.
-   * Used to verify how many CSS columns are actually rendered.
+   * Scoped to the fullscreen panel (.fixed.inset-0) to avoid matching chat-log grids.
    */
-  async getGridTemplateColumns(): Promise<string> {
+  /** Wait for skeleton placeholders to disappear (data loaded). */
+  private async waitForDataLoaded(): Promise<void> {
     const grid = this.getTalentGrid();
-    await grid.waitFor({ state: 'attached', timeout: 5_000 }).catch(() => {});
+    await grid.waitFor({ state: 'attached', timeout: 10_000 }).catch(() => {});
+    // Wait until skeleton pulse animation disappears (real cards have visible text)
+    await this.page.locator('.fixed.inset-0 [class*="grid-cols"] [class*="animate-pulse"]')
+      .first().waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {});
+  }
+
+  async getGridTemplateColumns(): Promise<string> {
+    await this.waitForDataLoaded();
     return this.page.evaluate(() => {
-      const gridEl = document.querySelector('[class*="grid-cols-"]');
+      const panel = document.querySelector('.fixed.inset-0');
+      const gridEl = panel?.querySelector('[class*="grid-cols"]');
       if (!gridEl) return 'NOT_FOUND';
       return window.getComputedStyle(gridEl).gridTemplateColumns;
     });
@@ -132,10 +143,14 @@ export class TalentListPage {
 
   /**
    * Returns the number of child elements (talent cards) inside the grid container.
+   * Waits for skeleton to disappear before querying.
+   * Scoped to the fullscreen panel (.fixed.inset-0) to avoid matching chat-log grids.
    */
   async getGridChildCount(): Promise<number> {
+    await this.waitForDataLoaded();
     return this.page.evaluate(() => {
-      const gridEl = document.querySelector('[class*="grid-cols-"]');
+      const panel = document.querySelector('.fixed.inset-0');
+      const gridEl = panel?.querySelector('[class*="grid-cols"]');
       if (!gridEl) return 0;
       return gridEl.childElementCount;
     });

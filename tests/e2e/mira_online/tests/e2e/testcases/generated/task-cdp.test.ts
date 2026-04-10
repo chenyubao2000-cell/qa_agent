@@ -36,7 +36,7 @@ test.describe('US-TASK-INPUT · Chat Input Area', () => {
     await expect(taskPage.getSubmitButton()).toBeDisabled();
   });
 
-  test('TC-CDP-TASK-016 点击场景建议自动提交并导航至任务详情', { tag: ['@P1', '@regression', '@full', '@failing'] }, async ({ page, i18n }) => {
+  test('TC-CDP-TASK-016 点击场景建议自动提交并导航至任务详情', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
     const taskPage = new TaskPage(page, i18n);
     await taskPage.goto();
 

@@ -111,7 +111,17 @@ export const test = base.extend<{ i18n: I18n; ensureAuthenticated: void }, TestD
     const originalGoto = page.goto.bind(page);
     page.goto = async (url: string, options?: any) => {
       const response = await originalGoto(url, options);
+      // Handle sign-in redirect
       if (!url.includes(SIGN_IN_PATH) && page.url().includes(SIGN_IN_PATH)) {
+        await reAuthenticate(page);
+        return originalGoto(url, options);
+      }
+      // Handle "no permission" error page (stale session — cookie exists but server rejected)
+      const noPermission = await page.locator('h1').filter({ hasText: /无权限访问|Access Denied|No Permission/ })
+        .isVisible({ timeout: 1_000 }).catch(() => false);
+      if (noPermission) {
+        console.log('[session-guard] "No permission" detected, re-authenticating...');
+        await originalGoto(`${SIGN_IN_PATH}`, options);
         await reAuthenticate(page);
         return originalGoto(url, options);
       }
@@ -141,6 +151,8 @@ export const test = base.extend<{ i18n: I18n; ensureAuthenticated: void }, TestD
         await reAuthenticate(page);
         await page.goto('/task', { timeout: 30_000 });
       }
+      // Sync auth state so test contexts get fresh cookies
+      await ctx.storageState({ path: AUTH_FILE });
       await page.waitForLoadState('domcontentloaded');
       const textarea = page.locator('textarea');
       await textarea.waitFor({ state: 'visible', timeout: 15_000 });
@@ -169,6 +181,8 @@ export const test = base.extend<{ i18n: I18n; ensureAuthenticated: void }, TestD
         await reAuthenticate(page);
         await page.goto('/task', { timeout: 30_000 });
       }
+      // Sync auth state so test contexts get fresh cookies
+      await ctx.storageState({ path: AUTH_FILE });
       await page.waitForLoadState('domcontentloaded');
       const textarea = page.locator('textarea');
       await textarea.waitFor({ state: 'visible', timeout: 15_000 });

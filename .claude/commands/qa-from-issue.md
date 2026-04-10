@@ -181,82 +181,53 @@ Extract from the issue's title + description:
 - `pageUrl` is empty -> skip Phase 2 (CDP exploration), generate cases only from issue text description (orchestrator source is still "issue", but no baselineFile is passed)
 - `reproSteps` is empty -> Phase 2 CDP exploration degrades to full mode (instead of targeted), exploring the entire page
 
-### Step 3 — Determine Operation Type
+### Step 3 — Find Existing Spec
 
-> Detailed dedup review rules are defined uniformly in `.claude/agents/e2e-orchestrator.md` Step 2, shared across all generation flows.
-> Only issue-specific quick determination is done here:
-
-Determine operation mode via explicit if-else:
+Search for an existing spec that covers the same module. Try multiple strategies (in order, stop on first match):
 
 ```
-Step 3a — Search for existing spec match:
+Step 3a — Extract clues from issue:
   tcId = extract TC ID from issue title/description (regex: /TC-\w+-\d+/)
   specFilename = extract .test.ts filename from issue description (regex: /[\w-]+\.test\.ts/)
+  pageUrl = issueContext.pageUrl (extracted in Step 2)
 
-  if tcId found:
-    Grep(tcId, "$QA_WORKSPACE_DIR/tests/e2e/testcases/generated/")
-    → matchedSpec = first file containing this TC ID
-  elif specFilename found:
-    Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/generated/{specFilename}")
-    → matchedSpec = matched file (if exists)
-  else:
-    matchedSpec = null
+Step 3b — Search for matching spec (try in order, stop on first match):
+  1. TC ID grep:
+     if tcId found → Grep(tcId, "$QA_WORKSPACE_DIR/tests/e2e/testcases/generated/")
+     → matchedSpec = first file containing this TC ID
 
-Step 3b — Determine mode:
-  if matchedSpec exists AND issue describes a test failure (error message, screenshot, "failed", "broken"):
-    → Mode X: Fix existing test (bypass orchestrator, launch fix subagent)
-  elif matchedSpec exists AND issue describes a NEW scenario not covered by the existing spec:
-    → Mode A: Append new test angles to existing spec (orchestrator with existing spec context)
-  else:
-    → Mode B: Create new cases + POM + spec (orchestrator from scratch)
+  2. Spec filename from issue description:
+     if specFilename found → Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/generated/{specFilename}")
+     → matchedSpec = matched file (if exists)
+
+  3. pageUrl grep (search for the page route across all specs):
+     if pageUrl found → Grep the route path (e.g., "/sign-in") in spec files and POM files
+     → matchedSpec = spec that navigates to the same page
+
+  4. Feature keyword fuzzy match:
+     Glob("$QA_WORKSPACE_DIR/tests/e2e/testcases/generated/*{feature-slug}*")
+     → matchedSpec = closest match by filename
+
+  If no match found → matchedSpec = null
+
+Step 3c — Read matched spec content (if found):
+  Read the full spec file to understand what it already covers.
+  This content is passed to the orchestrator as existingSpecContent so it can
+  decide whether to update, extend, or regenerate.
 ```
 
-> **Key distinction**: Mode X = "existing test is broken, fix it". Mode A = "existing spec exists but doesn't cover this scenario, add to it". Mode B = "no existing spec, create everything".
-
-### Mode X Execution (fix existing test, no new cases)
-
-When Mode X is determined, the flow **bypasses orchestrator** and launches a single **fix subagent** that combines CDP exploration + spec/POM fixing:
+### Step 3d — Determine action
 
 ```
-Launch fix-from-issue subagent with CDP tools + Edit tool:
-
-prompt: Read `.claude/references/fix-subagent-prompt.md` for full prompt template (steps, classification logic, return schema).
-
-Inputs (per reference file "Required Inputs" + "qa-from-issue Mode X appends"):
-- specFile: {absolute path to the existing spec identified in Phase 1 Step 3}
-- pomFile: {absolute path to corresponding POM, inferred from spec's import}
-- handoffFile: {absolute path to handoff JSON — from spec header `// handoff:`, fallback: infer from slug}
-- pageUrl: {issueContext.pageUrl, concatenated with baseURL if relative}
-- sourceProjectDir: {resolved source code directory}
-- appLanguages: {APP_LANGUAGES or null}
-- i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
-- issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
-- authSetup: {true/false}
-- testCredentials: {if authSetup=true}
-
-Return uses "qa-from-issue Mode X return format" from the reference file.
+if matchedSpec is null:
+  → action: "create" — generate new cases + POM + spec from scratch
+else:
+  → action: "update" — pass existingSpecContent + matchedSpec path to orchestrator
+    The orchestrator reads the existing spec, compares with the issue context,
+    and decides to either modify in-place or delete and regenerate.
 ```
 
-After subagent returns:
-- Add `subagentResult.specFile` to `modified_specs` list (convert singular to array: `modified_specs.push(specFile)`)
-  // Build specToIssueMap for Mode X (orchestrator was bypassed, must build manually)
-  specToIssueMap[fixSubagentResult.specFile] = issueKey;
-- Set `specs = []` (Mode X generates no NEW specs, only modifies existing)
-- If `status: "needs_manual"` → report to user, still include in `modified_specs` for verification
-- **Skip orchestrator entirely** (no new test cases, no Excel)
-- **Skip qa-fix-tests** (Mode X subagent already did CDP fix + verification, avoid double-fixing)
-- **Go directly to Phase 3 regression + reporting**:
-  1. Launch test-executor (mode: "changed+smoke", specFiles: modified_specs) → produces `fix-regression.json`
-     // Runs modified specs (all tests) + all other specs (@smoke only). See "Issue-Source Smoke Regression" below.
-  2. Collect detectedBugs from Mode X subagent's `bugs` field (if any)
-  3. Continue to Phase 3 Step 3 (report-analyzer) with reportFile + detectedBugs
-- **Sync handoff**: Execute `.claude/references/handoff-sync.md` procedure.
-  Subagent returns `{ assertionsChanged, changedAssertions }` → command layer writes handoff.
-
-- When building `specToIssueMap`, map the Mode X specFile to its source issueKey:
-  `specToIssueMap[specFile] = issueKey`
-
-> **Key difference from Mode A/B**: No orchestrator call. The subagent reads the spec, uses CDP to understand the real page, then directly edits the spec/POM. This is essentially what `/qa-fix-tests` does for a single file, but scoped to the issue's context and running in an isolated subagent.
+> **No Mode X/A/B classification.** The command layer does not guess whether the issue is a test failure or a real bug. It simply finds the relevant spec (or not) and delegates to the orchestrator with full context.
 
 ---
 
@@ -356,6 +327,8 @@ Input:
 - issueKey: <issue-key>
 - issueContext: { pageUrl, expectedBehavior, actualBehavior, reproSteps, priority, feature }
 - baselineFile: <baseline JSON path from Phase 2 exploration>
+- existingSpec: {matchedSpec path from Phase 1 Step 3, or null if no match}
+- existingSpecContent: {full content of matched spec file, or null — so orchestrator can compare with issue and decide to update/extend/regenerate}
 - projectContext:
         targetProjectDir: {QA_WORKSPACE_DIR}
         sourceProjectDir: {resolved source code directory per priority: --source > prSourceDir > SOURCE_PROJECT_DIR > QA_WORKSPACE_DIR}
@@ -387,7 +360,6 @@ Execute `.claude/references/pom-merge.md`
   - For each orchestrator result, iterate its specToIssueMap entries
   - If spec already in map → convert value to array: `specToIssueMap[spec] = [...existing, newIssueKey]`
   - If spec not in map → `specToIssueMap[spec] = [issueKey]`
-- For Mode X (fix existing): add the mapping manually: `specToIssueMap[specFile] = [issueKey]`
 - Example:
   ```json
   { "tests/e2e/testcases/generated/feature-a-issue.test.ts": ["STE-9"],

@@ -184,8 +184,8 @@ export class TaskPage {
   }
 
   getScenarioSuggestions(): Locator {
-    // CDP-confirmed locator: 4 buttons in .grid below "试试以下场景"
-    return this.page.locator('main .grid button');
+    // CDP-confirmed: desktop grid uses Tailwind `sm:grid sm:grid-cols-2` (not bare `.grid`)
+    return this.page.locator('main [class*="grid-cols"] button');
   }
 
   getScenarioLabel(): Locator {
