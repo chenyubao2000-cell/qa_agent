@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/qa-verify-fix 流程图</title>
+<style>
+:root{--bg:#faf6f1;--card:#fff;--border:#e0d6cc;--line:#bfb5a8;--text:#3d3429;--dim:#7a7060;--bright:#1a1208;--blue:#2563eb;--green:#16a34a;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--pink:#db2777;--cyan:#0891b2;--yellow:#a16207}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:24px 16px}h1{text-align:center;font-size:22px;color:var(--bright);margin-bottom:4px}.sub{text-align:center;font-size:12px;color:var(--dim);font-family:'SF Mono','Fira Code',monospace;margin-bottom:20px}.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px}.legend span{font-size:10px;color:var(--dim);display:flex;align-items:center;gap:3px}.legend .d{width:7px;height:7px;border-radius:50%;display:inline-block}.flow{display:flex;flex-direction:column;align-items:center;max-width:1020px;margin:0 auto}.vc{width:2px;background:var(--line);flex-shrink:0}.vc.s{height:10px}.vc.m{height:16px}.vc.l{height:24px}.b{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.3px;white-space:nowrap;display:inline-block}.b.cmd{background:rgba(124,58,237,.1);color:var(--purple)}.b.user{background:rgba(219,39,119,.1);color:var(--pink)}.b.lin{background:rgba(161,98,7,.12);color:var(--yellow)}.b.cdp{background:rgba(8,145,178,.1);color:var(--cyan)}.b.son{background:rgba(37,99,235,.1);color:var(--blue)}.b.sk{background:rgba(122,112,96,.08);color:var(--dim);font-size:8px}.pt{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 12px;border-radius:12px;white-space:nowrap;margin:2px 0}.pt.p0{background:#e8e4df;color:var(--dim)}.pt.p1{background:#dbeafe;color:var(--blue)}.pt.p15{background:#fef3c7;color:var(--yellow)}.pt.p2{background:#ede9fe;color:var(--purple)}.pt.p3{background:#ffedd5;color:var(--orange)}.pt.p4{background:#dcfce7;color:var(--green)}.pt.p5{background:#fce7f3;color:var(--pink)}.nd{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .15s}.nd:hover{box-shadow:0 3px 10px rgba(0,0,0,.07)}.nd .t{font-size:12px;font-weight:600;color:var(--bright);margin:3px 0 4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}.nd .il{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}.nd .il.i{color:var(--cyan)}.nd .il.o{color:var(--green)}.nd .v{font-size:10px;font-family:'SF Mono','Fira Code',monospace;color:var(--dim);line-height:1.5}.nd .v code{color:var(--blue);font-size:10px}.nd.dash{border-style:dashed}.nd.sm{min-width:120px;max-width:190px}.nd.md{min-width:150px;max-width:250px}.nd.w{min-width:200px;max-width:360px}.nd.xw{min-width:280px;max-width:500px}.nd .eg{font-size:9px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;padding:4px 6px;margin-top:4px;line-height:1.6;font-family:'SF Mono','Fira Code',monospace;color:var(--dim)}.nd .eg b{color:var(--bright);font-weight:600}.nd .note{font-size:9px;color:var(--dim);margin-top:3px;font-style:italic}.hr{display:flex;gap:8px;align-items:stretch;flex-wrap:nowrap;overflow-x:auto;padding:2px}.dm{background:#fdf2f8;border:1.5px solid #f9a8d4;border-radius:10px;padding:10px 18px;text-align:center;box-shadow:0 1px 4px rgba(219,39,119,.08)}.dm .t{font-size:13px;font-weight:700;color:var(--pink);margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}.dm .desc{font-size:10px;color:var(--dim)}.bx{display:flex;width:100%;position:relative}.bx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}.bx.b2::before{left:25%;right:25%}.bx.b3::before{left:16.5%;right:16.5%}.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;padding:0 3px;position:relative}.col::before{content:'';display:block;width:2px;height:14px;background:var(--line)}.mx{position:relative;width:100%;height:18px}.mx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}.mx.b2::before{left:25%;right:25%}.mx.b3::before{left:16.5%;right:16.5%}.mx::after{content:'';position:absolute;bottom:0;left:50%;width:2px;height:16px;background:var(--line);transform:translateX(-50%)}.mx.sk1::before{left:37.5%;right:12.5%}.bl{font-size:10px;font-weight:600;padding:3px 10px;border-radius:6px;margin-bottom:4px;white-space:nowrap;text-align:center}.bl.green{background:rgba(22,163,74,.08);color:var(--green);border:1px solid rgba(22,163,74,.15)}.bl.orange{background:rgba(217,119,6,.08);color:var(--orange);border:1px solid rgba(217,119,6,.15)}.bl.red{background:rgba(220,38,38,.08);color:var(--red);border:1px solid rgba(220,38,38,.15)}.bl.purple{background:rgba(124,58,237,.08);color:var(--purple);border:1px solid rgba(124,58,237,.15)}.bl.gray{background:rgba(122,112,96,.06);color:var(--dim);border:1px solid rgba(122,112,96,.12)}.bl.blue{background:rgba(37,99,235,.08);color:var(--blue);border:1px solid rgba(37,99,235,.15)}.bl.cyan{background:rgba(8,145,178,.08);color:var(--cyan);border:1px solid rgba(8,145,178,.15)}.stop{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--red);text-align:center}.end{background:#f0fdf4;border:1.5px solid #86efac;border-radius:20px;padding:6px 20px;font-size:12px;font-weight:700;color:var(--green);text-align:center}.art{margin-top:16px;padding:14px 18px;width:100%;max-width:960px;background:var(--card);border:1px solid var(--border);border-radius:10px}.art h3{font-size:13px;color:var(--bright);margin-bottom:8px}.art-g{display:flex;flex-wrap:wrap;gap:6px}.art-i{font-size:10px;padding:4px 8px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;gap:6px}.art-i code{color:var(--cyan);font-family:'SF Mono','Fira Code',monospace;font-size:10px}.art-i .w{font-size:8px;color:var(--dim)}
+</style>
+</head>
+<body>
+<h1>/qa-verify-fix 流程图</h1>
+<p class="sub">/qa-verify-fix &lt;issues&gt;</p>
+<div class="legend">
+  <span><span class="d" style="background:var(--purple)"></span>CMD 命令层</span>
+  <span><span class="d" style="background:var(--pink)"></span>USER 用户交互</span>
+  <span><span class="d" style="background:var(--yellow)"></span>LINEAR</span>
+  <span><span class="d" style="background:var(--cyan)"></span>CDP 页面探查</span>
+  <span><span class="d" style="background:var(--blue)"></span>SONNET 生成/执行</span>
+</div>
+
+<div class="flow">
+
+<!-- P0 -->
+<span class="pt p0">P0 初始化</span>
+<div class="vc m"></div>
+<div class="nd w">
+  <div class="t"><span class="b cmd">CMD</span> 读取配置 + 初始化工作区</div>
+  <div class="v">同 qa-from-issue：<code>.env</code> → <code>projectContext</code> → <code>phase-0-init.md</code></div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P1 -->
+<span class="pt p1">P1 读取 Issue + 提取验证上下文</span>
+<div class="vc m"></div>
+
+<div class="nd w">
+  <div class="t"><span class="b lin">LINEAR</span> 获取 Issue 详情</div>
+  <div class="il i">输入</div><div class="v">key / URL / UUID / 关键词</div>
+  <div class="il o">输出</div><div class="v"><code>issueContext</code>: { pageUrl,<br><code>expectedBehavior</code> <em style="color:var(--orange)">(断言目标!)</em>,<br>actualBehavior <em>(仅日志)</em>,<br>reproSteps, feature }</div>
+  <div class="note">若 expectedBehavior 不明确 → 先询问用户</div>
+</div>
+
+<div class="vc m"></div>
+
+<!-- 决策1: 已有 spec? -->
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> 是否有已有 verify-fix spec？</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl orange">Mode R: 已有 spec</span>
+    <div class="nd md" style="text-align:center">
+      <div class="v" style="font-size:10px">重写断言为 expectedBehavior<br>生成新文件 <code>{slug}-verify-fix.test.ts</code><br>跳过 CDP 探查</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl green">Mode N: 无已有 spec</span>
+    <div class="nd md" style="text-align:center">
+      <div class="v" style="font-size:10px">需新建<br>进入 P1.5 预检</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<!-- P1.5 预检 -->
+<span class="pt p15">P1.5 Bug 复现预检（CDP 快速验证）</span>
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b cdp">CDP</span> 复现检查</div>
+  <div class="v">导航到 <code>pageUrl</code> → 按 <code>reproSteps</code> 逐步操作 → 截图 + DOM 快照<br>→ 对比观察到的状态与 <code>actualBehavior</code></div>
+</div>
+
+<div class="vc m"></div>
+
+<!-- 决策2: 预检结果 3路 -->
+<div class="dm">
+  <div class="t"><span class="b cdp">CDP</span> 预检结果</div>
+</div>
+
+<div class="bx b3" style="height:2px"></div>
+<div class="bx b3">
+  <div class="col">
+    <span class="bl red">复现（Bug 仍在）</span>
+    <div class="nd md">
+      <div class="t" style="font-size:11px">报告用户</div>
+      <div class="v" style="font-size:10px">"Bug 尚未修复"<br>修复后重新运行<br><code>/qa-verify-fix {key}</code></div>
+    </div>
+    <div class="vc s"></div>
+    <div class="stop">流水线终止</div>
+  </div>
+  <div class="col">
+    <span class="bl green">未复现（Bug 已消失）</span>
+    <div class="dm" style="padding:6px 10px">
+      <div class="t" style="font-size:10px"><span class="b user">USER</span> 继续生成验证用例？</div>
+    </div>
+    <div class="bx b2" style="height:2px"></div>
+    <div class="bx b2">
+      <div class="col"><span class="bl green" style="font-size:9px">是</span><div class="v" style="font-size:9px;text-align:center">继续 P2→P5</div></div>
+      <div class="col"><span class="bl gray" style="font-size:9px">否</span><div class="stop" style="font-size:9px">终止</div></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl orange">无法判断</span>
+    <div class="nd sm" style="text-align:center">
+      <div class="v" style="font-size:10px">继续完整<br>验证流水线</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2" style="margin-left:33%"></div>
+
+<!-- P2 -->
+<span class="pt p2">P2 CDP 轻量探查（仅 Mode N）</span>
+<div class="vc m"></div>
+
+<div class="nd w">
+  <div class="t"><span class="b cdp">CDP</span> 定向探查（仅定位器发现）</div>
+  <div class="il i">输入</div><div class="v"><code>pageUrl</code>, <code>reproSteps</code>, <code>targetArea</code></div>
+  <div class="il o">输出</div><div class="v"><code>baselineFile</code>, 定位器列表</div>
+  <div class="note">不构建完整状态流图，仅发现元素定位器</div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P3 -->
+<span class="pt p3">P3 生成 verify-fix Spec</span>
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b son">SONNET</span> e2e-orchestrator <span class="b sk">verifyFix: true</span></div>
+  <div class="il i">输入</div><div class="v"><code>source:"issue"</code>, <code>issueContext</code>, <code>baselineFile</code></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+    <div style="flex:1;min-width:140px;padding:4px 6px;background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.12);border-radius:4px">
+      <div style="font-size:9px;font-weight:700;color:var(--red)">关键差异 vs qa-from-issue</div>
+      <div class="v" style="font-size:9px">断言目标 = <code>expectedBehavior</code><br>严格断言 <code>===</code> 而非 <code>&gt;=</code><br>通过 = 已修复，失败 = 未修复</div>
+    </div>
+    <div style="flex:1;min-width:140px;padding:4px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px">
+      <div style="font-size:9px;font-weight:700;color:var(--dim)">生成规则</div>
+      <div class="v" style="font-size:9px">3-8 个用例（聚焦非穷举）<br>前缀 <code>[VERIFY-FIX]</code><br>头部 <code>// mode: verify-fix</code></div>
+    </div>
+  </div>
+  <div class="il o">输出</div><div class="v"><code>{slug}-verify-fix.test.ts</code></div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P4 -->
+<span class="pt p4">P4 执行测试</span>
+<div class="vc m"></div>
+
+<div class="nd w">
+  <div class="t"><span class="b son">SONNET</span> test-executor</div>
+  <div class="il i">输入</div><div class="v"><code>mode:"selective"</code>, verify-fix spec</div>
+  <div class="il o">输出</div><div class="v"><code>verify-fix-results.json</code></div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P5 -->
+<span class="pt p5">P5 判定 + Linear 报告</span>
+<div class="vc m"></div>
+
+<!-- 决策3: 测试结果 3路 -->
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> 测试结果判定</div>
+</div>
+
+<div class="bx b3" style="height:2px"></div>
+<div class="bx b3">
+  <div class="col">
+    <span class="bl green">FIXED（全通过）</span>
+    <div class="nd md" style="border-color:var(--green)">
+      <div class="t"><span class="b lin">LINEAR</span> 评论 + 更新状态</div>
+      <div class="v">评论 "Bug 修复已验证 ✅"<br><code>update_issue → Done</code></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl orange">PARTIALLY_FIXED（部分通过）</span>
+    <div class="nd md">
+      <div class="t"><span class="b lin">LINEAR</span> 仅评论</div>
+      <div class="v">评论 "Bug 修复未通过验证 ❌"<br>列出失败用例<br><em style="font-size:9px;color:var(--dim)">不改 issue 状态</em></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl red">NOT_FIXED（全失败）</span>
+    <div class="nd md">
+      <div class="t"><span class="b lin">LINEAR</span> 仅评论</div>
+      <div class="v">评论 "Bug 修复未通过验证 ❌"<br>Bug 行为仍可复现<br><em style="font-size:9px;color:var(--dim)">不改 issue 状态</em></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b3"></div>
+
+<div class="nd w">
+  <div class="t"><span class="b cmd">CMD</span> 生成 verify-fix-summary.md</div>
+  <div class="v">Issue、时间、结论、验证结果表、Issue 详情</div>
+</div>
+
+<div class="vc m"></div>
+<div class="end">流水线结束</div>
+
+<!-- 产出物 -->
+<div class="art">
+  <h3>产出物</h3>
+  <div class="art-g">
+    <div class="art-i"><code>{slug}-verify-fix.test.ts</code><span class="w">P3</span></div>
+    <div class="art-i"><code>{slug}.page.ts</code><span class="w">P2</span></div>
+    <div class="art-i"><code>page-baseline-{slug}.json</code><span class="w">P2</span></div>
+    <div class="art-i"><code>verify-fix-results.json</code><span class="w">P4</span></div>
+    <div class="art-i"><code>verify-fix-summary.md</code><span class="w">P5</span></div>
+    <div class="art-i"><code>Linear issue 评论</code><span class="w">P5</span></div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

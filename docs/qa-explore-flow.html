@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/qa-explore 流程图</title>
+<style>
+:root{--bg:#faf6f1;--card:#fff;--border:#e0d6cc;--line:#bfb5a8;--text:#3d3429;--dim:#7a7060;--bright:#1a1208;--blue:#2563eb;--green:#16a34a;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--pink:#db2777;--cyan:#0891b2;--yellow:#a16207}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:24px 16px}h1{text-align:center;font-size:22px;color:var(--bright);margin-bottom:4px}.sub{text-align:center;font-size:12px;color:var(--dim);font-family:'SF Mono','Fira Code',monospace;margin-bottom:20px}.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px}.legend span{font-size:10px;color:var(--dim);display:flex;align-items:center;gap:3px}.legend .d{width:7px;height:7px;border-radius:50%;display:inline-block}.flow{display:flex;flex-direction:column;align-items:center;max-width:1020px;margin:0 auto}.vc{width:2px;background:var(--line);flex-shrink:0}.vc.s{height:10px}.vc.m{height:16px}.vc.l{height:24px}.b{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.3px;white-space:nowrap;display:inline-block}.b.cmd{background:rgba(124,58,237,.1);color:var(--purple)}.b.user{background:rgba(219,39,119,.1);color:var(--pink)}.b.cdp{background:rgba(8,145,178,.1);color:var(--cyan)}.b.son{background:rgba(37,99,235,.1);color:var(--blue)}.b.sk{background:rgba(122,112,96,.08);color:var(--dim);font-size:8px}.pt{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 12px;border-radius:12px;white-space:nowrap;margin:2px 0}.pt.p0{background:#e8e4df;color:var(--dim)}.pt.p1{background:#dbeafe;color:var(--blue)}.pt.p2{background:#ede9fe;color:var(--purple)}.pt.p25{background:#fef3c7;color:var(--yellow)}.pt.p3{background:#ffedd5;color:var(--orange)}.pt.p4{background:#dcfce7;color:var(--green)}.nd{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .15s}.nd:hover{box-shadow:0 3px 10px rgba(0,0,0,.07)}.nd .t{font-size:12px;font-weight:600;color:var(--bright);margin:3px 0 4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}.nd .il{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}.nd .il.i{color:var(--cyan)}.nd .il.o{color:var(--green)}.nd .v{font-size:10px;font-family:'SF Mono','Fira Code',monospace;color:var(--dim);line-height:1.5}.nd .v code{color:var(--blue);font-size:10px}.nd.dash{border-style:dashed}.nd.sm{min-width:120px;max-width:190px}.nd.md{min-width:150px;max-width:250px}.nd.w{min-width:200px;max-width:360px}.nd.xw{min-width:280px;max-width:500px}.nd .eg{font-size:9px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;padding:4px 6px;margin-top:4px;line-height:1.6;font-family:'SF Mono','Fira Code',monospace;color:var(--dim)}.nd .eg b{color:var(--bright);font-weight:600}.nd .note{font-size:9px;color:var(--dim);margin-top:3px;font-style:italic}.hr{display:flex;gap:8px;align-items:stretch;flex-wrap:nowrap;overflow-x:auto;padding:2px}.dm{background:#fdf2f8;border:1.5px solid #f9a8d4;border-radius:10px;padding:10px 18px;text-align:center;box-shadow:0 1px 4px rgba(219,39,119,.08)}.dm .t{font-size:13px;font-weight:700;color:var(--pink);margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}.dm .desc{font-size:10px;color:var(--dim)}.auto{background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:8px 14px;text-align:center}.auto .t{font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px}.auto .desc{font-size:10px;color:var(--dim)}.bx{display:flex;width:100%;position:relative}.bx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}.bx.b2::before{left:25%;right:25%}.bx.b3::before{left:16.5%;right:16.5%}.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;padding:0 3px;position:relative}.col::before{content:'';display:block;width:2px;height:14px;background:var(--line)}.mx{position:relative;width:100%;height:18px}.mx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}.mx.b2::before{left:25%;right:25%}.mx.b3::before{left:16.5%;right:16.5%}.mx::after{content:'';position:absolute;bottom:0;left:50%;width:2px;height:16px;background:var(--line);transform:translateX(-50%)}.bl{font-size:10px;font-weight:600;padding:3px 10px;border-radius:6px;margin-bottom:4px;white-space:nowrap;text-align:center}.bl.green{background:rgba(22,163,74,.08);color:var(--green);border:1px solid rgba(22,163,74,.15)}.bl.orange{background:rgba(217,119,6,.08);color:var(--orange);border:1px solid rgba(217,119,6,.15)}.bl.red{background:rgba(220,38,38,.08);color:var(--red);border:1px solid rgba(220,38,38,.15)}.bl.purple{background:rgba(124,58,237,.08);color:var(--purple);border:1px solid rgba(124,58,237,.15)}.bl.gray{background:rgba(122,112,96,.06);color:var(--dim);border:1px solid rgba(122,112,96,.12)}.bl.blue{background:rgba(37,99,235,.08);color:var(--blue);border:1px solid rgba(37,99,235,.15)}.bl.cyan{background:rgba(8,145,178,.08);color:var(--cyan);border:1px solid rgba(8,145,178,.15)}.stop{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--red);text-align:center}.end{background:#f0fdf4;border:1.5px solid #86efac;border-radius:20px;padding:6px 20px;font-size:12px;font-weight:700;color:var(--green);text-align:center}.cond{border:2px dashed var(--orange);border-radius:12px;padding:10px;background:rgba(217,119,6,.02);width:100%;max-width:960px}.cond .cl{text-align:center;font-size:10px;color:var(--orange);font-weight:700;margin-bottom:6px}.art{margin-top:16px;padding:14px 18px;width:100%;max-width:960px;background:var(--card);border:1px solid var(--border);border-radius:10px}.art h3{font-size:13px;color:var(--bright);margin-bottom:8px}.art-g{display:flex;flex-wrap:wrap;gap:6px}.art-i{font-size:10px;padding:4px 8px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;gap:6px}.art-i code{color:var(--cyan);font-family:'SF Mono','Fira Code',monospace;font-size:10px}.art-i .w{font-size:8px;color:var(--dim)}
+</style>
+</head>
+<body>
+<h1>/qa-explore 流程图</h1>
+<p class="sub">/qa-explore [page-url] [--source &lt;dir&gt;] [description]</p>
+<div class="legend">
+  <span><span class="d" style="background:var(--purple)"></span>CMD 命令层</span>
+  <span><span class="d" style="background:var(--cyan)"></span>CDP 页面探查</span>
+  <span><span class="d" style="background:var(--blue)"></span>SONNET 生成</span>
+</div>
+
+<div class="flow">
+
+<!-- P0 -->
+<span class="pt p0">P0 初始化</span>
+<div class="vc m"></div>
+<div class="hr">
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 读取配置</div>
+    <div class="il i">输入</div><div class="v"><code>.env</code>, <code>CLAUDE.md</code></div>
+    <div class="il o">输出</div><div class="v"><code>projectContext</code> (baseURL, authSetup,<br>appLanguages, techStack)</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 初始化工作区</div>
+    <div class="v"><code>phase-0-init.md</code> 2a-2f<br>i18n + Auth 基础设施</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 确定探查 URL</div>
+    <div class="v">用户参数 &gt; <code>PREVIEW_URL</code></div>
+    <div class="il o">输出</div><div class="v"><code>pageUrl</code></div>
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P1 -->
+<span class="pt p1">P1 初始扫描 + 识别功能区域</span>
+<div class="vc m"></div>
+
+<!-- 登录墙 -->
+<div class="dm">
+  <div class="t"><span class="b cdp">CDP</span> 登录墙检测</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl orange">A: 需要登录</span>
+    <div class="nd md">
+      <div class="t"><span class="b cdp">CDP</span> 自动登录</div>
+      <div class="v">三层扫描发现选择器<br>CDP 填写凭证 → 登录<br>生成 <code>auth.setup.ts</code><br>生成 sign-in POM</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl green">B: 不需要登录</span>
+    <div class="nd sm dash" style="text-align:center">
+      <div class="v" style="font-style:italic;font-size:10px">直接扫描</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<div class="nd w">
+  <div class="t"><span class="b cdp">CDP</span> State_0 扫描</div>
+  <div class="il i">输入</div><div class="v"><code>pageUrl</code> (登录后)</div>
+  <div class="il o">输出</div><div class="v">State_0 DOM 结构 + a11y 树 + 截图</div>
+</div>
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b cmd">CMD</span> 识别功能区域</div>
+  <div class="il i">输入</div><div class="v">State_0 DOM 快照</div>
+  <div class="eg">
+    <b>识别信号：</b><code>&lt;form&gt;</code>→表单, <code>[role="tab"]</code>→选项卡,<br>
+    <code>[role="navigation"]</code>→导航, <code>[aria-haspopup]</code>→下拉,<br>
+    button "new/create"→弹窗, 独立内容块→内容区
+  </div>
+  <div class="il o">输出</div><div class="v"><code>areas[]</code> 按测试价值排序: form &gt; tab &gt; modal &gt; nav &gt; dropdown &gt; content</div>
+</div>
+<div class="vc m"></div>
+
+<!-- 目标过滤 -->
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> 目标区域过滤</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl blue">A: 指定 targetArea</span>
+    <div class="nd sm" style="text-align:center"><div class="v" style="font-size:10px">仅保留匹配区域</div></div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl gray">B: 未指定</span>
+    <div class="nd sm" style="text-align:center"><div class="v" style="font-size:10px">保留所有区域</div></div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<!-- P2a -->
+<span class="pt p2">P2a 逐区域 CDP 探查（串行循环）</span>
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b cdp">CDP</span> 探查子代理 × 每个区域（串行）</div>
+  <div class="il i">输入</div><div class="v"><code>area</code>, <code>pageUrl</code>, <code>baselineFile</code>, <code>sourceProjectDir</code></div>
+  <div class="v" style="margin-top:4px">Phase 0 源码预读 → Phase 3 BFS 交互探查<br>点击、悬停、填写、导航 → 记录状态转换</div>
+  <div class="il o">输出</div><div class="v">新状态 + 新边 + <code>discoveredAreas[]</code> + <code>coverageReport</code></div>
+</div>
+<div class="vc m"></div>
+
+<div class="hr">
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 动态发现新区域？</div>
+    <div class="eg"><b>有</b> → 弹窗/选项卡面板/菜单/懒加载<br>追加到 areas 队列继续循环<br><b>无</b> → 继续下一区域</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> maxAreas 达上限？</div>
+    <div class="eg"><b>是</b> → 退出循环<br><b>否</b> → 继续</div>
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P2a.5 -->
+<span class="pt p25">P2a.5 跨区域流发现</span>
+<div class="vc m"></div>
+
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> 跨区域流存在？</div>
+  <div class="desc">检测 sourceArea 变化的边、URL 变化的边</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl green">A: 有</span>
+    <div class="nd md">
+      <div class="t"><span class="b cdp">CDP</span> 导航目标页</div>
+      <div class="v">仅 1 跳 + State_0 扫描<br>记录 <code>crossAreaFlows[]</code></div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl gray">B: 无</span>
+    <div class="nd sm dash" style="text-align:center"><div class="v" style="font-size:9px;font-style:italic">跳过</div></div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<!-- P2b -->
+<span class="pt p3">P2b 并行用例生成</span>
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b son">SONNET</span> e2e-orchestrator × N（每区域一个，并行）</div>
+  <div class="il i">输入</div><div class="v"><code>source:"cdp"</code>, <code>baselineFile</code>, <code>areaScope</code>, <code>projectContext</code></div>
+  <div class="il o">输出</div><div class="v"><code>{slug}-{area-id}-cdp.md</code>, <code>handoff.json</code>, <code>*.xlsx</code><br><code>{slug}.page.ts</code>, <code>{slug}-{area-id}-cdp.test.ts</code></div>
+  <div class="note">若有 crossAreaFlows → 额外启动一个 orchestrator 生成集成用例</div>
+</div>
+<div class="vc m"></div>
+
+<div class="hr">
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 验证门 V1-V5</div>
+    <div class="eg"><b>通过</b> → 收集产出物<br><b>失败</b> → 删除该区域不完整产出物</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> Excel 导出</div>
+    <div class="v"><code>{slug}-all-cases.xlsx</code></div>
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P3 -->
+<span class="pt p4">P3 交给 qa-fix-tests</span>
+<div class="vc m"></div>
+
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> allSpecs 是否为空？</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl gray">A: 空（已有全覆盖）</span>
+    <div class="nd sm dash" style="text-align:center"><div class="v" style="font-size:9px;font-style:italic">结束</div></div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl green">B: 非空</span>
+    <div class="nd w">
+      <div class="t"><span class="b cmd">CMD</span> 执行 /qa-fix-tests --skip-baseline</div>
+      <div class="v">CDP 校验定位器 → 修复 → 执行 → 回归</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<div class="end">流水线结束</div>
+
+<!-- 产出物 -->
+<div class="art">
+  <h3>产出物</h3>
+  <div class="art-g">
+    <div class="art-i"><code>page-baseline-{slug}.json</code><span class="w">P2a 累积</span></div>
+    <div class="art-i"><code>{slug}-{area-id}-cdp.md</code><span class="w">P2b</span></div>
+    <div class="art-i"><code>playwright-handoff-{slug}.json</code><span class="w">P2b</span></div>
+    <div class="art-i"><code>{slug}-{area-id}-cdp.xlsx</code><span class="w">P2b</span></div>
+    <div class="art-i"><code>{slug}.page.ts</code><span class="w">P2b</span></div>
+    <div class="art-i"><code>{slug}-{area-id}-cdp.test.ts</code><span class="w">P2b</span></div>
+    <div class="art-i"><code>playwright-results.json</code><span class="w">P3</span></div>
+    <div class="art-i"><code>playwright-report/index.html</code><span class="w">P3</span></div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
