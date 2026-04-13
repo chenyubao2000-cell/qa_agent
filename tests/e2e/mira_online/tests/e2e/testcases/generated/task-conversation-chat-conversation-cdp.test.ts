@@ -232,21 +232,9 @@ test.describe('US-CONV-CHATRESPONSE · AI 响应结构', () => {
 
 test.describe('US-CONV-WORKSPACE · 工作区面板', () => {
 
-  test('TC-CDP-CONV-011 点击工具卡片打开工作区面板（S3→S5）', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-CONV-011 点击工具卡片打开工作区面板（S3→S5）', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const taskPage = new TaskPage(page, i18n);
-    await taskPage.goto();
-
-    // Setup: navigate to a task that has tool cards
-    await taskPage.clickFirstTask();
-    await expect(page).toHaveURL(/\/task\/.+/);
-
-    // Check if tool cards exist on this task; skip gracefully if none
-    const toolCards = taskPage.getToolCards();
-    const cardCount = await toolCards.count();
-    if (cardCount === 0) {
-      // No tool cards on first task — test cannot proceed without a task with cards
-      return;
-    }
+    await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
 
     await taskPage.clickFirstToolCard();
 
@@ -254,19 +242,9 @@ test.describe('US-CONV-WORKSPACE · 工作区面板', () => {
     await expect(taskPage.getWorkspacePanelTitle()).toBeVisible();
   });
 
-  test('TC-CDP-CONV-012 点击工作区面板关闭按钮后面板消失（S5→S3）', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-CONV-012 点击工作区面板关闭按钮后面板消失（S5→S3）', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const taskPage = new TaskPage(page, i18n);
-    await taskPage.goto();
-
-    // Setup: navigate to task and open workspace panel
-    await taskPage.clickFirstTask();
-    await expect(page).toHaveURL(/\/task\/.+/);
-
-    const toolCards = taskPage.getToolCards();
-    const cardCount = await toolCards.count();
-    if (cardCount === 0) {
-      return;
-    }
+    await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
 
     await taskPage.clickFirstToolCard();
     await taskPage.waitForWorkspacePanelOpen();
@@ -279,18 +257,9 @@ test.describe('US-CONV-WORKSPACE · 工作区面板', () => {
     await expect(taskPage.getChatLog()).toBeVisible();
   });
 
-  test('TC-CDP-CONV-014 工作区面板打开后显示工具执行详情', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-CONV-014 工作区面板打开后显示工具执行详情', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const taskPage = new TaskPage(page, i18n);
-    await taskPage.goto();
-
-    await taskPage.clickFirstTask();
-    await expect(page).toHaveURL(/\/task\/.+/);
-
-    const toolCards = taskPage.getToolCards();
-    const cardCount = await toolCards.count();
-    if (cardCount === 0) {
-      return;
-    }
+    await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
 
     await taskPage.clickFirstToolCard();
     await taskPage.waitForWorkspacePanelOpen();
@@ -302,18 +271,9 @@ test.describe('US-CONV-WORKSPACE · 工作区面板', () => {
     await taskPage.closeWorkspacePanel();
   });
 
-  test('TC-CDP-CONV-016 工作区面板打开后文件上传按钮仍可访问', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-CONV-016 工作区面板打开后文件上传按钮仍可访问', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const taskPage = new TaskPage(page, i18n);
-    await taskPage.goto();
-
-    await taskPage.clickFirstTask();
-    await expect(page).toHaveURL(/\/task\/.+/);
-
-    const toolCards = taskPage.getToolCards();
-    const cardCount = await toolCards.count();
-    if (cardCount === 0) {
-      return;
-    }
+    await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
 
     await taskPage.clickFirstToolCard();
     await taskPage.waitForWorkspacePanelOpen();
@@ -343,18 +303,9 @@ test.describe('US-CONV-I18N · i18n 文本验证', () => {
     await expect(taskPage.getFileUploadButton()).toBeEnabled();
   });
 
-  test('TC-CDP-CONV-020 工作区面板标题 i18n 文本正确', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-CONV-020 工作区面板标题 i18n 文本正确', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const taskPage = new TaskPage(page, i18n);
-    await taskPage.goto();
-
-    await taskPage.clickFirstTask();
-    await expect(page).toHaveURL(/\/task\/.+/);
-
-    const toolCards = taskPage.getToolCards();
-    const cardCount = await toolCards.count();
-    if (cardCount === 0) {
-      return;
-    }
+    await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
 
     await taskPage.clickFirstToolCard();
     await taskPage.waitForWorkspacePanelOpen();

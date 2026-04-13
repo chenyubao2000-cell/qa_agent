@@ -476,8 +476,8 @@ export class TaskPage {
   // ── Conversation: Workspace Panel (S5) ──
 
   getWorkspacePanel(): Locator {
-    // The workspace/preview panel is a right-side panel with border-l inside the flex layout
-    return this.page.locator('main div.flex > div.border-l').first();
+    // The workspace/preview panel is a fixed full-screen overlay (z-50)
+    return this.page.locator('div.fixed.inset-0.z-50').first();
   }
 
   getWorkspacePanelTitle(): Locator {
