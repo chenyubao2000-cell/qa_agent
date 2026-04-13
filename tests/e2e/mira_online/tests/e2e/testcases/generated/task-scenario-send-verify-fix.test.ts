@@ -60,7 +60,7 @@ test.describe('[VERIFY-FIX] MIRA-1318 场景发送后应导航到新对话页', 
   // TC-VF-TSS-002  P0  新对话页应显示已发送的场景消息内容
   // ─────────────────────────────────────────────────────────────────────────
   test('[VERIFY-FIX] TC-VF-TSS-002 新对话页应显示已发送的场景消息内容', {
-    tag: ['@P0', '@smoke', '@regression', '@full'],
+    tag: ['@P1', '@regression', '@full'],
   }, async ({ page, i18n }) => {
     test.setTimeout(60_000);
 

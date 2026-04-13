@@ -38,17 +38,21 @@ setup('authenticate', async ({ page }) => {
     console.log(`Auth state is stale (${Math.round(ageMs / 60000)}m old), re-authenticating.`);
   }
 
-  await page.goto(`${baseURL}/sign-in`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.goto(`${baseURL}/sign-in`, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
 
   // Step 1: Enter email
+  // Must use pressSequentially (keydown events) + Tab (blur) to trigger React form validation.
+  // fill() / native setter alone do not enable the Continue button on this form.
   const emailInput = page.locator('input[type="email"], input[name="email"]').first();
   await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
-  await emailInput.fill(email);
+  await emailInput.click({ clickCount: 3 }); // select-all any pre-filled text
+  await emailInput.pressSequentially(email, { delay: 80 });
+  await emailInput.press('Tab'); // blur → triggers React validation → enables button
 
-  // Click Continue — auto-waits for enabled (timeout inherited from setup.setTimeout)
   const continueBtn = page.getByRole('button', { name: /^继续$|^Continue$/i });
-  await continueBtn.click({ timeout: 30_000 });
+  await expect(continueBtn).toBeEnabled({ timeout: 8_000 });
+  await continueBtn.click();
 
   // Step 2: Enter password
   const passwordInput = page.locator('input[type="password"]');
@@ -57,7 +61,7 @@ setup('authenticate', async ({ page }) => {
   await continueBtn.click({ timeout: 30_000 });
 
   // Wait for redirect after login
-  await page.waitForURL('**/task**', { timeout: 60_000 });
+  await page.waitForURL('**/task**', { timeout: 60_000, waitUntil: 'domcontentloaded' });
   console.log(`Login successful as ${email}, saving auth state.`);
 
   await page.context().storageState({ path: authFile });

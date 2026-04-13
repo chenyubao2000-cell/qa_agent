@@ -1,0 +1,350 @@
+{
+  "meta": {
+    "url": "https://mira-next-frontend-preview.up.railway.app/share/{id}?token={shareToken}",
+    "title": "Mira - Share Page",
+    "timestamp": "2026-04-10T12:00:00Z",
+    "mode": "targeted",
+    "targetArea": "share",
+    "sourceComponents": [
+      {
+        "name": "SharePage",
+        "filePath": "app/(share)/share/[id]/page.tsx",
+        "role": "page"
+      },
+      {
+        "name": "ShareClient",
+        "filePath": "app/(share)/share/[id]/share-client.tsx",
+        "role": "section"
+      },
+      {
+        "name": "ShareError",
+        "filePath": "app/(share)/share/[id]/share-error.tsx",
+        "role": "section"
+      },
+      {
+        "name": "ShareSkeleton",
+        "filePath": "app/(share)/share/[id]/share-skeleton.tsx",
+        "role": "widget"
+      },
+      {
+        "name": "TaskContent",
+        "filePath": "components/task/task-content.tsx",
+        "role": "section"
+      },
+      {
+        "name": "TaskHeader",
+        "filePath": "components/task/task-header.tsx",
+        "role": "section"
+      }
+    ],
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 5,
+      "elementsFound": 12,
+      "duration": "3m"
+    }
+  },
+
+  "states": {
+    "S0_valid_share": {
+      "name": "Valid share page - read-only view of shared task",
+      "sourceArea": "share",
+      "trigger": null,
+      "description": "When a valid share link with token is accessed, displays the TaskContent component with conversation messages in read-only mode. The header shows the Mira logo (link to home) and the task title. No input area is shown for read-only viewers.",
+      "regions": {
+        "header": {
+          "interactives": [
+            {
+              "tag": "a",
+              "role": "link",
+              "text": "",
+              "testId": null,
+              "ariaLabel": null,
+              "href": "/",
+              "locatorHint": "getByRole('link', { name: 'Mira' })",
+              "description": "Mira logo link to homepage, rendered by MiraIcon component in share mode"
+            }
+          ],
+          "headings": [],
+          "staticElements": [
+            {
+              "tag": "span",
+              "text": "{task.title}",
+              "description": "Task title displayed as plain text (no rename button in share mode)",
+              "locatorHint": "locator('header span.text-foreground')"
+            }
+          ]
+        },
+        "main": {
+          "interactives": [
+            {
+              "tag": "button",
+              "role": "button",
+              "text": "复制",
+              "testId": null,
+              "ariaLabel": null,
+              "locatorHint": "getByRole('button', { name: '复制' })",
+              "i18nKey": "chatbot.copy",
+              "description": "Copy button on user message bubble, visible on hover"
+            }
+          ],
+          "headings": [
+            {
+              "level": "h3",
+              "text": "{dynamic - from AI response content}",
+              "description": "Headings within the AI response content"
+            }
+          ],
+          "staticElements": [
+            {
+              "role": "log",
+              "description": "Conversation log container with polite aria-live, contains user messages and AI responses",
+              "locatorHint": "locator('[role=\"log\"]')"
+            }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+
+    "S1_invalid_link": {
+      "name": "Invalid share link error",
+      "sourceArea": "share",
+      "trigger": {
+        "action": "navigate",
+        "element": "URL without token or with invalid token",
+        "fromState": null
+      },
+      "description": "When a share link is accessed without a valid token, or when the token is expired/invalid, displays the ShareError component with type='invalid-link'. Shows an icon, error title, description, and a button to go back to home.",
+      "regions": {
+        "main": {
+          "interactives": [
+            {
+              "tag": "a",
+              "role": "link",
+              "text": "返回首页",
+              "testId": null,
+              "ariaLabel": null,
+              "href": "/",
+              "locatorHint": "getByRole('link', { name: '返回首页' })",
+              "i18nKey": "share.backToHome",
+              "description": "Button (rendered as link) to navigate back to homepage"
+            }
+          ],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "链接无效",
+              "i18nKey": "share.invalidLink",
+              "locatorHint": "getByRole('heading', { name: '链接无效' })"
+            }
+          ],
+          "staticElements": [
+            {
+              "tag": "p",
+              "text": "抱歉，此分享链接无效或已过期。",
+              "i18nKey": "share.invalidLinkDescription",
+              "locatorHint": "getByText('抱歉，此分享链接无效或已过期。')"
+            },
+            {
+              "tag": "div",
+              "description": "Icon container with LinkIcon from lucide-react",
+              "locatorHint": "locator('.bg-muted svg')"
+            }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+
+    "S2_not_found": {
+      "name": "Task not found error",
+      "sourceArea": "share",
+      "trigger": {
+        "action": "navigate",
+        "element": "URL with token but non-existent task ID",
+        "fromState": null
+      },
+      "description": "When the share link points to a task that doesn't exist or has been deleted, displays the ShareError component with type='not-found'. Shows AlertCircle icon, error title, description, and a button to go back to home.",
+      "regions": {
+        "main": {
+          "interactives": [
+            {
+              "tag": "a",
+              "role": "link",
+              "text": "返回首页",
+              "testId": null,
+              "ariaLabel": null,
+              "href": "/",
+              "locatorHint": "getByRole('link', { name: '返回首页' })",
+              "i18nKey": "share.backToHome",
+              "description": "Button (rendered as link) to navigate back to homepage"
+            }
+          ],
+          "headings": [
+            {
+              "level": "h1",
+              "text": "会话不存在",
+              "i18nKey": "share.notFound",
+              "locatorHint": "getByRole('heading', { name: '会话不存在' })"
+            }
+          ],
+          "staticElements": [
+            {
+              "tag": "p",
+              "text": "抱歉，您访问的会话不存在或已被删除。",
+              "i18nKey": "share.notFoundDescription",
+              "locatorHint": "getByText('抱歉，您访问的会话不存在或已被删除。')"
+            },
+            {
+              "tag": "div",
+              "description": "Icon container with AlertCircle from lucide-react",
+              "locatorHint": "locator('.bg-muted svg')"
+            }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      {
+        "from": "S1_invalid_link",
+        "action": "click",
+        "element": "link:返回首页",
+        "to": "external:homepage",
+        "sourceArea": "share"
+      },
+      {
+        "from": "S2_not_found",
+        "action": "click",
+        "element": "link:返回首页",
+        "to": "external:homepage",
+        "sourceArea": "share"
+      }
+    ]
+  },
+
+  "sharePageBehavior": {
+    "authRequired": false,
+    "shareTokenRequired": true,
+    "shareTokenSource": "searchParams.token",
+    "accessControl": {
+      "canView": "Requires valid shareToken verified by checkTaskAccess()",
+      "canEdit": "Only if access.canEdit is true (typically the task owner)",
+      "readOnlyIndicators": [
+        "No textarea/input area shown",
+        "No sidebar toggle button",
+        "No share button in header",
+        "No ellipsis/more options menu in header",
+        "No file viewer button in header",
+        "Task title shown as plain text (no rename button)"
+      ]
+    },
+    "editModeIndicators": [
+      "TaskInput textarea appears at bottom",
+      "Submit button appears",
+      "File attachment button appears"
+    ],
+    "layoutDifferences": {
+      "vsTaskPage": [
+        "No sidebar (SidebarProvider defaultOpen=false, no sidebar UI rendered)",
+        "Header shows Mira logo instead of SidebarTrigger",
+        "Header shows only task title (no files/share/menu buttons)",
+        "ShareClient wraps TaskContent with shareToken prop"
+      ]
+    },
+    "skeletonLoading": {
+      "component": "ShareSkeleton",
+      "description": "Shown during hydration and Suspense fallback. Mimics chat layout with header skeleton, user message skeleton, and AI response skeleton.",
+      "elements": [
+        "Logo skeleton (circle + text bar)",
+        "Title skeleton (centered bar)",
+        "User message skeleton (right-aligned bars)",
+        "AI response skeleton (left-aligned bars)"
+      ]
+    }
+  },
+
+  "i18nKeys": {
+    "namespace": "share",
+    "keys": {
+      "share.notFound": "会话不存在",
+      "share.notFoundDescription": "抱歉，您访问的会话不存在或已被删除。",
+      "share.invalidLink": "链接无效",
+      "share.invalidLinkDescription": "抱歉，此分享链接无效或已过期。",
+      "share.backToHome": "返回首页"
+    }
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name"
+  },
+
+  "conditionalRendering": [
+    {
+      "element": "ShareError (invalid-link)",
+      "condition": "!shareToken || !access.canView",
+      "description": "Shown when URL has no token or token is invalid/expired"
+    },
+    {
+      "element": "ShareError (not-found)",
+      "condition": "!taskData (task doesn't exist in DB)",
+      "description": "Shown when task ID doesn't exist or was deleted"
+    },
+    {
+      "element": "ShareSkeleton",
+      "condition": "!hydrated (before React hydration completes)",
+      "description": "Loading skeleton shown during SSR-to-client hydration"
+    },
+    {
+      "element": "TaskInput area",
+      "condition": "access.canEdit === true",
+      "description": "Input area only shown when the viewer has edit permission (typically task owner)"
+    },
+    {
+      "element": "Header right-side buttons (files, share, menu)",
+      "condition": "isShareMode === false",
+      "description": "Files viewer, share, and menu buttons are hidden in share mode"
+    },
+    {
+      "element": "SidebarTrigger",
+      "condition": "isShareMode === false",
+      "description": "Sidebar toggle is hidden in share mode"
+    },
+    {
+      "element": "Rename button on title",
+      "condition": "isShareMode === false",
+      "description": "Title rename button (PenLineIcon) hidden in share mode; title shown as plain span"
+    }
+  ],
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 4,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["error-page", "read-only-view", "skeleton-loading", "conditional-rendering"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 0.95
+  }
+}

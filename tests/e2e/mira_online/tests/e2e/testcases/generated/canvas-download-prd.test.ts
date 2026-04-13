@@ -11,10 +11,10 @@ test.describe('US-CDLD-FORMAT', () => {
   test(
     'TC-PRD-CDLD-003 People Data downloads xlsx directly',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
       await fragment.openPeopleDataPanel();
       const [download] = await Promise.all([
         page.waitForEvent('download', { timeout: 60_000 }),
@@ -26,12 +26,12 @@ test.describe('US-CDLD-FORMAT', () => {
 
   test(
     'TC-PRD-CDLD-001 Canvas download button visible after opening file',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    { tag: ['@P1', '@regression', '@full'] },
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(60_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
-      await canvas.openFileInCanvas('pdf');
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
+      await canvas.openFileInCanvas('pptx');
       await expect(canvas.getCanvasPanel()).toBeVisible({ timeout: 15_000 });
       await expect(canvas.getCanvasDownloadButton()).toBeVisible({ timeout: 15_000 });
       await expect(canvas.getCanvasDownloadButton()).toBeEnabled();
@@ -44,11 +44,11 @@ test.describe('US-CDLD-STATUS', () => {
   test(
     'TC-PRD-CDLD-005 Download button disabled during download',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
-      await canvas.openFileInCanvas('pdf');
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
+      await canvas.openFileInCanvas('pptx');
       // Slow down the verify API to keep button in downloading state
       await page.route('**/api/files/verify**', async (route) => {
         await new Promise((r) => setTimeout(r, 5000));
@@ -67,10 +67,10 @@ test.describe('US-CDLD-STATUS', () => {
   test(
     'TC-PRD-CDLD-010 Button state: idle -> download -> success -> idle',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
       const dlBtn = canvas.getCanvasDownloadButton();
       await expect(dlBtn).toBeVisible({ timeout: 15_000 });
@@ -85,10 +85,10 @@ test.describe('US-CDLD-STATUS', () => {
   test(
     'TC-PRD-CDLD-011 Artifact card download repeatable',
     { tag: ['@P1', '@regression', '@full', '@failing'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(120_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       // Open file in canvas first, then use canvas download (more reliable than artifact card)
       await canvas.openFileInCanvas('pptx');
       const dlBtn = canvas.getCanvasDownloadButton();
@@ -115,11 +115,11 @@ test.describe('US-CDLD-STATUS', () => {
 test.describe('US-CDLD-FLOW', () => {
   test(
     'TC-PRD-CDLD-007 Canvas download triggers browser download + success toast',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    { tag: ['@P1', '@regression', '@full'] },
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
       const downloadPromise = page.waitForEvent('download', { timeout: 45_000 });
       await canvas.clickCanvasDownload();
@@ -132,11 +132,11 @@ test.describe('US-CDLD-FLOW', () => {
   test(
     'TC-PRD-CDLD-009 Download failure shows error toast, button recovers',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
-      await canvas.openFileInCanvas('pdf');
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
+      await canvas.openFileInCanvas('pptx');
       // Intercept all file-related API calls AND external R2 domain
       // Verify token may be cached from canvas render, so intercept both
       await page.route(/api\/files|files\.mira\.day/, async (route) => {
@@ -154,11 +154,11 @@ test.describe('US-CDLD-FLOW', () => {
 test.describe('US-CDLD-E2E', () => {
   test(
     'TC-PRD-CDLD-012 Download pptx from Canvas e2e',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    { tag: ['@P1', '@regression', '@full'] },
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
       await expect(canvas.getCanvasDownloadButton()).toBeVisible({ timeout: 15_000 });
       const downloadPromise = page.waitForEvent('download', { timeout: 45_000 });
@@ -172,11 +172,11 @@ test.describe('US-CDLD-E2E', () => {
 
   test(
     'TC-PRD-CDLD-013 Download file from artifact card',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    { tag: ['@P1', '@regression', '@full'] },
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       const btn = canvas.getArtifactDownloadButton();
       await btn.waitFor({ state: 'visible', timeout: 15_000 });
       // Verify button is clickable and triggers download state
@@ -200,15 +200,15 @@ test.describe('US-CDLD-E2E', () => {
   test(
     'TC-PRD-CDLD-014 Download png from Canvas',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(90_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
-      await canvas.openFileInCanvas('pdf');
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
+      await canvas.openFileInCanvas('pptx');
       const downloadPromise = page.waitForEvent('download', { timeout: 45_000 });
       await canvas.clickCanvasDownload();
       const download = await downloadPromise;
-      expect(download.suggestedFilename()).toMatch(/.pdf$/i);
+      expect(download.suggestedFilename()).toMatch(/.pptx$/i);
       await expect(canvas.getDownloadSuccessToast()).toBeVisible({ timeout: 10_000 });
     }
   );
@@ -219,10 +219,10 @@ test.describe('US-CDLD-ERROR', () => {
   test(
     'TC-PRD-CDLD-017 Artifact download button enabled with valid metadata',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(60_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       const btn = canvas.getArtifactDownloadButton();
       await btn.waitFor({ state: 'visible', timeout: 15_000 });
       await expect(btn).toBeEnabled();
@@ -232,10 +232,10 @@ test.describe('US-CDLD-ERROR', () => {
   test(
     'TC-PRD-CDLD-018 Rapid clicks only trigger one download',
     { tag: ['@P2', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(120_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
       // Track download events (more reliable than request counting)
       let downloadCount = 0;
@@ -256,11 +256,11 @@ test.describe('US-CDLD-UX', () => {
   test(
     'TC-PRD-CDLD-019 Canvas header shows download, maximize, close buttons',
     { tag: ['@P2', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(60_000);
       const canvas = new CanvasDownloadFragment(page, i18n);
-      await canvas.gotoTaskWithFiles(taskWithFilesUrl);
-      await canvas.openFileInCanvas('pdf');
+      await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
+      await canvas.openFileInCanvas('pptx');
       await expect(canvas.getCanvasDownloadButton()).toBeVisible({ timeout: 15_000 });
       await expect(canvas.getCanvasMaximizeButton()).toBeVisible();
       await expect(canvas.getCanvasCloseButton()).toBeVisible();

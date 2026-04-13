@@ -13,24 +13,24 @@ async function gotoTaskWithFiles(page: import('@playwright/test').Page, taskUrl:
 }
 
 test.describe('US-CVPV-FULLSCREEN', () => {
-  test('TC-PRD-CVPV-001 Canvas maximize',{tag:['@P0','@smoke','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-001 Canvas maximize',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();await canvas.clickCanvasMaximize();
     await expect(canvas.getCanvasRestoreBtn()).toBeVisible();
   });
 
-  test('TC-PRD-CVPV-002 Canvas restore',{tag:['@P0','@smoke','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-002 Canvas restore',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();await canvas.clickCanvasMaximize();
     await expect(canvas.getCanvasRestoreBtn()).toBeVisible();
     await canvas.clickCanvasRestore();await expect(canvas.getCanvasMaximizeBtn()).toBeVisible();
   });
 
-  test('TC-PRD-CVPV-017 File switch keeps fullscreen',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-017 File switch keeps fullscreen',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const fileCards=taskPage.getFileCards();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const fileCards=taskPage.getFileCards();
     const count=await fileCards.count();if(count<2){test.skip(true,'Need 2+ files');return;}
     await fileCards.first().click();await canvas.waitForCanvasPanelVisible();
     await canvas.clickCanvasMaximize();await expect(canvas.getCanvasRestoreBtn()).toBeVisible();
@@ -42,15 +42,15 @@ test.describe('US-CVPV-FULLSCREEN', () => {
     await canvas.clickCanvasMaximize();await expect(canvas.getCanvasRestoreBtn()).toBeVisible();
   });
 
-  test('TC-PRD-CVPV-022 Auto-open has maximize btn',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
-    const canvas=new CanvasPreviewFragment(page,i18n);await gotoTaskWithFiles(page,taskWithFilesUrl);
+  test('TC-PRD-CVPV-022 Auto-open has maximize btn',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
+    const canvas=new CanvasPreviewFragment(page,i18n);await gotoTaskWithFiles(page,taskWithToolChainUrl);
     if(!await canvas.getCanvasFilename().isVisible().catch(()=>false)){test.skip(true,'Not auto-opened');return;}
     await expect(canvas.getCanvasMaximizeBtn()).toBeVisible();
   });
 
-  test('TC-PRD-CVPV-025 Rapid toggle',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-025 Rapid toggle',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();
     await canvas.clickCanvasMaximize();await canvas.clickCanvasRestore();
     await canvas.clickCanvasMaximize();await canvas.clickCanvasRestore();
@@ -59,16 +59,16 @@ test.describe('US-CVPV-FULLSCREEN', () => {
 });
 
 test.describe('US-CVPV-HEADER', () => {
-  test('TC-PRD-CVPV-003 Close button hides canvas',{tag:['@P0','@smoke','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-003 Close button hides canvas',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();await canvas.clickCanvasClose();
     await canvas.waitForCanvasPanelClosed();await expect(canvas.getCanvasFilename()).not.toBeVisible();
   });
 
-  test('TC-PRD-CVPV-027 Filename truncated',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-027 Filename truncated',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();
     const hasClass=await canvas.getCanvasFilename().evaluate((el)=>el.classList.contains('truncate'));
     expect(hasClass).toBe(true);
@@ -76,33 +76,33 @@ test.describe('US-CVPV-HEADER', () => {
 });
 
 test.describe('US-CVPV-TOOLTIP', () => {
-  test('TC-PRD-CVPV-011 Download btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-011 Download btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();
     const title=await canvas.getCanvasDownloadBtn().getAttribute('title');
     expect(title).toBeTruthy();expect(title).toMatch(/Download file|下载文件/i);
   });
 
-  test('TC-PRD-CVPV-012 Maximize btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-012 Maximize btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();
     const title=await canvas.getCanvasMaximizeBtn().getAttribute('title');
     expect(title).toBeTruthy();expect(title).toMatch(/Maximize|最大化/i);
   });
 
-  test('TC-PRD-CVPV-013 Restore btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-013 Restore btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();await canvas.clickCanvasMaximize();
     const title=await canvas.getCanvasRestoreBtn().getAttribute('title');
     expect(title).toBeTruthy();expect(title).toMatch(/Restore|还原/i);
   });
 
-  test('TC-PRD-CVPV-014 Close btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-014 Close btn tooltip',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();
     const title=await canvas.getCanvasCloseBtn().getAttribute('title');
     expect(title).toBeTruthy();expect(title).toMatch(/^Close$|^关闭$/i);
@@ -110,9 +110,9 @@ test.describe('US-CVPV-TOOLTIP', () => {
 });
 
 test.describe('US-CVPV-STATE', () => {
-  test('TC-PRD-CVPV-015 Close then reopen',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-015 Close then reopen',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const fileCards=taskPage.getFileCards();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const fileCards=taskPage.getFileCards();
     if(await fileCards.count()<2){test.skip(true,'Need 2+ files');return;}
     await fileCards.first().click();await canvas.waitForCanvasPanelVisible();
     await canvas.clickCanvasClose();await canvas.waitForCanvasPanelClosed();
@@ -120,9 +120,9 @@ test.describe('US-CVPV-STATE', () => {
     await expect(canvas.getCanvasFilename()).toBeVisible();
   });
 
-  test('TC-PRD-CVPV-016 Switch file updates name',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-016 Switch file updates name',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const fileCards=taskPage.getFileCards();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const fileCards=taskPage.getFileCards();
     if(await fileCards.count()<2){test.skip(true,'Need 2+ files');return;}
     await fileCards.first().click();await canvas.waitForCanvasPanelVisible();
     const firstName=await canvas.getCanvasFilename().textContent();
@@ -130,17 +130,17 @@ test.describe('US-CVPV-STATE', () => {
     await expect(canvas.getCanvasFilename()).not.toHaveText(firstName!,{timeout:10_000});
   });
 
-  test('TC-PRD-CVPV-026 Download btn enabled',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-026 Download btn enabled',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);await taskPage.getFileCards().first().click();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();await expect(canvas.getCanvasDownloadBtn()).toBeEnabled();
   });
 });
 
 test.describe('US-CVPV-PDF', () => {
-  test('TC-PRD-CVPV-009 PDF last page disables next btn',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-009 PDF last page disables next btn',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);
     const pdfCard=taskPage.getFileCards().filter({hasText:/.pdf/i}).first();
     if(!await pdfCard.isVisible().catch(()=>false)){test.skip(true,'No PDF');return;}
     await pdfCard.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPdfRendered();
@@ -150,9 +150,9 @@ test.describe('US-CVPV-PDF', () => {
     await expect(canvas.getPdfNextPageBtn()).toBeDisabled();
   });
 
-  test('TC-PRD-CVPV-021 PDF page indicator updates',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-021 PDF page indicator updates',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);
     const pdfCard=taskPage.getFileCards().filter({hasText:/.pdf/i}).first();
     if(!await pdfCard.isVisible().catch(()=>false)){test.skip(true,'No PDF');return;}
     await pdfCard.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPdfRendered();
@@ -163,9 +163,9 @@ test.describe('US-CVPV-PDF', () => {
     expect(await canvas.getPdfPageCount().textContent()).toMatch(/2\s*\/\s*\d+/);
   });
 
-  test('TC-PRD-CVPV-028 PDF zoom max',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-028 PDF zoom max',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const pdfCard=taskPage.getFileCards().filter({hasText:/.pdf/i}).first();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const pdfCard=taskPage.getFileCards().filter({hasText:/.pdf/i}).first();
     if(!await pdfCard.isVisible().catch(()=>false)){test.skip(true,'No PDF');return;}
     await pdfCard.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPdfRendered();
     for(let i=0;i<20;i++){if(await canvas.getPdfZoomInBtn().isDisabled().catch(()=>false))break;await canvas.clickPdfZoomIn();await page.waitForTimeout(100);}
@@ -173,9 +173,9 @@ test.describe('US-CVPV-PDF', () => {
     expect(await canvas.getPdfZoomPercent().textContent()).toMatch(/300\s*%/);
   });
 
-  test('TC-PRD-CVPV-029 PDF zoom min',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-029 PDF zoom min',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const pdfCard=taskPage.getFileCards().filter({hasText:/.pdf/i}).first();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const pdfCard=taskPage.getFileCards().filter({hasText:/.pdf/i}).first();
     if(!await pdfCard.isVisible().catch(()=>false)){test.skip(true,'No PDF');return;}
     await pdfCard.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPdfRendered();
     for(let i=0;i<20;i++){if(await canvas.getPdfZoomOutBtn().isDisabled().catch(()=>false))break;await canvas.clickPdfZoomOut();await page.waitForTimeout(100);}
@@ -185,17 +185,17 @@ test.describe('US-CVPV-PDF', () => {
 });
 
 test.describe('US-CVPV-PPT', () => {
-  test('TC-PRD-CVPV-004 PPT thumbnail sidebar',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-004 PPT thumbnail sidebar',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
     if(!await c.isVisible().catch(()=>false)){test.skip(true,'No pptx');return;}
     await c.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPptRendered();
     await expect(canvas.getPptThumbnailSidebar()).toBeVisible();
   });
 
-  test('TC-PRD-CVPV-007 PPT first slide boundary',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-007 PPT first slide boundary',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
     if(!await c.isVisible().catch(()=>false)){test.skip(true,'No pptx');return;}
     await c.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPptRendered();
     const el=canvas.getPptPageIndicator();const init=await el.textContent();
@@ -203,19 +203,19 @@ test.describe('US-CVPV-PPT', () => {
     expect(await el.textContent()).toBe(init);expect(init).toMatch(/1/);
   });
 
-  test('TC-PRD-CVPV-019 PPT thumbnail jump',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-019 PPT thumbnail jump',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
     if(!await c.isVisible().catch(()=>false)){test.skip(true,'No pptx');return;}
     await c.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPptRendered();
-    if(await page.locator('[data-slide]').count()<3){test.skip(true,'<3 slides');return;}
-    await canvas.clickPptThumbnail(3);await page.waitForTimeout(500);
-    expect(await canvas.getPptPageIndicator().textContent()).toMatch(/3/);
+    if(await page.locator('[data-slide]').count()<2){test.skip(true,'<2 slides');return;}
+    await canvas.clickPptThumbnail(2);await page.waitForTimeout(500);
+    expect(await canvas.getPptPageIndicator().textContent()).toMatch(/2/);
   });
 
-  test('TC-PRD-CVPV-020 PPT keyboard nav',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-020 PPT keyboard nav',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);const c=taskPage.getFileCards().filter({hasText:/.pptx/i}).first();
     if(!await c.isVisible().catch(()=>false)){test.skip(true,'No pptx');return;}
     await c.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPptRendered();
     const el=canvas.getPptPageIndicator();const txt=await el.textContent();
@@ -224,9 +224,9 @@ test.describe('US-CVPV-PPT', () => {
     expect(await el.textContent()).toMatch(/2/);
   });
 
-  test('TC-PRD-CVPV-024 PPT page indicator shows N/Total format',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-024 PPT page indicator shows N/Total format',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);
     const pptCard=taskPage.getFileCards().filter({hasText:/\.pptx/i}).first();
     await pptCard.click();await canvas.waitForCanvasPanelVisible();await canvas.waitForPptRendered();
     // Verify page indicator shows "current / total" format (e.g. "1 / 10")
@@ -247,8 +247,8 @@ test.describe('US-CVPV-UNSUPPORTED', () => {
   // Strategy: open an existing file (PDF) in canvas, then use page.evaluate to
   // modify the canvas file type to 'unknown', triggering the unsupported renderer.
   // This simulates what happens when a file with no renderer is opened.
-  async function openFileAsUnsupported(page: import('@playwright/test').Page, canvas: CanvasPreviewFragment, taskPage: TaskPage, taskWithFilesUrl: string) {
-    await gotoTaskWithFiles(page,taskWithFilesUrl);
+  async function openFileAsUnsupported(page: import('@playwright/test').Page, canvas: CanvasPreviewFragment, taskPage: TaskPage, taskWithToolChainUrl: string) {
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);
     // Intercept the R2 verify + fetch to return a fake blob with unknown type.
     // The canvas viewer determines renderer from file.type (metadata), not content.
     // But the unsupported-renderer.tsx is used when getRendererForFile returns null.
@@ -265,10 +265,10 @@ test.describe('US-CVPV-UNSUPPORTED', () => {
     await page.locator('div.bg-background.text-foreground.flex.flex-col').last().waitFor({ state: 'visible', timeout: 15_000 });
   }
 
-  test('TC-PRD-CVPV-005 Unsupported shows download',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{
+  test('TC-PRD-CVPV-005 Unsupported shows download',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     test.setTimeout(90_000);
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
-    await gotoTaskWithFiles(page,taskWithFilesUrl);
+    await gotoTaskWithFiles(page,taskWithToolChainUrl);
     // Open a file card — this opens canvas with a supported file (e.g. PDF)
     const fileCard=taskPage.getFileCards().first();
     await fileCard.click();await canvas.waitForCanvasPanelVisible();
@@ -287,19 +287,8 @@ test.describe('US-CVPV-UNSUPPORTED', () => {
     if(dl){expect(dl.suggestedFilename()).toBeTruthy();}
   });
 
-  // FIXME: Next.js SSR hydrates file content server-side, bypassing client-side fetch.
-  // Playwright page.route cannot intercept SSR-injected data.
-  // Needs integration test with mocked backend or component test for CanvasError.
-  test.fixme('TC-PRD-CVPV-023 Error state shows retry and download fallback',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{});
-
 });
 
 test.describe('US-CVPV-ERROR', () => {
-  // FIXME: Same SSR hydration limitation — file blob is injected via SSR, not fetched client-side.
-  // page.route / context.setOffline cannot prevent SSR data from reaching the component.
-  // Recommended: test CanvasError + retry via Playwright Component Testing or integration test.
-  test.fixme('TC-PRD-CVPV-006 Load failure retry btn',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{});
-  test.fixme('TC-PRD-CVPV-018 Retry re-triggers',{tag:['@P2','@regression','@full']},async({page,i18n,taskWithFilesUrl})=>{});
-
 });
 

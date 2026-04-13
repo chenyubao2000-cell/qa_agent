@@ -35,8 +35,8 @@ export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 60_000,
   fullyParallel: true,
-  retries: 1,
-  workers: 4,
+  retries: process.env.CI ? 1 : 0,
+  workers: 1,
   outputDir: "./test-results",
   reporter: [
     ["json", { outputFile: "tests/reports/playwright-results.json" }],
@@ -53,6 +53,8 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "retain-on-failure",
+    // Use real Chrome instead of Chromium to bypass Cloudflare bot detection
+    channel: "chrome",
   },
   projects: [
     ...(hasAuth ? [{ name: 'setup', testMatch: /auth\.setup\.ts/ }] : []),

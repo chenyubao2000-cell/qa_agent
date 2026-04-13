@@ -35,9 +35,9 @@ test.describe.skip('US-PREVIEW-01 · 文件网格显示', () => {
   test(
     'TC-CDP-FP-001 任务完成后显示文件卡片网格',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       // Verify file cards exist
       const fileCards = taskPage.getFileCards();
@@ -50,9 +50,9 @@ test.describe.skip('US-PREVIEW-01 · 文件网格显示', () => {
   test(
     'TC-CDP-FP-002 每个文件卡片显示文件名和下载按钮',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       // Check a specific file card has download button
       const txtCard = taskPage.getFileCardByName('sample.txt');
@@ -66,9 +66,9 @@ test.describe.skip('US-PREVIEW-01 · 文件网格显示', () => {
   test(
     'TC-CDP-FP-003 文件卡片显示正确的文件类型标签',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       // Verify file cards exist with expected filenames
       await expect(taskPage.getFileCardByName('sample.txt')).toBeVisible();
@@ -86,9 +86,9 @@ test.describe.skip('US-PREVIEW-02 · 文本文件预览', () => {
   test(
     'TC-CDP-FP-004 点击 sample.txt 打开文本预览面板',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.txt');
       await page.waitForTimeout(1000);
@@ -103,9 +103,9 @@ test.describe.skip('US-PREVIEW-02 · 文本文件预览', () => {
   test(
     'TC-CDP-FP-005 点击 sample.json 打开文本预览面板',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.json');
       await page.waitForTimeout(1000);
@@ -117,9 +117,9 @@ test.describe.skip('US-PREVIEW-02 · 文本文件预览', () => {
   test(
     'TC-CDP-FP-006 点击 sample.md 打开文本预览面板',
     { tag: ['@P2', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.md');
       await page.waitForTimeout(1000);
@@ -136,9 +136,9 @@ test.describe.skip('US-PREVIEW-03 · 表格文件预览', () => {
   test(
     'TC-CDP-FP-007 点击 sample.xlsx 打开电子表格预览',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.xlsx');
       await page.waitForTimeout(2000);
@@ -153,9 +153,9 @@ test.describe.skip('US-PREVIEW-03 · 表格文件预览', () => {
   test(
     'TC-CDP-FP-008 点击 sample.csv 打开电子表格预览',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.csv');
       await page.waitForTimeout(2000);
@@ -173,9 +173,9 @@ test.describe.skip('US-PREVIEW-04 · PDF 文件预览', () => {
   test(
     'TC-CDP-FP-009 点击 sample.pdf 打开 PDF 预览（含页码导航）',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.pdf');
       await page.waitForTimeout(2000);
@@ -194,9 +194,9 @@ test.describe.skip('US-PREVIEW-05 · 图片文件预览', () => {
   test(
     'TC-CDP-FP-010 点击 sample.png 打开图片预览（含缩放控件）',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.png');
       await page.waitForTimeout(1000);
@@ -210,9 +210,9 @@ test.describe.skip('US-PREVIEW-05 · 图片文件预览', () => {
   test(
     'TC-CDP-FP-011 点击 sample.jpg 打开图片预览',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.jpg');
       await page.waitForTimeout(1000);
@@ -226,9 +226,9 @@ test.describe.skip('US-PREVIEW-05 · 图片文件预览', () => {
   test(
     'TC-CDP-FP-012 图片预览面板包含重置按钮',
     { tag: ['@P2', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.png');
       await page.waitForTimeout(1000);
@@ -246,9 +246,9 @@ test.describe.skip('US-PREVIEW-06 · Word 文档预览', () => {
   test(
     'TC-CDP-FP-013 点击 sample.docx 打开文档预览（渲染格式化内容）',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.docx');
       await page.waitForTimeout(2000);
@@ -267,9 +267,9 @@ test.describe.skip('US-PREVIEW-07 · 不支持预览的文件类型', () => {
   test(
     'TC-CDP-FP-014 点击 sample.pptx 显示"暂不支持在线预览"提示',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       await taskPage.clickFileCard('sample.pptx');
       await page.waitForTimeout(1000);
@@ -290,9 +290,9 @@ test.describe.skip('US-PREVIEW-08 · 预览面板交互', () => {
   test(
     'TC-CDP-FP-015 预览面板关闭按钮可正常关闭面板',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       // Open preview
       await taskPage.clickFileCard('sample.txt');
@@ -312,9 +312,9 @@ test.describe.skip('US-PREVIEW-08 · 预览面板交互', () => {
   test(
     'TC-CDP-FP-016 点击不同文件卡片可切换预览内容',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       // Open txt preview
       await taskPage.clickFileCard('sample.txt');
@@ -332,9 +332,9 @@ test.describe.skip('US-PREVIEW-08 · 预览面板交互', () => {
   test(
     'TC-CDP-FP-017 人才数据卡片点击打开工作区面板显示候选人列表',
     { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithFilesUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const taskPage = new TaskPage(page, i18n);
-      await gotoTaskWithFiles(taskPage, page, taskWithFilesUrl);
+      await gotoTaskWithFiles(taskPage, page, taskWithToolChainUrl);
 
       // Click the talent data card
       const talentCard = taskPage.getFileCards().filter({ hasText: /人才数据|10 人/ }).first();

@@ -1,0 +1,173 @@
+[
+  {
+    "id": "TC-BR-AIE-001",
+    "storyId": "US-AIE-CONVERSATION",
+    "title": "已完成任务页面显示用户消息和助手消息",
+    "priority": "P0",
+    "preconditions": ["用户已登录", "导航至一个已完成的任务页面"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "conversationLog", "role": "log", "action": "none", "locatorHint": "page.getByRole('log')" },
+      { "name": "userMessage", "role": "group", "action": "none", "locatorHint": "page.locator('.is-user.group')" },
+      { "name": "assistantMessage", "role": "group", "action": "none", "locatorHint": "page.locator('.is-assistant.group')" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "log", "locatorHint": "page.getByRole('log')", "expected": null },
+      { "type": "count", "selector": "user-message", "locatorHint": "page.locator('.is-user.group')", "expected": ">0" },
+      { "type": "count", "selector": "assistant-message", "locatorHint": "page.locator('.is-assistant.group')", "expected": ">0" },
+      { "type": "visible", "selector": "assistant-label", "locatorHint": "page.locator('.is-assistant.group').first().locator('span').filter({ hasText: /^Mira$/ })", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-BR-AIE-002",
+    "storyId": "US-AIE-CODEBLOCK",
+    "title": "助手消息中的代码块正确渲染（含 data-language 属性和语法高亮）",
+    "priority": "P0",
+    "preconditions": ["用户已登录", "导航至含代码输出的已完成任务页面"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "codeBlockContainer", "role": "widget", "action": "none", "locatorHint": "page.locator('[data-language]')" },
+      { "name": "codeBlockPre", "role": "code", "action": "none", "locatorHint": "page.locator('[data-language] pre')" },
+      { "name": "codeBlockCode", "role": "code", "action": "none", "locatorHint": "page.locator('[data-language] pre code')" },
+      { "name": "codeBlockHeader", "role": "banner", "action": "none", "locatorHint": "page.locator('[data-language]').first().locator('.border-b')" },
+      { "name": "copyButton", "role": "button", "action": "none", "locatorHint": "page.locator('[data-language]').first().getByRole('button')" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "codeblock-container", "locatorHint": "page.locator('[data-language]')", "expected": ">0" },
+      { "type": "visible", "selector": "codeblock-pre", "locatorHint": "page.locator('[data-language]').first().locator('pre')", "expected": null },
+      { "type": "visible", "selector": "codeblock-code", "locatorHint": "page.locator('[data-language]').first().locator('pre code')", "expected": null },
+      { "type": "visible", "selector": "codeblock-header", "locatorHint": "page.locator('[data-language]').first().locator('.border-b')", "expected": null },
+      { "type": "visible", "selector": "copy-button", "locatorHint": "page.locator('[data-language]').first().getByRole('button')", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-BR-AIE-003",
+    "storyId": "US-AIE-CODEBLOCK",
+    "title": "代码块复制按钮点击后图标切换为 CheckIcon",
+    "priority": "P1",
+    "preconditions": ["用户已登录", "导航至含代码块的已完成任务"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "copyButton", "role": "button", "action": "click", "locatorHint": "page.locator('[data-language]').first().getByRole('button')" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "copy-button", "locatorHint": "page.locator('[data-language]').first().getByRole('button')", "expected": null },
+      { "type": "custom", "description": "点击复制按钮后 SVG 图标变化（CopyIcon → CheckIcon）" }
+    ]
+  },
+  {
+    "id": "TC-BR-AIE-004",
+    "storyId": "US-AIE-WORKSPACE",
+    "title": "点击工具卡片打开工作区面板并显示代码查看器",
+    "priority": "P0",
+    "preconditions": ["用户已登录", "导航至含工具调用的已完成任务页面"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "toolCard", "role": "widget", "action": "click", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer')" },
+      { "name": "workspaceHeading", "role": "heading", "action": "none", "locatorHint": "page.getByRole('heading', { name: 'Mira 的工作区' })", "i18nKey": "workspace.title" },
+      { "name": "codeViewer", "role": "code", "action": "none", "locatorHint": "page.locator('pre.shiki')" },
+      { "name": "timelineSlider", "role": "slider", "action": "none", "locatorHint": "page.getByRole('slider')" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "locatorHint": "page.getByRole('heading', { name: 'Mira 的工作区' })", "expected": null, "i18nKey": "workspace.title" },
+      { "type": "visible", "selector": "code-viewer", "locatorHint": "page.locator('pre.shiki')", "expected": null },
+      { "type": "visible", "selector": "slider", "locatorHint": "page.getByRole('slider')", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-BR-AIE-005",
+    "storyId": "US-AIE-WORKSPACE",
+    "title": "工作区面板打开后关闭恢复到对话视图",
+    "priority": "P1",
+    "preconditions": ["用户已登录", "导航至含工具调用的已完成任务页面"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "toolCard", "role": "widget", "action": "click", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer')" },
+      { "name": "closeButton", "role": "button", "action": "click", "locatorHint": "workspace panel close button" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "locatorHint": "page.getByRole('heading', { name: 'Mira 的工作区' })", "expected": null, "i18nKey": "workspace.title" },
+      { "type": "hidden", "selector": "heading-after-close", "locatorHint": "page.getByRole('heading', { name: 'Mira 的工作区' })", "expected": null, "i18nKey": "workspace.title" }
+    ]
+  },
+  {
+    "id": "TC-BR-AIE-006",
+    "storyId": "US-AIE-SCENARIO",
+    "title": "完整的任务对话浏览场景——查看消息、代码块、工具卡片、完成状态",
+    "priority": "P0",
+    "preconditions": ["用户已登录", "导航至含代码执行工具调用的已完成任务页面"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "conversationLog", "role": "log", "action": "none", "locatorHint": "page.getByRole('log')" },
+      { "name": "userMessage", "role": "group", "action": "none", "locatorHint": "page.locator('.is-user.group')" },
+      { "name": "assistantMessage", "role": "group", "action": "none", "locatorHint": "page.locator('.is-assistant.group')" },
+      { "name": "toolCard", "role": "widget", "action": "click", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer')" },
+      { "name": "completedIndicator", "role": "status", "action": "none", "locatorHint": "page.locator('div').filter({ hasText: /^任务已完成$/ })", "i18nKey": "task.completed" },
+      { "name": "workspaceHeading", "role": "heading", "action": "none", "locatorHint": "page.getByRole('heading', { name: 'Mira 的工作区' })", "i18nKey": "workspace.title" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "log", "locatorHint": "page.getByRole('log')", "expected": null },
+      { "type": "count", "selector": "user-message", "locatorHint": "page.locator('.is-user.group')", "expected": ">0" },
+      { "type": "visible", "selector": "mira-label", "locatorHint": "page.locator('.is-assistant.group').first().locator('span').filter({ hasText: /^Mira$/ })", "expected": null },
+      { "type": "visible", "selector": "tool-card", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer').first()", "expected": null },
+      { "type": "visible", "selector": "completed", "locatorHint": "page.getByText('任务已完成')", "expected": null, "i18nKey": "task.completed" },
+      { "type": "visible", "selector": "workspace-heading", "locatorHint": "page.getByRole('heading', { name: 'Mira 的工作区' })", "expected": null, "i18nKey": "workspace.title" }
+    ]
+  },
+  {
+    "id": "TC-BR-AIE-007",
+    "storyId": "US-AIE-TOOLCARD",
+    "title": "工具卡片工具名和描述文本正确显示",
+    "priority": "P1",
+    "preconditions": ["用户已登录", "导航至含工具调用的已完成任务页面"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "toolCardTitle", "role": "text", "action": "none", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer').first().locator('.shrink-0.font-medium')" },
+      { "name": "toolCardDescription", "role": "text", "action": "none", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer').first().locator('.text-muted-foreground')" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "tool-title", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer').first().locator('.shrink-0.font-medium')", "expected": null },
+      { "type": "text", "selector": "tool-title", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer').first().locator('.shrink-0.font-medium')", "expected": "/.+/" },
+      { "type": "visible", "selector": "tool-description", "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer').first().locator('.text-muted-foreground')", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-BR-AIE-008",
+    "storyId": "US-AIE-WORKSPACE",
+    "title": "工作区面板时间线滑块可见且可交互",
+    "priority": "P2",
+    "preconditions": ["用户已登录", "工作区面板已打开"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoTaskWithAI" },
+      { "type": "ui", "action": "click", "pomMethod": "clickToolCard" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "timelineSlider", "role": "slider", "action": "none", "locatorHint": "page.getByRole('slider')" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "slider", "locatorHint": "page.getByRole('slider')", "expected": null }
+    ]
+  }
+]

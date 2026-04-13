@@ -23,7 +23,7 @@ async function createAuthenticatedPage(browser: import('@playwright/test').Brows
 test.describe('US-SIDEBAR-01 · 侧边栏可见性控制', () => {
   test(
     'TC-CDP-SB-001 侧边栏展开状态下点击 Toggle 折叠侧边栏',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    { tag: ['@P1', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();
@@ -37,7 +37,7 @@ test.describe('US-SIDEBAR-01 · 侧边栏可见性控制', () => {
 
   test(
     'TC-CDP-SB-002 侧边栏折叠状态下点击 Toggle 展开侧边栏',
-    { tag: ['@P0', '@smoke', '@regression', '@full', '@failing'] },
+    { tag: ['@P1', '@regression', '@full', '@failing'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();
@@ -115,7 +115,7 @@ test.describe('US-SIDEBAR-02 · 任务列表区块折叠', () => {
 test.describe('US-SIDEBAR-03 · 任务右键菜单', () => {
   test(
     'TC-CDP-SB-007 点击任务 More 按钮打开右键菜单并显示三个操作项',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    { tag: ['@P1', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();
@@ -158,7 +158,7 @@ test.describe('US-SIDEBAR-03 · 任务右键菜单', () => {
 test.describe('US-SIDEBAR-04 · 分享弹窗', () => {
   test(
     'TC-CDP-SB-010 从 S3 点击"分享"打开分享弹窗（S8）',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    { tag: ['@P1', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();
@@ -236,7 +236,7 @@ test.describe.serial('US-SIDEBAR-05 · 重命名弹窗', () => {
 
   test(
     'TC-CDP-SB-012 从 S3 点击"重命名"打开重命名弹窗（S9）',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    { tag: ['@P1', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();
@@ -353,7 +353,7 @@ test.describe.serial('US-SIDEBAR-05 · 重命名弹窗', () => {
 
   test(
     'TC-CDP-SB-014 重命名任务输入新名称后点击"保存"更新任务名',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    { tag: ['@P1', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();
@@ -441,7 +441,7 @@ test.describe.serial('US-SIDEBAR-06 · 删除弹窗', () => {
 
   test(
     'TC-CDP-SB-015 从 S3 点击"删除"打开删除确认弹窗（S10）',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    { tag: ['@P1', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();
@@ -498,7 +498,7 @@ test.describe.serial('US-SIDEBAR-06 · 删除弹窗', () => {
 
   test(
     'TC-CDP-SB-016 删除确认弹窗点击"删除"后任务从列表移除',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    { tag: ['@P1', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();

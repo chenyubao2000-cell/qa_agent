@@ -46,7 +46,7 @@ test.describe('US-TASK-INPUT · Chat Input Area', () => {
 });
 
 test.describe('US-TASK-SIDEBAR · Sidebar Navigation', () => {
-  test('TC-CDP-TASK-004 点击 Toggle Sidebar 折叠侧边栏', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-TASK-004 点击 Toggle Sidebar 折叠侧边栏', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
     const taskPage = new TaskPage(page, i18n);
     await taskPage.goto();
     await taskPage.ensureSidebarExpanded();
@@ -56,7 +56,7 @@ test.describe('US-TASK-SIDEBAR · Sidebar Navigation', () => {
     await expect(taskPage.getTasksSectionButton()).toBeHidden();
   });
 
-  test('TC-CDP-TASK-005 折叠后再次点击展开侧边栏', { tag: ['@P0', '@smoke', '@regression', '@full', '@failing'] }, async ({ page, i18n }) => {
+  test('TC-CDP-TASK-005 折叠后再次点击展开侧边栏', { tag: ['@P1', '@regression', '@full', '@failing'] }, async ({ page, i18n }) => {
     const taskPage = new TaskPage(page, i18n);
     await taskPage.goto();
 

@@ -178,4 +178,14 @@ export class TalentListPage {
   async waitForFullscreenPanel(): Promise<void> {
     await this.restoreBtn.waitFor({ state: 'visible', timeout: 10_000 });
   }
+
+  /**
+   * On narrow viewports (< ~782px), clicking a card opens the panel directly
+   * in fullscreen mode — no side-panel step, no "最大化" button.
+   * Waits for the fixed fullscreen overlay to appear (grid container visible).
+   */
+  async waitForFullscreenPanelOrDirect(): Promise<void> {
+    await this.page.locator('.fixed.inset-0 [class*="grid-cols"]')
+      .first().waitFor({ state: 'visible', timeout: 15_000 });
+  }
 }

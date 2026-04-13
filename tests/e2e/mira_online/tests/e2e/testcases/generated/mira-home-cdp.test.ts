@@ -10,7 +10,7 @@ import { MiraHomePage } from '../../pages/mira-home.page';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('[CDP] Mira Homepage', () => {
-  test('TC-CDP-HOME-001 首页核心功能展示完整：Hero + 核心 tab + 功能卡片 + 底部 CTA', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-HOME-001 首页核心功能展示完整：Hero + 核心 tab + 功能卡片 + 底部 CTA', { tag: ['@P2', '@full'] }, async ({ page, i18n }) => {
     const home = new MiraHomePage(page, i18n);
     await home.goto();
 
@@ -38,7 +38,7 @@ test.describe('[CDP] Mira Homepage', () => {
     await expect(home.getBottomCtaLink()).toBeVisible();
   });
 
-  test('TC-CDP-HOME-002 导航"登录"链接跳转到 /task', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-HOME-002 导航"登录"链接跳转到 /task', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
     const home = new MiraHomePage(page, i18n);
     await home.goto();
 
@@ -46,7 +46,7 @@ test.describe('[CDP] Mira Homepage', () => {
     await expect(page).toHaveURL(/\/task|\/sign-in/);
   });
 
-  test('TC-CDP-HOME-003 Hero CTA"加入等待名单"跳转到 /join-waitlist', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-HOME-003 Hero CTA"加入等待名单"跳转到 /join-waitlist', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
     const home = new MiraHomePage(page, i18n);
     await home.goto();
 

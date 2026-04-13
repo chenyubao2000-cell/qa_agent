@@ -1,0 +1,120 @@
+[
+  {
+    "id": "TC-PRD-TCS-001",
+    "storyId": "US-TOOL-SMOKE",
+    "criterionId": "AC-SMOKE-1",
+    "source": "prd",
+    "title": "多工具链任务正常完成并显示任务已完成",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户已登录", "taskWithToolChainUrl fixture 任务已完成"],
+    "setup": [
+      { "type": "navigate", "url": "taskWithToolChainUrl" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "任务已完成",
+        "expected": null,
+        "i18nKey": "tools.complete.completed"
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": 120000
+  },
+  {
+    "id": "TC-PRD-TCS-002",
+    "storyId": "US-TOOL-SMOKE",
+    "criterionId": "AC-SMOKE-2",
+    "source": "prd",
+    "title": "多工具链任务生成的文件卡片可见（至少3种格式）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户已登录", "taskWithToolChainUrl fixture 任务已完成"],
+    "setup": [
+      { "type": "navigate", "url": "taskWithToolChainUrl" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "generic",
+        "name": "fileCards",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "count",
+        "selector": "generic",
+        "name": "fileCards",
+        "expected": 3,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": 120000
+  },
+  {
+    "id": "TC-PRD-TCS-003",
+    "storyId": "US-TOOL-SMOKE",
+    "criterionId": "AC-SMOKE-3",
+    "source": "prd",
+    "title": "多工具链任务生成的文件卡片包含预期文件类型标签",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["taskWithToolChainUrl fixture 任务已完成"],
+    "setup": [
+      { "type": "navigate", "url": "taskWithToolChainUrl" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "generic",
+        "name": "fileTypeLabels",
+        "expected": null,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": 120000
+  },
+  {
+    "id": "TC-PRD-TCS-004",
+    "storyId": "US-TOOL-SMOKE",
+    "criterionId": "AC-SMOKE-4",
+    "source": "prd",
+    "title": "多工具链任务中工具调用卡片可见",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["taskWithToolChainUrl fixture 任务已完成"],
+    "setup": [
+      { "type": "navigate", "url": "taskWithToolChainUrl" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "generic",
+        "name": "toolCards",
+        "expected": null,
+        "i18nKey": null
+      },
+      {
+        "type": "count",
+        "selector": "generic",
+        "name": "toolCards",
+        "expected": 1,
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": 120000
+  }
+]

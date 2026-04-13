@@ -9,7 +9,7 @@ import { SignInPage } from '../../pages/sign-in.page';
 // Public page — opt out of authenticated storageState
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const TEST_EMAIL = 'test@example.com';
+const TEST_EMAIL = process.env.E2E_TEST_EMAIL ?? 'test@example.com';
 
 test.describe('[CDP] Sign-In Page', () => {
   test('TC-CDP-SIGNIN-001 输入有效邮箱后继续按钮可用并进入密码步骤', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {

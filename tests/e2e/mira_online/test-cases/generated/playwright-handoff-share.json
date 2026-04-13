@@ -1,0 +1,264 @@
+[
+  {
+    "id": "TC-BR-SHARE-001",
+    "storyId": "US-SHARE-VIEW",
+    "criterionId": "AC-SHARE-001",
+    "source": "branch",
+    "title": "有效分享链接正常展示任务内容",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["存在一个已分享的任务，拥有有效的 shareToken"],
+    "setup": [
+      { "type": "navigate", "url": "/share/{id}?token={shareToken}", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "link",
+        "name": "Mira",
+        "expected": null,
+        "locatorHint": "getByRole('link', { name: 'Mira' })",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "generic",
+        "name": "task title",
+        "expected": null,
+        "locatorHint": "locator('header span.text-foreground')",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "log",
+        "name": "conversation log",
+        "expected": null,
+        "locatorHint": "locator('[role=\"log\"]')",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-BR-SHARE-002",
+    "storyId": "US-SHARE-ERROR",
+    "criterionId": "AC-SHARE-002",
+    "source": "branch",
+    "title": "无效 token 显示链接无效错误",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [],
+    "setup": [
+      { "type": "navigate", "url": "/share/invalid-id", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "链接无效",
+        "expected": null,
+        "locatorHint": "getByRole('heading', { name: '链接无效' })",
+        "i18nKey": "share.invalidLink"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "invalid link description",
+        "expected": null,
+        "locatorHint": "getByText('抱歉，此分享链接无效或已过期。')",
+        "i18nKey": "share.invalidLinkDescription"
+      },
+      {
+        "type": "visible",
+        "selector": "link",
+        "name": "返回首页",
+        "expected": null,
+        "locatorHint": "getByRole('link', { name: '返回首页' })",
+        "i18nKey": "share.backToHome"
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-BR-SHARE-003",
+    "storyId": "US-SHARE-ERROR",
+    "criterionId": "AC-SHARE-003",
+    "source": "branch",
+    "title": "不存在的任务显示会话不存在错误",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [],
+    "setup": [
+      { "type": "navigate", "url": "/share/nonexistent-task-id?token=valid-token", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "会话不存在",
+        "expected": null,
+        "locatorHint": "getByRole('heading', { name: '会话不存在' })",
+        "i18nKey": "share.notFound"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "not found description",
+        "expected": null,
+        "locatorHint": "getByText('抱歉，您访问的会话不存在或已被删除。')",
+        "i18nKey": "share.notFoundDescription"
+      },
+      {
+        "type": "visible",
+        "selector": "link",
+        "name": "返回首页",
+        "expected": null,
+        "locatorHint": "getByRole('link', { name: '返回首页' })",
+        "i18nKey": "share.backToHome"
+      }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-BR-SHARE-004",
+    "storyId": "US-SHARE-NAV",
+    "criterionId": "AC-SHARE-004",
+    "source": "branch",
+    "title": "链接无效页面点击返回首页导航到首页",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已进入链接无效错误页"],
+    "setup": [
+      { "type": "navigate", "url": "/share/invalid-id", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "link",
+        "name": "返回首页",
+        "action": "click",
+        "value": null,
+        "locatorHint": "getByRole('link', { name: '返回首页' })",
+        "i18nKey": "share.backToHome"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": null,
+        "name": null,
+        "expected": "/",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-BR-SHARE-005",
+    "storyId": "US-SHARE-NAV",
+    "criterionId": "AC-SHARE-005",
+    "source": "branch",
+    "title": "会话不存在页面点击返回首页导航到首页",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已进入会话不存在错误页"],
+    "setup": [
+      { "type": "navigate", "url": "/share/nonexistent-task-id?token=valid-token", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "link",
+        "name": "返回首页",
+        "action": "click",
+        "value": null,
+        "locatorHint": "getByRole('link', { name: '返回首页' })",
+        "i18nKey": "share.backToHome"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": null,
+        "name": null,
+        "expected": "/",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-BR-SHARE-006",
+    "storyId": "US-SHARE-VIEW",
+    "criterionId": "AC-SHARE-006",
+    "source": "branch",
+    "title": "有效分享页面只读模式验证",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["存在一个已分享的任务，拥有有效的 shareToken"],
+    "setup": [
+      { "type": "navigate", "url": "/share/{id}?token={shareToken}", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "textbox",
+        "name": "textarea",
+        "expected": null,
+        "locatorHint": "locator('textarea')",
+        "i18nKey": null
+      },
+      {
+        "type": "count",
+        "selector": "button",
+        "name": "sidebar trigger",
+        "expected": 0,
+        "locatorHint": "getByRole('button', { name: /sidebar|侧边栏/i })",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-BR-SHARE-007",
+    "storyId": "US-SHARE-VIEW",
+    "criterionId": "AC-SHARE-007",
+    "source": "branch",
+    "title": "Mira logo 链接指向首页",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["存在一个已分享的任务，拥有有效的 shareToken"],
+    "setup": [
+      { "type": "navigate", "url": "/share/{id}?token={shareToken}", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "link",
+        "name": "Mira",
+        "expected": "/",
+        "attribute": "href",
+        "locatorHint": "getByRole('link', { name: 'Mira' })",
+        "i18nKey": null
+      }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

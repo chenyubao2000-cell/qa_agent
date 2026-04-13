@@ -1,0 +1,341 @@
+{
+  "meta": {
+    "url": "https://mira-next-frontend-preview.up.railway.app/task",
+    "title": "Mira - Task Page AI Elements",
+    "timestamp": "2026-04-10",
+    "mode": "targeted",
+    "targetArea": "ai-elements",
+    "requiresAuth": true,
+    "explorationStats": {
+      "statesDiscovered": 4,
+      "interactionsPerformed": 8,
+      "elementsFound": 42,
+      "duration": "3m"
+    },
+    "sourceContext": {
+      "components": [
+        { "name": "CodeBlock", "filePath": "apps/mira-work/components/ai-elements/code-block.tsx", "role": "widget" },
+        { "name": "Tool", "filePath": "apps/mira-work/components/ai-elements/tool.tsx", "role": "widget" },
+        { "name": "Loader", "filePath": "apps/mira-work/components/ai-elements/loader.tsx", "role": "widget" },
+        { "name": "ModelSelector", "filePath": "apps/mira-work/components/ai-elements/model-selector.tsx", "role": "widget" },
+        { "name": "Message", "filePath": "apps/mira-work/components/ai-elements/message.tsx", "role": "section" },
+        { "name": "TaskLoader", "filePath": "apps/mira-work/app/(main)/task/[id]/task-loader.tsx", "role": "page" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "file-input", "label": "Upload files", "role": null },
+        { "element": "attach-button", "label": "添加照片或文件", "role": "button" },
+        { "element": "submit-button", "label": "Submit", "role": "button" },
+        { "element": "conversation-log", "label": null, "role": "log" },
+        { "element": "sidebar-toggle", "label": "Toggle Sidebar", "role": "button" }
+      ],
+      "conditionalElements": [
+        { "element": "CodeBlock", "condition": "AI response contains fenced code block (```)", "description": "Rendered by Streamdown code plugin inside MessageResponse" },
+        { "element": "Tool (compact card)", "condition": "AI uses tool call (e.g. code-interpreter)", "description": "Compact h-8 card showing tool name + description; clickable to open workspace panel" },
+        { "element": "Loader (animate-spin)", "condition": "Tool state is 'input-available' or streaming", "description": "LoaderCircle icon with animate-spin class" },
+        { "element": "ModelSelector dialog", "condition": "User clicks model selector trigger (not visible in completed task)", "description": "Dialog with Command UI for selecting AI model" },
+        { "element": "Workspace panel", "condition": "User clicks tool card", "description": "Right-side panel showing tool execution details (code, output)" },
+        { "element": "Completed indicator", "condition": "Task status is completed", "description": "Checkmark icon + '任务已完成' text" },
+        { "element": "Suggested follow-ups", "condition": "Task completed with suggestions", "description": "Buttons below completed indicator for follow-up prompts" }
+      ],
+      "i18nKeys": [],
+      "locatorProfile": {
+        "hasTestIds": false,
+        "primaryStrategy": "role+aria-label, CSS class combinations"
+      }
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Task conversation with AI response (completed)",
+      "trigger": null,
+      "url": "https://mira-next-frontend-preview.up.railway.app/task/{taskId}",
+      "sourceArea": "ai-elements",
+      "fingerprint": "taskHeader+conversationLog(userMsg+assistantMsgs+toolCard+completedIndicator+suggestions)+promptInput",
+      "regions": {
+        "taskHeader": {
+          "elements": [
+            { "tag": "span", "role": "task-title", "text": "Python 快速排序算法实现", "locatorHint": "main text content, first text node in header area" },
+            { "tag": "button", "text": "查看此任务中所有文件", "locatorHint": "page.getByRole('button', { name: '查看此任务中所有文件' })" },
+            { "tag": "button", "role": "share", "locatorHint": "header icon button (share icon)" },
+            { "tag": "button", "ariaHaspopup": "menu", "role": "task-menu", "locatorHint": "page.getByRole('button').filter({ hasPopup: 'menu' })" }
+          ]
+        },
+        "conversationLog": {
+          "elements": [
+            {
+              "tag": "div",
+              "role": "log",
+              "locatorHint": "page.getByRole('log')",
+              "note": "Main conversation scroll area, contains all messages",
+              "classes": "overflow-hidden conversation-scroll relative flex-1 better-scrollbar"
+            },
+            {
+              "tag": "div",
+              "role": "user-message",
+              "locatorHint": "page.locator('.is-user.group')",
+              "classes": "group flex w-full max-w-[95%] flex-col gap-2 is-user ml-auto justify-end",
+              "children": [
+                { "tag": "div", "role": "message-content", "classes": "group-[.is-user]:bg-secondary group-[.is-user]:rounded-lg" },
+                { "tag": "button", "text": "复制", "locatorHint": "message.getByRole('button', { name: '复制' })" }
+              ]
+            },
+            {
+              "tag": "div",
+              "role": "assistant-message",
+              "locatorHint": "page.locator('.is-assistant.group')",
+              "classes": "group flex w-full max-w-[95%] flex-col gap-2 is-assistant",
+              "children": [
+                { "tag": "span", "text": "Mira", "role": "assistant-label" },
+                { "tag": "div", "role": "message-response", "note": "Streamdown-rendered markdown content with headings, lists, code blocks" }
+              ]
+            }
+          ]
+        },
+        "toolCard": {
+          "note": "Compact tool execution card (replaces old Collapsible-based Tool component in inline view)",
+          "elements": [
+            {
+              "tag": "div",
+              "role": "tool-card",
+              "classes": "not-prose flex h-8 items-center gap-1 rounded-md border transition-colors relative overflow-hidden border-transparent bg-secondary hover:bg-muted cursor-pointer p-px",
+              "locatorHint": "page.locator('.not-prose.rounded-md.border.cursor-pointer')",
+              "children": [
+                { "tag": "svg", "role": "tool-icon", "note": "Code brackets icon (<>)" },
+                { "tag": "span", "role": "tool-title", "text": "执行代码", "classes": "shrink-0 font-medium", "locatorHint": "toolCard.locator('.shrink-0.font-medium')" },
+                { "tag": "span", "role": "tool-description", "text": "实现并测试Python快速排序算法", "classes": "text-muted-foreground", "locatorHint": "toolCard.locator('.text-muted-foreground')" },
+                { "tag": "svg", "role": "chevron", "note": "Right-pointing chevron indicating expandable" }
+              ],
+              "clickAction": "Opens workspace panel on right side (S1)"
+            }
+          ]
+        },
+        "completedIndicator": {
+          "elements": [
+            {
+              "tag": "div",
+              "role": "completed-indicator",
+              "text": "任务已完成",
+              "classes": "-mt-4 flex items-center gap-1",
+              "locatorHint": "page.locator('div').filter({ hasText: /^任务已完成$/ })",
+              "children": [
+                { "tag": "svg", "role": "check-icon", "note": "Green checkmark circle icon" },
+                { "tag": "span", "text": "任务已完成", "classes": "text-foreground text-[13px] leading-5 font-semibold" }
+              ]
+            }
+          ]
+        },
+        "suggestedFollowUps": {
+          "elements": [
+            {
+              "tag": "div",
+              "role": "suggestions-section",
+              "note": "Section with '推荐追问' label and suggestion buttons",
+              "children": [
+                { "tag": "span", "text": "推荐追问", "role": "section-label" },
+                {
+                  "tag": "button[]",
+                  "role": "suggestion-buttons",
+                  "count": 3,
+                  "examples": [
+                    "请继续提供完整的快速排序代码。",
+                    "给我解释一下这个算法的时间复杂度。",
+                    "提供一个使用这个算法的示例。"
+                  ],
+                  "locatorHint": "page.locator('button').filter({ hasText: /请继续|解释|示例/ })"
+                }
+              ]
+            }
+          ]
+        },
+        "promptInput": {
+          "elements": [
+            { "tag": "textarea", "placeholder": "请输入...", "locatorHint": "page.getByPlaceholder('请输入...')" },
+            { "tag": "button", "ariaLabel": "添加照片或文件", "locatorHint": "page.getByRole('button', { name: '添加照片或文件' })" },
+            { "tag": "button", "ariaLabel": "Submit", "disabled": true, "enabledWhen": "input is non-empty", "locatorHint": "page.getByRole('button', { name: 'Submit' })" }
+          ]
+        }
+      }
+    },
+
+    "S1": {
+      "name": "Workspace panel open (tool execution detail)",
+      "trigger": { "action": "click", "element": "tool-card (.not-prose.cursor-pointer)", "fromState": "S0" },
+      "url": "https://mira-next-frontend-preview.up.railway.app/task/{taskId}",
+      "sourceArea": "ai-elements",
+      "fingerprint": "S0+workspacePanel(heading+toolTitle+codeViewer+slider)",
+      "regions": {
+        "workspacePanel": {
+          "note": "Right-side panel showing tool execution details",
+          "elements": [
+            {
+              "tag": "h2",
+              "text": "Mira 的工作区",
+              "role": "heading",
+              "locatorHint": "page.getByRole('heading', { name: 'Mira 的工作区' })"
+            },
+            {
+              "tag": "button",
+              "role": "close-workspace",
+              "locatorHint": "Workspace close button (X icon in top-right of panel)"
+            },
+            {
+              "tag": "span",
+              "text": "Mira 正在使用",
+              "role": "status-label"
+            },
+            {
+              "tag": "span",
+              "text": "执行代码",
+              "role": "tool-name",
+              "note": "Tool name displayed in workspace header"
+            },
+            {
+              "tag": "span",
+              "text": "执行代码",
+              "role": "tool-tab-title",
+              "note": "Tool title in the code viewer tab"
+            },
+            {
+              "tag": "pre",
+              "role": "code-viewer",
+              "classes": "shiki one-light",
+              "locatorHint": "page.locator('pre.shiki')",
+              "note": "Syntax-highlighted code viewer using Shiki (one-light theme for light mode). Contains Python source code with line numbers.",
+              "sourceComponent": "Not CodeBlock component — this is a separate code-interpreter panel rendering"
+            },
+            {
+              "tag": "div",
+              "role": "code-container",
+              "classes": "[&>pre]:bg-background! [&>pre]:text-foreground! overflow-auto",
+              "locatorHint": "page.locator('[class*=\"overflow-auto\"]').filter({ has: page.locator('pre.shiki') })"
+            },
+            {
+              "tag": "input[role=slider]",
+              "role": "timeline-slider",
+              "locatorHint": "page.getByRole('slider')",
+              "note": "Horizontal slider for navigating tool execution timeline"
+            },
+            {
+              "tag": "span",
+              "text": "实时",
+              "role": "timeline-label",
+              "note": "Label for current position in execution timeline"
+            }
+          ]
+        }
+      }
+    },
+
+    "S2": {
+      "name": "Tool card states (source-defined, not all observable in completed task)",
+      "trigger": null,
+      "url": "https://mira-next-frontend-preview.up.railway.app/task/{taskId}",
+      "sourceArea": "ai-elements",
+      "note": "These states are defined in tool.tsx but require a running/streaming task to observe",
+      "sourceDefinedStates": {
+        "toolStates": [
+          { "state": "input-streaming", "badge": "Pending", "icon": "CircleIcon" },
+          { "state": "input-available", "badge": "Running", "icon": "ClockIcon (animate-pulse)" },
+          { "state": "approval-requested", "badge": "Awaiting Approval", "icon": "ClockIcon (text-yellow-600)" },
+          { "state": "approval-responded", "badge": "Responded", "icon": "CheckCircleIcon (text-blue-600)" },
+          { "state": "output-available", "badge": "Completed", "icon": "CheckCircleIcon (text-green-600)" },
+          { "state": "output-available+preliminary", "badge": "Streaming", "icon": "LoaderIcon (animate-spin text-blue-500)" },
+          { "state": "output-error", "badge": "Error", "icon": "XCircleIcon (text-red-600)" },
+          { "state": "output-denied", "badge": "Denied", "icon": "XCircleIcon (text-orange-600)" }
+        ],
+        "toolComponents": {
+          "Tool": "Collapsible container with not-prose mb-4 w-full rounded-md border",
+          "ToolHeader": "CollapsibleTrigger with WrenchIcon + title + status Badge + ChevronDownIcon",
+          "ToolContent": "CollapsibleContent with slide animation",
+          "ToolInput": "Shows tool parameters as JSON CodeBlock",
+          "ToolOutput": "Shows tool result/error as JSON CodeBlock"
+        }
+      }
+    },
+
+    "S3": {
+      "name": "Source-defined components (CodeBlock, Loader, ModelSelector)",
+      "trigger": null,
+      "sourceArea": "ai-elements",
+      "note": "These components are defined in source but have specific rendering conditions",
+      "sourceDefinedComponents": {
+        "codeBlock": {
+          "component": "CodeBlock",
+          "file": "code-block.tsx",
+          "exports": [
+            "CodeBlock",
+            "CodeBlockContainer",
+            "CodeBlockHeader",
+            "CodeBlockTitle",
+            "CodeBlockFilename",
+            "CodeBlockActions",
+            "CodeBlockContent",
+            "CodeBlockCopyButton",
+            "CodeBlockLanguageSelector",
+            "CodeBlockLanguageSelectorTrigger",
+            "CodeBlockLanguageSelectorValue",
+            "CodeBlockLanguageSelectorContent",
+            "CodeBlockLanguageSelectorItem"
+          ],
+          "rendering": {
+            "container": { "tag": "div", "classes": "group bg-background text-foreground relative w-full overflow-hidden rounded-md border", "attribute": "data-language" },
+            "header": { "tag": "div", "classes": "bg-muted/80 text-muted-foreground flex items-center justify-between border-b px-3 py-2 text-xs" },
+            "codeBody": { "tag": "pre", "innerTag": "code", "classes": "m-0 p-4 text-sm font-mono" },
+            "copyButton": { "tag": "button", "icon": "CopyIcon → CheckIcon on success", "variant": "ghost" }
+          },
+          "locatorHints": {
+            "container": "page.locator('[data-language]')",
+            "header": "page.locator('[data-language] .bg-muted\\/80')",
+            "copyButton": "codeBlock.getByRole('button')",
+            "languageSelector": "codeBlock.locator('[role=\"combobox\"]')"
+          },
+          "usedBy": ["ToolInput (renders JSON parameters)", "ToolOutput (renders JSON result)", "MessageResponse (via Streamdown code plugin)"],
+          "streamingBehavior": "When isStreaming=true, renders RawCodePre without syntax highlighting; switches to CodeBlockBody with Shiki highlighting when streaming completes"
+        },
+        "loader": {
+          "component": "Loader",
+          "file": "loader.tsx",
+          "rendering": {
+            "container": { "tag": "div", "classes": "inline-flex animate-spin items-center justify-center" },
+            "icon": "LoaderCircle from lucide-react"
+          },
+          "locatorHint": "page.locator('.animate-spin')",
+          "props": { "size": "number (default: 16)" },
+          "visibleWhen": "Tool is in running/streaming state"
+        },
+        "modelSelector": {
+          "component": "ModelSelector",
+          "file": "model-selector.tsx",
+          "rendering": {
+            "dialog": { "tag": "div[role=dialog]", "title": "Model Selector (sr-only)" },
+            "input": { "tag": "input", "role": "combobox", "classes": "h-auto py-3.5" },
+            "list": { "tag": "div[role=listbox]" },
+            "item": { "tag": "div[role=option]" },
+            "logo": { "tag": "img", "src": "https://models.dev/logos/{provider}.svg" }
+          },
+          "locatorHints": {
+            "dialog": "page.getByRole('dialog').filter({ hasText: 'Model Selector' })",
+            "input": "dialog.getByRole('combobox')",
+            "items": "dialog.getByRole('option')"
+          },
+          "visibleWhen": "User clicks model selector trigger button (location varies by page context)"
+        }
+      }
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "tool-card (.not-prose.cursor-pointer)", "to": "S1", "sourceArea": "ai-elements" },
+      { "from": "S1", "action": "click", "element": "close-workspace button", "to": "S0", "sourceArea": "ai-elements" }
+    ]
+  },
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "primaryLocators": "role+aria-label, CSS class combinations, text content",
+    "notes": "No data-testid attributes found on any AI element components. Locators rely on semantic roles (log, button, heading, slider), aria-labels (Submit, 添加照片或文件, Upload files, Toggle Sidebar), CSS class patterns (.is-user, .is-assistant, .not-prose, .animate-spin, .shiki, [data-language]), and text content matching."
+  }
+}

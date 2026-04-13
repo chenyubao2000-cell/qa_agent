@@ -826,7 +826,7 @@ newSpecs = list of verified/fixed spec file paths
 > Playwright script brittleness (stale selectors, timing issues). Handoff JSON is the execution
 > source; generated Playwright specs are retained as documentation only.
 
-### Step 1 — Resolve Handoff JSON for All Specs
+### Step 1 — Collect Spec Files
 
 ```
 allSpecs = matchedSpecs + newSpecs (deduplicated)
@@ -834,28 +834,9 @@ allSpecs = matchedSpecs + newSpecs (deduplicated)
 If allSpecs is empty:
   → STOP: "没有可执行的测试用例"
 
-// Map each spec to its handoff JSON
-handoffFiles = []
-
-For each spec in allSpecs:
-  // Extract slug from spec filename: "task-sidebar-cdp.test.ts" → "task-sidebar"
-  slug = spec.filename.replace(/-(cdp|prd|issue|branch|verify-fix)\.test\.ts$/, '')
-
-  // Look up handoff by slug
-  handoffPath = "$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-{slug}.json"
-
-  If file exists at handoffPath:
-    handoffFiles.push(handoffPath)
-  Else:
-    // Try broader match: glob for any handoff containing this slug
-    Glob("$QA_WORKSPACE_DIR/test-cases/generated/playwright-handoff-*{slug}*.json")
-    If found → handoffFiles.push(first match)
-    Else → Log WARNING: "No handoff JSON found for {spec.filename}, skipping"
-
-handoffFiles = deduplicate(handoffFiles)
-
-If handoffFiles is empty:
-  → STOP: "没有找到可执行的 handoff JSON 文件"
+// allSpecs are .test.ts file paths, e.g.:
+//   tests/e2e/testcases/generated/task-cdp.test.ts
+//   tests/e2e/testcases/generated/share-branch.test.ts
 ```
 
 ### Step 2 — Launch CDP Test Executor
@@ -867,7 +848,7 @@ prompt:
 You are cdp-test-executor. First read .claude/agents/cdp-test-executor.md.
 
 Input:
-- handoffFiles: {handoffFiles}
+- specFiles: {allSpecs}
 - projectDir: "$QA_WORKSPACE_DIR"
 - baseURL: "$PREVIEW_URL"
 - authSetup: {true/false based on E2E_TEST_EMAIL presence}
@@ -876,7 +857,8 @@ Input:
 - i18nMessagesDir: {I18N_MESSAGES_DIR or null}
 - changeImpactHints: {changeImpactHints from Phase 2 Step 4}
 
-Execute ALL test cases from the handoff files via CDP.
+Read each spec file + its imported POM, understand the test steps,
+then execute them via CDP (NOT by running Playwright).
 Output report to: tests/reports/cdp-results.json
 ```
 
@@ -903,7 +885,7 @@ Input:
 
 IMPORTANT — CDP report format:
 The report file is `cdp-results.json`, NOT the standard Playwright JSON format.
-Structure: `{ executor, timestamp, baseURL, summary: { total, passed, failed, skipped }, results: [{ tcId, title, handoffFile, specFile, status, duration, steps, assertions, error, screenshot }] }`.
+Structure: `{ executor, timestamp, baseURL, summary: { total, passed, failed, skipped }, results: [{ tcId, title, specFile, pomFile, status, duration, steps, assertions, error, screenshot }] }`.
 - Use `results[].status` to count passed/failed
 - Use `results[].error.message` for error descriptions
 - Use `results[].screenshot` for failure screenshot paths (read with Read tool)

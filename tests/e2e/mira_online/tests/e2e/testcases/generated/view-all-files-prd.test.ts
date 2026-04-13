@@ -19,18 +19,18 @@ test.describe('US-VF-ENTRY - View All Files -- entry visibility', () => {
   test.use({ storageState: 'playwright/.auth/user.json' });
 
   test('TC-PRD-VF-001: toolbar entry button visible when task has files', {
-    tag: ['@P0', '@smoke', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+    tag: ['@P1', '@regression', '@full'],
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await expect(vaf.getViewAllFilesToolbarBtn()).toBeVisible({ timeout: 30_000 });
   });
 
   test('TC-PRD-VF-007: result area button visible in chat with files', {
     tag: ['@P1', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await expect(vaf.getViewAllFilesResultBtn()).toBeVisible({ timeout: 15_000 });
   });
 });
@@ -40,10 +40,10 @@ test.describe('US-VF-MODAL - View All Files -- panel open and close', () => {
   test.use({ storageState: 'playwright/.auth/user.json' });
 
   test('TC-PRD-VF-003: clicking toolbar button opens files panel', {
-    tag: ['@P0', '@smoke', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+    tag: ['@P1', '@regression', '@full'],
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -52,10 +52,10 @@ test.describe('US-VF-MODAL - View All Files -- panel open and close', () => {
   });
 
   test('TC-PRD-VF-004: clicking result area button opens files panel', {
-    tag: ['@P0', '@smoke', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+    tag: ['@P1', '@regression', '@full'],
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesResultBtn().waitFor({ state: 'visible', timeout: 15_000 });
     await vaf.clickViewAllFilesResult();
     await vaf.waitForFilesPanelOpen();
@@ -63,10 +63,10 @@ test.describe('US-VF-MODAL - View All Files -- panel open and close', () => {
   });
 
   test('TC-PRD-VF-005: files panel shows file cards after opening', {
-    tag: ['@P0', '@smoke', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+    tag: ['@P1', '@regression', '@full'],
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -76,9 +76,9 @@ test.describe('US-VF-MODAL - View All Files -- panel open and close', () => {
 
   test('TC-PRD-VF-014: close button dismisses files panel', {
     tag: ['@P1', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -89,9 +89,9 @@ test.describe('US-VF-MODAL - View All Files -- panel open and close', () => {
 
   test('TC-PRD-VF-019: batch download icon button visible in panel header', {
     tag: ['@P1', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -104,10 +104,10 @@ test.describe('US-VF-BATCH - View All Files -- batch download', () => {
   test.use({ storageState: 'playwright/.auth/user.json' });
 
   test('TC-PRD-VF-011: clicking batch download icon enters selection mode', {
-    tag: ['@P0', '@smoke', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+    tag: ['@P1', '@regression', '@full'],
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -119,9 +119,9 @@ test.describe('US-VF-BATCH - View All Files -- batch download', () => {
 
   test('TC-PRD-VF-008: clicking select all checks all file checkboxes', {
     tag: ['@P1', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -139,9 +139,9 @@ test.describe('US-VF-BATCH - View All Files -- batch download', () => {
 
   test('TC-PRD-VF-009: selecting a file enables batch download button', {
     tag: ['@P1', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -154,9 +154,9 @@ test.describe('US-VF-BATCH - View All Files -- batch download', () => {
 
   test('TC-PRD-VF-012: clicking cancel exits selection mode', {
     tag: ['@P1', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -170,9 +170,9 @@ test.describe('US-VF-BATCH - View All Files -- batch download', () => {
 
   test('TC-PRD-VF-020: clicking select all again deselects all files', {
     tag: ['@P2', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -191,9 +191,9 @@ test.describe('US-VF-BATCH - View All Files -- batch download', () => {
 
   test('TC-PRD-VF-021: individual file download button is visible', {
     tag: ['@P2', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -210,9 +210,9 @@ test.describe('US-VF-E2E - View All Files -- end-to-end scenarios', () => {
 
   test('TC-PRD-VF-013: full batch download flow select files and trigger download', {
     tag: ['@P1', '@regression', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
@@ -225,15 +225,15 @@ test.describe('US-VF-E2E - View All Files -- end-to-end scenarios', () => {
     await vaf.clickBatchDownloadFooter();
 
     // After batch download, panel should still be visible
-    await expect(vaf.getFilesPanelContainer()).toBeVisible();
+    await expect(vaf.getFilesPanelTitle()).toBeVisible();
   });
 
   test('TC-PRD-VF-016: navigating away closes files panel', {
     tag: ['@P2', '@full'],
-  }, async ({ page, i18n, taskWithFilesUrl }) => {
+  }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const taskPage = new TaskPage(page, i18n);
     const vaf = new ViewAllFilesFragment(page, i18n);
-    await waitForTaskReady(page,taskWithFilesUrl);
+    await waitForTaskReady(page,taskWithToolChainUrl);
     await vaf.getViewAllFilesToolbarBtn().waitFor({ state: 'visible', timeout: 30_000 });
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();

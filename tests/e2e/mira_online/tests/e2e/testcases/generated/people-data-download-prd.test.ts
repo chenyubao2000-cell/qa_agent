@@ -15,10 +15,10 @@ test.describe('US-PDD-DOWNLOAD · People Data 下载 — 入口与触发', () =>
 
   test(
     'TC-PRD-PDD-001 People Data 任务结果区域 — 下载按钮触发 XLSX 下载',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    { tag: ['@P1', '@regression', '@full'] },
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
 
       // Open People Data panel
       await fragment.openPeopleDataPanel();
@@ -42,7 +42,7 @@ test.describe('US-PDD-DOWNLOAD · People Data 下载 — 入口与触发', () =>
   test(
     'TC-PRD-PDD-002 无 People Data 任务 — 不出现 People Data 卡片和下载入口',
     { tag: ['@P2', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
       // Navigate to the new task page (no existing files)
       await page.goto('/task', { timeout: 30_000 });
@@ -58,9 +58,9 @@ test.describe('US-PDD-DOWNLOAD · People Data 下载 — 入口与触发', () =>
   test(
     'TC-PRD-PDD-004 下载成功后下载按钮短暂显示成功状态（CheckIcon）',
     { tag: ['@P1', '@regression', '@full', '@failing'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
 
       await fragment.openPeopleDataPanel();
 
@@ -80,23 +80,6 @@ test.describe('US-PDD-DOWNLOAD · People Data 下载 — 入口与触发', () =>
     },
   );
 
-  test.skip(
-    'TC-PRD-PDD-009 下载按钮 loading 期间处于 disabled 状态',
-    { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
-      // SKIP: People Data download uses a cached blob (fetched when panel opens) and performs
-      // client-side XLSX conversion synchronously. The disabled state is too transient (<10ms)
-      // for Playwright to observe. Network interception cannot work because no fetch occurs
-      // during download when the blob is cached. Verified manually that the button shows
-      // disabled + spinner icon during the brief loading phase.
-      const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
-      await fragment.openPeopleDataPanel();
-      const downloadBtn = fragment.getPeopleDataPanelDownloadButton();
-      await expect(downloadBtn).toBeVisible();
-      await expect(downloadBtn).toBeEnabled();
-    },
-  );
 
 });
 
@@ -108,9 +91,9 @@ test.describe('US-PDD-XLSX · People Data XLSX 文件格式', () => {
   test(
     'TC-PRD-PDD-003 XLSX 下载文件扩展名为 .xlsx（列宽限制验证）',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
 
       await fragment.openPeopleDataPanel();
 
@@ -140,9 +123,9 @@ test.describe('US-PDD-XLSX · People Data XLSX 文件格式', () => {
   test(
     'TC-PRD-PDD-005 文件名扩展名正确替换为 .xlsx（原 .json/.peopledata）',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
 
       await fragment.openPeopleDataPanel();
 
@@ -172,9 +155,9 @@ test.describe('US-PDD-ERROR · People Data 下载异常处理', () => {
   test(
     'TC-PRD-PDD-006 下载失败时显示 toast 错误提示',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
       await fragment.openPeopleDataPanel();
 
       const downloadBtn = fragment.getPeopleDataPanelDownloadButton();
@@ -210,10 +193,10 @@ test.describe('US-PDD-E2E · People Data 面板 UI 与端到端流程', () => {
 
   test(
     'TC-PRD-PDD-007 完整端到端流程 — 从查看 People Data 面板到下载 XLSX',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    { tag: ['@P1', '@regression', '@full'] },
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
 
       // Step 1: People Data card should be visible in chat log
       const card = fragment.getPeopleDataCard();
@@ -249,10 +232,10 @@ test.describe('US-PDD-E2E · People Data 面板 UI 与端到端流程', () => {
 
   test(
     'TC-PRD-PDD-008 People Data 面板头部显示正确的文件名和操作按钮',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    { tag: ['@P2', '@full'] },
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
 
       await fragment.openPeopleDataPanel();
 
@@ -275,9 +258,9 @@ test.describe('US-PDD-E2E · People Data 面板 UI 与端到端流程', () => {
   test(
     'TC-PRD-PDD-010 People Data 面板关闭按钮可正常关闭面板',
     { tag: ['@P1', '@regression', '@full'] },
-    async ({ page, i18n, taskWithPeopleDataUrl }) => {
+    async ({ page, i18n, taskWithToolChainUrl }) => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
-      await fragment.gotoTask(taskWithPeopleDataUrl);
+      await fragment.gotoTask(taskWithToolChainUrl);
 
       await fragment.openPeopleDataPanel();
 

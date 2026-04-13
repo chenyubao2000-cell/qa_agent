@@ -44,7 +44,7 @@ test.describe('[CDP] Join Waitlist Form', () => {
     await expect(joinPage.getToastByText(/Please enter a valid email address|请输入有效的邮箱地址/)).toBeVisible();
   });
 
-  test('TC-CDP-JW-004 邮箱已填写但未验证时提交 → toast 错误', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-JW-004 邮箱已填写但未验证时提交 → toast 错误', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
     const joinPage = new JoinWaitlistPage(page, i18n);
     await joinPage.goto();
 
@@ -61,7 +61,7 @@ test.describe('[CDP] Join Waitlist Form', () => {
     await expect(joinPage.getToastByText(/Please verify your email before submitting|请先验证邮箱后再提交/)).toBeVisible();
   });
 
-  test('TC-CDP-JW-005 填写邮箱后发送验证码按钮从禁用变为启用', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-JW-005 填写邮箱后发送验证码按钮从禁用变为启用', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
     const joinPage = new JoinWaitlistPage(page, i18n);
     await joinPage.goto();
 
@@ -88,7 +88,7 @@ test.describe('[CDP] Join Waitlist Form', () => {
     await expect(joinPage.getToastByText(/Verification code sent|验证码已发送/)).toBeVisible();
   });
 
-  test('TC-CDP-JW-007 完整申请流程 — 打开页面 → 确认表单元素', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-JW-007 完整申请流程 — 打开页面 → 确认表单元素', { tag: ['@P2', '@full'] }, async ({ page, i18n }) => {
     const joinPage = new JoinWaitlistPage(page, i18n);
     await joinPage.goto();
 
