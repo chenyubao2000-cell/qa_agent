@@ -415,7 +415,7 @@ export class TaskPage {
   }
 
   getTaskCompletedLabel(): Locator {
-    return this.page.getByText(/任务已完成|Task completed/);
+    return this.page.getByText(/^任务已完成$|^Task completed$/).first();
   }
 
   // ── Conversation: File Upload (S0 → S1) ──
