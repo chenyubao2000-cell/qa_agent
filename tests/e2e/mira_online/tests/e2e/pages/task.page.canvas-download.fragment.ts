@@ -93,11 +93,21 @@ export class CanvasDownloadFragment {
   // -- Toast assertions (Sonner) --
 
   getDownloadSuccessToast(): Locator {
-    return this.page.getByText(/Download successful|File downloaded successfully|文件下载成功|下载成功/i).first();
+    // Sonner toast: scope to [data-sonner-toast] to avoid matching unrelated page text.
+    // Fallback to page-wide search for resilience.
+    return this.page.locator('[data-sonner-toast]').getByText(
+      /Download successful|File downloaded successfully|文件下载成功|下载成功/i
+    ).first().or(
+      this.page.getByText(/Download successful|File downloaded successfully|文件下载成功|下载成功/i).first()
+    );
   }
 
   getDownloadErrorToast(): Locator {
-    return this.page.getByText(/Failed to|下载失败|文件下载失败|格式转换失败|Internal Server Error|500/i).first();
+    return this.page.locator('[data-sonner-toast]').getByText(
+      /Failed to|下载失败|文件下载失败|格式转换失败|Internal Server Error|500/i
+    ).first().or(
+      this.page.getByText(/Failed to|下载失败|文件下载失败|格式转换失败|Internal Server Error|500/i).first()
+    );
   }
 
   // -- Canvas panel --

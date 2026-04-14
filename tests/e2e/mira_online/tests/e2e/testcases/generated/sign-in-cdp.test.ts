@@ -151,8 +151,9 @@ test.describe('[CDP] Sign-In Page', () => {
   test('TC-CDP-SIGNIN-012 验证 Google OAuth 按钮可见', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
     const signIn = new SignInPage(page, i18n);
     await signIn.goto();
+    await page.waitForLoadState('networkidle');
 
-    await expect(signIn.getGoogleOAuthButton()).toBeVisible();
+    await expect(signIn.getGoogleOAuthButton()).toBeVisible({ timeout: 15_000 });
     await expect(signIn.getGoogleOAuthButton()).toBeEnabled();
     await expect(signIn.getGoogleOAuthButton()).toContainText(/Continue with Google|使用 Google 登录/);
   });

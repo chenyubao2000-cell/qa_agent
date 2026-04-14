@@ -261,8 +261,11 @@ test.describe('US-CVPV-UNSUPPORTED', () => {
     // Click any file card — the canvas will open
     const fileCard = taskPage.getFileCards().first();
     await fileCard.click();
-    // Wait for canvas panel container (not filename — it may or may not appear)
-    await page.locator('div.bg-background.text-foreground.flex.flex-col').last().waitFor({ state: 'visible', timeout: 15_000 });
+    // Wait for canvas panel container (identified by the presence of canvas filename element)
+    await page.locator('div.border-l, div.fixed.inset-0')
+      .filter({ has: page.locator('p.truncate[title]') })
+      .first()
+      .waitFor({ state: 'visible', timeout: 15_000 });
   }
 
   test('TC-PRD-CVPV-005 Unsupported shows download',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{

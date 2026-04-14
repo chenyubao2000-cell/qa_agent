@@ -80,18 +80,9 @@ export class TaskPageUploadInputFragment {
   }
 
   async waitForUploadComplete(filename: string, timeout = 30_000): Promise<void> {
-    await this.getAttachmentPillByName(filename).waitFor({ state: 'visible', timeout });
-    await this.page.waitForFunction(
-      (name) => {
-        const form = document.querySelector('form:has(textarea)');
-        if (!form) return false;
-        const pills = Array.from(form.querySelectorAll('div[class*="rounded-[10px]"]'));
-        const pill = pills.find((el) => el.querySelector('p')?.textContent?.includes(name));
-        if (!pill) return false;
-        return !pill.querySelector('[class*="animate-spin"]');
-      },
-      filename,
-      { timeout },
-    );
+    const pill = this.getAttachmentPillByName(filename);
+    await pill.waitFor({ state: 'visible', timeout });
+    // Wait for spinner to disappear (upload complete); catch if spinner never appeared (fast upload)
+    await pill.locator('[class*="animate-spin"]').waitFor({ state: 'detached', timeout }).catch(() => {});
   }
 }

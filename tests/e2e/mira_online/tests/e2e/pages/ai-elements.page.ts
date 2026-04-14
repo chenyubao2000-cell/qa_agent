@@ -50,7 +50,7 @@ export class AiElementsPage {
     // Workspace panel
     const wsTitle = i18n ? i18n.t('workspace.title') : 'Mira 的工作区';
     this.workspaceHeading = page.getByRole('heading', { name: wsTitle });
-    this.codeViewer = page.locator('.overflow-auto > pre');
+    this.codeViewer = page.locator('.overflow-auto > pre').first();
     this.timelineSlider = page.getByRole('slider');
 
     // Completed indicator

@@ -28,9 +28,12 @@ export class CanvasPreviewFragment {
     this.page = page;
     this.i18n = i18n;
 
-    // Canvas panel: matches both normal (border-l) and maximized (fixed inset-0) states.
-    // Use the inner container that always has bg-background + text-foreground + flex + flex-col.
-    this.canvasPanel = page.locator('div.bg-background.text-foreground.flex.flex-col').last();
+    // Canvas panel: matches both normal (border-l side panel) and maximized (fixed inset-0 overlay).
+    // Identify by the presence of the canvas filename element (p.truncate[title]) which is
+    // unique to the CanvasHeader — resilient to Tailwind class name compilation changes.
+    this.canvasPanel = page.locator('div.border-l, div.fixed.inset-0')
+      .filter({ has: page.locator('p.truncate[title]') })
+      .first();
 
     // Download button: first button in header actions group
     this.canvasDownloadBtn = this.canvasPanel.locator('div.flex.items-center.gap-1 button').first();
@@ -49,9 +52,10 @@ export class CanvasPreviewFragment {
     // Zoom percent: "100%" in span.text-xs
     this.pdfZoomPercent = pdfToolbar.locator('span.text-xs').first();
 
-    // PPT thumbnail sidebar: hidden on mobile, visible on md+ with data-slide children
-    this.pptThumbnailSidebar = this.canvasPanel.locator('div[class*="md\:flex"]').filter({
-      has: page.locator('[data-slide]'),
+    // PPT thumbnail sidebar: the scrollable container holding button[data-slide] thumbnails.
+    // Identify by having data-slide children rather than relying on Tailwind responsive classes.
+    this.pptThumbnailSidebar = this.canvasPanel.locator('div').filter({
+      has: page.locator('button[data-slide]'),
     }).first();
     // PPT page indicator: "{current}/{total}" in span.tabular-nums
     this.pptPageIndicator = this.canvasPanel.locator('span.tabular-nums').last();
@@ -128,7 +132,10 @@ export class CanvasPreviewFragment {
   }
 
   async waitForPptRendered(): Promise<void> {
-    await this.page.locator('[data-slide="1"]').waitFor({ state: 'visible', timeout: 30_000 });
+    // Wait for the PPT page indicator ("1 / N") which appears after slide conversion.
+    // Prefer the page indicator over [data-slide] since the thumbnail sidebar
+    // uses hidden+md:flex which can be fragile across viewport/environment changes.
+    await this.pptPageIndicator.waitFor({ state: 'visible', timeout: 30_000 });
   }
 
   async waitForPdfRendered(): Promise<void> {

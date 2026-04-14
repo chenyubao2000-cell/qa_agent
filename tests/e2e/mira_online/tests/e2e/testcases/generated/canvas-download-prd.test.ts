@@ -6,6 +6,47 @@ import { CanvasDownloadFragment } from '../../pages/task.page.canvas-download.fr
 import { TaskPagePeopleDataDownloadFragment } from '../../pages/task.page.people-data-download.fragment';
 
 // Canvas download = DIRECT (no format dropdown).
+// NOTE: The app downloads via fetch→Blob→createObjectURL→<a download>.click()
+// which does NOT trigger Playwright's "download" event. We intercept the <a> click
+// at the JS level to capture the suggested filename.
+
+/**
+ * Inject a blob-download interceptor into the page.
+ * Call this BEFORE triggering the download. After the download completes,
+ * call `page.evaluate(() => (window as any).__blobDownloads)` to retrieve
+ * an array of { filename, blobUrl } objects.
+ */
+async function installBlobDownloadInterceptor(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    (window as any).__blobDownloads = [];
+    const origClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+      if (this.href?.startsWith('blob:') && this.download) {
+        (window as any).__blobDownloads.push({
+          filename: this.download,
+          blobUrl: this.href,
+        });
+      }
+      return origClick.call(this);
+    };
+  });
+}
+
+/**
+ * Wait for at least one blob download to be captured, then return the list.
+ */
+async function waitForBlobDownload(
+  page: import('@playwright/test').Page,
+  timeout = 60_000
+): Promise<{ filename: string; blobUrl: string }[]> {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const downloads = await page.evaluate(() => (window as any).__blobDownloads ?? []);
+    if (downloads.length > 0) return downloads;
+    await page.waitForTimeout(500);
+  }
+  throw new Error(`Timed out waiting for blob download after ${timeout}ms`);
+}
 
 test.describe('US-CDLD-FORMAT', () => {
   test(
@@ -16,11 +57,10 @@ test.describe('US-CDLD-FORMAT', () => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
       await fragment.gotoTask(taskWithToolChainUrl);
       await fragment.openPeopleDataPanel();
-      const [download] = await Promise.all([
-        page.waitForEvent('download', { timeout: 60_000 }),
-        fragment.clickPeopleDataDownloadButton(),
-      ]);
-      expect(download.suggestedFilename()).toMatch(/\.xlsx$/i);
+      await installBlobDownloadInterceptor(page);
+      await fragment.clickPeopleDataDownloadButton();
+      const blobDownloads = await waitForBlobDownload(page, 60_000);
+      expect(blobDownloads[0].filename).toMatch(/\.xlsx$/i);
     }
   );
 
@@ -121,10 +161,10 @@ test.describe('US-CDLD-FLOW', () => {
       const canvas = new CanvasDownloadFragment(page, i18n);
       await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
-      const downloadPromise = page.waitForEvent('download', { timeout: 45_000 });
+      await installBlobDownloadInterceptor(page);
       await canvas.clickCanvasDownload();
-      const download = await downloadPromise;
-      expect(download.suggestedFilename()).toBeTruthy();
+      const blobDownloads = await waitForBlobDownload(page, 45_000);
+      expect(blobDownloads[0].filename).toBeTruthy();
       await expect(canvas.getDownloadSuccessToast()).toBeVisible({ timeout: 10_000 });
     }
   );
@@ -161,10 +201,10 @@ test.describe('US-CDLD-E2E', () => {
       await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
       await expect(canvas.getCanvasDownloadButton()).toBeVisible({ timeout: 15_000 });
-      const downloadPromise = page.waitForEvent('download', { timeout: 45_000 });
+      await installBlobDownloadInterceptor(page);
       await canvas.clickCanvasDownload();
-      const download = await downloadPromise;
-      expect(download.suggestedFilename()).toMatch(/.pptx$/i);
+      const blobDownloads = await waitForBlobDownload(page, 45_000);
+      expect(blobDownloads[0].filename).toMatch(/.pptx$/i);
       await expect(canvas.getDownloadSuccessToast()).toBeVisible({ timeout: 10_000 });
       await expect(canvas.getCanvasDownloadButton()).toBeEnabled({ timeout: 5_000 });
     }
@@ -205,10 +245,10 @@ test.describe('US-CDLD-E2E', () => {
       const canvas = new CanvasDownloadFragment(page, i18n);
       await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
-      const downloadPromise = page.waitForEvent('download', { timeout: 45_000 });
+      await installBlobDownloadInterceptor(page);
       await canvas.clickCanvasDownload();
-      const download = await downloadPromise;
-      expect(download.suggestedFilename()).toMatch(/.pptx$/i);
+      const blobDownloads = await waitForBlobDownload(page, 45_000);
+      expect(blobDownloads[0].filename).toMatch(/.pptx$/i);
       await expect(canvas.getDownloadSuccessToast()).toBeVisible({ timeout: 10_000 });
     }
   );
@@ -237,16 +277,16 @@ test.describe('US-CDLD-ERROR', () => {
       const canvas = new CanvasDownloadFragment(page, i18n);
       await canvas.gotoTaskWithFiles(taskWithToolChainUrl);
       await canvas.openFileInCanvas('pptx');
-      // Track download events (more reliable than request counting)
-      let downloadCount = 0;
-      page.on('download', () => { downloadCount++; });
+      // Track blob downloads via interceptor (app uses fetch→blob→<a download>.click())
+      await installBlobDownloadInterceptor(page);
       const dlBtn = canvas.getCanvasDownloadButton();
       await expect(dlBtn).toBeVisible({ timeout: 15_000 });
       await dlBtn.click();
       await dlBtn.click({ force: true }).catch(() => {});
       await dlBtn.click({ force: true }).catch(() => {});
       await canvas.waitForDownloadSuccess(45_000);
-      expect(downloadCount).toBeLessThanOrEqual(1);
+      const blobDownloads = await page.evaluate(() => (window as any).__blobDownloads ?? []);
+      expect(blobDownloads.length).toBeLessThanOrEqual(1);
     }
   );
 

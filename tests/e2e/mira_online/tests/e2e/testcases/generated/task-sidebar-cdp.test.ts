@@ -382,6 +382,8 @@ test.describe.serial('US-SIDEBAR-05 · 重命名弹窗', () => {
       await taskPage.clickSubmit();
       await page.waitForURL(/\/task\/.+/, { timeout: 60_000 });
       await taskPage.goto();
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
       const actualName = await taskPage.getFirstTaskName();
 
       await taskPage.renameTask(actualName, scenarioRename);

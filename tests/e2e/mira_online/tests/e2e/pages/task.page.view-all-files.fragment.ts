@@ -57,10 +57,11 @@ export class ViewAllFilesFragment {
       has: page.locator('svg title:text("Batch download")'),
     }).first();
 
-    // File cards: In browse mode they are div[role="button"] with rounded-lg.border.p-3
-    // In selection mode they are div[role="checkbox"]
-    // Use the panel heading as anchor, then find cards in the same container
-    this.fileCards = page.locator('.rounded-lg.border.p-3');
+    // File cards: In browse mode they are div[role="button"] inside grid columns
+    // In selection mode the outer wrapper is div[role="checkbox"]
+    // Scope to the files panel container (border-l panel) to avoid matching chat log cards
+    const panelScope = page.locator('.overflow-hidden.border-l').last();
+    this.fileCards = panelScope.locator('[role="button"], [role="checkbox"]');
 
     // Select all button
     this.selectAllBtn = page.locator('button').filter({ hasText: /Select all|全选/i }).first();
@@ -97,10 +98,10 @@ export class ViewAllFilesFragment {
   }
 
   async waitForFileCardsLoaded(): Promise<void> {
-    // Wait for any file card to appear -- either browse mode (button with title) or selection mode (checkbox)
-    await this.page.locator('.rounded-lg.border.p-3').first().or(
-      this.page.getByRole('checkbox').first()
-    ).waitFor({ state: 'visible', timeout: 30_000 });
+    // Wait for any file card to appear inside the files panel
+    // Browse mode: div[role="button"] inside the panel
+    // Selection mode: div[role="checkbox"] inside the panel
+    await this.fileCards.first().waitFor({ state: 'visible', timeout: 30_000 });
   }
 
   async clickFirstFileCard(): Promise<void> {

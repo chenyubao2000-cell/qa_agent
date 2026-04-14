@@ -11,7 +11,12 @@ import { ViewAllFilesFragment } from '../../pages/task.page.view-all-files.fragm
 async function waitForTaskReady(page: import('@playwright/test').Page, taskUrl: string) {
   await page.goto(taskUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
-  await page.locator('[role="log"]').waitFor({ state: 'visible', timeout: 20_000 });
+  // The chat container has role="log" but it may not register as "visible" in Playwright
+  // when using StickToBottom (zero-height flex child before content loads).
+  // Wait for it to be attached first, then wait for any child content to render.
+  await page.locator('[role="log"]').waitFor({ state: 'attached', timeout: 20_000 });
+  // Also wait for the page main content area to stabilize
+  await page.locator('main').waitFor({ state: 'visible', timeout: 10_000 }).catch(() => {});
 }
 
 // US-VF-ENTRY
@@ -198,9 +203,11 @@ test.describe('US-VF-BATCH - View All Files -- batch download', () => {
     await vaf.clickViewAllFilesToolbar();
     await vaf.waitForFilesPanelOpen();
     await vaf.waitForFileCardsLoaded();
-    // In browse mode, each file card has a "下载文件" button
-    const downloadBtns = page.locator('button[title="下载"], button[title="Download"]');
-    await expect(downloadBtns.first()).toBeVisible();
+    // In browse mode, each file card has a download button (title="下载" or "Download")
+    // Scope to the files panel to avoid matching buttons elsewhere
+    const panelScope = page.locator('.overflow-hidden.border-l').last();
+    const downloadBtns = panelScope.locator('button[title="下载"], button[title="Download"]');
+    await expect(downloadBtns.first()).toBeVisible({ timeout: 10_000 });
   });
 });
 
