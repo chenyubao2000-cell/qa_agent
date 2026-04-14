@@ -16,14 +16,14 @@ Creating this data in every test or every worker causes:
 ## Solution: Three-Stage Pipeline
 
 ```
-setup(auth) → data-setup(serial data creation) → e2e-*(N workers parallel)
+setup(auth) → data-setup(parallel data creation) → e2e-*(N workers parallel)
 ```
 
 ### Stage 1: auth setup
 Existing `auth.setup.ts` — authenticates and saves session state.
 
 ### Stage 2: data-setup (NEW)
-`data.setup.ts` — creates all expensive test data serially, writes URLs to `playwright/.test-data.json`.
+`data.setup.ts` — creates all expensive test data in parallel (each task gets its own browser context via `Promise.allSettled`), writes URLs to `playwright/.test-data.json`.
 Only creates data that isn't already cached or set via env vars.
 
 ### Stage 3: test execution
@@ -108,25 +108,25 @@ Pattern: `E2E_{SCREAMING_SNAKE_CASE}_URL` → camelCase key in `.test-data.json`
 ```typescript
 // Key responsibilities:
 // 1. Check each key: env var → cached JSON → needs creation
-// 2. Create missing data SERIALLY (one at a time, avoid server overload)
-// 3. Write all URLs to playwright/.test-data.json with _createdAt timestamp
-// 4. 24h TTL — stale cache is ignored and recreated
+// 2. Create missing data IN PARALLEL — each task gets its own browser context
+// 3. Use Promise.allSettled to collect results (partial success is OK)
+// 4. Write all URLs to playwright/.test-data.json with _createdAt timestamp
+// 5. 24h TTL — stale cache is ignored and recreated
 
 setup('create test data', async ({ browser }) => {
   const cached = readTestData();
   const results = { ...cached };
-  const ctx = await browser.newContext({ storageState: AUTH_FILE });
-  const page = await ctx.newPage();
+  const tasks: Array<{ key: string; promise: Promise<string> }> = [];
 
-  try {
-    if (needsCreation('taskWithCodeUrl', 'E2E_TASK_WITH_CODE_URL', cached)) {
-      results.taskWithCodeUrl = await createTask(page, prompt, waitPattern);
-    }
-    // ... repeat for each fixture
-  } finally {
-    await ctx.close();
+  if (needsCreation('taskWithCodeUrl', 'E2E_TASK_WITH_CODE_URL', cached)) {
+    tasks.push({ key: 'taskWithCodeUrl', promise: createInContext(browser, prompt, waitPattern) });
   }
+  // ... repeat for each fixture
 
+  const settled = await Promise.allSettled(tasks.map(t => t.promise));
+  settled.forEach((r, i) => {
+    if (r.status === 'fulfilled') results[tasks[i].key] = r.value;
+  });
   writeTestData(results);
 });
 ```
