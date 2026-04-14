@@ -134,7 +134,7 @@ test.describe('[VERIFY-FIX] MIRA-1318 场景发送后应导航到新对话页', 
     // "试试以下场景" label should be visible
     const scenarioLabel = taskPage.getScenarioLabel();
     await expect(scenarioLabel).toBeVisible({ timeout: 10_000 });
-    await expect(scenarioLabel).toContainText(i18n.t('task.tryScenarios'));
+    await expect(scenarioLabel).toContainText(i18n.t('dashboard.tryScenarios'));
 
     // At least 1 scenario card should be visible
     const suggestions = taskPage.getScenarioSuggestions();

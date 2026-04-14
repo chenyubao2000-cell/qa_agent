@@ -190,7 +190,7 @@ export class TaskPage {
 
   getScenarioLabel(): Locator {
     return this.page.getByText(
-      this.i18n ? this.i18n.t('task.tryScenarios') : /试试以下场景|Try these scenarios/
+      this.i18n ? this.i18n.t('dashboard.tryScenarios') : /试试以下场景|Try these scenarios/
     );
   }
 
