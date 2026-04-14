@@ -36,7 +36,7 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
-  workers: 1,
+  workers: process.env.CI ? 3 : 5,
   outputDir: "./test-results",
   reporter: [
     ["json", { outputFile: "tests/reports/playwright-results.json" }],
@@ -58,6 +58,15 @@ export default defineConfig({
   },
   projects: [
     ...(hasAuth ? [{ name: 'setup', testMatch: /auth\.setup\.ts/ }] : []),
-    ...testProjects,
+    {
+      name: 'data-setup',
+      testMatch: /data\.setup\.ts/,
+      timeout: 20 * 60_000, // 20 min for serial task creation
+      ...(hasAuth ? { dependencies: ['setup'] } : {}),
+    },
+    ...testProjects.map(p => ({
+      ...p,
+      ...(hasAuth ? { dependencies: ['data-setup'] } : {}),
+    })),
   ],
 });
