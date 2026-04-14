@@ -469,25 +469,31 @@ export class TaskPage {
   }
 
   async clickFirstToolCard(): Promise<void> {
-    await this.getFirstToolCard().waitFor({ state: 'visible', timeout: 30_000 });
-    await this.getFirstToolCard().click();
+    const card = this.getFirstToolCard();
+    await card.waitFor({ state: 'visible', timeout: 30_000 });
+    // Wait for React hydration so click handlers are attached
+    await this.page.waitForLoadState('networkidle');
+    // Click on the left side (file name area) to avoid nested "下载文件" button
+    await card.click({ position: { x: 50, y: 20 } });
   }
 
   // ── Conversation: Workspace Panel (S5) ──
 
   getWorkspacePanel(): Locator {
-    // The workspace/preview panel is a fixed full-screen overlay (z-50)
-    return this.page.locator('div.fixed.inset-0.z-50').first();
+    // Identify the workspace panel by the presence of the "关闭/Close" button
+    // Works for both desktop (side panel) and mobile (full-screen overlay)
+    return this.page.locator('div.border-l, div.fixed.inset-0.z-50')
+      .filter({ has: this.page.getByRole('button', { name: /^关闭$|^Close$/ }) })
+      .first();
   }
 
   getWorkspacePanelTitle(): Locator {
-    // The panel header shows the filename in a <p> tag (no heading element)
-    return this.getWorkspacePanel().locator('p.truncate').first();
+    // Title is the first <p> in the panel (filename shown in header, above article content)
+    return this.getWorkspacePanel().locator('p').first();
   }
 
   getWorkspacePanelCloseBtn(): Locator {
-    // Close button is the last button in the panel header
-    return this.getWorkspacePanel().locator('div.flex.items-center.justify-between > div.flex.items-center button').last();
+    return this.getWorkspacePanel().getByRole('button', { name: /^关闭$|^Close$/ });
   }
 
   async closeWorkspacePanel(): Promise<void> {
