@@ -89,6 +89,17 @@ Key features: dotenv config, auth setup project with `dependencies: ['setup']`, 
 **Template**: defined in `.claude/references/phase-0-templates.md` § "fixtures.ts Template" (the ONLY location — do not duplicate elsewhere).
 Two variants: with APP_LANGUAGES (i18n fixture + dynamic imports per language) / without (minimal re-export).
 
+## Step 2f-0. Generate data.setup.ts (if not present)
+
+**When**: Always generate if `E2E_TEST_EMAIL` is set (data-setup needs auth to create tasks).
+
+**Skip if**: `$QA_WORKSPACE_DIR/tests/e2e/data.setup.ts` already exists.
+
+**Template**: defined in `.claude/references/test-data-setup.md` § "data.setup.ts structure".
+The data-setup project pre-creates expensive AI task data serially, writes URLs to `playwright/.test-data.json`, so parallel workers never block on fixture creation.
+
+> **Important**: data.setup.ts is project-specific — each target project may need different fixture data (different prompts, different wait patterns). The reference provides the pattern; adapt the specific task creation prompts to the project's needs.
+
 ## Step 2f. Copy static test data files (if not present)
 
 ```
@@ -112,6 +123,19 @@ When `APP_LANGUAGES` is set, validate infrastructure is complete:
 ```
 
 If any check fails → ERROR with actionable message pointing to the specific step above.
+
+## Data Pipeline Validation (post-init check)
+
+When `E2E_TEST_EMAIL` is set, validate data-setup infrastructure:
+
+```
+1. playwright.config.ts has data-setup project (Grep "data-setup" in config)
+2. data.setup.ts exists at $QA_WORKSPACE_DIR/tests/e2e/data.setup.ts
+3. Test projects depend on 'data-setup' (not directly on 'setup')
+4. fixtures.ts contains readTestData helper (Grep "readTestData" in fixtures.ts)
+```
+
+> See `.claude/references/test-data-setup.md` for full data pipeline documentation.
 
 ## Auth Infrastructure Validation (post-init check)
 

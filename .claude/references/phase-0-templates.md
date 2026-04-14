@@ -60,7 +60,7 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
-  workers: 1,
+  workers: process.env.CI ? 3 : 5,
   outputDir: "./test-results",
   reporter: [
     ["json", { outputFile: "tests/reports/playwright-results.json" }],
@@ -78,13 +78,20 @@ export default defineConfig({
     trace: "retain-on-failure",
     video: "retain-on-failure",
   },
-  // Setup project runs auth.setup.ts before all test projects.
-  // Even for public-page-only test runs, setup still executes if hasAuth=true.
-  // This is by design: setup is fast (~5s) and ensures auth state is fresh.
-  // Public page tests opt out via test.use({ storageState: { cookies: [], origins: [] } }).
+  // Pipeline: setup(auth) → data-setup(serial data creation) → e2e-*(N workers)
+  // See: .claude/references/test-data-setup.md for full data pipeline documentation.
   projects: [
     ...(hasAuth ? [{ name: 'setup', testMatch: /auth\.setup\.ts/ }] : []),
-    ...testProjects,
+    {
+      name: 'data-setup',
+      testMatch: /data\.setup\.ts/,
+      timeout: 20 * 60_000, // 20 min for serial task creation
+      ...(hasAuth ? { dependencies: ['setup'] } : {}),
+    },
+    ...testProjects.map(p => ({
+      ...p,
+      ...(hasAuth ? { dependencies: ['data-setup'] } : {}),
+    })),
   ],
 });
 ```
@@ -97,6 +104,9 @@ export default defineConfig({
 > - `locale`: Dynamically inferred — uses first language when APP_LANGUAGES is set, defaults to `en-US` otherwise. Each language project sets locale independently.
 > - `outputDir`: Explicitly specified to prevent artifacts from scattering
 > - `expect.timeout`: Default 5s is too short for remote environments, set to 10s
+> - `workers`: CI=3, local=5. 10 workers overwhelms single-instance preview servers, causing page-load timeouts
+> - `data-setup` project: Serial pre-creation of expensive test data. See `.claude/references/test-data-setup.md`
+> - Test projects depend on `data-setup` (not `setup` directly) — data-setup already depends on setup, so the chain is: setup → data-setup → e2e-*
 
 ---
 
