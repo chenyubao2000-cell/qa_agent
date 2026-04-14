@@ -4,7 +4,8 @@
 
 | Field | Type | Description | Code generation |
 |-------|------|-------------|-----------------|
-| `type` | `"navigate"` \| `"ui"` \| `"api"` | Operation category | `navigate` → `await page.goto(url)`; `ui` → POM method call; `api` → `request.post(...)` |
+| `type` | `"navigate"` \| `"ui"` \| `"api"` \| `"fixture"` | Operation category | `navigate` → `await page.goto(url)`; `ui` → POM method call; `api` → `request.post(...)`; `fixture` → destructure fixture parameter |
+| `fixtureId` | `string` | Fixture registry key (when `type: "fixture"`) | Maps to fixture name via **Fixture Registry** in `.claude/references/test-data-setup.md`. Generator MUST validate fixtureId exists before generating. |
 | `url` | `string` | Target URL (when `type: "navigate"`) | `await page.goto(url)` |
 | `action` | `string` | CRUD verb (when `type: "ui"`) | Maps to POM method via `pomMethod` |
 | `pomMethod` | `string` | POM method name (when `type: "ui"`) | `await xxxPage.{pomMethod}(data)` — if POM lacks this method, add it |
@@ -12,9 +13,17 @@
 | `data` | `object` | Key-value pairs for the operation | Passed as argument to POM method; `{timestamp}` → `Date.now()` |
 
 **Lifecycle mapping:**
-- `setup[]` entries → **worker-scope fixture** in `fixtures.ts` (default). When `setup[].scope = "worker"`, generate fixture with `{ scope: 'worker', timeout: 360_000 }`. Do NOT use `beforeAll`.
+- `setup[]` with `type: "fixture"` → add fixture name to test function destructuring: `async ({ page, taskWithXxxUrl }) => {...}`. Look up fixture name from Fixture Registry by `fixtureId`. See `.claude/references/test-data-setup.md` § "Fixture Registry".
+- `setup[]` with `type: "ui"` → POM method call in test body setup section
+- `setup[]` with `type: "navigate"` → `page.goto()` in test body
 - `teardown[]` entries → `test.afterAll` or `test.afterEach`
 - Empty `setup[]` on an action that requires it → infer from `preconditions[]`; if both empty → flag error
+
+**Fixture validation (MANDATORY):**
+When `setup[].type = "fixture"`:
+1. Look up `fixtureId` in Fixture Registry (`.claude/references/test-data-setup.md`)
+2. If fixtureId NOT found → **ERROR**: stop generation, report unknown fixtureId
+3. If found → use the `Fixture name` column as the parameter name in test function
 
 ---
 

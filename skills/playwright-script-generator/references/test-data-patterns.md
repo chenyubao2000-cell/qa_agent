@@ -64,10 +64,12 @@ export class TasksPage {
 ```
 
 **6. Handoff integration:**
-- `setup[]` field → UI operations needed before the test action
+- `setup[]` with `type: "fixture"` → destructure named fixture from Fixture Registry (see `.claude/references/test-data-setup.md`)
+- `setup[]` with `type: "ui"` → UI operations needed before the test action
 - `teardown[]` field → UI cleanup needed after
 - `pomMethod` field in each entry → maps directly to a POM method name
 - `{timestamp}` placeholders → replace with `Date.now()` in generated code
+- `fixtureId` field → maps to fixture name via Fixture Registry. **Generator MUST validate fixtureId exists.**
 
 **7. Setup validation (MANDATORY before generating each test):**
 
@@ -210,6 +212,23 @@ test('Canvas preview works', async ({ page, taskWithFilesUrl }) => {
 
 > **Blocker handling**: AI apps often interpose clarification forms, consent dialogs, or error retries between user input and result output. Fixtures MUST handle these — see `ai-wait.md` Strategy F for the reusable `waitWithBlockerDismissal()` helper and common blocker patterns.
 
+**Handoff example for Pattern D:**
+```json
+{
+  "setup": [{
+    "type": "fixture",
+    "fixtureId": "tool-chain"
+  }]
+}
+```
+Generator reads `fixtureId: "tool-chain"` → looks up Fixture Registry → finds `taskWithToolChainUrl` → generates:
+```typescript
+test('...', async ({ page, i18n, taskWithToolChainUrl }) => {
+  await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
+  // ...
+});
+```
+
 **Why Pattern D over Pattern A/B:**
 
 | | Pattern A/B (beforeAll) | Pattern D (worker-scope fixture) |
@@ -218,4 +237,5 @@ test('Canvas preview works', async ({ page, taskWithFilesUrl }) => {
 | Execution | Once per describe | Once per worker (fewer runs) |
 | Parallelism | Requires `serial` wrapper | Tests stay parallel |
 | Complexity | `let` variable + serial + setTimeout | Clean fixture parameter |
-| Handoff signal | — | `setup[].scope = "worker"` |
+| Handoff signal | — | `setup[].type = "fixture"`, `fixtureId` from registry |
+| Validation | Runtime error | Generation-time error (fixtureId validated) |

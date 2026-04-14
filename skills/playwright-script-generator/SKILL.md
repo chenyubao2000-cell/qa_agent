@@ -65,7 +65,7 @@ For each test case entry in the handoff:
 3. **Wait for async data to be ready** — use `waitForResponse` / polling to confirm before asserting
 4. **Unique naming** — always use `Date.now()` or `crypto.randomUUID()` suffix: `Test-{Action}-${Date.now()}`
 5. **POM must include setup/teardown methods** — `createTask()`, `deleteTask()`, etc.
-6. **Handoff integration**: `setup[]` → worker-scope fixture; `teardown[]` → after-action cleanup; `{timestamp}` → `Date.now()`. For full schema, read `references/handoff-field-resolution.md` §1.
+6. **Handoff integration**: `setup[].type = "fixture"` → look up `fixtureId` in **Fixture Registry** (`.claude/references/test-data-setup.md`), destructure fixture parameter in test function. `setup[].type = "ui"` → POM method call. `teardown[]` → after-action cleanup. `{timestamp}` → `Date.now()`. **MUST validate fixtureId exists in registry before generating spec.** For full schema, read `references/handoff-field-resolution.md` §1.
 7. **Fixture timeout**: Every worker-scope fixture that creates data MUST specify `{ scope: 'worker', timeout: 360_000 }`. This is independent from test timeout and handles AI tasks (1-5 min) without any workaround.
 8. **AI interactive blocker handling** — Worker-scope fixtures that submit AI tasks MUST handle interactive blockers (clarification forms, consent dialogs, error retries) that may appear before the expected result. Use `waitWithBlockerDismissal()` pattern from `references/ai-wait.md` Strategy F. Never assume AI will produce results without intermediate interaction.
 
