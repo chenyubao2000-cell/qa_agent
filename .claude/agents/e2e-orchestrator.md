@@ -190,6 +190,10 @@ Read `skills/test-case-generator/SKILL.md` and execute according to the correspo
 - **Only generate test cases that Step 2 determined as "missing"**; do not regenerate already covered ones
 - Output: test-cases/generated/{slug}.md + test-cases/generated/playwright-handoff-{slug}.json
 - **Handoff is MANDATORY**: test-case-generator MUST produce handoff.json in ALL modes (PRD, CDP, issue). Each TC in Merged table = one handoff entry. If handoff is not produced, Step 4.5 will block the pipeline.
+- **Fixture data dependencies (MANDATORY)**: When test cases depend on pre-existing expensive data (e.g., a completed AI task with generated files), handoff MUST include `setup[]` entries with `type: "fixture"` and `fixtureId` from the **Fixture Registry** in `.claude/references/test-data-setup.md`. Available fixtureIds: `file-gen`, `code-gen`, `people-data`, `tool-chain`, `share`. If a test needs data not in the registry, flag it — do NOT generate inline `beforeAll` creation code (Pattern A is deprecated). Example:
+  ```json
+  { "setup": [{ "type": "fixture", "fixtureId": "tool-chain" }] }
+  ```
 - **i18n context (MANDATORY when appLanguages is set)**: Pass `appLanguages` and `i18nMessagesDir` to test-case-generator in the prompt:
   ```
   - appLanguages: {projectContext.appLanguages}

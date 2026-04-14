@@ -30,7 +30,18 @@ Only need to extract:
 Not needed: PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in auth.setup.ts).
 Also extract: `SOURCE_PROJECT_DIR` — passed to report-analyzer for source code enrichment in bug reports.
 No initialization — only runs existing specs. Workspace must have been initialized by `/qa-explore` or similar commands.
-Required files: `playwright.config.ts`, `tests/e2e/fixtures.ts`, `tests/e2e/testcases/**/*.test.ts`, `node_modules/@playwright/test`. If `E2E_TEST_EMAIL` is set: also `tests/e2e/auth.setup.ts` + `playwright/.auth/` directory.
+Required files: `playwright.config.ts`, `tests/e2e/fixtures.ts`, `tests/e2e/testcases/**/*.test.ts`, `node_modules/@playwright/test`. If `E2E_TEST_EMAIL` is set: also `tests/e2e/auth.setup.ts` + `tests/e2e/data.setup.ts` + `playwright/.auth/` directory.
+
+### Three-Stage Execution Pipeline
+
+Playwright config defines a three-stage project chain that runs automatically:
+```
+setup(auth) → data-setup(parallel fixture data creation) → e2e-*(N workers)
+```
+- **data-setup**: Pre-creates expensive AI task data (completed tasks, share URLs) in parallel via `Promise.allSettled`. Results cached in `playwright/.test-data.json` (24h TTL). Skips creation if env vars or cache exist.
+- **Workers**: `CI ? 3 : 5` — avoids overwhelming single-instance preview servers. Override with `--workers=N`.
+- No manual intervention needed — Playwright handles dependencies automatically.
+- See `.claude/references/test-data-setup.md` for full pipeline documentation.
 
 ### Source Code Directory (optional, injected by git-watcher)
 
