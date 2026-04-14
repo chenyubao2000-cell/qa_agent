@@ -13,6 +13,11 @@
         "HTTP_PROXY": "http://127.0.0.1:7890"
       }
     },
+    "pencil": {
+      "command": "/Applications/Pencil.app/Contents/Resources/app.asar.unpacked/out/mcp-server-darwin-arm64",
+      "args": ["--app", "desktop"],
+      "env": {}
+    },
     "linear": {
       "command": "node",
       "args": ["--import", "./scripts/proxy-bootstrap.mjs", "node_modules/@calltelemetry/linear-mcp/build/index.js"],
