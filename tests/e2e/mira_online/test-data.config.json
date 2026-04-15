@@ -1,0 +1,81 @@
+{
+  "routes": {
+    "taskCreation": "/task",
+    "signIn": "/sign-in"
+  },
+
+  "selectors": {
+    "textarea": "请输入|Ask anything",
+    "submitBtn": "Submit|提交",
+    "completionIndicator": "任务已完成|Task completed"
+  },
+
+  "fixtures": {
+    "code-gen": {
+      "name": "taskWithCodeUrl",
+      "env": "E2E_TASK_WITH_CODE_URL",
+      "prompt": "用 Python 写一个快速排序算法",
+      "waitPattern": "任务已完成|Task completed",
+      "fallbackFill": "请直接编写代码",
+      "timeout": 480000,
+      "description": "Completed task with code generation output"
+    },
+    "file-gen": {
+      "name": "taskWithFilesUrl",
+      "env": "E2E_TASK_WITH_FILES_URL",
+      "prompt": "帮我写一个简单的PPT，主题是自我介绍，3页就够，不需要问我问题直接创建",
+      "waitPattern": "任务已完成|Task completed",
+      "fallbackFill": "请直接创建文件",
+      "timeout": 480000,
+      "description": "Completed task with generated files (PPT, etc.)"
+    },
+    "people-data": {
+      "name": "taskWithPeopleDataUrl",
+      "env": "E2E_TASK_WITH_PEOPLE_DATA_URL",
+      "prompt": "帮我搜索苏州的软件工程师候选人，不需要问我问题直接搜索",
+      "waitPattern": "People Data|人才数据",
+      "waitLocator": "[role='log'] div[role='button']",
+      "fallbackFill": "软件工程师，3年以上经验",
+      "timeout": 360000,
+      "description": "Completed task with people/candidate search results"
+    },
+    "tool-chain": {
+      "name": "taskWithToolChainUrl",
+      "env": "E2E_TASK_WITH_TOOL_CHAIN_URL",
+      "prompt": "请帮我完成一个关于\"2025年全球AI大模型市场\"的综合研究任务。不需要问我问题，直接开始执行，最终必须交付以下 6 种格式的文件（缺一不可）：1) 一个 .xlsx 表格文件，内容为头部AI公司对比数据；2) 一个 .pptx 演示文件，2页，概述市场格局；3) 一个 .pdf 报告文件，总结研究发现；4) 一个 .docx 文档文件，详细研究摘要；5) 一个 .png 图片文件，用柱状图展示公司融资额对比；6) 一个 .json 数据文件，包含公司统计的结构化数据。请先搜索相关信息，再逐一生成以上所有文件，确保 6 个文件全部交付。",
+      "waitPattern": "任务已完成|Task completed",
+      "fallbackFill": "请直接开始，使用默认设置",
+      "timeout": 600000,
+      "description": "Completed multi-tool-chain task (search + files + code)"
+    },
+    "share": {
+      "name": "shareUrl",
+      "env": "E2E_SHARE_URL",
+      "type": "share",
+      "prompt": "用 Python 写一个 hello world",
+      "waitPattern": "任务已完成|Task completed",
+      "fallbackFill": "请直接编写代码",
+      "timeout": 600000,
+      "description": "Share page URL with access token",
+      "shareDialog": {
+        "shareButtonSelector": "svg.lucide-share2, svg.lucide-share-2",
+        "createLinkBtn": "创建分享链接|Create share link",
+        "copyLinkBtn": "复制链接|Copy link",
+        "urlPattern": "/share/"
+      }
+    }
+  },
+
+  "clarificationHandler": {
+    "submitSelector": "[role='log'] button",
+    "submitText": "提交|Submit",
+    "inputSelector": "[role='log'] textarea",
+    "radioGroupSelector": "[role='log'] [role='radiogroup']",
+    "bypassMessage": "请直接开始创建，使用默认设置"
+  },
+
+  "cache": {
+    "ttlMs": 86400000,
+    "path": "playwright/.test-data.json"
+  }
+}

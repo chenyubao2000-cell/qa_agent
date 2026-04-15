@@ -4,6 +4,10 @@
 > Covers: data-setup pipeline, fixture data lifecycle, worker-scope patterns.
 > Used by: all commands that generate or execute Playwright specs.
 > Commands MUST reference this file, NOT duplicate the patterns inline.
+>
+> **Skill**: 通用生成能力已沉淀到 `skills/test-data-setup/SKILL.md`。
+> 项目专属配置声明在各项目的 `test-data.config.json` 中。
+> Fixture Registry 校验规则见 `skills/test-data-setup/references/fixture-registry.md`。
 
 ## Problem
 

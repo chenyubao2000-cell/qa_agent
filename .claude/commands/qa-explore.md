@@ -230,87 +230,14 @@ Phase 2c: Serial locator verification (one subagent per POM, sequential)
 
 ### Phase 2a: Serial CDP Exploration
 
-```
-exploredAreas = []
-baseline = Phase 1 output initial baseline (containing State_0 + areas list)
+For the full subagent prompt template (including source pre-read, dynamic area discovery, sourceContext sharing), read `.claude/references/qa-explore-phase2.md`.
 
-for area in areas:
-  // Launch cdp-explorer subagent (serial — one browser, one page at a time)
-  Launch subagent with CDP tools:
-
-  prompt:
-  ```
-  You are a CDP page explorer. First read skills/cdp-explorer/SKILL.md.
-
-  Task: Explore one functional area on the current page.
-
-  Input:
-  - mode: "full"
-  - baselineFile: {absolute path to page-baseline-{slug}.json}
-  - area: { id: "{area.id}", name: "{area.name}", type: "{area.type}", elements: [...] }
-  - pageUrl: {exploration URL}
-  - nextStateId: {next available state number}
-  - appLanguages: {APP_LANGUAGES or null}
-  - i18nMessagesDir: {QA_WORKSPACE_DIR + "/messages" if APP_LANGUAGES is set, else null}
-    When set, perform i18n reverse-lookup per cdp-explorer SKILL.md Step 3.5
-  - sourceProjectDir: {resolved source code directory}
-    MUST execute cdp-explorer Phase 0 (source pre-read) before any DOM scanning.
-  - previousSourceContext: {sharedSourceContext from previous area subagents, if any}
-    When present, reuse existing sourceContext for shared components — only read NEW components.
-
-  Steps:
-  1. Read the baseline file to understand existing states (avoid re-exploring)
-  2. Connect to the page (list_pages → select_page, or navigate if needed)
-  2.5. **Source Code Pre-Read**: Execute cdp-explorer SKILL.md Phase 0 using sourceProjectDir.
-       Grep for components matching area.name and area.elements.
-       Build sourceContext (testIds, ariaAttributes, conditionalElements, i18nKeys, utilityClasses).
-       Use sourceContext in Step 3 BFS to prefer stable locators and understand conditional elements.
-  3. Execute Phase 3 BFS using area.elements as initial seeds
-     - Allow BFS to discover and interact with NEW elements after interaction
-     - Mark all new states/edges with sourceArea = "{area.id}"
-  4. Dynamic Area Discovery: check for newly revealed functional areas
-     - New Modal/Dialog → discoveredArea { type: "modal" }
-     - New Tab Panel → discoveredArea { type: "tab-panel" }
-     - Expanded menu → discoveredArea { type: "menu" }
-     - Lazy-loaded content → discoveredArea { type: "lazy-content" }
-  5. Write ALL findings to the baseline file (states, edges, forms, areas, coverageReport)
-
-  Return summary:
-  {
-    "areaId": "{area.id}",
-    "newStates": ["S3", "S4"],
-    "newEdges": 5,
-    "discoveredAreas": [{ "id": "modal-create", "type": "modal", "name": "Create Modal" }],
-    "coverageReport": { "interactedElements": 15, "statesDiscovered": 3, "terminationReason": "queue_empty" },
-    "sourceContext": { testIds, ariaAttributes, conditionalElements, i18nKeys, utilityClasses }
-  }
-  ```
-
-  // Process dynamic area discovery
-  If subagent returned discoveredAreas → append to areas list (subsequent iterations will explore them)
-
-  // ── sourceContext sharing (sequential area exploration) ──
-  // Merge sourceContext from this subagent into shared context for subsequent areas.
-  // Areas on the same page share components — avoid redundant source reading.
-  if subagent returned sourceContext:
-    sharedSourceContext = { ...sharedSourceContext, ...subagent.sourceContext }
-    // Pass sharedSourceContext to the NEXT area subagent as previousSourceContext
-
-  exploredAreas.push({ area, summary: subagent result })
-
-  // Report exploration progress
-  ```
-  Explored 1/M [Form] Join Waitlist Form — 3 states, 5 edges, 15 elements interacted
-  ```
-
-  If maxAreas reached → break
-
-  // maxAreas limit explanation:
-  // maxAreas limits the **total processed count** (initial + dynamically discovered combined)
-  // Example: maxAreas=5: 3 initial areas + 2 dynamically discovered = exactly 5, stop
-  // Dynamically discovered areas do not get extra quota, preventing infinite expansion
-  // Unprocessed dynamic areas are recorded in baseline (status: "pending"), next /qa-explore can continue
-```
+Key points:
+- One subagent per area, sequential (serial — one browser)
+- Each subagent reads baseline to avoid re-exploring, writes findings back
+- Dynamic area discovery: new Modals/Tabs/menus → appended to areas list
+- sourceContext shared between area subagents to avoid redundant source reading
+- maxAreas limits total processed count (initial + dynamically discovered)
 
 ### Phase 2a.5: Cross-Area Flow Discovery (after ALL CDP exploration, before generation)
 
@@ -454,34 +381,7 @@ Execute `.claude/references/pom-merge.md`
 
 ### Interruption Recovery + Page Change Detection
 
-If the user runs `/qa-explore` again on a previously explored page:
-
-1. Read the existing `page-baseline-{slug}.json`
-2. **Page change detection** — before resuming, verify the page hasn't changed:
-   - CDP connect to the page → take State₀ snapshot (quick, lightweight)
-   - Compare current State₀ fingerprint with `baseline.states.S0.fingerprint` (stored at last exploration)
-   - **Fingerprint matches** → page unchanged → resume mode:
-     - Check `areas[*].status`: skip `completed` ones, continue `pending` ones
-     - **Completion validation**: for each `completed` area, verify it has at least 1 state and 1 edge in baseline stateGraph. If a `completed` area has 0 states/edges → reclassify as `pending` (likely interrupted mid-write)
-     - State-flow graph is not lost; resume from the last breakpoint
-   - **Fingerprint differs** → page has changed → re-explore mode:
-     - Log: "Page has changed since last exploration (UI update detected)"
-     - For each `completed` area: re-run CDP exploration subagent to detect what changed
-     - Compare new exploration results with existing baseline states:
-       - Elements added/removed → mark area as `needs_update`
-       - Elements unchanged → keep existing status
-     - For `needs_update` areas: re-generate test cases + update existing specs + **update handoff entries** (same as orchestrator `prdChangeMode: "updated"` logic — keep unchanged tests, update changed ones, add new ones, skip removed ones. Handoff must stay in sync with .md and spec.)
-     - For unchanged areas: skip (existing tests still valid)
-     - For `pending` areas (not yet explored before interruption):
-       - **Discard old baseline data** for these areas (the page has changed, old State₀ elements may no longer exist)
-       - **Re-identify** from current State₀: run area identification again on current DOM
-       - If the pending area still exists on the new page → explore normally (treat as new)
-       - If the pending area no longer exists (element removed by page change) → remove from areas list, log "area {id} no longer present after page update"
-     - Update baseline fingerprint to current State₀
-
-> **Why not just re-explore everything?** Re-exploring all areas from scratch is wasteful if only one area changed (e.g., a button label updated). The fingerprint comparison + per-area re-check finds exactly what changed, minimizing unnecessary regeneration.
-
-> **Fingerprint storage**: Phase 1 State₀ scan must store the fingerprint (from cdp-explorer Step 6) in `baseline.states.S0.fingerprint` for future comparison.
+For the full recovery logic (fingerprint comparison, resume mode, re-explore mode, pending area handling), read `.claude/references/qa-explore-phase2.md`.
 
 ---
 

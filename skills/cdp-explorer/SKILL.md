@@ -272,70 +272,9 @@ For the complete DOM scan JavaScript, i18n reverse-lookup logic, and Layer 2/3 d
 
 ### Core Algorithm: Priority-Driven BFS + State Equivalence
 
-```
-knownStates = { State₀ }
-priorityQueue = PriorityQueue(all interactive elements in State₀, sorted by priority)
-stateFlowGraph = { nodes: [State₀], edges: [] }
-coverageTracker = { interactedElements: 0, totalInteractiveElements: N }
-startTime = now()
+For the full BFS algorithm pseudocode, coverage report format, and truncation handling, read `references/exploration-algorithm.md`.
 
-// Termination conditions — exploration stops when ANY of these is met:
-MAX_INTERACTIONS = 100   // Max number of element interactions
-MAX_STATES = 30          // Max number of unique states discovered
-MAX_DURATION_MS = 600000 // Max exploration time: 10 minutes
-
-while (priorityQueue is not empty
-       && coverageTracker.interactedElements < MAX_INTERACTIONS
-       && knownStates.size < MAX_STATES
-       && (now() - startTime) < MAX_DURATION_MS) {
-
-  element = priorityQueue.pop()  // Take highest priority
-
-  // 1. Only exclude truly destructive actions
-  if (element is destructive action) → record to baseline.destructiveActions, continue to next
-
-  // 2. Execute interaction (choose interaction type based on element type)
-  interact(element)  // click / hover / fill / dblclick / contextmenu / keyboard
-
-  // 3. Wait for DOM to stabilize
-  waitForStable()
-
-  // 4. Re-scan DOM
-  newState = scanDOM()
-
-  // 5. State equivalence check
-  equivalentState = findEquivalent(newState, knownStates)
-  if (!equivalentState) {
-    knownStates.add(newState)
-    stateFlowGraph.addEdge(currentState, element, newState)
-    priorityQueue.push(...new elements in newState)  // Newly discovered elements also enter the queue
-  } else {
-    stateFlowGraph.addEdge(currentState, element, equivalentState)  // Record edge, skip redundant exploration
-  }
-
-  // 6. Update coverage
-  coverageTracker.interactedElements++
-
-  // 7. Backtrack to pre-interaction state (with verification — see Step 7)
-  backtrack()
-}
-
-// After loop: output coverage report
-coverageReport = {
-  terminationReason: priorityQueue.isEmpty ? "queue_empty" :
-                     interactedElements >= MAX_INTERACTIONS ? "max_interactions" :
-                     knownStates.size >= MAX_STATES ? "max_states" : "max_duration",
-  interactedElements: coverageTracker.interactedElements,
-  totalElementsSeen: coverageTracker.totalInteractiveElements,
-  statesDiscovered: knownStates.size,
-  edgesRecorded: stateFlowGraph.edges.length,
-  remainingInQueue: priorityQueue.size,
-  durationMs: now() - startTime
-}
-// Include coverageReport in the baseline output so the caller knows if exploration was exhaustive or truncated
-```
-
-> **When exploration is truncated** (terminated by limits, not by empty queue): the coverage report shows `remainingInQueue > 0`, indicating unexplored elements. The caller (qa-explore command) should report this to the user: "Exploration reached limit (N interactions / M states / T minutes). X elements remain unexplored. Run again to continue."
+> **When exploration is truncated** (terminated by limits, not by empty queue): the coverage report shows `remainingInQueue > 0`. The caller should report: "Exploration reached limit. X elements remain unexplored. Run again to continue."
 
 ### Step 1 — Identify Interactive Elements and Assign Priorities
 
@@ -373,80 +312,9 @@ When the DOM scan finds disabled or hidden elements, treat them as unexplored po
 
 Step 4 extracts input constraints (name, type, required, min/max, pattern, options) from all forms for test case generation. Step 5 uses a MutationObserver with 800ms quiet period + 5s max wait + double requestAnimationFrame to confirm DOM stability after each interaction. For the complete scripts, read `references/form-exploration.md`.
 
-### Step 6 — State Equivalence Check
+### Steps 6-7 — State Equivalence Check + Backtrack Strategy
 
-After each interaction, the newly scanned DOM state must be checked for equivalence with known states.
-
-> **Key principle**: The fingerprint must capture **interaction-relevant state differences**, not just element identity. Two states with the same buttons but different `disabled`/`expanded`/`checked` states are NOT equivalent — they represent different user-facing behaviors.
-
-```
-mcp__chrome-devtools__evaluate_script
-  function: () => {
-    // Extract page state fingerprint: element identity + interaction states + dialog state + URL
-    const interactives = Array.from(document.querySelectorAll(
-      'button, [role="button"], a[href], input, textarea, select, [role="tab"], [role="menuitem"], [role="dialog"]'
-    )).map(el => {
-      const role = el.getAttribute('role') || el.tagName.toLowerCase();
-      const name = el.getAttribute('aria-label') || el.getAttribute('name') || el.textContent?.trim().substring(0, 50);
-      // Include interaction-relevant states in the fingerprint
-      const disabled = el.disabled || el.getAttribute('aria-disabled') === 'true';
-      const expanded = el.getAttribute('aria-expanded');
-      const checked = el.checked ?? el.getAttribute('aria-checked');
-      const selected = el.selected ?? el.getAttribute('aria-selected');
-      const hasValue = (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') ? (el.value.length > 0) : null;
-      return `${role}:${name}:d=${disabled}:e=${expanded}:c=${checked}:s=${selected}:v=${hasValue}`;
-    }).sort().join('|');
-
-    const dialogs = document.querySelectorAll('[role="dialog"]:not([hidden]), [aria-modal="true"]');
-    const visibleDialogs = Array.from(dialogs).filter(d => d.offsetParent !== null);
-    const dialogTitles = visibleDialogs.map(d =>
-      d.getAttribute('aria-label') || d.querySelector('h2,h3')?.textContent?.trim() || 'untitled'
-    ).sort().join(',');
-
-    return {
-      fingerprint: interactives,
-      url: location.href,
-      openDialogs: visibleDialogs.length,
-      dialogTitles,
-      hash: btoa(interactives).substring(0, 48)  // Longer hash for more precise comparison
-    };
-  }
-```
-
-Equivalence rules:
-1. Different URL → definitely different states
-2. Same URL + different dialog count or different dialog titles → different states
-3. Same URL + same dialogs + **exact** fingerprint hash match → equivalent state (skip redundant exploration)
-4. Fingerprint hash differs → definitely different states (due to disabled/expanded/checked/value inclusion, the fingerprint now captures state changes that the old role:name-only fingerprint would miss)
-
-### Step 7 — Backtrack Strategy
-
-After interaction, must backtrack to the pre-interaction state. **Before interacting**, save the current state fingerprint (from Step 6) as `preInteractionFingerprint`.
-
-| Interaction Type | Backtrack Method |
-|-----------------|------------------|
-| Tab switch | Click back to original tab |
-| Modal opened | press Escape or click close button |
-| Dropdown expanded | press Escape |
-| Hover menu | hover over blank area |
-| Accordion expanded | click again to collapse |
-| Checkbox toggle | click again to restore |
-| Form filled | Clear input field (fill "") |
-
-**Backtrack verification** (mandatory after every backtrack):
-1. Wait for stability (Step 5)
-2. Compute current state fingerprint (Step 6)
-3. Compare with `preInteractionFingerprint`:
-   - **Match** → backtrack succeeded, continue to next element in the queue
-   - **Mismatch** → backtrack failed, apply fallback:
-
-**Fallback chain** (try in order until fingerprint matches):
-1. **Try Escape** → press Escape, wait, re-check fingerprint
-2. **Try browser back** → `mcp__chrome-devtools__navigate_page type="back"`, wait, re-check
-3. **Force navigate** → `mcp__chrome-devtools__navigate_page url=<original exploration URL>`, wait, re-check
-4. **If all fail** → log warning "Backtrack failed after fallback chain, current state may be inconsistent", record in baseline as `backtrackFailures[]`, continue exploration from the current state (treat it as a new starting point)
-
-> **Why this matters**: Without backtrack verification, a failed backtrack silently corrupts the exploration. All subsequent interactions happen in the wrong state, producing incorrect state-flow edges and missing elements that would have been reachable from the correct state.
+For the full state fingerprint script, equivalence rules, backtrack methods, and fallback chain, read `references/exploration-algorithm.md`.
 
 ---
 
@@ -555,6 +423,7 @@ When exploration ends, record the termination reason in the baseline's `explorat
 
 | File | Content |
 |------|---------|
+| `references/exploration-algorithm.md` | Phase 3 core BFS algorithm, state equivalence fingerprint, backtrack strategy |
 | `references/dom-scan.md` | Phase 2 full DOM scan JavaScript, i18n reverse-lookup, Layer 2/3 details |
 | `references/ui-patterns.md` | Step 2 all UI patterns A-N with code examples |
 | `references/activation-strategies.md` | Step 3 disabled/hidden element detection and activation strategies A-E |

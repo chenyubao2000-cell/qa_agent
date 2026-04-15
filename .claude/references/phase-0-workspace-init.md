@@ -95,10 +95,19 @@ Two variants: with APP_LANGUAGES (i18n fixture + dynamic imports per language) /
 
 **Skip if**: `$QA_WORKSPACE_DIR/tests/e2e/data.setup.ts` already exists.
 
-**Template**: defined in `.claude/references/test-data-setup.md` § "data.setup.ts structure".
-The data-setup project pre-creates expensive AI task data serially, writes URLs to `playwright/.test-data.json`, so parallel workers never block on fixture creation.
+**Template**: Read `skills/test-data-setup/SKILL.md` for the generation rules.
+The data-setup project pre-creates expensive AI task data in parallel, writes URLs to `playwright/.test-data.json`, so parallel workers never block on fixture creation.
 
-> **Important**: data.setup.ts is project-specific — each target project may need different fixture data (different prompts, different wait patterns). The reference provides the pattern; adapt the specific task creation prompts to the project's needs.
+**Config-driven**: Read the project's `test-data.config.json` (at `$QA_WORKSPACE_DIR/test-data.config.json`) to determine:
+- Which fixtures to create (prompts, wait patterns, timeouts)
+- Route paths (task creation, sign-in)
+- Selector patterns (textarea, submit button, completion indicator)
+- Clarification handler configuration (if applicable)
+- Cache TTL and path
+
+If `test-data.config.json` does not exist, fall back to `.claude/references/test-data-setup.md` § "data.setup.ts structure" as the legacy pattern.
+
+> **Important**: Project-specific knowledge (prompts, selectors, routes) lives in `test-data.config.json`, NOT in the generated code. To modify fixture behavior, update the config and regenerate.
 
 ## Step 2f. Copy static test data files (if not present)
 
