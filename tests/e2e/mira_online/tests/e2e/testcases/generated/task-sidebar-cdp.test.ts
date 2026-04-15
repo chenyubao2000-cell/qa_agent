@@ -23,7 +23,7 @@ async function createAuthenticatedPage(browser: import('@playwright/test').Brows
 test.describe('US-SIDEBAR-01 · 侧边栏可见性控制', () => {
   test(
     'TC-CDP-SB-001 侧边栏展开状态下点击 Toggle 折叠侧边栏',
-    { tag: ['@P1', '@regression', '@full'] },
+    { tag: ['@P1', '@smoke', '@regression', '@full'] },
     async ({ page, i18n }) => {
       const taskPage = new TaskPage(page, i18n);
       await taskPage.goto();

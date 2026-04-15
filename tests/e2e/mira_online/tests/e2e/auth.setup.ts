@@ -42,15 +42,17 @@ setup('authenticate', async ({ page }) => {
   await page.waitForLoadState('domcontentloaded').catch(() => {});
 
   // Step 1: Enter email
-  // Must use pressSequentially (keydown events) + Tab (blur) to trigger React form validation.
-  // fill() / native setter alone do not enable the Continue button on this form.
+  // Try pressSequentially first (keydown events trigger React form validation),
+  // fall back to fill() + dispatchEvent if pressSequentially doesn't work (e.g. headless Chrome).
   const emailInput = page.locator('input[type="email"], input[name="email"]').first();
   await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
   await emailInput.click({ clickCount: 3 }); // select-all any pre-filled text
-  await emailInput.pressSequentially(email, { delay: 80 });
+  await emailInput.fill(email);
+  await emailInput.dispatchEvent('input');
+  await emailInput.dispatchEvent('change');
   await emailInput.press('Tab'); // blur → triggers React validation → enables button
 
-  const continueBtn = page.getByRole('button', { name: /^继续$|^Continue$/i });
+  const continueBtn = page.getByRole('button', { name: /^继续$|^Continue$|^Continuer$|^Weiter$|^Continuar$/i });
   await expect(continueBtn).toBeEnabled({ timeout: 8_000 });
   await continueBtn.click();
 

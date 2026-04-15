@@ -95,6 +95,12 @@ export class SignInPage {
   // ── Actions ──
 
   async fillEmail(email: string) {
+    // If the page shows a readonly email (returning user), click Edit first
+    const readonlyEmail = this.page.locator('input#email-display[readonly]');
+    if (await readonlyEmail.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await this.editButton.click();
+      await this.emailInput.waitFor({ state: 'visible', timeout: 5000 });
+    }
     await this.emailInput.fill(email);
   }
 

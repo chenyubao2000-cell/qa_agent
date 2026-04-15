@@ -13,7 +13,7 @@ async function gotoTaskWithFiles(page: import('@playwright/test').Page, taskUrl:
 }
 
 test.describe('US-CVPV-FULLSCREEN', () => {
-  test('TC-PRD-CVPV-001 Canvas maximize',{tag:['@P1','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
+  test('TC-PRD-CVPV-001 Canvas maximize',{tag:['@P1','@smoke','@regression','@full']},async({page,i18n,taskWithToolChainUrl})=>{
     const taskPage=new TaskPage(page,i18n);const canvas=new CanvasPreviewFragment(page,i18n);
     await gotoTaskWithFiles(page,taskWithToolChainUrl);await taskPage.getFileCards().first().click();
     await canvas.waitForCanvasPanelVisible();await canvas.clickCanvasMaximize();

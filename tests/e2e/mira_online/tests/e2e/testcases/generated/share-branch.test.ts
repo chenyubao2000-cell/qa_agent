@@ -18,7 +18,7 @@ test.describe('[Branch] Share Page — Valid View', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test('TC-BR-SHARE-001 有效分享链接正常展示任务内容', {
-    tag: ['@P1', '@regression', '@full'],
+    tag: ['@P1', '@smoke', '@regression', '@full'],
   }, async ({ page, i18n, shareUrl }) => {
     const sharePage = new SharePage(page, i18n);
     await sharePage.goto(shareUrl);

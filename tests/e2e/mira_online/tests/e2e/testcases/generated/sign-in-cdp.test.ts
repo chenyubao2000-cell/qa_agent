@@ -10,6 +10,7 @@ import { SignInPage } from '../../pages/sign-in.page';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const TEST_EMAIL = process.env.E2E_TEST_EMAIL ?? 'test@example.com';
+const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD ?? '';
 
 test.describe('[CDP] Sign-In Page', () => {
   test('TC-CDP-SIGNIN-001 输入有效邮箱后继续按钮可用并进入密码步骤', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
@@ -49,20 +50,20 @@ test.describe('[CDP] Sign-In Page', () => {
     await expect(signIn.getContinueButton()).toBeDisabled();
   });
 
-  test('TC-CDP-SIGNIN-005 输入正确密码后登录成功跳转到 /task', { tag: ['@P0', '@smoke', '@regression', '@full'], annotation: { type: 'skip', description: 'Requires registered test account; test@example.com triggers Create password flow' } }, async ({ page, i18n }) => {
-    test.skip();
+  test('TC-CDP-SIGNIN-005 输入正确密码后登录成功跳转到 /task', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+    test.skip(!TEST_PASSWORD, 'E2E_TEST_PASSWORD not set');
     const signIn = new SignInPage(page, i18n);
     await signIn.goto();
     await signIn.goToPasswordStep(TEST_EMAIL);
 
-    await signIn.fillPassword('correct-password');
+    await signIn.fillPassword(TEST_PASSWORD);
     await signIn.clickContinue();
 
     await expect(page).toHaveURL(/\/task/);
   });
 
-  test('TC-CDP-SIGNIN-006 输入错误密码后显示凭证错误信息', { tag: ['@P1', '@regression', '@full'], annotation: { type: 'skip', description: 'Requires registered test account; test@example.com triggers Create password flow' } }, async ({ page, i18n }) => {
-    test.skip();
+  test('TC-CDP-SIGNIN-006 输入错误密码后显示凭证错误信息', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
+    test.skip(!TEST_PASSWORD, 'E2E_TEST_PASSWORD not set');
     const signIn = new SignInPage(page, i18n);
     await signIn.goto();
     await signIn.goToPasswordStep(TEST_EMAIL);
@@ -122,8 +123,8 @@ test.describe('[CDP] Sign-In Page', () => {
     await expect(signIn.getPasswordInput()).toHaveAttribute('type', 'password');
   });
 
-  test('TC-CDP-SIGNIN-011 完整登录流程 — 邮箱 → 密码 → 成功跳转', { tag: ['@P0', '@smoke', '@regression', '@full'], annotation: { type: 'skip', description: 'Requires registered test account; test@example.com triggers Create password flow' } }, async ({ page, i18n }) => {
-    test.skip();
+  test('TC-CDP-SIGNIN-011 完整登录流程 — 邮箱 → 密码 → 成功跳转', { tag: ['@P0', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
+    test.skip(!TEST_PASSWORD, 'E2E_TEST_PASSWORD not set');
     const signIn = new SignInPage(page, i18n);
     await signIn.goto();
 
@@ -142,7 +143,7 @@ test.describe('[CDP] Sign-In Page', () => {
     await expect(signIn.getPasswordTitleHeading()).toHaveText(/Enter password|输入密码|Create password|创建密码/);
 
     // Step 4: Enter password and submit
-    await signIn.fillPassword('correct-password');
+    await signIn.fillPassword(TEST_PASSWORD);
     await signIn.clickContinue();
 
     await expect(page).toHaveURL(/\/task/);

@@ -10,7 +10,7 @@ import { JoinWaitlistPage } from '../../pages/join-waitlist.page';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('[CDP] Join Waitlist Form', () => {
-  test('TC-CDP-JW-001 使用合法邮箱填写表单（覆盖 V1-V5）', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-JW-001 使用合法邮箱填写表单（覆盖 V1-V5）', { tag: ['@P1', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
     const joinPage = new JoinWaitlistPage(page, i18n);
     await joinPage.goto();
 

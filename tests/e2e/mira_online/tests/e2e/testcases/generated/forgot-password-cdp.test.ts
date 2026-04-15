@@ -10,7 +10,7 @@ import { ForgotPasswordPage } from '../../pages/forgot-password.page';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Forgot Password Form', () => {
-  test('TC-CDP-FP-001 输入有效邮箱后点击发送重置链接，进入确认步骤', async ({ page, i18n }) => {
+  test('TC-CDP-FP-001 输入有效邮箱后点击发送重置链接，进入确认步骤', { tag: ['@P1', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
     const forgotPassword = new ForgotPasswordPage(page, i18n);
     await forgotPassword.goto();
 

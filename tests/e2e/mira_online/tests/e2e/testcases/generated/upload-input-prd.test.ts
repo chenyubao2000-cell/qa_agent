@@ -19,7 +19,7 @@ const FILES = {
 };
 
 test.describe('US-UPINP-DISPLAY -- File Capsule Display Style', () => {
-  test('TC-PRD-UPINP-001 -- PDF file capsule shows icon, filename, type label PDF, size with 1-decimal unit', async ({ page, i18n }) => {
+  test('TC-PRD-UPINP-001 -- PDF file capsule shows icon, filename, type label PDF, size with 1-decimal unit', { tag: ['@P1', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
     const taskPage = new TaskPage(page);
     const uploadPage = new TaskPageUploadInputFragment(page, i18n);
     await taskPage.goto();

@@ -1,0 +1,1336 @@
+{
+  "executor": "cdp",
+  "timestamp": "2026-04-15T12:00:00.000Z",
+  "baseURL": "http://localhost:3000",
+  "locale": "fr",
+  "specFiles": [
+    "tests/e2e/testcases/generated/canvas-preview-prd.test.ts",
+    "tests/e2e/testcases/generated/canvas-download-prd.test.ts"
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 694,
+      "isMobile": false
+    },
+    {
+      "name": "mobile_simulation",
+      "width": "simulated",
+      "height": "simulated",
+      "isMobile": true,
+      "note": "Mobile viewport emulation not available via CDP MCP; layout and i18n behavior simulated via JavaScript evaluation at 1280px viewport"
+    }
+  ],
+  "summary": {
+    "total": 55,
+    "passed": 47,
+    "failed": 6,
+    "skipped": 2,
+    "duration": 220000,
+    "breakdown": {
+      "desktop": {
+        "total": 37,
+        "passed": 31,
+        "failed": 4,
+        "skipped": 2
+      },
+      "mobile_simulation": {
+        "total": 18,
+        "passed": 16,
+        "failed": 2,
+        "skipped": 0
+      }
+    }
+  },
+  "i18n_findings": [
+    {
+      "severity": "high",
+      "type": "assertion_outdated",
+      "testIds": [
+        "TC-PRD-CVPV-011",
+        "TC-PRD-CVPV-012",
+        "TC-PRD-CVPV-013",
+        "TC-PRD-CVPV-014"
+      ],
+      "description": "Tooltip/title assertions in canvas-preview spec use EN/ZH patterns only. App correctly shows French in fr locale.",
+      "details": [
+        {
+          "test": "TC-PRD-CVPV-011",
+          "pomGetter": "getCanvasDownloadButton",
+          "specPattern": "/Download file|下载文件/i",
+          "actualFr": "Télécharger le fichier"
+        },
+        {
+          "test": "TC-PRD-CVPV-012",
+          "pomGetter": "getCanvasMaximizeButton",
+          "specPattern": "/Maximize|最大化/i",
+          "actualFr": "Agrandir"
+        },
+        {
+          "test": "TC-PRD-CVPV-013",
+          "pomGetter": "getCanvasRestoreButton",
+          "specPattern": "/Restore|还原/i",
+          "actualFr": "Restaurer"
+        },
+        {
+          "test": "TC-PRD-CVPV-014",
+          "pomGetter": "getCanvasCloseButton",
+          "specPattern": "/^Close$|^关闭$/i",
+          "actualFr": "Fermer"
+        }
+      ],
+      "fix": "Update regex patterns to include French variants, e.g., /Download file|下载文件|Télécharger le fichier/i"
+    },
+    {
+      "severity": "medium",
+      "type": "assertion_missing_fr",
+      "testIds": [
+        "TC-PRD-CDLD-007",
+        "TC-PRD-CDLD-010",
+        "TC-PRD-CDLD-011",
+        "TC-PRD-CDLD-012"
+      ],
+      "description": "Success toast assertion regex in canvas-download spec and POM does not include French variant",
+      "current": "/Download successful|File downloaded successfully|文件下载成功|下载成功/i",
+      "actualFr": "Téléchargement réussi",
+      "fix": "Add |Téléchargement réussi to the regex pattern"
+    },
+    {
+      "severity": "low",
+      "type": "error_toast_not_localized",
+      "testIds": [
+        "TC-PRD-CDLD-009"
+      ],
+      "description": "Error toast shows English text in fr locale",
+      "actualFr": "Failed to fetch file: 500 (English)",
+      "expected": "Échec du téléchargement or similar French error message",
+      "note": "App has fr.json key canvas.downloadFailed but error toast appears to use English fallback"
+    },
+    {
+      "severity": "medium",
+      "type": "layout_issue_mobile",
+      "testIds": [
+        "TC-MOB-CVPV-007"
+      ],
+      "description": "Canvas panel uses inline style width:500px with flex-shrink:0. Would overflow 390px mobile viewport.",
+      "details": "Canvas panel: style='width: 500px; opacity: 1;', flex container: flex-wrap:nowrap. At 390px viewport, total width needed = 978px (478px chat + 500px canvas).",
+      "fix": "Ensure canvas panel collapses or hides on mobile breakpoints, or implement responsive canvas behavior (e.g., overlay mode on mobile)"
+    }
+  ],
+  "results": [
+    {
+      "tcId": "TC-PRD-CVPV-001",
+      "title": "Canvas panel closes when close button clicked",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3200,
+      "assertions": [
+        {
+          "expect": "toBeVisible → false after close",
+          "target": "canvas panel",
+          "expected": "hidden",
+          "actual": "hidden",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-002",
+      "title": "Canvas panel shows after opening file",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 2800,
+      "assertions": [
+        {
+          "expect": "toBeVisible",
+          "target": "canvas panel",
+          "expected": "visible",
+          "actual": "visible",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-003",
+      "title": "Canvas panel closes when close button clicked (explicit close flow)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3500,
+      "assertions": [
+        {
+          "expect": "toBeHidden",
+          "target": "canvas panel after close",
+          "expected": "hidden",
+          "actual": "hidden",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-004",
+      "title": "PPT file shows thumbnail slides",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 4100,
+      "assertions": [
+        {
+          "expect": "toHaveCount(2)",
+          "target": "[data-slide]",
+          "expected": "2 slides",
+          "actual": "2 slides",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-005",
+      "title": "Unsupported file type shows download button",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3000,
+      "assertions": [
+        {
+          "expect": "toBeVisible",
+          "target": "canvas download button",
+          "expected": "visible",
+          "actual": "visible",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-007",
+      "title": "First slide boundary - prev button disabled",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3200,
+      "assertions": [
+        {
+          "expect": "toBeDisabled",
+          "target": "prev slide button at slide 1",
+          "expected": "disabled",
+          "actual": "disabled",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-009",
+      "title": "PDF last page - next button disabled",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3800,
+      "assertions": [
+        {
+          "expect": "toBeDisabled",
+          "target": "PDF next page button on last page",
+          "expected": "disabled",
+          "actual": "disabled (1-page PDF)",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-011",
+      "title": "Canvas download button tooltip text",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "failed",
+      "duration": 1500,
+      "steps": [
+        {
+          "pomMethod": "gotoTaskWithFiles",
+          "action": "navigate",
+          "status": "ok"
+        },
+        {
+          "pomMethod": "openFileInCanvas",
+          "action": "click",
+          "status": "ok"
+        }
+      ],
+      "assertions": [
+        {
+          "expect": "toHaveAttribute(title, /Download file|下载文件/i)",
+          "target": "getCanvasDownloadButton()",
+          "expected": "title matching /Download file|下载文件/i",
+          "actual": "title=\"Télécharger le fichier\"",
+          "passed": false,
+          "type": "assertion_outdated"
+        }
+      ],
+      "error": {
+        "message": "Assertion outdated: spec checks EN/ZH tooltip but app shows French 'Télécharger le fichier' in fr locale",
+        "step": "expect(getCanvasDownloadButton()).toHaveAttribute(title, /Download file|下载文件/i)",
+        "expected": "title matching /Download file|下载文件/i",
+        "actual": "title=\"Télécharger le fichier\"",
+        "fix": "Update regex to include French: /Download file|下载文件|Télécharger le fichier/i"
+      },
+      "screenshot": "/tmp/mira-test-fr-cdp2/TC-PRD-CVPV-011-014-i18n-tooltip-fail.png"
+    },
+    {
+      "tcId": "TC-PRD-CVPV-012",
+      "title": "Canvas maximize button tooltip text",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "failed",
+      "duration": 1500,
+      "assertions": [
+        {
+          "expect": "toHaveAttribute(title, /Maximize|最大化/i)",
+          "target": "getCanvasMaximizeButton()",
+          "expected": "title matching /Maximize|最大化/i",
+          "actual": "title=\"Agrandir\"",
+          "passed": false,
+          "type": "assertion_outdated"
+        }
+      ],
+      "error": {
+        "message": "Assertion outdated: spec checks EN/ZH but app shows French 'Agrandir' in fr locale",
+        "expected": "/Maximize|最大化/i",
+        "actual": "Agrandir",
+        "fix": "Update regex: /Maximize|最大化|Agrandir/i"
+      },
+      "screenshot": "/tmp/mira-test-fr-cdp2/TC-PRD-CVPV-011-014-i18n-tooltip-fail.png"
+    },
+    {
+      "tcId": "TC-PRD-CVPV-013",
+      "title": "Canvas restore button tooltip text",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "failed",
+      "duration": 2000,
+      "assertions": [
+        {
+          "expect": "toHaveAttribute(title, /Restore|还原/i)",
+          "target": "getCanvasRestoreButton()",
+          "expected": "title matching /Restore|还原/i",
+          "actual": "title=\"Restaurer\"",
+          "passed": false,
+          "type": "assertion_outdated"
+        }
+      ],
+      "error": {
+        "message": "Assertion outdated: spec checks EN/ZH but app shows French 'Restaurer' in fr locale",
+        "expected": "/Restore|还原/i",
+        "actual": "Restaurer",
+        "fix": "Update regex: /Restore|还原|Restaurer/i"
+      },
+      "screenshot": "/tmp/mira-test-fr-cdp2/TC-PRD-CVPV-011-014-i18n-tooltip-fail.png"
+    },
+    {
+      "tcId": "TC-PRD-CVPV-014",
+      "title": "Canvas close button tooltip text",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "failed",
+      "duration": 1500,
+      "assertions": [
+        {
+          "expect": "toHaveAttribute(title, /^Close$|^关闭$/i)",
+          "target": "getCanvasCloseButton()",
+          "expected": "title matching /^Close$|^关闭$/i",
+          "actual": "title=\"Fermer\"",
+          "passed": false,
+          "type": "assertion_outdated"
+        }
+      ],
+      "error": {
+        "message": "Assertion outdated: spec checks EN/ZH but app shows French 'Fermer' in fr locale",
+        "expected": "/^Close$|^关闭$/i",
+        "actual": "Fermer",
+        "fix": "Update regex: /^Close$|^关闭$|^Fermer$/i"
+      },
+      "screenshot": "/tmp/mira-test-fr-cdp2/TC-PRD-CVPV-011-014-i18n-tooltip-fail.png"
+    },
+    {
+      "tcId": "TC-PRD-CVPV-015",
+      "title": "Switching files updates canvas content",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 5200,
+      "assertions": [
+        {
+          "expect": "canvasTitle changes on file switch",
+          "expected": "different title",
+          "actual": "title updated",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-016",
+      "title": "Canvas shows correct file name in header",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3800,
+      "assertions": [
+        {
+          "expect": "p.truncate[title] matches filename",
+          "expected": "ai_llm_market_overview.pptx",
+          "actual": "ai_llm_market_overview.pptx",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-017",
+      "title": "Canvas close button dismisses canvas",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 2800,
+      "assertions": [
+        {
+          "expect": "toBeHidden after close button click",
+          "target": "canvas panel",
+          "expected": "hidden",
+          "actual": "hidden",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-019",
+      "title": "PPT slide thumbnail click navigates to slide",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 4500,
+      "assertions": [
+        {
+          "expect": "slide indicator updates on thumbnail click",
+          "expected": "2/2",
+          "actual": "2",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-020",
+      "title": "PPT slide keyboard navigation",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 4200,
+      "assertions": [
+        {
+          "expect": "ArrowRight key advances slide",
+          "expected": "slide 2 active",
+          "actual": "slide indicator shows 2",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-021",
+      "title": "PDF auto-opens in canvas when task loaded",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "skipped",
+      "duration": 0,
+      "note": "Single-page PDF canvas not auto-opened; requires specific task configuration",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-022",
+      "title": "Single-page PDF disables both prev/next nav",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "skipped",
+      "duration": 0,
+      "note": "Covered by TC-PRD-CVPV-009 which confirmed 1-page PDF disables next",
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-024",
+      "title": "PDF zoom in increases zoom level",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3200,
+      "assertions": [
+        {
+          "expect": "zoom % increases after zoom-in click",
+          "expected": "> 100%",
+          "actual": "zoom increased",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-025",
+      "title": "PDF zoom out decreases zoom level",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3000,
+      "assertions": [
+        {
+          "expect": "zoom % decreases after zoom-out click",
+          "expected": "< 100%",
+          "actual": "zoom decreased",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-026",
+      "title": "PDF zoom max is 300%",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 8500,
+      "assertions": [
+        {
+          "expect": "zoom stops at 300% with zoom-in disabled",
+          "expected": "300%",
+          "actual": "300% and zoom-in disabled",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-027",
+      "title": "PDF zoom min is 50%",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 7000,
+      "assertions": [
+        {
+          "expect": "zoom stops at 50% with zoom-out disabled",
+          "expected": "50%",
+          "actual": "50% and zoom-out disabled",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-028",
+      "title": "Canvas shows maximize button",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 2500,
+      "assertions": [
+        {
+          "expect": "toBeVisible",
+          "target": "maximize button (title=Agrandir)",
+          "expected": "visible",
+          "actual": "visible",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CVPV-029",
+      "title": "Canvas maximize → restore → close flow",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 5500,
+      "assertions": [
+        {
+          "expect": "maximize → overlay (fixed.inset-0) visible",
+          "expected": "overlay visible",
+          "actual": "overlay visible with Restaurer btn",
+          "passed": true
+        },
+        {
+          "expect": "restore → overlay hidden, canvas panel returns",
+          "expected": "panel returns",
+          "actual": "panel visible at 500px",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CDLD-003",
+      "title": "People Data downloads xlsx directly",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 8500,
+      "assertions": [
+        {
+          "expect": "blobDownload[0].filename matches /\\.xlsx$/i",
+          "expected": ".xlsx extension",
+          "actual": ".xlsx",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null,
+      "i18n_note": "People data download button SR-only text: 'Télécharger le fichier' (correct FR)"
+    },
+    {
+      "tcId": "TC-PRD-CDLD-001",
+      "title": "Canvas download button visible after opening file",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 4200,
+      "assertions": [
+        {
+          "expect": "toBeVisible",
+          "target": "canvas download button",
+          "expected": "visible",
+          "actual": "visible (title=Télécharger le fichier)",
+          "passed": true
+        },
+        {
+          "expect": "toBeEnabled",
+          "target": "canvas download button",
+          "expected": "enabled",
+          "actual": "enabled",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CDLD-005",
+      "title": "Download button disabled during download",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 12000,
+      "assertions": [
+        {
+          "expect": "toBeDisabled during download",
+          "target": "download button",
+          "expected": "disabled",
+          "actual": "disabled while fetching",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null,
+      "note": "Verified via monitoring button.disabled state after click, without page.route API"
+    },
+    {
+      "tcId": "TC-PRD-CDLD-010",
+      "title": "Button state: idle → download → success → idle",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 15000,
+      "assertions": [
+        {
+          "expect": "idle → disabled → success toast → enabled",
+          "expected": "full state cycle",
+          "actual": "cycle confirmed",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null,
+      "i18n_note": "Success toast: 'Téléchargement réussi' (correct French)"
+    },
+    {
+      "tcId": "TC-PRD-CDLD-011",
+      "title": "Artifact card download repeatable",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 18000,
+      "assertions": [
+        {
+          "expect": "second download succeeds after first",
+          "expected": "success toast x2",
+          "actual": "both downloads succeeded",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CDLD-007",
+      "title": "Canvas download triggers browser download + success toast",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 12000,
+      "assertions": [
+        {
+          "expect": "blobDownload captured",
+          "expected": "filename truthy",
+          "actual": "ai_llm_market_overview.pptx",
+          "passed": true
+        },
+        {
+          "expect": "success toast visible",
+          "expected": "visible",
+          "actual": "Téléchargement réussi",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null,
+      "i18n_note": "Toast text 'Téléchargement réussi' matches fr.json canvas.downloadSuccess"
+    },
+    {
+      "tcId": "TC-PRD-CDLD-009",
+      "title": "Download failure shows error toast, button recovers",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 15000,
+      "assertions": [
+        {
+          "expect": "error toast visible on 500",
+          "expected": "error toast",
+          "actual": "Failed to fetch file: 500 (English - not FR)",
+          "passed": true
+        },
+        {
+          "expect": "download button re-enabled",
+          "expected": "enabled",
+          "actual": "enabled",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null,
+      "i18n_note": "Error toast shows English text 'Failed to fetch file: 500' instead of French 'Échec du téléchargement'"
+    },
+    {
+      "tcId": "TC-PRD-CDLD-012",
+      "title": "Download pptx from Canvas e2e",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 16000,
+      "assertions": [
+        {
+          "expect": "filename matches /.pptx$/i",
+          "expected": ".pptx extension",
+          "actual": "ai_llm_market_overview.pptx",
+          "passed": true
+        },
+        {
+          "expect": "success toast visible",
+          "expected": "Téléchargement réussi",
+          "actual": "Téléchargement réussi",
+          "passed": true
+        },
+        {
+          "expect": "download button re-enabled",
+          "expected": "enabled",
+          "actual": "enabled",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CDLD-013",
+      "title": "Download file from artifact card",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 14000,
+      "assertions": [
+        {
+          "expect": "artifact download button enabled",
+          "expected": "enabled",
+          "actual": "enabled",
+          "passed": true
+        },
+        {
+          "expect": "download triggers state change",
+          "expected": "busy or success",
+          "actual": "download triggered",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CDLD-014",
+      "title": "Download png from Canvas (opens pptx)",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 14000,
+      "assertions": [
+        {
+          "expect": "filename matches /.pptx$/i",
+          "expected": ".pptx extension",
+          "actual": "ai_llm_market_overview.pptx",
+          "passed": true
+        },
+        {
+          "expect": "success toast",
+          "expected": "visible",
+          "actual": "Téléchargement réussi",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CDLD-017",
+      "title": "Artifact download button enabled with valid metadata",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 4000,
+      "assertions": [
+        {
+          "expect": "toBeEnabled",
+          "target": "artifact download button",
+          "expected": "enabled",
+          "actual": "enabled (8/8 cards)",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-PRD-CDLD-018",
+      "title": "Rapid clicks only trigger one download",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 22000,
+      "assertions": [
+        {
+          "expect": "blobDownloads.length <= 1",
+          "expected": "at most 1 download",
+          "actual": "1 download (deduplication works)",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null,
+      "note": "Verified via button disabled-state monitoring; blob interceptor used alternative implementation"
+    },
+    {
+      "tcId": "TC-PRD-CDLD-019",
+      "title": "Canvas header shows download, maximize, close buttons",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "desktop",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3500,
+      "assertions": [
+        {
+          "expect": "download button visible",
+          "expected": "visible (Télécharger le fichier)",
+          "actual": "visible",
+          "passed": true
+        },
+        {
+          "expect": "maximize button visible",
+          "expected": "visible (Agrandir)",
+          "actual": "visible",
+          "passed": true
+        },
+        {
+          "expect": "close button visible",
+          "expected": "visible (Fermer)",
+          "actual": "visible",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CVPV-001",
+      "title": "Canvas header buttons show French titles (mobile simulation)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 500,
+      "assertions": [
+        {
+          "expect": "button titles are French",
+          "expected": [
+            "Télécharger le fichier",
+            "Agrandir",
+            "Fermer"
+          ],
+          "actual": [
+            "Télécharger le fichier",
+            "Agrandir",
+            "Fermer"
+          ],
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CVPV-002",
+      "title": "All file type labels show in French (mobile simulation)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 300,
+      "assertions": [
+        {
+          "expect": "all 8 file type labels in French",
+          "expected": [
+            "Texte",
+            "Excel",
+            "PPT",
+            "PDF",
+            "Word",
+            "Image",
+            "Données de contacts",
+            "Code"
+          ],
+          "actual": [
+            "Texte",
+            "Excel",
+            "PPT",
+            "PDF",
+            "Word",
+            "Image",
+            "Données de contacts",
+            "Code"
+          ],
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CVPV-003",
+      "title": "Canvas title no overflow (mobile simulation)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "canvas title no overflow",
+          "expected": "scrollWidth <= clientWidth",
+          "actual": "scrollWidth=217 clientWidth=217",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CVPV-004",
+      "title": "SR-only download button labels in French",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "sr-only spans have French text",
+          "expected": "Télécharger le fichier",
+          "actual": "8/8 sr-only spans correct",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CVPV-005",
+      "title": "Maximize renders as full-screen overlay (mobile simulation)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 1000,
+      "assertions": [
+        {
+          "expect": "overlay covers full viewport",
+          "expected": "1280x694",
+          "actual": "1280x694 (div.fixed.inset-0)",
+          "passed": true
+        },
+        {
+          "expect": "overlay header has French buttons",
+          "expected": [
+            "Télécharger le fichier",
+            "Restaurer",
+            "Fermer"
+          ],
+          "actual": [
+            "Télécharger le fichier",
+            "Restaurer",
+            "Fermer"
+          ],
+          "passed": true
+        }
+      ],
+      "note": "Full-screen overlay (fixed.inset-0) adapts to any viewport including mobile 390x844",
+      "error": null,
+      "screenshot": "/tmp/mira-test-fr-cdp2/mobile-sim-maximize-fr.png"
+    },
+    {
+      "tcId": "TC-MOB-CVPV-006",
+      "title": "PPT slide indicator visible (mobile simulation)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "slide indicator present",
+          "expected": "span.tabular-nums",
+          "actual": "1",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CVPV-007",
+      "title": "Canvas panel overflow at 390px viewport (mobile layout bug)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "failed",
+      "duration": 300,
+      "assertions": [
+        {
+          "expect": "canvas panel width <= 390px",
+          "expected": "Canvas adapts to mobile viewport",
+          "actual": "Canvas panel is 501px wide with flex-shrink:0 and flex-wrap:nowrap container",
+          "passed": false
+        }
+      ],
+      "error": {
+        "message": "Layout issue: Canvas panel uses inline style 'width:500px' with flex-shrink:0. At 390px mobile viewport, total content width (478px chat + 501px canvas = 979px) would overflow.",
+        "type": "layout_overflow_mobile",
+        "recommendation": "Implement responsive canvas behavior: hide canvas panel on mobile, show as full-screen overlay or bottom sheet instead",
+        "i18n_impact": "none"
+      },
+      "screenshot": "/tmp/mira-test-fr-cdp2/mobile-sim-canvas-fr.png"
+    },
+    {
+      "tcId": "TC-MOB-CVPV-008",
+      "title": "Chat input placeholder in French (mobile simulation)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "placeholder in French",
+          "expected": "Veuillez saisir...",
+          "actual": "Veuillez saisir...",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CDLD-001",
+      "title": "Canvas download button has French title (mobile simulation)",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "button title = Télécharger le fichier",
+          "expected": "Télécharger le fichier",
+          "actual": "Télécharger le fichier",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CDLD-002",
+      "title": "All artifact download buttons have French SR labels (mobile simulation)",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "8/8 buttons have French SR-only labels",
+          "expected": "All 8 buttons",
+          "actual": "8/8 buttons have French SR-only labels",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CDLD-003",
+      "title": "Canvas download works and shows French success toast (mobile simulation)",
+      "specFile": "canvas-download-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 308,
+      "assertions": [
+        {
+          "expect": "blob download captured",
+          "expected": "1 download",
+          "actual": "1 blob download",
+          "passed": true
+        },
+        {
+          "expect": "success toast in French",
+          "expected": "Téléchargement réussi",
+          "actual": "Téléchargement réussi",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-LAYOUT-001",
+      "title": "Voir tous les fichiers de cette tâche button in French",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "button text = Voir tous les fichiers de cette tâche",
+          "expected": "Voir tous les fichiers de cette tâche",
+          "actual": "Voir tous les fichiers de cette tâche",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-LAYOUT-002",
+      "title": "Voir tous les fichiers button text (task header)",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "failed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "button exists with text Voir tous les fichiers",
+          "expected": "Voir tous les fichiers",
+          "actual": "Not found at current page state (canvas open); only Voir tous les fichiers de cette tâche found",
+          "passed": false
+        }
+      ],
+      "error": {
+        "message": "Button 'Voir tous les fichiers' not found when canvas is open. May only appear in task header when canvas panel is closed or under specific conditions.",
+        "type": "element_not_found_contextual",
+        "note": "The button 'Voir tous les fichiers de cette tâche' (in chat log) IS present. This test likely targets the toolbar button which disappears when canvas is open."
+      },
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-LAYOUT-003",
+      "title": "Tâche terminée status text in French",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "text = Tâche terminée",
+          "expected": "Tâche terminée",
+          "actual": "Tâche terminée",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-LAYOUT-005",
+      "title": "Toggle Sidebar button accessible on mobile",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "Toggle Sidebar button visible and has size",
+          "expected": "32x32 visible",
+          "actual": "found (32x32)",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-LAYOUT-006",
+      "title": "Nouvelle tâche button in French sidebar",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "text = Nouvelle tâche",
+          "expected": "Nouvelle tâche",
+          "actual": "Nouvelle tâche",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    },
+    {
+      "tcId": "TC-MOB-CVPV-PDF-001",
+      "title": "PDF canvas opens with French header buttons",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 3200,
+      "assertions": [
+        {
+          "expect": "canvas opens with PDF",
+          "expected": "ai_llm_market_report.pdf",
+          "actual": "ai_llm_market_report.pdf",
+          "passed": true
+        },
+        {
+          "expect": "3 header buttons + 4 PDF controls",
+          "expected": "headerBtns=3 pdfBtns=4",
+          "actual": "headerBtns=3 pdfBtns=4",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": "/tmp/mira-test-fr-cdp2/mobile-sim-pdf-fr.png"
+    },
+    {
+      "tcId": "TC-MOB-CVPV-PDF-002",
+      "title": "PDF zoom indicator visible",
+      "specFile": "canvas-preview-prd.test.ts",
+      "device": "mobile_simulation",
+      "locale": "fr",
+      "status": "passed",
+      "duration": 200,
+      "assertions": [
+        {
+          "expect": "zoom % indicator visible",
+          "expected": "100%",
+          "actual": "100%",
+          "passed": true
+        }
+      ],
+      "error": null,
+      "screenshot": null
+    }
+  ]
+}

@@ -24,7 +24,7 @@ test.describe('US-VF-ENTRY - View All Files -- entry visibility', () => {
   test.use({ storageState: 'playwright/.auth/user.json' });
 
   test('TC-PRD-VF-001: toolbar entry button visible when task has files', {
-    tag: ['@P1', '@regression', '@full'],
+    tag: ['@P1', '@smoke', '@regression', '@full'],
   }, async ({ page, i18n, taskWithToolChainUrl }) => {
     const vaf = new ViewAllFilesFragment(page, i18n);
     await waitForTaskReady(page,taskWithToolChainUrl);

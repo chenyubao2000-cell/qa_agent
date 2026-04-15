@@ -57,12 +57,11 @@ export class TaskPage {
   }
 
   async ensureSidebarExpanded() {
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForLoadState('networkidle').catch(() => {});
     const tasksVisible = await this.tasksSectionBtn.isVisible({ timeout: 5000 }).catch(() => false);
     if (!tasksVisible) {
-      await this.page.evaluate(() => {
-        (document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement)?.click();
-      });
+      await this.page.locator('[data-sidebar="trigger"]').click({ timeout: 5_000 });
       await this.tasksSectionBtn.waitFor({ state: 'visible', timeout: 10_000 });
     }
   }

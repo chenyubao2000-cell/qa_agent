@@ -4,10 +4,12 @@ import type { Page } from "@playwright/test";
 // ── i18n fixture (auto-generated when APP_LANGUAGES is set) ──
 import enMessages from '../../messages/en.json';
 import zhMessages from '../../messages/zh.json';
+import frMessages from '../../messages/fr.json';
 
 const i18nMessages: Record<string, Record<string, any>> = {
   en: enMessages,
   zh: zhMessages,
+  fr: frMessages,
 };
 
 export type I18n = { t: (key: string) => string; locale: string };
@@ -139,7 +141,9 @@ export const test = base.extend<{ i18n: I18n; ensureAuthenticated: void }, TestD
     const originalGoto = page.goto.bind(page);
     page.goto = async (url: string, options?: any) => {
       const response = await originalGoto(url, options);
-      if (page.url().includes(SIGN_IN_PATH)) {
+      // Skip session guard when the test intentionally navigates to sign-in
+      const isSignInTarget = url.includes(SIGN_IN_PATH);
+      if (!isSignInTarget && page.url().includes(SIGN_IN_PATH)) {
         await reAuthenticate(page);
         return originalGoto(url, options);
       }
@@ -362,7 +366,17 @@ export const test = base.extend<{ i18n: I18n; ensureAuthenticated: void }, TestD
       const textarea = page.getByRole('textbox', { name: /请输入|Ask anything/i });
       await textarea.waitFor({ state: 'visible', timeout: 30_000 });
       await textarea.click();
-      await textarea.pressSequentially('请帮我完成以下综合任务，这是一个工具测试场景，主题为"2025年全球AI大模型市场"。请用 write_todos 管理以下所有步骤，并在最后用 complete 统一交付所有文件：用 search 搜索"2025 AI LLM market landscape"，取3条结果。用 company_search 搜索全球头部AI大模型公司，取5家。用 people_search 搜索具有LLM研究背景的技术专家，取3人；用 evaluate_people 评估（岗位：AI研究科学家，要求大模型预训练经验）；用 generate_people_data 生成候选人文件。用 code_interpreter 写一段Python代码，对上述5家公司做简单统计。用 sb_command_execute 执行 ls -la。生成以下文件：sb_file_create .md研究摘要；sb_file_rewrite 重写.md；sb_file_edit 追加结论；sb_xlsx_create 公司表格；sb_pptx_create 2页PPT；sb_pdf_create PDF报告；sb_docx_create Word文档；sb_image_create 柱状图展示融资额', { delay: 50 });
+      await textarea.pressSequentially(
+        '请帮我完成一个关于"2025年全球AI大模型市场"的综合研究任务。' +
+        '不需要问我问题，直接开始执行，最终必须交付以下 6 种格式的文件（缺一不可）：' +
+        '1) 一个 .xlsx 表格文件，内容为头部AI公司对比数据；' +
+        '2) 一个 .pptx 演示文件，2页，概述市场格局；' +
+        '3) 一个 .pdf 报告文件，总结研究发现；' +
+        '4) 一个 .docx 文档文件，详细研究摘要；' +
+        '5) 一个 .png 图片文件，用柱状图展示公司融资额对比；' +
+        '6) 一个 .json 数据文件，包含公司统计的结构化数据。' +
+        '请先搜索相关信息，再逐一生成以上所有文件，确保 6 个文件全部交付。',
+        { delay: 50 });
       const submitBtn = page.getByRole('button', { name: /^Submit$|^提交$/i });
       await submitBtn.waitFor({ state: 'visible', timeout: 10_000 });
       await expect(submitBtn).toBeEnabled({ timeout: 10_000 });

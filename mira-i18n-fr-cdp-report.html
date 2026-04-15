@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mira i18n 完整测试报告 - 法语 (fr) CDP 自动化</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+h1{font-size:28px;margin-bottom:8px}
+h2{font-size:22px;margin:32px 0 16px;border-bottom:2px solid #e0e0e0;padding-bottom:8px}
+h3{font-size:18px;margin:24px 0 12px}
+.meta{color:#666;font-size:14px;margin-bottom:24px}
+.summary-box{background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:#f0f4ff;border-radius:8px;padding:14px 16px;flex:1;min-width:90px;text-align:center}
+.stat-num{font-size:28px;font-weight:700;color:#2563eb}
+.stat-label{font-size:12px;color:#666;margin-top:4px}
+.issue-card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #ccc}
+.issue-card.high{border-left-color:#ef4444}
+.issue-card.medium{border-left-color:#f59e0b}
+.issue-card.low{border-left-color:#3b82f6}
+.severity{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;margin-right:8px}
+.severity.high{background:#ef4444}
+.severity.medium{background:#f59e0b}
+.severity.low{background:#3b82f6}
+.device-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;background:#e0e7ff;color:#3730a3;margin-right:4px}
+.page-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;background:#fef3c7;color:#92400e;font-family:monospace}
+.new-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;background:#dcfce7;color:#166534;margin-left:4px}
+.issue-desc{margin-top:8px;font-size:15px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e0e0e0}
+th{background:#f0f4ff;font-weight:600}
+.pass{color:#16a34a;font-weight:600}
+.fail{color:#ef4444;font-weight:600}
+.warn{color:#f59e0b;font-weight:600}
+.skip{color:#9ca3af;font-weight:600}
+.note{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin:16px 0;font-size:14px}
+code{background:#f0f0f0;padding:1px 5px;border-radius:3px;font-size:13px}
+em{color:#b91c1c;font-style:normal;background:#fef2f2;padding:0 4px;border-radius:2px}
+.collapsible{cursor:pointer;user-select:none}
+.collapsible::before{content:"\25B6 ";font-size:12px}
+.collapsible.active::before{content:"\25BC "}
+.collapsible-content{display:none;padding-top:12px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.screenshot img{max-width:100%;border-radius:8px;border:1px solid #e0e0e0}
+.screenshot-mobile img{max-width:280px}
+@media(max-width:768px){.three-col{grid-template-columns:1fr}.stats{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Mira i18n 完整测试报告 — 法语 (fr)</h1>
+<div class="meta">
+测试日期: 2026-04-15 | 测试地址: http://localhost:3000<br>
+设备: Chrome 桌面 (1280x720) + iPhone 14 (390x844)<br>
+测试方法: 6 个并行 CDP Agent，按全部 19 个 Playwright spec 逻辑执行<br>
+fr.json Key 覆盖率: <strong>100%</strong> (1233/1233)
+</div>
+
+<div class="summary-box">
+<h2 style="margin-top:0;border:none;padding:0;">执行总结</h2>
+<div class="stats">
+  <div class="stat"><div class="stat-num">169</div><div class="stat-label">总用例</div></div>
+  <div class="stat"><div class="stat-num" style="color:#16a34a;">122</div><div class="stat-label">通过</div></div>
+  <div class="stat"><div class="stat-num" style="color:#ef4444;">21</div><div class="stat-label">失败</div></div>
+  <div class="stat"><div class="stat-num" style="color:#9ca3af;">26</div><div class="stat-label">跳过</div></div>
+  <div class="stat"><div class="stat-num" style="color:#ef4444;">18</div><div class="stat-label">应用 Bug</div></div>
+  <div class="stat"><div class="stat-num" style="color:#f59e0b;">15</div><div class="stat-label">POM 需更新</div></div>
+</div>
+</div>
+
+<h2>应用层 i18n Bug（共 18 个）</h2>
+<div class="note">以下为<strong>应用代码</strong>需修复的实际 i18n 问题，按严重度排序。标记 <span class="new-tag">CDP新发现</span> 的为本次自动化首次发现。</div>
+
+<div class="issue-card high">
+<span class="severity high">高</span><span class="device-tag">全部</span><span class="page-tag">所有页面</span>
+<div class="issue-desc"><strong>#1 页面 title 固定英文</strong> — <em>"Mira - Your next hire is already out there."</em> 未随 locale 切换。</div></div>
+
+<div class="issue-card high">
+<span class="severity high">高</span><span class="device-tag">全部</span><span class="page-tag">/privacy</span>
+<div class="issue-desc"><strong>#2 隐私政策全文英文</strong> — 未接入 i18n。</div></div>
+
+<div class="issue-card high">
+<span class="severity high">高</span><span class="device-tag">全部</span><span class="page-tag">/terms</span>
+<div class="issue-desc"><strong>#3 服务条款全文英文</strong> — 未接入 i18n。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">全部</span><span class="page-tag">代码块</span>
+<div class="issue-desc"><strong>#4 代码块 "Download file" / "Copy Code" 未翻译</strong> — 应为 "Télécharger le fichier" / "Copier le code"。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">全部</span><span class="page-tag">/projects, /library</span>
+<div class="issue-desc"><strong>#5 "Coming soon" 未翻译</strong> — 标题已翻译，正文硬编码英文。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">全部</span><span class="page-tag">/ 首页底部</span>
+<div class="issue-desc"><strong>#6 底部 CTA 链接指向 /task 而非 /join-waitlist</strong> — 功能 Bug。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">全部</span><span class="page-tag">/admin/scenario-cards</span>
+<div class="issue-desc"><strong>#7 表头 "Languages" / "languages" 未翻译 + 面包屑 "Tableau de bord > Tableau de bord"</strong></div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">全部</span><span class="page-tag">候选人卡片</span>
+<div class="issue-desc"><strong>#8 计数单位 "人" 未翻译</strong> — 显示 "20 人"，应为 "20 personnes"。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">手机</span><span class="page-tag">/admin/waitlist</span>
+<div class="issue-desc"><strong>#9 手机端 Tab 栏溢出</strong> — "Rejeté" 不可见。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">全部</span><span class="page-tag">/forgot-password</span><span class="new-tag">CDP新发现</span>
+<div class="issue-desc"><strong>#10 空/无效 email 无客户端验证</strong> — 直接重定向 /sign-in，无错误提示。功能 Bug。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">全部</span><span class="page-tag">错误 toast</span><span class="new-tag">CDP新发现</span>
+<div class="issue-desc"><strong>#11 文件下载失败 toast 显示英文</strong> — 显示 <em>"Failed to fetch file: 500"</em>，应为法语 "Échec du téléchargement"。</div></div>
+
+<div class="issue-card medium">
+<span class="severity medium">中</span><span class="device-tag">手机</span><span class="page-tag">Canvas 面板</span><span class="new-tag">CDP新发现</span>
+<div class="issue-desc"><strong>#12 Canvas 面板移动端溢出</strong> — width:500px + flex-shrink:0 + nowrap，390px 屏幕无法容纳。布局 Bug。</div></div>
+
+<div class="issue-card low">
+<span class="severity low">低</span><span class="device-tag">全部</span><span class="page-tag">Sidebar</span><span class="new-tag">CDP新发现</span>
+<div class="issue-desc"><strong>#13 "Toggle Sidebar" aria-label 英文</strong> — 应为 "Basculer la barre latérale"。</div></div>
+
+<div class="issue-card low">
+<span class="severity low">低</span><span class="device-tag">全部</span><span class="page-tag">Sidebar More</span><span class="new-tag">CDP新发现</span>
+<div class="issue-desc"><strong>#14 "More" 按钮 aria-label 英文</strong> — fr.json 有 "Plus d'actions" 但未使用。</div></div>
+
+<div class="issue-card low">
+<span class="severity low">低</span><span class="device-tag">全部</span><span class="page-tag">弹窗 X 按钮</span><span class="new-tag">CDP新发现</span>
+<div class="issue-desc"><strong>#15 分享/重命名弹窗 "Close" aria-label 英文</strong> — 应为 "Fermer"。</div></div>
+
+<div class="issue-card low">
+<span class="severity low">低</span><span class="device-tag">手机</span><span class="page-tag">/task 轮播</span>
+<div class="issue-desc"><strong>#16 "Go to slide" aria-label 英文</strong></div></div>
+
+<div class="issue-card low">
+<span class="severity low">低</span><span class="device-tag">手机</span><span class="page-tag">首页</span>
+<div class="issue-desc"><strong>#17 "Open menu" / "Close menu" aria-label 英文</strong></div></div>
+
+<div class="issue-card low">
+<span class="severity low">低</span><span class="device-tag">全部</span><span class="page-tag">SVG</span><span class="new-tag">CDP新发现</span>
+<div class="issue-desc"><strong>#18 SVG &lt;title&gt;Batch download&lt;/title&gt; 未本地化</strong> — 所有 locale 下都是英文。</div></div>
+
+<h2>6 个 Agent 执行详情</h2>
+
+<table>
+<tr><th>Agent</th><th>覆盖 Spec</th><th>通过</th><th>失败</th><th>跳过</th><th>CDP 新发现</th></tr>
+<tr><td>1: 认证页面</td><td>sign-in / home / forgot-password / join-waitlist</td><td class="pass">21</td><td class="fail">7</td><td class="skip">13</td><td>#10 forgot-password 验证 bug</td></tr>
+<tr><td>2: Task + Sidebar</td><td>task-cdp / task-sidebar-cdp</td><td class="pass">23</td><td class="fail">10</td><td class="skip">9</td><td>#13 Toggle Sidebar / #14 More / #15 Close aria</td></tr>
+<tr><td>3: 文件+工具+候选人</td><td>file-preview / conversation / people-data</td><td class="pass">13</td><td class="fail">5</td><td class="skip">1</td><td>#14 More aria 确认</td></tr>
+<tr><td>4: Canvas 预览+下载</td><td>canvas-preview-prd / canvas-download-prd</td><td class="pass">47</td><td class="fail">6</td><td class="skip">2</td><td>#11 错误 toast / #12 Canvas 溢出</td></tr>
+<tr><td>5: 上传+文件列表</td><td>upload-input-prd / view-all-files-prd</td><td class="pass">22</td><td class="fail">0</td><td class="skip">4</td><td>#18 SVG title</td></tr>
+<tr><td>6: 分享+候选人列表+AI</td><td>share / talent-list / ai-elements / tool-chain / scenario</td><td class="pass">15</td><td class="fail">1</td><td class="skip">8</td><td>无新发现</td></tr>
+<tr style="font-weight:bold"><td>总计</td><td>19 个 Spec 文件</td><td class="pass">122</td><td class="fail">21 (app:6 / POM:15)</td><td class="skip">26</td><td>6 个新问题</td></tr>
+</table>
+
+<h2>法语翻译完整性验证（全部通过）</h2>
+
+<table>
+<tr><th>区域</th><th>法语文案</th><th>状态</th></tr>
+<tr><td>登录流程</td><td>Se connecter ou s'inscrire / Continuer / Saisir le mot de passe / Modifier / Afficher/Masquer le mot de passe</td><td class="pass">完整</td></tr>
+<tr><td>首页</td><td>Votre prolongement numérique / Fonctionnalités / Principales / Recrutement / 8 个功能标题</td><td class="pass">完整</td></tr>
+<tr><td>忘记密码</td><td>Mot de passe oublié / Envoyer le lien de réinitialisation / Retour à la connexion</td><td class="pass">完整</td></tr>
+<tr><td>等待列表</td><td>Rejoindre la liste d'attente / 9 个表单字段全法语 / Soumettre la candidature</td><td class="pass">完整</td></tr>
+<tr><td>Dashboard</td><td>Que puis-je faire pour vous ? / Essayez ces scénarios / 4 张场景卡片</td><td class="pass">完整</td></tr>
+<tr><td>Sidebar</td><td>Nouvelle tâche / Tâches / Partager / Renommer / Supprimer</td><td class="pass">完整</td></tr>
+<tr><td>用户菜单</td><td>Langue / Thème / Déconnexion / Clair / Sombre / Système</td><td class="pass">完整</td></tr>
+<tr><td>删除确认</td><td>Confirmer la suppression de la tâche / Cette action est irréversible / Annuler</td><td class="pass">完整</td></tr>
+<tr><td>分享弹窗</td><td>Partager la conversation / Créer un lien de partage / Copier le lien / Révoquer le partage</td><td class="pass">完整</td></tr>
+<tr><td>工具调用</td><td>Recherche de personnes / Génération de données / Exécuter du code / Créer une présentation PowerPoint / Exécuter une commande</td><td class="pass">完整</td></tr>
+<tr><td>文件预览</td><td>Télécharger le fichier / Agrandir / Restaurer / Fermer / Folien werden gerendert...</td><td class="pass">完整</td></tr>
+<tr><td>文件列表</td><td>Tous les fichiers de cette tâche / Tout sélectionner / Téléchargement par lot / Annuler</td><td class="pass">完整</td></tr>
+<tr><td>上传</td><td>Ajouter des photos ou fichiers / Supprimer la pièce jointe / Nombre maximum de fichiers dépassé</td><td class="pass">完整</td></tr>
+<tr><td>候选人卡片</td><td>Résumé IA / Expérience professionnelle / Formation / Présent / Profil LinkedIn / +N de plus</td><td class="pass">完整</td></tr>
+<tr><td>文件类型</td><td>Texte / Excel / PPT / PDF / Word / Image / Données de contacts / Code / CSV</td><td class="pass">完整</td></tr>
+<tr><td>任务状态</td><td>Tâche terminée / Téléchargement réussi</td><td class="pass">完整</td></tr>
+<tr><td>工作区</td><td>Espace de travail de Mira</td><td class="pass">完整</td></tr>
+</table>
+
+</div>
+</body>
+</html>

@@ -18,7 +18,7 @@ test.describe('[VERIFY-FIX] MIRA-1318 场景发送后应导航到新对话页', 
   // TC-VF-TSS-001  P0  核心路径：点击场景建议 → 填入输入框 → 发送 → 导航到 /task/{id}
   // ─────────────────────────────────────────────────────────────────────────
   test('[VERIFY-FIX] TC-VF-TSS-001 场景发送后应导航到新对话页', {
-    tag: ['@P0', '@smoke', '@regression', '@full'],
+    tag: ['@P0', '@regression', '@full'],
   }, async ({ page, i18n }) => {
     test.setTimeout(60_000);
 
@@ -50,7 +50,7 @@ test.describe('[VERIFY-FIX] MIRA-1318 场景发送后应导航到新对话页', 
     console.log('[VERIFY-FIX] URL after send:', page.url());
 
     // STRICT assertion: URL must match /task/{taskId} — /task itself does NOT satisfy this
-    await expect(page).toHaveURL(/\/task\/[a-zA-Z0-9]+/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/task\/[a-zA-Z0-9]+/, { timeout: 10_000 });
 
     // New conversation page should have a chat log visible
     await expect(taskPage.getChatLog()).toBeVisible({ timeout: 10_000 });
@@ -87,7 +87,7 @@ test.describe('[VERIFY-FIX] MIRA-1318 场景发送后应导航到新对话页', 
     console.log('[VERIFY-FIX] URL after send:', page.url());
 
     // STRICT: navigate to /task/{taskId}
-    await expect(page).toHaveURL(/\/task\/[a-zA-Z0-9]+/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/task\/[a-zA-Z0-9]+/, { timeout: 10_000 });
 
     // Chat log visible (conversation page loaded)
     const chatLog = taskPage.getChatLog();

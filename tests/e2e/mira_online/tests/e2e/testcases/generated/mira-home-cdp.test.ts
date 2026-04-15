@@ -38,7 +38,7 @@ test.describe('[CDP] Mira Homepage', () => {
     await expect(home.getBottomCtaLink()).toBeVisible();
   });
 
-  test('TC-CDP-HOME-002 导航"登录"链接跳转到 /task', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n }) => {
+  test('TC-CDP-HOME-002 导航"登录"链接跳转到 /task', { tag: ['@P1', '@smoke', '@regression', '@full'] }, async ({ page, i18n }) => {
     const home = new MiraHomePage(page, i18n);
     await home.goto();
 
