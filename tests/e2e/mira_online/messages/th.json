@@ -1,0 +1,1212 @@
+{
+  "common": {
+    "welcome": "ยินดีต้อนรับ",
+    "logout": "ออกจากระบบ",
+    "settings": "ตั้งค่า",
+    "home": "หน้าหลัก",
+    "dashboard": "แดชบอร์ด",
+    "language": "ภาษา"
+  },
+  "email": {
+    "verification": {
+      "subject": "ยืนยันอีเมลของคุณ - {appName}",
+      "title": "ยืนยันอีเมลของคุณ",
+      "heading": "ยืนยันที่อยู่อีเมลของคุณ",
+      "body": "ขอบคุณที่สมัครใช้งาน {appName}! เพื่อความปลอดภัยของบัญชี เราจำเป็นต้องยืนยันอีเมลของคุณ กรุณาคลิกปุ่มด้านล่างเพื่อยืนยัน:",
+      "button": "ยืนยันอีเมล",
+      "linkHint": "หรือคัดลอกและวางลิงก์นี้ในเบราว์เซอร์ของคุณ:",
+      "ignoreHint": "หากคุณไม่ได้สมัครใช้งาน {appName} กรุณาเพิกเฉยอีเมลนี้",
+      "footer": "© {year} {appName} สงวนลิขสิทธิ์"
+    },
+    "resetPassword": {
+      "subject": "รีเซ็ตรหัสผ่าน - {appName}",
+      "title": "รีเซ็ตรหัสผ่าน",
+      "heading": "รีเซ็ตรหัสผ่านของคุณ",
+      "body": "เราได้รับคำขอรีเซ็ตรหัสผ่านของคุณ กรุณาคลิกปุ่มด้านล่างเพื่อตั้งรหัสผ่านใหม่:",
+      "button": "รีเซ็ตรหัสผ่าน",
+      "linkHint": "หากปุ่มไม่ทำงาน ให้คัดลอกและวางลิงก์นี้ในเบราว์เซอร์ของคุณ:",
+      "ignoreHint": "หากคุณไม่ได้ขอรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยอีเมลนี้ รหัสผ่านของคุณจะไม่เปลี่ยนแปลง"
+    },
+    "otp": {
+      "subject": "รหัสยืนยันของคุณถูกส่งแล้ว กรุณาตรวจสอบ",
+      "title": "รหัสยืนยันอีเมล",
+      "greeting": "สวัสดี,",
+      "body": "คุณกำลังยืนยันอีเมลบัญชี Mira กรุณาใช้รหัสยืนยันต่อไปนี้:",
+      "expireHint": "รหัสนี้มีอายุ 10 นาที อย่าแชร์กับผู้อื่น",
+      "ignoreHint": "หากคุณไม่ได้สมัครใช้งาน Mira กรุณาเพิกเฉยอีเมลนี้",
+      "footer": "© {year} {appName} สงวนลิขสิทธิ์"
+    },
+    "waitlistOtp": {
+      "subject": "รหัสยืนยันของคุณ - รายชื่อรอ {appName}",
+      "title": "รหัสยืนยันอีเมล",
+      "greeting": "สวัสดี,",
+      "body": "คุณกำลังสมัครเข้าร่วมรายชื่อรอ {appName} กรุณาใช้รหัสต่อไปนี้เพื่อยืนยันอีเมลที่ทำงานของคุณ:",
+      "expireHint": "รหัสนี้มีอายุ 10 นาที อย่าแชร์กับผู้อื่น",
+      "ignoreHint": "หากคุณไม่ได้สมัครเข้าร่วมรายชื่อรอ {appName} กรุณาเพิกเฉยอีเมลนี้",
+      "footer": "© {year} {appName} สงวนลิขสิทธิ์"
+    },
+    "invitation": {
+      "subject": "รหัสเชิญ {appName} ของคุณ",
+      "title": "รหัสเชิญ Mira ของคุณพร้อมแล้ว",
+      "greeting": "สวัสดี {name},",
+      "body": "ขอบคุณที่สมัครใช้งาน Mira ล่วงหน้า! ใบสมัครของคุณได้รับการอนุมัติแล้ว ใช้รหัสเชิญด้านล่างเพื่อเริ่มต้นใช้งาน:",
+      "activateButton": "เปิดใช้งานเลย",
+      "ignoreHint": "หากคุณไม่ได้สมัครใช้งาน Mira ล่วงหน้า กรุณาเพิกเฉยอีเมลนี้",
+      "footer": "© 2025 {appName} สงวนลิขสิทธิ์"
+    }
+  },
+  "files": {
+    "types": {
+      "text": "ข้อความ",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "รูปภาพ",
+      "peopleData": "ข้อมูลบุคคล"
+    }
+  },
+  "dashboard": {
+    "title": "แดชบอร์ด",
+    "overview": "ภาพรวม",
+    "statistics": "สถิติ",
+    "welcome": "มีอะไรให้ช่วยไหม?",
+    "tryScenarios": "ลองสถานการณ์เหล่านี้"
+  },
+  "chatbot": {
+    "sendMessage": "ส่งข้อความ",
+    "placeholder": "กรุณาพิมพ์...",
+    "addAttachments": "เพิ่มรูปภาพหรือไฟล์",
+    "uploadLocalFile": "อัปโหลดไฟล์จากเครื่อง",
+    "uploadError": "อัปโหลดไฟล์ไม่สำเร็จ",
+    "uploadErrorMaxFiles": "จำนวนไฟล์เกินขีดจำกัด",
+    "uploadErrorMaxFileSize": "ขนาดไฟล์เกินขีดจำกัด",
+    "uploadErrorAccept": "ไม่รองรับประเภทไฟล์นี้",
+    "uploadErrorAcceptPartial": "ข้ามไฟล์ {count} ไฟล์ที่ไม่รองรับรูปแบบ",
+    "uploadErrorMaxFileSizePartial": "ข้ามไฟล์ {count} ไฟล์ที่เกินขนาดจำกัด",
+    "uploadErrorUpload": "อัปโหลดไฟล์ไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "typing": "กำลังพิมพ์...",
+    "thinking": "กำลังคิด...",
+    "aborted": "Mira หยุดแล้ว ส่งข้อความใหม่เพื่อดำเนินการต่อ",
+    "waitingForUser": "Mira จะดำเนินการต่อหลังจากคุณตอบกลับ",
+    "completed": "งานเสร็จสมบูรณ์",
+    "retry": "ลองใหม่",
+    "copy": "คัดลอก",
+    "search": "ค้นหา",
+    "searchPlaceholder": "ค้นหางาน...",
+    "newChat": "งานใหม่",
+    "taskList": "รายการงาน",
+    "taskListDescription": "จัดการและดูงานทั้งหมด",
+    "taskId": "รหัสงาน",
+    "confirmDelete": "ยืนยันการลบงาน",
+    "deleteWarning": "การดำเนินการนี้ไม่สามารถยกเลิกได้ งานและข้อความทั้งหมดจะถูกลบอย่างถาวร",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "rename": "เปลี่ยนชื่อ",
+    "renameTask": "เปลี่ยนชื่องาน",
+    "editTitle": "แก้ไขชื่อ",
+    "enterTaskName": "กรอกชื่องาน",
+    "newTaskName": "ชื่องานใหม่",
+    "taskName": "ชื่องาน",
+    "save": "บันทึก",
+    "moreActions": "ตัวเลือกเพิ่มเติม",
+    "taskDetails": "รายละเอียดงาน",
+    "taskTitle": "ชื่องาน",
+    "creditsConsumed": "เครดิตที่ใช้",
+    "createdTime": "เวลาที่สร้าง",
+    "history": "ประวัติงาน",
+    "noHistory": "ยังไม่มีงาน",
+    "noSearchResults": "ไม่พบงานที่ตรงกัน",
+    "deleteChat": "ลบงาน",
+    "today": "วันนี้",
+    "yesterday": "เมื่อวาน",
+    "thisWeek": "สัปดาห์นี้",
+    "last7Days": "7 วันที่แล้ว",
+    "last30Days": "30 วันที่แล้ว",
+    "older": "เก่ากว่า",
+    "tasks": "งาน",
+    "projects": "โปรเจกต์",
+    "library": "คลัง",
+    "chatNotFound": "ไม่พบแชท",
+    "chatNotFoundDescription": "ขออภัย งานที่คุณพยายามเข้าถึงไม่มีอยู่หรือถูกลบไปแล้ว",
+    "noPermission": "ไม่มีสิทธิ์เข้าถึง",
+    "noPermissionDescription": "ขออภัย คุณไม่มีสิทธิ์เข้าถึงงานนี้",
+    "share": "แชร์",
+    "shareChat": "แชร์แชท",
+    "shareChatDescription": "แชร์บทสนทนานี้กับผู้อื่นผ่านลิงก์",
+    "shareLink": "ลิงก์แชร์",
+    "copyLink": "คัดลอกลิงก์",
+    "copied": "คัดลอกแล้ว",
+    "createShareLink": "สร้างลิงก์แชร์",
+    "creating": "กำลังสร้าง...",
+    "removeShare": "ยกเลิกการแชร์",
+    "removing": "กำลังยกเลิก...",
+    "shareDescription": "ทุกคนที่มีลิงก์นี้สามารถดูบทสนทนานี้ได้",
+    "createShareDescription": "สร้างลิงก์แชร์เพื่อให้ผู้อื่นดูบทสนทนานี้",
+    "close": "ปิด",
+    "emptyStateTitle": "ยังไม่มีข้อความ",
+    "emptyStateDescription": "เริ่มบทสนทนาเพื่อดูข้อความที่นี่",
+    "errors": {
+      "renameUnauthorized": "คุณไม่มีสิทธิ์เปลี่ยนชื่องานนี้",
+      "renameChatNotFound": "ไม่พบงานหรืองานถูกลบไปแล้ว",
+      "renameTitleTooLong": "ชื่องานยาวเกินไป อนุญาตสูงสุด {maxLength} ตัวอักษร",
+      "renameTitleEmpty": "ชื่องานไม่สามารถเว้นว่างได้",
+      "renameFailed": "เปลี่ยนชื่องานไม่สำเร็จ กรุณาลองอีกครั้งในภายหลัง",
+      "updateFailed": "อัปเดตไม่สำเร็จ กรุณาลองอีกครั้งในภายหลัง"
+    }
+  },
+  "share": {
+    "notFound": "ไม่พบแชท",
+    "notFoundDescription": "ขออภัย แชทที่คุณพยายามเข้าถึงไม่มีอยู่หรือถูกลบไปแล้ว",
+    "invalidLink": "ลิงก์ไม่ถูกต้อง",
+    "invalidLinkDescription": "ขออภัย ลิงก์แชร์นี้ไม่ถูกต้องหรือหมดอายุแล้ว",
+    "backToHome": "กลับหน้าหลัก"
+  },
+  "homepage": {
+    "nav": {
+      "features": "ฟีเจอร์",
+      "getStarted": "เข้าร่วมรายชื่อรอ",
+      "signIn": "เข้าสู่ระบบ",
+      "goToHomepage": "ไปหน้าหลัก"
+    },
+    "hero": {
+      "title": "ส่วนขยายของคุณ",
+      "subtitle1": "เริ่มจากการสรรหาบุคลากร",
+      "subtitle2": "และอีกมากมายตามมา",
+      "description": "Mira ไม่ใช่แค่ตัวแทน AI แต่เป็นคู่หูดิจิทัลของคุณ",
+      "getStarted": "เข้าร่วมรายชื่อรอ"
+    },
+    "features": {
+      "label": "ฟีเจอร์",
+      "core": "หลัก",
+      "recruiting": "การสรรหาบุคลากร",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "ทำงานร่วมกับคุณ ไม่ใช่ทำแทนคุณ",
+          "desc1": "Mira ดำเนินงานได้อย่างอิสระและร่วมมือกับคุณเมื่อต้องตัดสินใจ",
+          "desc2": "ตารางเวลาร่วม บริบทร่วม"
+        },
+        "trainedByYou": {
+          "title": "ฝึกโดยคุณ — หรือเรียนรู้จากคุณ",
+          "desc1": "กำหนดทักษะและฝึก Mira ได้โดยตรง",
+          "desc2": "หรือปล่อยให้เรียนรู้จากขั้นตอนการทำงานและพฤติกรรมจริงของคุณ"
+        },
+        "topTierModels": {
+          "title": "สร้างบนโมเดลระดับแนวหน้า ออกแบบเพื่อความเป็นจริง",
+          "desc1": "ขับเคลื่อนด้วยโมเดลที่ทันสมัยที่สุด วิศวกรรมระดับใช้งานจริง",
+          "desc2": "และได้รับคำแนะนำจากผู้เชี่ยวชาญในสาขา"
+        },
+        "integratedTools": {
+          "title": "ผสานเข้ากับเครื่องมือที่คุณใช้อยู่",
+          "desc1": "ทำงานร่วมกับเครื่องมือที่คุณใช้อยู่แล้วได้อย่างราบรื่น — Airtable, Slack, Gmail,",
+          "desc2": "OneDrive และอื่น ๆ"
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "ข้อมูลผู้สมัคร",
+          "desc1": "รวบรวมข้อมูลผู้สมัครทั้งแบบมีโครงสร้างและไม่มีโครงสร้างจากหลายแหล่ง",
+          "desc2": "ขยายขอบเขตด้วยส่วนขยาย Mira Chrome เมื่อต้องการข้อมูลเพิ่มเติมจากเว็บ"
+        },
+        "communication": {
+          "title": "การสื่อสารและติดตามผล",
+          "desc1": "รองรับการโทรและอีเมลขาออก",
+          "desc2": "บันทึกการสื่อสารทั้งหมดจะถูกเชื่อมโยงกับผู้สมัครที่เกี่ยวข้องโดยอัตโนมัติ"
+        },
+        "recruitingSkills": {
+          "title": "ทักษะการสรรหาบุคลากร",
+          "desc1": "ทักษะการสรรหาในตัวที่ออกแบบมาสำหรับการทำความเข้าใจตำแหน่งงาน การประเมินผู้สมัคร",
+          "desc2": "และการสนับสนุนการตัดสินใจจ้างงาน"
+        },
+        "securityTrust": {
+          "title": "ความปลอดภัยและความน่าเชื่อถือ",
+          "desc1": "ออกแบบมาสำหรับองค์กร",
+          "desc2": "เป็นไปตาม GDPR และข้อกำหนดการคุ้มครองข้อมูลอื่น ๆ พร้อมตัวเลือก Zero Data Retention (ZDR)"
+        }
+      }
+    },
+    "cta": {
+      "title": "ขอสิทธิ์เข้าถึงล่วงหน้า",
+      "description": "Mira อยู่ในช่วงเบต้าแบบปิดในขณะนี้",
+      "button": "เข้าร่วมรายชื่อรอ"
+    }
+  },
+  "Layout": {
+    "signOut": "ออกจากระบบ",
+    "language": "ภาษา",
+    "theme": "ธีม",
+    "light": "สว่าง",
+    "dark": "มืด",
+    "system": "ระบบ",
+    "mockUserName": "ผู้ใช้ทดสอบ"
+  },
+  "admin": {
+    "nav": {
+      "management": "การจัดการ",
+      "dashboard": "แดชบอร์ด",
+      "waitlist": "รายชื่อรอ",
+      "invitationCodes": "รหัสเชิญ",
+      "scenarioCards": "การ์ดสถานการณ์",
+      "admins": "ผู้ดูแลระบบ",
+      "backToApp": "กลับสู่แอป"
+    },
+    "dashboard": {
+      "title": "แดชบอร์ด",
+      "description": "ภาพรวมการดำเนินงานระบบ",
+      "sections": {
+        "overview": "ภาพรวม",
+        "quickActions": "การดำเนินการด่วน"
+      },
+      "stats": {
+        "totalUsers": "ผู้ใช้ทั้งหมด",
+        "activatedUsers": "เปิดใช้งานแล้ว {count} คน",
+        "pendingWaitlist": "ใบสมัครที่รอดำเนินการ",
+        "totalWaitlist": "{count} คนในรายชื่อรอ",
+        "availableCodes": "รหัสที่ใช้ได้",
+        "totalCodes": "รหัสทั้งหมด {count} รหัส",
+        "activationRate": "อัตราการเปิดใช้งาน",
+        "activatedOfTotal": "เปิดใช้งานแล้ว {activated}/{total}",
+        "needsAttention": "ต้องการความสนใจ"
+      },
+      "quickLinks": {
+        "waitlist": "จัดการรายชื่อรอ",
+        "waitlistDesc": "ตรวจสอบใบสมัครและส่งรหัสเชิญ",
+        "invitationCodes": "จัดการรหัสเชิญ",
+        "invitationCodesDesc": "สร้าง ดู และส่งออกรหัสเชิญ",
+        "pendingCount": "รอดำเนินการ",
+        "availableCount": "ใช้ได้"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "กลุ่มรหัสเชิญ",
+      "description": "จัดการรหัสเชิญเป็นชุด สร้างและแจกจ่ายล่วงหน้า",
+      "refresh": "รีเฟรช",
+      "export": "ส่งออก",
+      "generate": "สร้างรหัส",
+      "generating": "กำลังสร้าง...",
+      "loading": "กำลังโหลด...",
+      "noCodes": "ยังไม่มีรหัส",
+      "copy": "คัดลอก",
+      "copied": "คัดลอกแล้ว",
+      "copyFailed": "คัดลอกไม่สำเร็จ",
+      "generatePrompt": "กรอกจำนวนรหัสที่ต้องการสร้าง (1-1000)",
+      "generateCountError": "จำนวนต้องอยู่ระหว่าง 1 ถึง 1000",
+      "generateSuccess": "สร้างรหัสเชิญสำเร็จ {count} รหัส",
+      "generateFailed": "สร้างรหัสไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "exportSuccess": "ส่งออกสำเร็จ",
+      "searchPlaceholder": "ค้นหารหัส...",
+      "stats": {
+        "total": "ทั้งหมด",
+        "unused": "ยังไม่ใช้",
+        "used": "ใช้แล้ว",
+        "expired": "หมดอายุ"
+      },
+      "filter": {
+        "all": "ทั้งหมด",
+        "unused": "ยังไม่ใช้",
+        "used": "ใช้แล้ว",
+        "expired": "หมดอายุ"
+      },
+      "status": {
+        "unused": "ยังไม่ใช้",
+        "used": "ใช้แล้ว",
+        "expired": "หมดอายุ"
+      },
+      "table": {
+        "code": "รหัส",
+        "status": "สถานะ",
+        "usedBy": "ใช้โดย",
+        "batch": "ชุด",
+        "createdAt": "สร้างเมื่อ",
+        "usedAt": "ใช้เมื่อ",
+        "actions": "การดำเนินการ"
+      },
+      "pagination": {
+        "previous": "ก่อนหน้า",
+        "next": "ถัดไป",
+        "page": "หน้า {current} / {total}",
+        "total": "ทั้งหมด {count} รายการ"
+      }
+    },
+    "admins": {
+      "title": "จัดการผู้ดูแลระบบ",
+      "description": "ดูและจัดการผู้ดูแลระบบ",
+      "refresh": "รีเฟรช",
+      "loading": "กำลังโหลด...",
+      "loadFailed": "โหลดไม่สำเร็จ",
+      "noAdmins": "ไม่มีผู้ดูแลระบบ",
+      "addAdmin": "เพิ่มผู้ดูแลระบบ",
+      "addSuccess": "เพิ่มผู้ดูแลระบบสำเร็จ",
+      "addFailed": "เพิ่มผู้ดูแลระบบไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "remove": "ลบ",
+      "removeSuccess": "ลบผู้ดูแลระบบสำเร็จ",
+      "removeFailed": "ลบผู้ดูแลระบบไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "addDialog": {
+        "title": "เพิ่มผู้ดูแลระบบ",
+        "description": "ค้นหาตามชื่อหรืออีเมลเพื่อมอบสิทธิ์ผู้ดูแลระบบ",
+        "searchPlaceholder": "ค้นหาชื่อหรืออีเมล...",
+        "searching": "กำลังค้นหา...",
+        "noResults": "ไม่พบผู้ใช้ที่ตรงกัน",
+        "cancel": "ยกเลิก",
+        "confirm": "ยืนยัน"
+      },
+      "removeDialog": {
+        "title": "ยืนยันการลบผู้ดูแลระบบ",
+        "description": "คุณแน่ใจหรือไม่ว่าต้องการลบสิทธิ์ผู้ดูแลระบบจาก {name}? การดำเนินการนี้สามารถยกเลิกได้",
+        "cancel": "ยกเลิก",
+        "confirm": "ยืนยันการลบ"
+      },
+      "table": {
+        "user": "ผู้ใช้",
+        "email": "อีเมล",
+        "createdAt": "ลงทะเบียนเมื่อ",
+        "actions": "การดำเนินการ"
+      }
+    },
+    "waitlist": {
+      "title": "จัดการรายชื่อรอ",
+      "description": "จัดการผู้สมัครและส่งอีเมลรหัสเชิญให้ผู้ใช้ที่ได้รับอนุมัติ",
+      "refresh": "รีเฟรช",
+      "loading": "กำลังโหลด...",
+      "noItems": "ไม่พบใบสมัคร",
+      "searchPlaceholder": "ค้นหาด้วยอีเมลหรือชื่อ...",
+      "sendInvitation": "ส่งคำเชิญ",
+      "sendBatch": "ส่งคำเชิญ",
+      "sending": "กำลังส่ง...",
+      "confirmSend": "ยืนยันการส่ง",
+      "confirmSendDesc": "คุณกำลังจะส่งอีเมลเชิญพร้อมรหัสเชิญให้ผู้สมัคร {count} คน ใช้รหัส {count} รหัส ดำเนินการต่อหรือไม่?",
+      "sendSuccess": "ส่งอีเมลเชิญสำเร็จ {count} ฉบับ",
+      "sendPartialSuccess": "ส่งสำเร็จ {success} ฉบับ ไม่สำเร็จ {fail} ฉบับ",
+      "sendFailed": "ส่งไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "noPendingSelected": "รายการที่เลือกทั้งหมดได้รับการดำเนินการแล้ว",
+      "resend": "ส่งอีกครั้ง",
+      "resendSuccess": "ส่งอีเมลเชิญอีกครั้งสำเร็จ",
+      "resendFailed": "ส่งอีกครั้งไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "copyCode": "คัดลอกรหัสเชิญ",
+      "copySuccess": "คัดลอกรหัสเชิญแล้ว",
+      "copyFailed": "คัดลอกไม่สำเร็จ กรุณาคัดลอกด้วยตนเอง",
+      "filter": {
+        "all": "ทั้งหมด",
+        "pending": "รอดำเนินการ",
+        "approved": "ส่งแล้ว",
+        "rejected": "ปฏิเสธ",
+        "activated": "เปิดใช้งานแล้ว"
+      },
+      "status": {
+        "pending": "รอดำเนินการ",
+        "approved": "ส่งแล้ว",
+        "rejected": "ปฏิเสธ",
+        "activated": "เปิดใช้งานแล้ว"
+      },
+      "table": {
+        "name": "ชื่อ",
+        "company": "บริษัท",
+        "role": "ตำแหน่ง",
+        "email": "อีเมล",
+        "useCase": "กรณีใช้งาน",
+        "locale": "ภาษา",
+        "createdAt": "สมัครเมื่อ",
+        "invitationCode": "รหัสเชิญ",
+        "status": "สถานะ",
+        "actions": "การดำเนินการ"
+      },
+      "pagination": {
+        "previous": "ก่อนหน้า",
+        "next": "ถัดไป",
+        "page": "หน้า {current} / {total}",
+        "total": "ทั้งหมด {count} รายการ"
+      }
+    },
+    "scenarioCards": {
+      "title": "การ์ดสถานการณ์",
+      "description": "จัดการการ์ดสถานการณ์ที่ตั้งไว้ล่วงหน้าบนหน้าสร้างงาน ผู้ใช้คลิกเพื่อเริ่มงานสรรหาทันที",
+      "refresh": "รีเฟรช",
+      "loading": "กำลังโหลด...",
+      "noItems": "ไม่มีการ์ดสถานการณ์",
+      "addCard": "เพิ่มการ์ด",
+      "editCard": "แก้ไขการ์ด",
+      "deleteCard": "ลบ",
+      "deleteConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบการ์ดนี้? การดำเนินการนี้ไม่สามารถยกเลิกได้",
+      "saveSuccess": "บันทึกสำเร็จ",
+      "saveFailed": "บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "deleteSuccess": "ลบสำเร็จ",
+      "deleteFailed": "ลบไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "createSuccess": "สร้างสำเร็จ",
+      "createFailed": "สร้างไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "table": {
+        "caseId": "รหัสเคส",
+        "contentZh": "เนื้อหาภาษาจีน",
+        "contentEn": "เนื้อหาภาษาอังกฤษ",
+        "sortOrder": "ลำดับ",
+        "isActive": "สถานะ",
+        "actions": "การดำเนินการ"
+      },
+      "status": {
+        "active": "เปิดใช้งาน",
+        "inactive": "ปิดใช้งาน"
+      },
+      "form": {
+        "caseId": "รหัสเคส",
+        "caseIdPlaceholder": "เช่น case_fullstack (ไม่สามารถเปลี่ยนได้หลังจากสร้าง)",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "ลำดับการจัดเรียง (น้อยกว่า = แสดงก่อน)",
+        "isActive": "เปิดใช้งานการ์ดนี้",
+        "cancel": "ยกเลิก",
+        "save": "บันทึก",
+        "create": "สร้าง"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "เข้าสู่ระบบ",
+    "signUp": "สมัครสมาชิก",
+    "signOut": "ออกจากระบบ",
+    "signInDescription": "กรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ",
+    "signUpDescription": "สร้างบัญชีใหม่",
+    "email": "อีเมล",
+    "password": "รหัสผ่าน",
+    "confirmPassword": "ยืนยันรหัสผ่าน",
+    "name": "ชื่อ",
+    "signInSuccess": "เข้าสู่ระบบสำเร็จ",
+    "signUpSuccess": "สมัครสมาชิกสำเร็จ! กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีของคุณ",
+    "emailVerificationRequired": "ต้องยืนยันอีเมล",
+    "emailVerificationSent": "ส่งอีเมลยืนยันแล้ว",
+    "emailVerificationMessage": "เราได้ส่งอีเมลยืนยันไปยังกล่องจดหมายของคุณแล้ว กรุณาคลิกลิงก์ในอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ",
+    "emailVerificationResend": "ส่งอีเมลยืนยันอีกครั้ง",
+    "checkYourEmail": "ตรวจสอบอีเมลของคุณ",
+    "emailNotVerified": "อีเมลยังไม่ได้ยืนยัน กรุณายืนยันอีเมลก่อน",
+    "orContinueWith": "หรือ",
+    "continueWithGitHub": "ดำเนินการต่อด้วย GitHub",
+    "continueWithGoogle": "ดำเนินการต่อด้วย Google",
+    "continueWithMicrosoft": "ดำเนินการต่อด้วย Microsoft",
+    "continueWithApple": "ดำเนินการต่อด้วย Apple",
+    "forgotPassword": "ลืมรหัสผ่าน",
+    "forgotPasswordTitle": "ลืมรหัสผ่าน",
+    "forgotPasswordDescription": "กรอกที่อยู่อีเมลของคุณ แล้วเราจะส่งลิงก์รีเซ็ตรหัสผ่านให้",
+    "forgotPasswordConfirmDescription": "คลิก \"ดำเนินการต่อ\" เพื่อส่งลิงก์รีเซ็ตรหัสผ่านไปที่ <emailLink>{email}</emailLink>",
+    "continueButton": "ดำเนินการต่อ",
+    "returnToLogin": "กลับไปเข้าสู่ระบบ",
+    "resetPasswordTitle": "รีเซ็ตรหัสผ่าน",
+    "resetPasswordDescription": "กรุณากรอกรหัสผ่านใหม่ของคุณ",
+    "sendResetLink": "ส่งลิงก์รีเซ็ต",
+    "resetPassword": "รีเซ็ตรหัสผ่าน",
+    "resetPasswordSuccess": "รีเซ็ตรหัสผ่านสำเร็จ! กำลังนำไปหน้าเข้าสู่ระบบ...",
+    "resetPasswordError": "รีเซ็ตรหัสผ่านไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "resetPasswordEmailSent": "ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว",
+    "resetPasswordEmailError": "ส่งอีเมลรีเซ็ตรหัสผ่านไม่สำเร็จ",
+    "resetPasswordEmailMessage": "เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว กรุณาตรวจสอบกล่องจดหมายและคลิกลิงก์เพื่อรีเซ็ตรหัสผ่าน",
+    "invalidResetToken": "โทเค็นรีเซ็ตไม่ถูกต้อง",
+    "invalidResetLink": "ลิงก์รีเซ็ตไม่ถูกต้องหรือหมดอายุ",
+    "invalidResetLinkMessage": "ลิงก์รีเซ็ตรหัสผ่านนี้ไม่ถูกต้องหรือหมดอายุแล้ว กรุณาขอรีเซ็ตรหัสผ่านใหม่",
+    "requestNewLink": "ขอลิงก์ใหม่",
+    "backToSignIn": "กลับไปเข้าสู่ระบบ",
+    "rememberPassword": "จำรหัสผ่านได้หรือไม่?",
+    "newPassword": "รหัสผ่านใหม่",
+    "confirmNewPassword": "ยืนยันรหัสผ่านใหม่",
+    "noAccount": "ยังไม่มีบัญชี?",
+    "hasAccount": "มีบัญชีอยู่แล้ว?",
+    "passwordMismatch": "รหัสผ่านไม่ตรงกัน",
+    "agreeToTerms": "ฉันยอมรับ",
+    "termsOfService": "ข้อกำหนดการใช้บริการ",
+    "and": "และ",
+    "privacyPolicy": "นโยบายความเป็นส่วนตัว",
+    "settings": "ตั้งค่า",
+    "validation": {
+      "emailInvalid": "กรุณากรอกที่อยู่อีเมลที่ถูกต้อง",
+      "passwordMinLength": "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร",
+      "passwordStrength": "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษรและรวมตัวอักษร ตัวเลข และสัญลักษณ์",
+      "nameMinLength": "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร",
+      "termsRequired": "คุณต้องยอมรับข้อกำหนดการใช้บริการและนโยบายความเป็นส่วนตัว",
+      "fieldRequired": "จำเป็นต้องกรอกช่องนี้"
+    },
+    "checkSpamFolder": "ไม่ได้รับอีเมล? ตรวจสอบโฟลเดอร์สแปม",
+    "backToLogin": "กลับไปเข้าสู่ระบบ",
+    "unifiedTitle": "เข้าสู่ระบบหรือสมัครสมาชิก",
+    "unifiedSubtitle": "ปลุก Mira ของคุณ",
+    "continueTitle": "ดำเนินการต่อ",
+    "emailPlaceholder": "กรอกที่อยู่อีเมลของคุณ",
+    "emailLabel": "อีเมล",
+    "editLink": "แก้ไข",
+    "enterPasswordTitle": "กรอกรหัสผ่าน",
+    "createPasswordTitle": "สร้างรหัสผ่าน",
+    "createAccountTitle": "สร้างบัญชี",
+    "createAccountDescription": "ตั้งรหัสผ่านสำหรับ {email}",
+    "editEmail": "แก้ไขอีเมล",
+    "passwordStrengthHint": "รหัสผ่านต้องมีอย่างน้อย 12 ตัวอักษรและรวมตัวอักษร ตัวเลข และสัญลักษณ์",
+    "showPassword": "แสดงรหัสผ่าน",
+    "hidePassword": "ซ่อนรหัสผ่าน",
+    "verifyEmailTitle": "ยืนยันอีเมลของคุณ",
+    "verifyEmailDescription": "เราส่งรหัสยืนยันไปที่ {email}",
+    "enterOtp": "กรอกรหัสยืนยัน",
+    "otpPlaceholder": "กรอกรหัสยืนยัน",
+    "resendCode": "ส่งรหัสยืนยันอีกครั้ง",
+    "resendCodeCountdown": "ส่งแล้ว ลองอีกครั้งใน {seconds} วินาที",
+    "changeEmail": "เปลี่ยนที่อยู่อีเมล",
+    "otpError": "รหัสไม่ถูกต้อง กรุณาลองอีกครั้ง",
+    "otpExpired": "รหัสหมดอายุแล้ว กรุณาส่งใหม่",
+    "otpResendSuccess": "ส่งรหัสยืนยันแล้ว",
+    "otpResendFailed": "ส่งไม่สำเร็จ กรุณาลองอีกครั้งในภายหลัง",
+    "checkSpamFolderHint": "ไม่ได้รับอีเมล? ตรวจสอบโฟลเดอร์สแปม",
+    "verifyEmail": {
+      "title": "ยืนยันอีเมลของคุณ",
+      "description": "เราส่งรหัสยืนยันไปที่",
+      "descriptionSuffix": "",
+      "goToEmail": "เปิดอีเมล",
+      "otpLabel": "รหัสยืนยัน",
+      "otpPlaceholder": "กรอกรหัสยืนยัน",
+      "otpInputLabel": "หลักที่ {index}",
+      "verifying": "กำลังยืนยัน...",
+      "resend": "ส่งอีกครั้ง",
+      "resendCountdown": "{seconds} วินาที",
+      "resendSuccess": "ส่งรหัสอีกครั้งสำเร็จ",
+      "resendFailed": "ส่งอีกครั้งไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "changeEmail": "เปลี่ยนอีเมล",
+      "invalidOtp": "รหัสไม่ถูกต้อง กรุณาลองอีกครั้ง",
+      "success": "ยืนยันอีเมลสำเร็จ"
+    },
+    "activateVerifyTitle": "ยืนยันรหัสเชิญของคุณ",
+    "activateCurrentEmail": "อีเมลปัจจุบัน ",
+    "activateNoCode": "ไม่มีรหัสเชิญ?",
+    "activateApplyNow": "สมัครเลย",
+    "signOutLink": "ออกจากระบบ",
+    "waitlistTitle": "เข้าร่วมรายชื่อรอ",
+    "waitlistDescription": "กรอกข้อมูลด้านล่าง แล้วเราจะส่งรหัสเชิญพิเศษให้หลังจากตรวจสอบ",
+    "waitlistName": "ชื่อ",
+    "waitlistCompany": "บริษัท",
+    "waitlistRole": "ตำแหน่ง / บทบาท",
+    "waitlistUseCase": "กรณีใช้งาน",
+    "waitlistSubmit": "ส่งใบสมัคร",
+    "waitlistSubmitting": "กำลังส่ง...",
+    "waitlistJoined": "เข้าร่วมเมื่อ {time}",
+    "waitlistLearnMore": "เรียนรู้เพิ่มเติม",
+    "joinWaitlist": {
+      "title": "เข้าร่วมรายชื่อรอ",
+      "description": "เราจะส่งรหัสเชิญเมื่อใบสมัครของคุณได้รับอนุมัติ",
+      "descriptionHint": "การให้ข้อมูลที่ถูกต้องและละเอียดจะช่วยเร่งกระบวนการตรวจสอบ",
+      "workEmail": "อีเมลที่ทำงาน",
+      "emailPlaceholder": "name@company.com",
+      "sendOtp": "ส่งรหัสยืนยัน",
+      "resendOtp": "ส่งอีกครั้ง",
+      "otpCountdown": "{seconds} วินาที",
+      "otpLabel": "รหัสยืนยัน",
+      "otpPlaceholder": "กรอกรหัสยืนยัน",
+      "verifyOtp": "ยืนยัน",
+      "changeEmail": "เปลี่ยนอีเมล",
+      "name": "ชื่อ",
+      "namePlaceholder": "กรอกชื่อของคุณ",
+      "company": "บริษัท",
+      "companyPlaceholder": "กรอกชื่อบริษัทของคุณ",
+      "role": "ตำแหน่ง / บทบาท",
+      "rolePlaceholder": "กรอกตำแหน่งของคุณ",
+      "useCase": "คุณวางแผนจะใช้ Mira อย่างไร",
+      "useCasePlaceholder": "อธิบายกรณีใช้งานของคุณ",
+      "submit": "ส่งใบสมัคร",
+      "submitting": "กำลังส่ง...",
+      "cancel": "ยกเลิก",
+      "successTitle": "ส่งใบสมัครแล้ว",
+      "successDescription": "เมื่อได้รับอนุมัติ เราจะส่งรหัสเชิญไปที่: ",
+      "backToHome": "กลับหน้าหลัก",
+      "otpSent": "ส่งรหัสยืนยันแล้ว",
+      "emailVerified": "ยืนยันสำเร็จ!",
+      "errors": {
+        "otpExpired": "รหัสยืนยันหมดอายุ กรุณาส่งใหม่",
+        "otpIncorrect": "รหัสไม่ถูกต้อง กรุณาลองอีกครั้ง",
+        "otpLengthRequired": "กรุณากรอกรหัสยืนยัน 6 หลัก",
+        "sendFailed": "ส่งไม่สำเร็จ กรุณาลองอีกครั้ง",
+        "verifyFailed": "ยืนยันไม่สำเร็จ กรุณาลองอีกครั้ง",
+        "submitFailed": "ส่งไม่สำเร็จ กรุณาลองอีกครั้ง",
+        "nameRequired": "กรุณากรอกชื่อของคุณ",
+        "companyRequired": "กรุณากรอกชื่อบริษัทของคุณ",
+        "roleRequired": "กรุณากรอกตำแหน่งของคุณ",
+        "useCaseRequired": "กรุณาอธิบายกรณีใช้งานของคุณ",
+        "accountAlreadyActivated": "บัญชีนี้เปิดใช้งานแล้ว กรุณาเข้าสู่ระบบ!",
+        "alreadySubmitted": "อีเมลนี้ถูกส่งแล้ว กรุณารอสักครู่!",
+        "emailInvalid": "กรุณากรอกที่อยู่อีเมลที่ถูกต้อง",
+        "emailNotVerified": "กรุณายืนยันอีเมลก่อนส่ง",
+        "otpNotVerified": "กรุณากรอกและยืนยันรหัสก่อนส่ง"
+      }
+    },
+    "activate": "เปิดใช้งาน",
+    "activateAccount": "เปิดใช้งานบัญชี",
+    "activateTitle": "เปิดใช้งานบัญชีของคุณ",
+    "activateDescription": "กรุณากรอกรหัสเชิญเพื่อใช้งาน Mira ต่อ",
+    "yourActivationCode": "รหัสเชิญของคุณคือ:",
+    "activationCode": "รหัสเชิญ",
+    "enterActivationCode": "กรอกรหัสเชิญ",
+    "activationCodePlaceholder": "กรอกรหัสเชิญของคุณ",
+    "activating": "กำลังเปิดใช้งาน...",
+    "activationSuccess": "เปิดใช้งานบัญชีสำเร็จ!",
+    "activationSuccessDescription": "กำลังนำไปหน้าหลัก...",
+    "activationCodeRequired": "กรุณากรอกรหัสเชิญ",
+    "activationCodeTooShort": "รหัสเชิญสั้นเกินไป",
+    "activationCodeIncorrect": "รหัสเชิญไม่ถูกต้อง กรุณาลองอีกครั้ง",
+    "invalidInvitationCode": "รหัสเชิญไม่ถูกต้อง",
+    "activationContactAdmin": "หากคุณไม่ได้รับรหัสเชิญ กรุณาติดต่อผู้ดูแลระบบ",
+    "accountActivated": "บัญชีเปิดใช้งานแล้ว",
+    "accountNotActivated": "บัญชียังไม่ได้เปิดใช้งาน กรุณาเปิดใช้งานบัญชีก่อน",
+    "errors": {
+      "emailAlreadyRegistered": "อีเมลนี้ถูกลงทะเบียนแล้ว กรุณาใช้อีเมลอื่นหรือเข้าสู่ระบบโดยตรง",
+      "invalidEmailOrPassword": "อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบและลองอีกครั้ง",
+      "emailNotVerified": "อีเมลยังไม่ได้ยืนยัน กรุณายืนยันอีเมลก่อน",
+      "passwordTooShort": "รหัสผ่านสั้นเกินไป กรุณาใช้รหัสผ่านที่ยาวขึ้น",
+      "passwordTooLong": "รหัสผ่านยาวเกินไป กรุณาใช้รหัสผ่านที่สั้นลง",
+      "passwordAlreadySet": "บัญชีนี้ตั้งรหัสผ่านไว้แล้ว",
+      "invalidEmail": "รูปแบบอีเมลไม่ถูกต้อง",
+      "emailAlreadyVerified": "อีเมลได้รับการยืนยันแล้ว",
+      "emailMismatch": "อีเมลไม่ตรงกัน",
+      "sessionExpired": "เซสชันหมดอายุแล้ว กรุณาเข้าสู่ระบบอีกครั้ง",
+      "sessionNotFresh": "เซสชันหมดอายุแล้ว กรุณายืนยันตัวตนอีกครั้ง",
+      "invalidOrExpiredToken": "โทเค็นไม่ถูกต้องหรือหมดอายุแล้ว",
+      "accountAlreadyLinked": "บัญชีนี้เชื่อมต่ออยู่แล้ว",
+      "cannotUnlinkLastAccount": "ไม่สามารถยกเลิกการเชื่อมต่อบัญชีสุดท้ายได้",
+      "accountNotFound": "ไม่พบบัญชี",
+      "rateLimitExceeded": "ลองมากเกินไป กรุณาลองอีกครั้งในภายหลัง",
+      "securityError": "การตรวจสอบความปลอดภัยไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "validationError": "การตรวจสอบข้อมูลไม่สำเร็จ กรุณาตรวจสอบข้อมูลของคุณ",
+      "serverError": "เกิดข้อผิดพลาดของเซิร์ฟเวอร์ กรุณาลองอีกครั้งในภายหลัง",
+      "providerError": "เกิดข้อผิดพลาดของบริการเข้าสู่ระบบบุคคลที่สาม",
+      "invalidInput": "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบและลองอีกครั้ง",
+      "unauthorized": "ไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบก่อน",
+      "forbidden": "สิทธิ์ไม่เพียงพอ",
+      "notFound": "ไม่พบทรัพยากร",
+      "unprocessableEntity": "ไม่สามารถประมวลผลคำขอได้",
+      "unknown": "เกิดข้อผิดพลาดที่ไม่ทราบ กรุณาลองอีกครั้งในภายหลัง"
+    }
+  },
+  "workspace": {
+    "title": "พื้นที่ทำงานของ Mira",
+    "backToLiveView": "กลับไปดูแบบเรียลไทม์",
+    "selectTool": "เลือกเครื่องมือเพื่อดูรายละเอียด",
+    "noToolsEnabled": "ไม่มีเครื่องมือที่เปิดใช้งาน",
+    "usingTool": "Mira กำลังใช้",
+    "processing": "กำลังดำเนินการ",
+    "completed": "เสร็จสมบูรณ์",
+    "failed": "ไม่สำเร็จ",
+    "realTime": "สด",
+    "goToStart": "ไปที่จุดเริ่มต้น",
+    "previous": "ก่อนหน้า",
+    "next": "ถัดไป"
+  },
+  "search": {
+    "aiSummary": "สรุปโดย AI",
+    "noResults": "ไม่มีผลการค้นหา"
+  },
+  "toolStatus": {
+    "processing": "กำลังดำเนินการ...",
+    "searching": "กำลังค้นหา...",
+    "crawling": "กำลังรวบรวมข้อมูล...",
+    "mapping": "กำลังจัดทำแผนผัง...",
+    "extracting": "กำลังดึงข้อมูล...",
+    "items": "รายการ",
+    "suggestions": "ข้อเสนอแนะ",
+    "screenshotComplete": "จับภาพหน้าจอเสร็จสมบูรณ์",
+    "operationFailed": "การดำเนินการไม่สำเร็จ",
+    "crawlFailed": "การรวบรวมข้อมูลไม่สำเร็จ",
+    "extractFailed": "การดึงข้อมูลไม่สำเร็จ",
+    "mapFailed": "การจัดทำแผนผังไม่สำเร็จ",
+    "searchFailed": "การค้นหาไม่สำเร็จ",
+    "pages": "หน้า",
+    "links": "ลิงก์",
+    "results": "ผลลัพธ์",
+    "fullPage": "ทั้งหน้า",
+    "visibleArea": "พื้นที่ที่มองเห็น",
+    "clickToView": "คลิกเพื่อดู",
+    "unknownQuery": "คำค้นหาที่ไม่ทราบ",
+    "processingUrls": "กำลังดำเนินการ {count} URL...",
+    "websiteCrawl": "รวบรวมข้อมูลเว็บไซต์",
+    "contentExtract": "ดึงเนื้อหา",
+    "websiteMap": "แผนผังเว็บไซต์"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "คำขอยืนยัน",
+      "description": "ขอให้ผู้ใช้ยืนยันการดำเนินการ"
+    },
+    "clarifyQuestion": {
+      "name": "ถามเพื่อความชัดเจน",
+      "description": "ถามผู้ใช้เพื่อขอข้อมูลเพิ่มเติม"
+    },
+    "maps_weather": {
+      "name": "ค้นหาสภาพอากาศ",
+      "description": "ค้นหาสภาพอากาศของเมือง"
+    },
+    "exa_search": {
+      "name": "ค้นหาเว็บ",
+      "description": "ค้นหาแบบ Semantic ด้วย Exa AI เพื่อผลลัพธ์คุณภาพสูงที่เกี่ยวข้อง"
+    },
+    "exa_company_search": {
+      "name": "ค้นหาบริษัท",
+      "description": "ค้นหาบริษัท องค์กร และธุรกิจ ปรับแต่งสำหรับการวิจัยตลาดและพัฒนาธุรกิจ",
+      "action": "กำลังค้นหาบริษัท"
+    },
+    "exa_people_search": {
+      "name": "ค้นหาบุคคล",
+      "description": "ค้นหาผู้เชี่ยวชาญ ผู้สมัคร และโปรไฟล์ LinkedIn ปรับแต่งสำหรับการสรรหาบุคลากร",
+      "action": "กำลังค้นหาบุคคล"
+    },
+    "generate_people_data": {
+      "name": "สร้างข้อมูลบุคคล",
+      "description": "รวบรวมผลการค้นหาบุคคลเป็นไฟล์ข้อมูลที่ดาวน์โหลดได้",
+      "action": "กำลังสร้างข้อมูลบุคคล"
+    },
+    "export_data": {
+      "name": "ส่งออกข้อมูล",
+      "description": "ส่งออกข้อมูลแล้ว",
+      "action": "กำลังส่งออกข้อมูล"
+    },
+    "sb_file_create": {
+      "name": "สร้างไฟล์",
+      "description": "สร้างไฟล์ใหม่ในแซนด์บ็อกซ์",
+      "action": "กำลังสร้างไฟล์"
+    },
+    "sb_file_rewrite": {
+      "name": "เขียนไฟล์ใหม่",
+      "description": "เขียนเนื้อหาไฟล์ใหม่ทั้งหมด",
+      "action": "กำลังเขียนไฟล์ใหม่"
+    },
+    "sb_file_delete": {
+      "name": "ลบไฟล์",
+      "description": "ลบไฟล์ที่ระบุ",
+      "action": "กำลังลบไฟล์"
+    },
+    "sb_file_edit": {
+      "name": "แก้ไขไฟล์",
+      "description": "แก้ไขไฟล์ด้วยความช่วยเหลือของ AI",
+      "action": "กำลังแก้ไขไฟล์"
+    },
+    "sb_docx_create": {
+      "name": "สร้างเอกสาร Word",
+      "description": "สร้างเอกสาร Word (รูปแบบ .docx) ในแซนด์บ็อกซ์",
+      "action": "กำลังสร้างเอกสาร Word"
+    },
+    "sb_pptx_create": {
+      "name": "สร้างงานนำเสนอ PowerPoint",
+      "description": "สร้างงานนำเสนอ PowerPoint (รูปแบบ .pptx) ในแซนด์บ็อกซ์",
+      "action": "กำลังสร้างงานนำเสนอ PowerPoint"
+    },
+    "sb_xlsx_create": {
+      "name": "สร้างสเปรดชีต Excel",
+      "description": "สร้างสเปรดชีต Excel (รูปแบบ .xlsx) ในแซนด์บ็อกซ์",
+      "action": "กำลังสร้างสเปรดชีต Excel"
+    },
+    "sb_pdf_create": {
+      "name": "สร้างเอกสาร PDF",
+      "description": "สร้างเอกสาร PDF (รูปแบบ .pdf) ในแซนด์บ็อกซ์",
+      "action": "กำลังสร้างเอกสาร PDF"
+    },
+    "sb_image_create": {
+      "name": "สร้างรูปภาพ",
+      "description": "สร้างรูปภาพในแซนด์บ็อกซ์ (PNG, JPG, SVG ฯลฯ)",
+      "action": "กำลังสร้างรูปภาพ"
+    },
+    "sb_command_execute": {
+      "name": "รันคำสั่ง",
+      "description": "รันคำสั่ง Shell ในแซนด์บ็อกซ์",
+      "action": "กำลังรันคำสั่ง"
+    },
+    "sb_command_logs_get": {
+      "name": "ตรวจสอบผลลัพธ์",
+      "description": "ตรวจสอบผลลัพธ์การรันคำสั่ง"
+    },
+    "sb_command_terminate": {
+      "name": "หยุดคำสั่ง",
+      "description": "หยุดคำสั่งที่กำลังทำงาน",
+      "action": "กำลังหยุดคำสั่ง"
+    },
+    "sb_command_running_list": {
+      "name": "แสดงรายการเซสชัน",
+      "description": "แสดงรายการเซสชัน tmux ที่ใช้งานอยู่ทั้งหมด"
+    },
+    "reflect_tool": {
+      "name": "สะท้อนความคิด",
+      "description": "การวางแผนและสะท้อนกลยุทธ์การวิจัย"
+    },
+    "browserNavigate": {
+      "name": "นำทางเบราว์เซอร์",
+      "description": "นำทางไปยังหน้าเว็บที่ระบุ"
+    },
+    "browserAct": {
+      "name": "การดำเนินการบนหน้า",
+      "description": "ดำเนินการโต้ตอบบนหน้าเว็บ"
+    },
+    "browserExtract": {
+      "name": "ดึงข้อมูล",
+      "description": "ดึงข้อมูลที่มีโครงสร้างจากหน้าเว็บ"
+    },
+    "browserObserve": {
+      "name": "สังเกตการณ์",
+      "description": "ดูตัวอย่างการดำเนินการโดยไม่ทำจริง"
+    },
+    "browserScreenshot": {
+      "name": "จับภาพหน้าจอ",
+      "description": "จับภาพหน้าเว็บปัจจุบัน"
+    },
+    "browserGetContent": {
+      "name": "ดึงเนื้อหา",
+      "description": "ดึงเนื้อหาหน้าเว็บ"
+    },
+    "browserWait": {
+      "name": "รอ",
+      "description": "รอเงื่อนไขที่ระบุ"
+    },
+    "browserAgentTask": {
+      "name": "งานอัจฉริยะ",
+      "description": "ดำเนินงานที่ซับซ้อนหลายขั้นตอน"
+    },
+    "browserClose": {
+      "name": "ปิดเบราว์เซอร์",
+      "description": "ปิดเซสชันเบราว์เซอร์"
+    },
+    "browserStatus": {
+      "name": "สถานะเบราว์เซอร์",
+      "description": "ดูสถานะเบราว์เซอร์"
+    },
+    "complete": {
+      "name": "ส่งมอบไฟล์",
+      "description": "ส่งมอบไฟล์ให้ผู้ใช้",
+      "createdTime": "สร้างเมื่อ: ",
+      "downloadFile": "ดาวน์โหลดไฟล์",
+      "deliveryFailed": "ส่งมอบไม่สำเร็จ",
+      "previewNotImplemented": "ยังไม่รองรับการดูตัวอย่างไฟล์",
+      "download": "ดาวน์โหลด",
+      "preview": "ดูตัวอย่าง",
+      "previewMetadataLoading": "ข้อมูลไฟล์กำลังโหลด กรุณาลองอีกครั้งในอีกสักครู่",
+      "completed": "งานเสร็จสมบูรณ์",
+      "downloadSuccess": "ดาวน์โหลดไฟล์สำเร็จ",
+      "downloadFailed": "ดาวน์โหลดไฟล์ไม่สำเร็จ กรุณาลองอีกครั้ง",
+      "fileType": "ไฟล์",
+      "text": "ข้อความ",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "รูปภาพ",
+      "peopleData": "ข้อมูลบุคคล"
+    },
+    "code_interpreter": {
+      "name": "รันโค้ด",
+      "description": "รันโค้ด Python ในสภาพแวดล้อมแซนด์บ็อกซ์",
+      "action": "กำลังรันโค้ด",
+      "pre_action": "กำลังเขียนโค้ด"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "กำลังสร้างคำถามเพื่อความชัดเจน...",
+      "defaultTitle": "ต้องการข้อมูลเพิ่มเติม",
+      "submit": "ส่ง",
+      "skip": "ข้าม (ใช้ค่าเริ่มต้น)",
+      "skipHint": "การข้ามจะดำเนินการต่อด้วยตัวเลือกเริ่มต้นที่แนะนำ",
+      "submitted": "ส่งแล้ว",
+      "loadFailed": "โหลดแบบฟอร์มไม่สำเร็จ",
+      "loadFailedDescription": "ขออภัย เกิดปัญหาในการสร้างแบบฟอร์มคำถาม กรุณาลองอีกครั้ง",
+      "skipped": "ข้ามแล้ว",
+      "aborted": "หยุดการสร้างคำถามเพื่อความชัดเจนแล้ว"
+    },
+    "askForConfirmation": {
+      "loading": "กำลังโหลดคำขอยืนยัน...",
+      "needConfirmation": "ต้องการการยืนยัน",
+      "confirm": "ใช่",
+      "deny": "ไม่",
+      "confirmed": "ยืนยันแล้ว",
+      "denied": "ปฏิเสธแล้ว",
+      "failed": "คำขอยืนยันไม่สำเร็จ",
+      "skipped": "ข้ามแล้ว",
+      "aborted": "หยุดการสร้างคำขอยืนยันแล้ว"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "สร้างไฟล์",
+      "rewriteFile": "เขียนไฟล์ใหม่",
+      "deleteFile": "ลบไฟล์",
+      "editFile": "แก้ไขไฟล์",
+      "fileOperation": "การจัดการไฟล์",
+      "executing": "กำลังดำเนินการ...",
+      "executionError": "เกิดข้อผิดพลาดในการดำเนินการ",
+      "success": "สำเร็จ",
+      "failed": "ไม่สำเร็จ"
+    },
+    "shell": {
+      "executeCommand": "รันคำสั่ง",
+      "checkOutput": "ตรวจสอบผลลัพธ์",
+      "terminateCommand": "หยุดคำสั่ง",
+      "listSessions": "แสดงรายการเซสชัน",
+      "shellCommand": "คำสั่ง Shell",
+      "executionError": "เกิดข้อผิดพลาดในการดำเนินการ",
+      "executing": "กำลังดำเนินการ...",
+      "sending": "กำลังส่ง...",
+      "completed": "เสร็จสมบูรณ์",
+      "sent": "ส่งแล้ว",
+      "failed": "ไม่สำเร็จ",
+      "sessions": "เซสชัน"
+    },
+    "parallelResearch": {
+      "deepResearch": "วิจัยเชิงลึก",
+      "researchReport": "รายงานวิจัย",
+      "researchFailed": "การวิจัยไม่สำเร็จ",
+      "researching": "กำลังวิจัย...",
+      "completed": "เสร็จสมบูรณ์",
+      "executeResearch": "ดำเนินการวิจัย",
+      "characters": "ตัวอักษร",
+      "citations": "การอ้างอิง"
+    },
+    "reflect": {
+      "reflecting": "สะท้อนความคิด",
+      "reflectingText": "กำลังสะท้อนความคิด...",
+      "completed": "เสร็จสมบูรณ์"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "สำเร็จ",
+      "failed": "ไม่สำเร็จ",
+      "inputParams": "พารามิเตอร์ข้อมูลเข้า",
+      "executionResult": "ผลลัพธ์การดำเนินการ",
+      "error": "ข้อผิดพลาด",
+      "waiting": "กำลังรอการดำเนินการ...",
+      "noOutput": "ไม่มีข้อมูลผลลัพธ์",
+      "noResults": "ไม่มีผลลัพธ์",
+      "noCrawlResults": "ไม่มีผลการรวบรวมข้อมูล",
+      "noExtractResults": "ไม่มีผลการดึงข้อมูล",
+      "noMapResults": "ไม่มีผลแผนผัง",
+      "noReflection": "ไม่มีเนื้อหาการสะท้อนความคิด",
+      "waitingTask": "กำลังรองานเริ่มต้น...",
+      "title": "ชื่อเรื่อง",
+      "url": "URL",
+      "session": "เซสชัน",
+      "activeSessions": "เซสชันที่ใช้งานอยู่",
+      "output": "ผลลัพธ์",
+      "parameters": "พารามิเตอร์",
+      "executeCommand": "รันคำสั่ง",
+      "updatedContent": "เนื้อหาที่อัปเดต",
+      "editInstructions": "คำแนะนำในการแก้ไข:",
+      "extractedData": "ข้อมูลที่ดึงมา:",
+      "suggestions": "ข้อเสนอแนะ:",
+      "screenshot": "ภาพหน้าจอ",
+      "fullPage": "ทั้งหน้า",
+      "visibleArea": "พื้นที่ที่มองเห็น",
+      "pageContent": "เนื้อหาหน้า",
+      "characters": "ตัวอักษร",
+      "taskResult": "ผลลัพธ์ของงาน:",
+      "initializationStatus": "สถานะการเริ่มต้น:",
+      "initialized": "เริ่มต้นแล้ว",
+      "notInitialized": "ยังไม่ได้เริ่มต้น",
+      "viewBrowserSession": "ดูเซสชันเบราว์เซอร์",
+      "clickToViewFullImage": "คลิกเพื่อดูรูปภาพเต็ม",
+      "screenshotFullSize": "ภาพหน้าจอ (ทั้งหน้า)",
+      "screenshotVisible": "ภาพหน้าจอ (พื้นที่ที่มองเห็น)",
+      "pageCount": "จำนวนหน้า:",
+      "timeTaken": "เวลาที่ใช้:",
+      "linkCount": "จำนวนลิงก์:",
+      "extractFailed": "การดึงข้อมูลไม่สำเร็จ:",
+      "charactersCount": "ตัวอักษร"
+    },
+    "browser": {
+      "browserNavigation": "การนำทางเบราว์เซอร์",
+      "pageAction": "การดำเนินการบนหน้า",
+      "dataExtract": "การดึงข้อมูล",
+      "observeAction": "การสังเกตการณ์",
+      "pageScreenshot": "ภาพหน้าจอ",
+      "getContent": "ดึงเนื้อหา",
+      "wait": "รอ",
+      "smartTask": "งานอัจฉริยะ",
+      "closeBrowser": "ปิดเบราว์เซอร์",
+      "browserStatus": "สถานะเบราว์เซอร์",
+      "browserOperation": "การดำเนินการเบราว์เซอร์",
+      "executingBrowserOperation": "กำลังดำเนินการเบราว์เซอร์..."
+    },
+    "files": {
+      "createFile": "สร้างไฟล์",
+      "rewriteFile": "เขียนไฟล์ใหม่",
+      "deleteFile": "ลบไฟล์",
+      "editFile": "แก้ไขไฟล์",
+      "fileOperation": "การจัดการไฟล์",
+      "createDocx": "สร้างเอกสาร Word",
+      "createPptx": "สร้างงานนำเสนอ PowerPoint",
+      "createXlsx": "สร้างสเปรดชีต Excel",
+      "createPdf": "สร้างเอกสาร PDF",
+      "createImage": "สร้างรูปภาพ",
+      "generatePeopleData": "สร้างข้อมูลบุคคล",
+      "documentContent": "เนื้อหาเอกสาร"
+    },
+    "shell": {
+      "executeCommand": "รันคำสั่ง",
+      "checkOutput": "ตรวจสอบผลลัพธ์",
+      "terminateCommand": "หยุดคำสั่ง",
+      "listSessions": "แสดงรายการเซสชัน",
+      "shellCommand": "คำสั่ง Shell"
+    },
+    "codeInterpreter": {
+      "description": "คำอธิบาย",
+      "pythonCode": "โค้ด Python",
+      "envVariables": "ตัวแปรสภาพแวดล้อม",
+      "timeout": "หมดเวลา",
+      "seconds": "วินาที",
+      "stdout": "ผลลัพธ์มาตรฐาน",
+      "stderr": "ข้อผิดพลาดมาตรฐาน",
+      "executing": "กำลังรันโค้ด..."
+    },
+    "parallelResearch": {
+      "researchQuery": "คำค้นหาวิจัย",
+      "reportGuidance": "แนวทางรายงาน:",
+      "executingDeepResearch": "กำลังดำเนินการวิจัยเชิงลึก...",
+      "mayTakeMinutes": "อาจใช้เวลา 5-45 นาทีขึ้นอยู่กับความซับซ้อนของการวิจัย",
+      "researchExecutionFailed": "การดำเนินการวิจัยไม่สำเร็จ",
+      "citations": "การอ้างอิง",
+      "characters": "ตัวอักษร",
+      "completionTime": "เวลาที่เสร็จสิ้น",
+      "structuredDataOutput": "ผลลัพธ์ข้อมูลที่มีโครงสร้าง",
+      "noResearchData": "ไม่มีข้อมูลวิจัย"
+    },
+    "reflect": {
+      "reflection": "การสะท้อนความคิด",
+      "researchPlanning": "การวางแผนและสะท้อนความคิดด้วย AI",
+      "reflectionNotes": "บันทึกการสะท้อนความคิด",
+      "noReflection": "ไม่มีเนื้อหาการสะท้อนความคิด"
+    },
+    "generateReport": {
+      "reportConfig": "การตั้งค่ารายงาน",
+      "viewDetailedConfig": "ดูการตั้งค่าละเอียด",
+      "topic": "หัวข้อ",
+      "focusAreas": "จุดเน้น",
+      "researchData": "ข้อมูลวิจัย",
+      "generatingReport": "กำลังสร้างรายงาน",
+      "reportGenerated": "สร้างรายงานแล้ว",
+      "analyzingData": "กำลังวิเคราะห์ข้อมูลและสร้างรายงาน...",
+      "reportContent": "เนื้อหารายงาน",
+      "generating": "กำลังสร้าง...",
+      "reportGenerationComplete": "สร้างรายงานเสร็จสมบูรณ์",
+      "generationFailed": "การสร้างไม่สำเร็จ",
+      "reportGenerationError": "เกิดข้อผิดพลาดระหว่างการสร้างรายงาน",
+      "comparisonAnalysis": "การวิเคราะห์เปรียบเทียบ",
+      "listDirectory": "แสดงรายการไดเรกทอรี",
+      "topicOverview": "ภาพรวมหัวข้อ",
+      "directAnswer": "คำตอบโดยตรง"
+    },
+    "peopleData": {
+      "organizing": "กำลังสร้างข้อมูลบุคคล...",
+      "exportSuccess": "สร้างข้อมูลบุคคลเสร็จสมบูรณ์",
+      "exportFailed": "สร้างข้อมูลบุคคลไม่สำเร็จ",
+      "totalCount": "ทั้งหมด: {count} คน",
+      "noData": "ไม่มีข้อมูลบุคคลที่ใช้ได้"
+    }
+  },
+  "canvas": {
+    "selectFile": "เลือกไฟล์เพื่อดูตัวอย่าง",
+    "loading": "กำลังโหลดไฟล์...",
+    "loadingDefault": "กำลังโหลด...",
+    "unsupportedFormat": "ไม่รองรับรูปแบบไฟล์นี้",
+    "downloadFile": "ดาวน์โหลดไฟล์",
+    "maximize": "ขยายเต็มจอ",
+    "restore": "คืนค่า",
+    "close": "ปิด",
+    "fileTypes": {
+      "text": "ไฟล์ข้อความ",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "รูปภาพ",
+      "pdf": "เอกสาร PDF",
+      "word": "เอกสาร Word",
+      "excel": "สเปรดชีต Excel",
+      "ppt": "งานนำเสนอ",
+      "people-data": "ข้อมูลบุคคล",
+      "unsupported": "รูปแบบที่ไม่รองรับ"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "ไม่ทราบ",
+        "notSupported": "รูปแบบนี้ไม่รองรับการดูตัวอย่าง กรุณาดาวน์โหลดเพื่อดู",
+        "downloadButton": "ดาวน์โหลดไฟล์",
+        "tip": "เคล็ดลับ: ดาวน์โหลดและเปิดด้วยแอปพลิเคชันที่เกี่ยวข้อง"
+      },
+      "word": {
+        "converting": "กำลังแปลงเอกสาร...",
+        "convertingDoc": "กำลังแปลงไฟล์ .doc...",
+        "loading": "กำลังโหลด...",
+        "convertFailed": "โหลดไฟล์ไม่สำเร็จ กรุณาตรวจสอบว่าไฟล์ไม่เสียหายและลองเปิดอีกครั้ง"
+      },
+      "excel": {
+        "converting": "กำลังแปลงรูปแบบเก่า...",
+        "parsing": "กำลังวิเคราะห์สเปรดชีต...",
+        "loading": "กำลังโหลด...",
+        "parseFailed": "วิเคราะห์สเปรดชีตไม่สำเร็จ กรุณาดาวน์โหลดเพื่อดู",
+        "emptyTable": "ตารางว่างเปล่า"
+      },
+      "ppt": {
+        "notSupported": "ไม่รองรับการดูตัวอย่างออนไลน์ของงานนำเสนอ {format}",
+        "downloadButton": "ดาวน์โหลดไฟล์",
+        "tip": "เคล็ดลับ: ดาวน์โหลดและเปิดด้วย {format} หรือซอฟต์แวร์ที่เข้ากันได้เพื่อดูเนื้อหาทั้งหมด"
+      },
+      "peopleData": {
+        "parsing": "กำลังวิเคราะห์ข้อมูลบุคคล...",
+        "loading": "กำลังโหลด...",
+        "parseFailed": "วิเคราะห์ข้อมูลบุคคลไม่สำเร็จ กรุณาตรวจสอบรูปแบบข้อมูล",
+        "noData": "ไม่มีข้อมูลบุคคลที่ใช้ได้",
+        "csvHeaders": [
+          "ชื่อ",
+          "ที่อยู่",
+          "บริษัทปัจจุบัน",
+          "ตำแหน่งปัจจุบัน",
+          "ประสบการณ์ (ปี)",
+          "ประวัติการทำงานล่าสุด",
+          "การศึกษา",
+          "สรุปโดย AI",
+          "อีเมล",
+          "โทรศัพท์",
+          "อัปเดตข้อมูล",
+          "URL รายละเอียด"
+        ],
+        "workExperience": "ประสบการณ์การทำงาน",
+        "recentWorkExperience": "ประสบการณ์การทำงานล่าสุด",
+        "noWorkExperience": "ไม่มีประสบการณ์การทำงาน",
+        "present": "ปัจจุบัน",
+        "more": "เพิ่มเติม",
+        "linkedinProfile": "โปรไฟล์ LinkedIn",
+        "viewDetails": "ดูรายละเอียด"
+      },
+      "html": {
+        "loading": "กำลังโหลด...",
+        "securityWarning": "เนื้อหา HTML นี้ทำงานในสภาพแวดล้อมแซนด์บ็อกซ์เพื่อความปลอดภัย",
+        "emptyHtml": "เนื้อหา HTML ว่างเปล่า"
+      },
+      "json": {
+        "loading": "กำลังโหลด...",
+        "parseFailed": "วิเคราะห์ JSON ไม่สำเร็จ กรุณาตรวจสอบรูปแบบข้อมูล",
+        "emptyJson": "เนื้อหา JSON ว่างเปล่า",
+        "validJson": "JSON ถูกต้อง",
+        "characters": "ตัวอักษร",
+        "copy": "คัดลอก",
+        "copied": "คัดลอกแล้ว",
+        "rawContent": "เนื้อหาดิบ:"
+      },
+      "image": {
+        "loading": "กำลังโหลด...",
+        "reset": "รีเซ็ต"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "ว่าง",
+      "running": "กำลังทำงาน",
+      "paused": "หยุดชั่วคราว",
+      "completed": "เสร็จสมบูรณ์",
+      "failed": "ไม่สำเร็จ",
+      "cancelled": "Cancelled",
+      "waiting_for_user": "รอผู้ใช้"
+    },
+    "maximize": "ขยายเต็มจอ",
+    "expandWorkspace": "ขยายพื้นที่ทำงาน",
+    "restore": "คืนค่า",
+    "durationRunning": "ทำงานมาแล้ว",
+    "durationCompleted": "ระยะเวลา",
+    "taskProgress": "ความคืบหน้างาน",
+    "expandTaskList": "ขยายรายการงาน",
+    "collapseTaskList": "ย่อรายการงาน"
+  }
+}

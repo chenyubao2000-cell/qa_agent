@@ -7,6 +7,8 @@
     "test": "tests"
   },
   "scripts": {
+    "sync-i18n": "node scripts/sync-i18n.js",
+    "sync-i18n:check": "node scripts/sync-i18n.js --check",
     "test": "npx playwright test",
     "smoke": "npx playwright test --grep @smoke",
     "smoke:en": "npx playwright test --grep @smoke --project=e2e-en",

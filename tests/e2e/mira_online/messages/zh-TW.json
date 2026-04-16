@@ -1,0 +1,1212 @@
+{
+  "common": {
+    "welcome": "歡迎",
+    "logout": "登出",
+    "settings": "設定",
+    "home": "首頁",
+    "dashboard": "儀表板",
+    "language": "語言"
+  },
+  "email": {
+    "verification": {
+      "subject": "驗證您的信箱 - {appName}",
+      "title": "驗證您的信箱",
+      "heading": "驗證您的電子郵件地址",
+      "body": "感謝您註冊 {appName}！為了確保帳戶安全，我們需要驗證您的電子郵件地址。請點擊下方的按鈕完成驗證：",
+      "button": "驗證信箱",
+      "linkHint": "或者複製以下連結到瀏覽器：",
+      "ignoreHint": "如果您沒有註冊 {appName}，請忽略此郵件。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "resetPassword": {
+      "subject": "重設密碼 - {appName}",
+      "title": "重設密碼",
+      "heading": "重設您的密碼",
+      "body": "我們收到了您的密碼重設請求。請點擊下面的按鈕設定新密碼：",
+      "button": "重設密碼",
+      "linkHint": "如果按鈕無法點擊，請複製以下連結到瀏覽器：",
+      "ignoreHint": "如果您沒有請求重設密碼，請忽略此郵件，您的密碼將保持不變。"
+    },
+    "otp": {
+      "subject": "您的驗證碼已寄出，請查收",
+      "title": "信箱驗證碼",
+      "greeting": "您好，",
+      "body": "您正在驗證 Mira 帳戶信箱，請使用以下驗證碼完成驗證：",
+      "expireHint": "驗證碼 10 分鐘內有效，請勿分享給他人。",
+      "ignoreHint": "如果您沒有註冊 Mira，請忽略此郵件。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "waitlistOtp": {
+      "subject": "您的驗證碼 - {appName} 候補名單",
+      "title": "信箱驗證碼",
+      "greeting": "您好，",
+      "body": "您正在申請加入 {appName} 候補名單，請使用以下驗證碼驗證您的工作信箱：",
+      "expireHint": "驗證碼 10 分鐘內有效，請勿分享給他人。",
+      "ignoreHint": "如果您沒有申請加入 {appName} 候補名單，請忽略此郵件。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "invitation": {
+      "subject": "{appName} 邀請碼已就緒",
+      "title": "您的 Mira 邀請碼已就緒",
+      "greeting": "你好 {name}，",
+      "body": "感謝您申請 Mira 內測資格！您的申請已通過審核，請使用以下專屬邀請碼完成啟用：",
+      "activateButton": "前往啟用",
+      "ignoreHint": "如果您未申請 Mira 內測，請忽略此郵件。",
+      "footer": "© 2025 {appName}. 保留所有權利。"
+    }
+  },
+  "files": {
+    "types": {
+      "text": "文字",
+      "wordDocument": "文件",
+      "excelSpreadsheet": "試算表",
+      "csvSpreadsheet": "試算表",
+      "ppt": "簡報",
+      "image": "圖片",
+      "peopleData": "人才資料"
+    }
+  },
+  "dashboard": {
+    "title": "儀表板",
+    "overview": "概覽",
+    "statistics": "統計資料",
+    "welcome": "我能為你做什麼？",
+    "tryScenarios": "試試以下情境"
+  },
+  "chatbot": {
+    "sendMessage": "傳送訊息",
+    "placeholder": "請輸入...",
+    "addAttachments": "新增照片或檔案",
+    "uploadLocalFile": "上傳本機檔案",
+    "uploadError": "檔案上傳失敗",
+    "uploadErrorMaxFiles": "檔案數量超出限制",
+    "uploadErrorMaxFileSize": "檔案大小超出限制",
+    "uploadErrorAccept": "不支援的檔案類型",
+    "uploadErrorAcceptPartial": "{count} 個檔案格式不支援已被忽略",
+    "uploadErrorMaxFileSizePartial": "{count} 個檔案超過大小限制已被忽略",
+    "uploadErrorUpload": "檔案上傳失敗，請重試",
+    "typing": "正在輸入...",
+    "thinking": "思考中...",
+    "aborted": "Mira 已停止，傳送新訊息以繼續",
+    "waitingForUser": "Mira 將在你回覆後繼續工作",
+    "completed": "任務已完成",
+    "retry": "重試",
+    "copy": "複製",
+    "search": "搜尋",
+    "searchPlaceholder": "搜尋任務...",
+    "newChat": "新建任務",
+    "taskList": "任務",
+    "taskListDescription": "管理和查看所有任務",
+    "taskId": "任務 ID",
+    "confirmDelete": "確認刪除任務",
+    "deleteWarning": "此操作無法復原。這將永久刪除該任務及其所有訊息。",
+    "cancel": "取消",
+    "delete": "刪除",
+    "rename": "重新命名",
+    "renameTask": "重新命名任務",
+    "editTitle": "編輯標題",
+    "enterTaskName": "請輸入任務名稱",
+    "newTaskName": "新任務名稱",
+    "taskName": "任務名稱",
+    "save": "儲存",
+    "moreActions": "更多操作",
+    "taskDetails": "任務詳情",
+    "taskTitle": "任務標題",
+    "creditsConsumed": "消耗積分",
+    "createdTime": "建立時間",
+    "history": "任務歷史",
+    "noHistory": "暫無任務紀錄",
+    "noSearchResults": "未找到符合的任務",
+    "deleteChat": "刪除任務",
+    "today": "今天",
+    "yesterday": "昨天",
+    "thisWeek": "本週",
+    "last7Days": "最近7天",
+    "last30Days": "最近30天",
+    "older": "更早",
+    "tasks": "任務",
+    "projects": "專案",
+    "library": "資料庫",
+    "chatNotFound": "對話不存在",
+    "chatNotFoundDescription": "抱歉，您存取的任務不存在或已被刪除。",
+    "noPermission": "無權限存取",
+    "noPermissionDescription": "抱歉，您沒有權限存取此任務。",
+    "share": "分享",
+    "shareChat": "分享對話",
+    "shareChatDescription": "透過連結分享此對話給其他人",
+    "shareLink": "分享連結",
+    "copyLink": "複製連結",
+    "copied": "已複製",
+    "createShareLink": "建立分享連結",
+    "creating": "建立中...",
+    "removeShare": "移除分享",
+    "removing": "移除中...",
+    "shareDescription": "任何擁有此連結的人都可以查看此對話",
+    "createShareDescription": "建立一個分享連結，讓其他人可以查看此對話",
+    "close": "關閉",
+    "emptyStateTitle": "暫無訊息",
+    "emptyStateDescription": "傳送訊息開始對話",
+    "errors": {
+      "renameUnauthorized": "您沒有權限重新命名此任務",
+      "renameChatNotFound": "任務不存在或已被刪除",
+      "renameTitleTooLong": "任務名稱過長，最多只能輸入 {maxLength} 個字元",
+      "renameTitleEmpty": "任務名稱不能為空",
+      "renameFailed": "重新命名失敗，請稍後重試",
+      "updateFailed": "更新失敗，請稍後重試"
+    }
+  },
+  "share": {
+    "notFound": "對話不存在",
+    "notFoundDescription": "抱歉，您存取的對話不存在或已被刪除。",
+    "invalidLink": "連結無效",
+    "invalidLinkDescription": "抱歉，此分享連結無效或已過期。",
+    "backToHome": "返回首頁"
+  },
+  "homepage": {
+    "nav": {
+      "features": "功能",
+      "getStarted": "加入候補名單",
+      "signIn": "登入",
+      "goToHomepage": "回到首頁"
+    },
+    "hero": {
+      "title": "你的數位延伸",
+      "subtitle1": "從招募開始，",
+      "subtitle2": "遠不止於此",
+      "description": "Mira 不僅僅是 Agent，它是你的數位夥伴",
+      "getStarted": "加入候補名單"
+    },
+    "features": {
+      "label": "功能",
+      "core": "核心",
+      "recruiting": "招募",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "協作式自動執行",
+          "desc1": "Mira 可自主完成任務，也會在關鍵決策點與你協作。",
+          "desc2": "你們共享時間、上下文與目標。"
+        },
+        "trainedByYou": {
+          "title": "可訓練，也會學習",
+          "desc1": "你可以明確定義技能並訓練 Mira，",
+          "desc2": "也可以讓它在真實工作中持續學習你的行為方式。"
+        },
+        "topTierModels": {
+          "title": "不是 Demo，而是工程化系統",
+          "desc1": "基於頂尖模型，搭配嚴謹的工程能力，",
+          "desc2": "並由真實業務專家參與設計。"
+        },
+        "integratedTools": {
+          "title": "無縫融入現有工具",
+          "desc1": "無需遷移工作方式，Mira 直接連接 Airtable、Slack、Gmail、",
+          "desc2": "OneDrive 等常用工具。"
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "候選人資料取得",
+          "desc1": "彙整來自多個資料源的大量結構化與非結構化資料。",
+          "desc2": "透過 Mira Chrome 擴充功能，在需要時補充更多網頁來源與公開線索。"
+        },
+        "communication": {
+          "title": "溝通與追蹤",
+          "desc1": "支援電話與郵件的傳送與追蹤。",
+          "desc2": "所有溝通紀錄自動關聯到對應的候選人。"
+        },
+        "recruitingSkills": {
+          "title": "招募技能",
+          "desc1": "內建專家級招募技能，用於職位釐清、",
+          "desc2": "候選人評估與招募決策支援。"
+        },
+        "securityTrust": {
+          "title": "安全與可信",
+          "desc1": "面向企業級情境設計，符合 GDPR 等資料合規要求。",
+          "desc2": "支援零資料保留（Zero Data Retention, ZDR）等進階隱私選項。"
+        }
+      }
+    },
+    "cta": {
+      "title": "申請搶先體驗",
+      "description": "Mira 目前處於內測階段。",
+      "button": "加入候補名單"
+    }
+  },
+  "Layout": {
+    "signOut": "登出",
+    "language": "語言",
+    "theme": "主題",
+    "light": "淺色",
+    "dark": "深色",
+    "system": "系統",
+    "mockUserName": "測試使用者"
+  },
+  "admin": {
+    "nav": {
+      "management": "管理",
+      "dashboard": "儀表板",
+      "waitlist": "候補名單",
+      "invitationCodes": "邀請碼",
+      "scenarioCards": "情境卡片",
+      "admins": "管理員",
+      "backToApp": "返回應用程式"
+    },
+    "dashboard": {
+      "title": "儀表板",
+      "description": "系統營運資料概覽",
+      "sections": {
+        "overview": "資料概覽",
+        "quickActions": "快捷操作"
+      },
+      "stats": {
+        "totalUsers": "總使用者數",
+        "activatedUsers": "已啟用 {count} 人",
+        "pendingWaitlist": "待處理申請",
+        "totalWaitlist": "候補名單共 {count} 人",
+        "availableCodes": "可用邀請碼",
+        "totalCodes": "邀請碼共 {count} 個",
+        "activationRate": "啟用率",
+        "activatedOfTotal": "{activated}/{total} 已啟用",
+        "needsAttention": "待處理"
+      },
+      "quickLinks": {
+        "waitlist": "候補名單管理",
+        "waitlistDesc": "審核申請、傳送邀請碼",
+        "invitationCodes": "邀請碼管理",
+        "invitationCodesDesc": "產生、查看和匯出邀請碼",
+        "pendingCount": "筆待處理",
+        "availableCount": "個可用"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "邀請碼池管理",
+      "description": "批次管理邀請碼，營運可提前產生並分發",
+      "refresh": "重新整理",
+      "export": "匯出",
+      "generate": "產生邀請碼",
+      "generating": "產生中...",
+      "loading": "載入中...",
+      "noCodes": "暫無邀請碼",
+      "copy": "複製",
+      "copied": "已複製",
+      "copyFailed": "複製失敗",
+      "generatePrompt": "請輸入產生數量（1-1000）",
+      "generateCountError": "數量必須在 1-1000 之間",
+      "generateSuccess": "成功產生 {count} 個邀請碼",
+      "generateFailed": "產生失敗，請重試",
+      "exportSuccess": "匯出成功",
+      "searchPlaceholder": "搜尋邀請碼...",
+      "stats": {
+        "total": "總數",
+        "unused": "未使用",
+        "used": "已使用",
+        "expired": "已過期"
+      },
+      "filter": {
+        "all": "全部",
+        "unused": "未使用",
+        "used": "已使用",
+        "expired": "已過期"
+      },
+      "status": {
+        "unused": "未使用",
+        "used": "已使用",
+        "expired": "已過期"
+      },
+      "table": {
+        "code": "邀請碼",
+        "status": "狀態",
+        "usedBy": "使用者",
+        "batch": "批次",
+        "createdAt": "建立時間",
+        "usedAt": "使用時間",
+        "actions": "操作"
+      },
+      "pagination": {
+        "previous": "上一頁",
+        "next": "下一頁",
+        "page": "第 {current} / {total} 頁",
+        "total": "共 {count} 筆"
+      }
+    },
+    "admins": {
+      "title": "管理員管理",
+      "description": "查看和管理系統管理員",
+      "refresh": "重新整理",
+      "loading": "載入中...",
+      "loadFailed": "載入失敗",
+      "noAdmins": "暫無管理員",
+      "addAdmin": "新增管理員",
+      "addSuccess": "管理員新增成功",
+      "addFailed": "新增失敗，請重試",
+      "remove": "移除",
+      "removeSuccess": "管理員已移除",
+      "removeFailed": "移除失敗，請重試",
+      "addDialog": {
+        "title": "新增管理員",
+        "description": "搜尋使用者姓名或信箱，將其設定為管理員",
+        "searchPlaceholder": "搜尋姓名或信箱...",
+        "searching": "搜尋中...",
+        "noResults": "未找到符合的使用者",
+        "cancel": "取消",
+        "confirm": "確認新增"
+      },
+      "removeDialog": {
+        "title": "確認移除管理員",
+        "description": "確定要移除 {name} 的管理員權限嗎？此操作可以復原。",
+        "cancel": "取消",
+        "confirm": "確認移除"
+      },
+      "table": {
+        "user": "使用者",
+        "email": "信箱",
+        "createdAt": "註冊時間",
+        "actions": "操作"
+      }
+    },
+    "waitlist": {
+      "title": "候補名單管理",
+      "description": "管理加入候補名單的使用者，向通過審核的使用者傳送邀請碼郵件",
+      "refresh": "重新整理",
+      "loading": "載入中...",
+      "noItems": "暫無申請紀錄",
+      "searchPlaceholder": "搜尋信箱或姓名...",
+      "sendInvitation": "傳送邀請碼",
+      "sendBatch": "批次傳送邀請碼",
+      "sending": "傳送中...",
+      "confirmSend": "確認傳送邀請碼",
+      "confirmSendDesc": "即將向 {count} 位申請者傳送包含專屬邀請碼的邀請郵件，將消耗 {count} 個邀請碼，確認繼續？",
+      "sendSuccess": "成功傳送 {count} 份邀請郵件",
+      "sendPartialSuccess": "成功傳送 {success} 份，{fail} 份傳送失敗",
+      "sendFailed": "傳送失敗，請重試",
+      "noPendingSelected": "所選項目均已處理",
+      "resend": "重新傳送",
+      "resendSuccess": "邀請郵件已重新傳送",
+      "resendFailed": "重新傳送失敗，請重試",
+      "copyCode": "複製邀請碼",
+      "copySuccess": "邀請碼已複製",
+      "copyFailed": "複製失敗，請手動複製",
+      "filter": {
+        "all": "全部",
+        "pending": "待處理",
+        "approved": "已傳送",
+        "rejected": "已拒絕",
+        "activated": "已啟用"
+      },
+      "status": {
+        "pending": "待處理",
+        "approved": "已傳送",
+        "rejected": "已拒絕",
+        "activated": "已啟用"
+      },
+      "table": {
+        "name": "姓名",
+        "company": "公司",
+        "role": "職位",
+        "email": "信箱",
+        "useCase": "申請用途",
+        "locale": "語言",
+        "createdAt": "申請時間",
+        "invitationCode": "邀請碼",
+        "status": "狀態",
+        "actions": "操作"
+      },
+      "pagination": {
+        "previous": "上一頁",
+        "next": "下一頁",
+        "page": "第 {current} / {total} 頁",
+        "total": "共 {count} 筆"
+      }
+    },
+    "scenarioCards": {
+      "title": "預設情境卡片",
+      "description": "管理任務建立頁展示的預設招募情境卡片，使用者點擊後可一鍵發起尋訪任務",
+      "refresh": "重新整理",
+      "loading": "載入中...",
+      "noItems": "暫無情境卡片",
+      "addCard": "新建卡片",
+      "editCard": "編輯卡片",
+      "deleteCard": "刪除",
+      "deleteConfirm": "確定刪除這張卡片嗎？此操作不可復原。",
+      "saveSuccess": "儲存成功",
+      "saveFailed": "儲存失敗，請重試",
+      "deleteSuccess": "刪除成功",
+      "deleteFailed": "刪除失敗，請重試",
+      "createSuccess": "建立成功",
+      "createFailed": "建立失敗，請重試",
+      "table": {
+        "caseId": "場景 ID",
+        "contentZh": "中文內容",
+        "contentEn": "英文內容",
+        "sortOrder": "排序",
+        "isActive": "狀態",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "已啟用",
+        "inactive": "已停用"
+      },
+      "form": {
+        "caseId": "場景 ID",
+        "caseIdPlaceholder": "如 case_fullstack（建立後不可修改）",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "排序（數字越小越前面）",
+        "isActive": "啟用此卡片",
+        "cancel": "取消",
+        "save": "儲存",
+        "create": "建立"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "登入",
+    "signUp": "註冊",
+    "signOut": "登出",
+    "signInDescription": "輸入您的信箱和密碼登入",
+    "signUpDescription": "建立一個新帳戶",
+    "email": "信箱",
+    "password": "密碼",
+    "confirmPassword": "確認密碼",
+    "name": "姓名",
+    "signInSuccess": "登入成功",
+    "signUpSuccess": "註冊成功！請檢查您的信箱完成驗證",
+    "emailVerificationRequired": "需要驗證信箱",
+    "emailVerificationSent": "驗證郵件已寄出",
+    "emailVerificationMessage": "我們已向您的信箱寄出一封驗證郵件，請點擊郵件中的連結完成驗證後再登入。",
+    "emailVerificationResend": "重新寄送驗證郵件",
+    "checkYourEmail": "請檢查您的信箱",
+    "emailNotVerified": "信箱未驗證，請先驗證信箱",
+    "orContinueWith": "或",
+    "continueWithGitHub": "使用 GitHub 登入",
+    "continueWithGoogle": "使用 Google 登入",
+    "continueWithMicrosoft": "使用 Microsoft 登入",
+    "continueWithApple": "使用 Apple 登入",
+    "forgotPassword": "忘記密碼",
+    "forgotPasswordTitle": "忘記密碼",
+    "forgotPasswordDescription": "輸入您的信箱地址，我們將向您寄送重設密碼的連結",
+    "forgotPasswordConfirmDescription": "點擊「繼續」向<emailLink>{email}</emailLink>寄送重設密碼連結",
+    "continueButton": "繼續",
+    "returnToLogin": "返回登入",
+    "resetPasswordTitle": "重設密碼",
+    "resetPasswordDescription": "請輸入您的新密碼",
+    "sendResetLink": "寄送重設連結",
+    "resetPassword": "重設密碼",
+    "resetPasswordSuccess": "密碼重設成功！正在跳轉到登入頁面...",
+    "resetPasswordError": "重設密碼失敗，請重試",
+    "resetPasswordEmailSent": "重設密碼郵件已寄出",
+    "resetPasswordEmailError": "寄送重設密碼郵件失敗",
+    "resetPasswordEmailMessage": "我們已向您的信箱寄送了重設密碼的連結，請查收郵件並點擊連結完成密碼重設。",
+    "invalidResetToken": "無效的重設權杖",
+    "invalidResetLink": "重設連結無效或已過期",
+    "invalidResetLinkMessage": "此重設密碼連結無效或已過期，請重新申請重設密碼。",
+    "requestNewLink": "重新申請重設連結",
+    "backToSignIn": "返回登入",
+    "rememberPassword": "想起密碼了？",
+    "newPassword": "新密碼",
+    "confirmNewPassword": "確認新密碼",
+    "noAccount": "沒有帳戶？",
+    "hasAccount": "已有帳戶？",
+    "passwordMismatch": "兩次輸入的密碼不一致",
+    "agreeToTerms": "我同意",
+    "termsOfService": "服務條款",
+    "and": "和",
+    "privacyPolicy": "隱私權政策",
+    "settings": "設定",
+    "validation": {
+      "emailInvalid": "請輸入有效的電子郵件地址",
+      "passwordMinLength": "密碼至少需要 8 個字元",
+      "passwordStrength": "密碼需至少8個字元，並包含字母、數字和符號",
+      "nameMinLength": "姓名至少需要 2 個字元",
+      "termsRequired": "您必須同意服務條款和隱私權政策",
+      "fieldRequired": "此欄位不能為空"
+    },
+    "checkSpamFolder": "沒有收到郵件？請檢查垃圾郵件資料夾",
+    "backToLogin": "返回登入",
+    "unifiedTitle": "登入或註冊",
+    "unifiedSubtitle": "喚醒你的Mira",
+    "continueTitle": "繼續",
+    "emailPlaceholder": "請輸入您的電子郵件地址",
+    "emailLabel": "電子郵件",
+    "editLink": "編輯",
+    "enterPasswordTitle": "輸入密碼",
+    "createPasswordTitle": "建立密碼",
+    "createAccountTitle": "建立帳戶",
+    "createAccountDescription": "為 {email} 設定密碼",
+    "editEmail": "編輯信箱",
+    "passwordStrengthHint": "密碼需至少12個字元，並包含字母、數字和符號",
+    "showPassword": "顯示密碼",
+    "hidePassword": "隱藏密碼",
+    "verifyEmailTitle": "驗證信箱",
+    "verifyEmailDescription": "我們已向 {email} 寄送了驗證碼，前往信箱",
+    "enterOtp": "請輸入驗證碼",
+    "otpPlaceholder": "請輸入驗證碼",
+    "resendCode": "重新寄送驗證碼",
+    "resendCodeCountdown": "已重新寄送，{seconds}s 後再次嘗試",
+    "changeEmail": "變更登入信箱",
+    "otpError": "驗證碼錯誤，請重新輸入",
+    "otpExpired": "驗證碼已失效，請重新寄送",
+    "otpResendSuccess": "驗證碼已寄出",
+    "otpResendFailed": "寄送失敗，請稍後重試",
+    "checkSpamFolderHint": "未收到郵件？請檢查垃圾郵件資料夾",
+    "verifyEmail": {
+      "title": "驗證您的信箱",
+      "description": "我們已向",
+      "descriptionSuffix": "寄送了驗證碼",
+      "goToEmail": "前往信箱",
+      "otpLabel": "驗證碼",
+      "otpPlaceholder": "請輸入驗證碼",
+      "otpInputLabel": "第{index}位驗證碼",
+      "verifying": "驗證中...",
+      "resend": "重新寄送",
+      "resendCountdown": "{seconds}s",
+      "resendSuccess": "驗證碼已重新寄送",
+      "resendFailed": "寄送失敗，請稍後重試",
+      "changeEmail": "變更登入信箱",
+      "invalidOtp": "驗證碼錯誤，請重新輸入",
+      "success": "信箱驗證成功"
+    },
+    "activateVerifyTitle": "驗證你的邀請碼",
+    "activateCurrentEmail": "目前信箱 ",
+    "activateNoCode": "沒有邀請碼？",
+    "activateApplyNow": "立即申請",
+    "signOutLink": "登出",
+    "waitlistTitle": "加入候補名單",
+    "waitlistDescription": "填寫以下資訊，審核通過後我們將寄送專屬邀請碼。",
+    "waitlistName": "姓名",
+    "waitlistCompany": "公司名稱",
+    "waitlistRole": "職位/角色",
+    "waitlistUseCase": "應用情境",
+    "waitlistSubmit": "提交申請",
+    "waitlistSubmitting": "提交中...",
+    "waitlistJoined": "已於 {time} 加入候補名單",
+    "waitlistLearnMore": "瞭解詳情",
+    "joinWaitlist": {
+      "title": "加入候補名單",
+      "description": "填寫以下資訊，我們將在審核通過後寄送邀請碼。",
+      "descriptionHint": "資訊真實詳盡，審核更快通過。",
+      "workEmail": "工作信箱",
+      "emailPlaceholder": "name@company.com",
+      "sendOtp": "寄送驗證碼",
+      "resendOtp": "重新寄送",
+      "otpCountdown": "{seconds}s",
+      "otpLabel": "驗證碼",
+      "otpPlaceholder": "請輸入驗證碼",
+      "verifyOtp": "驗證",
+      "changeEmail": "變更信箱",
+      "name": "姓名",
+      "namePlaceholder": "請輸入你的姓名",
+      "company": "公司",
+      "companyPlaceholder": "請輸入公司名稱",
+      "role": "職位/角色",
+      "rolePlaceholder": "請輸入你的職位/角色",
+      "useCase": "你打算如何使用 Mira",
+      "useCasePlaceholder": "請輸入你的應用情境",
+      "submit": "提交申請",
+      "submitting": "提交中...",
+      "cancel": "取消",
+      "successTitle": "提交成功",
+      "successDescription": "審核通過後，我們會把邀請碼寄送至：",
+      "backToHome": "返回官網",
+      "otpSent": "驗證碼已寄出",
+      "emailVerified": "驗證成功！",
+      "errors": {
+        "otpExpired": "驗證碼已過期，請重新寄送",
+        "otpIncorrect": "驗證碼不正確，請重試",
+        "otpLengthRequired": "請輸入6位驗證碼",
+        "sendFailed": "寄送失敗，請稍後重試",
+        "verifyFailed": "驗證失敗，請稍後重試",
+        "submitFailed": "提交失敗，請稍後重試",
+        "nameRequired": "請輸入姓名",
+        "companyRequired": "請輸入公司名稱",
+        "roleRequired": "請輸入職位/角色",
+        "useCaseRequired": "請輸入應用情境",
+        "accountAlreadyActivated": "該帳號已啟用，請去登入！",
+        "alreadySubmitted": "目前信箱已提交過申請，請耐心等待！",
+        "emailInvalid": "請輸入有效的電子郵件地址",
+        "emailNotVerified": "請先驗證信箱後再提交",
+        "otpNotVerified": "請輸入驗證碼並完成驗證後再提交"
+      }
+    },
+    "activate": "啟用",
+    "activateAccount": "啟用帳戶",
+    "activateTitle": "啟用您的帳戶",
+    "activateDescription": "請輸入您的邀請碼以繼續使用 Mira",
+    "yourActivationCode": "您的邀請碼是：",
+    "activationCode": "邀請碼",
+    "enterActivationCode": "輸入邀請碼",
+    "activationCodePlaceholder": "請輸入邀請碼",
+    "activating": "啟用中...",
+    "activationSuccess": "帳戶啟用成功！",
+    "activationSuccessDescription": "正在跳轉到首頁...",
+    "activationCodeRequired": "請輸入邀請碼",
+    "activationCodeTooShort": "邀請碼長度不足",
+    "activationCodeIncorrect": "邀請碼無效，請重試",
+    "invalidInvitationCode": "邀請碼無效",
+    "activationContactAdmin": "如果您沒有收到邀請碼，請聯絡管理員",
+    "accountActivated": "帳戶已啟用",
+    "accountNotActivated": "帳戶未啟用，請先啟用帳戶",
+    "errors": {
+      "emailAlreadyRegistered": "該信箱已被註冊，請使用其他信箱或直接登入",
+      "invalidEmailOrPassword": "信箱或密碼錯誤，請檢查後重試",
+      "emailNotVerified": "信箱未驗證，請先驗證信箱",
+      "passwordTooShort": "密碼長度不足，請設定更長的密碼",
+      "passwordTooLong": "密碼過長，請設定較短的密碼",
+      "passwordAlreadySet": "該帳戶已設定密碼",
+      "invalidEmail": "信箱格式不正確",
+      "emailAlreadyVerified": "信箱已驗證",
+      "emailMismatch": "信箱不符",
+      "sessionExpired": "工作階段已過期，請重新登入",
+      "sessionNotFresh": "工作階段已過期，請重新認證",
+      "invalidOrExpiredToken": "權杖無效或已過期",
+      "accountAlreadyLinked": "該帳戶已關聯",
+      "cannotUnlinkLastAccount": "無法取消關聯最後一個帳戶",
+      "accountNotFound": "帳戶不存在",
+      "rateLimitExceeded": "請求過於頻繁，請稍後再試",
+      "securityError": "安全驗證失敗，請重試",
+      "validationError": "輸入資訊驗證失敗，請檢查",
+      "serverError": "伺服器錯誤，請稍後再試",
+      "providerError": "第三方登入服務錯誤",
+      "invalidInput": "輸入資訊有誤，請檢查後重試",
+      "unauthorized": "未授權，請先登入",
+      "forbidden": "權限不足",
+      "notFound": "資源不存在",
+      "unprocessableEntity": "請求無法處理",
+      "unknown": "未知錯誤，請稍後再試"
+    }
+  },
+  "workspace": {
+    "title": "Mira 的工作區",
+    "backToLiveView": "返回即時檢視",
+    "selectTool": "選擇一個工具查看詳情",
+    "noToolsEnabled": "未啟用工具",
+    "usingTool": "Mira 正在使用",
+    "processing": "處理中",
+    "completed": "完成",
+    "failed": "失敗",
+    "realTime": "即時",
+    "goToStart": "到開始",
+    "previous": "上一個",
+    "next": "下一個"
+  },
+  "search": {
+    "aiSummary": "AI 摘要",
+    "noResults": "暫無搜尋結果"
+  },
+  "toolStatus": {
+    "processing": "處理中...",
+    "searching": "搜尋中...",
+    "crawling": "爬取中...",
+    "mapping": "對應中...",
+    "extracting": "擷取中...",
+    "items": "筆資料",
+    "suggestions": "個建議",
+    "screenshotComplete": "截圖完成",
+    "operationFailed": "操作失敗",
+    "crawlFailed": "爬取失敗",
+    "extractFailed": "擷取失敗",
+    "mapFailed": "對應失敗",
+    "searchFailed": "搜尋失敗",
+    "pages": "個頁面",
+    "links": "個連結",
+    "results": "筆結果",
+    "fullPage": "完整頁面",
+    "visibleArea": "可視區域",
+    "clickToView": "點擊查看大圖",
+    "unknownQuery": "未知查詢",
+    "processingUrls": "處理 {count} 個 URL...",
+    "websiteCrawl": "網站爬取",
+    "contentExtract": "內容擷取",
+    "websiteMap": "網站對應"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "確認請求",
+      "description": "請求使用者確認操作"
+    },
+    "clarifyQuestion": {
+      "name": "問題釐清",
+      "description": "向使用者詢問更多資訊"
+    },
+    "maps_weather": {
+      "name": "天氣查詢",
+      "description": "查詢城市天氣"
+    },
+    "exa_search": {
+      "name": "網路搜尋",
+      "description": "使用 Exa AI 進行神經語義搜尋，回傳高品質相關結果"
+    },
+    "exa_company_search": {
+      "name": "企業搜尋",
+      "description": "專門搜尋公司、組織和企業資訊，針對市場研究和商務拓展最佳化",
+      "action": "正在搜尋企業"
+    },
+    "exa_people_search": {
+      "name": "人才搜尋",
+      "description": "專門搜尋專業人士、候選人和 LinkedIn 檔案，針對招募和人才尋訪最佳化",
+      "action": "正在搜尋人才"
+    },
+    "generate_people_data": {
+      "name": "人才資料產生",
+      "description": "將人才搜尋結果整理並產生可下載的資料檔案",
+      "action": "正在產生人才資料"
+    },
+    "export_data": {
+      "name": "匯出資料",
+      "description": "資料已匯出",
+      "action": "正在匯出資料"
+    },
+    "sb_file_create": {
+      "name": "建立檔案",
+      "description": "在沙箱中建立新檔案",
+      "action": "正在建立檔案"
+    },
+    "sb_file_rewrite": {
+      "name": "檔案重寫",
+      "description": "完全重寫檔案內容",
+      "action": "正在重寫檔案"
+    },
+    "sb_file_delete": {
+      "name": "刪除檔案",
+      "description": "刪除指定檔案",
+      "action": "正在刪除檔案"
+    },
+    "sb_file_edit": {
+      "name": "編輯檔案",
+      "description": "使用 AI 輔助編輯檔案",
+      "action": "正在編輯檔案"
+    },
+    "sb_docx_create": {
+      "name": "建立 Word 文件",
+      "description": "在沙箱中建立 Word 文件（.docx 格式）",
+      "action": "正在建立 Word 文件"
+    },
+    "sb_pptx_create": {
+      "name": "建立 PowerPoint 簡報",
+      "description": "在沙箱中建立 PowerPoint 簡報（.pptx 格式）",
+      "action": "正在建立 PowerPoint 簡報"
+    },
+    "sb_xlsx_create": {
+      "name": "建立 Excel 試算表",
+      "description": "在沙箱中建立 Excel 試算表（.xlsx 格式）",
+      "action": "正在建立 Excel 試算表"
+    },
+    "sb_pdf_create": {
+      "name": "建立 PDF 文件",
+      "description": "在沙箱中建立 PDF 文件（.pdf 格式）",
+      "action": "正在建立 PDF 文件"
+    },
+    "sb_image_create": {
+      "name": "建立圖片",
+      "description": "在沙箱中建立圖片（支援 PNG、JPG、SVG 等格式）",
+      "action": "正在建立圖片"
+    },
+    "sb_command_execute": {
+      "name": "執行命令",
+      "description": "在沙箱中執行 Shell 命令",
+      "action": "正在執行命令"
+    },
+    "sb_command_logs_get": {
+      "name": "檢視輸出",
+      "description": "檢視指令執行輸出"
+    },
+    "sb_command_terminate": {
+      "name": "終止指令",
+      "description": "終止執行中的指令",
+      "action": "正在終止指令"
+    },
+    "sb_command_running_list": {
+      "name": "工作階段列表",
+      "description": "列出所有進行中的 tmux 工作階段"
+    },
+    "reflect_tool": {
+      "name": "反思",
+      "description": "研究規劃與策略反思"
+    },
+    "browserNavigate": {
+      "name": "瀏覽器導覽",
+      "description": "導覽到指定網頁"
+    },
+    "browserAct": {
+      "name": "頁面操作",
+      "description": "執行頁面互動操作"
+    },
+    "browserExtract": {
+      "name": "資料擷取",
+      "description": "從頁面擷取結構化資料"
+    },
+    "browserObserve": {
+      "name": "觀察操作",
+      "description": "預覽操作而不執行"
+    },
+    "browserScreenshot": {
+      "name": "頁面截圖",
+      "description": "截取目前頁面"
+    },
+    "browserGetContent": {
+      "name": "取得內容",
+      "description": "取得頁面內容"
+    },
+    "browserWait": {
+      "name": "等待",
+      "description": "等待指定條件"
+    },
+    "browserAgentTask": {
+      "name": "智慧任務",
+      "description": "執行複雜多步驟任務"
+    },
+    "browserClose": {
+      "name": "關閉瀏覽器",
+      "description": "關閉瀏覽器工作階段"
+    },
+    "browserStatus": {
+      "name": "瀏覽器狀態",
+      "description": "查看瀏覽器狀態"
+    },
+    "complete": {
+      "name": "交付檔案",
+      "description": "交付檔案給使用者",
+      "createdTime": "建立時間：",
+      "downloadFile": "下載檔案",
+      "deliveryFailed": "交付失敗",
+      "previewNotImplemented": "檔案預覽功能待實作",
+      "download": "下載",
+      "preview": "預覽",
+      "previewMetadataLoading": "檔案資訊載入中，請稍後再試",
+      "completed": "任務已完成",
+      "downloadSuccess": "檔案下載成功",
+      "downloadFailed": "檔案下載失敗，請重試",
+      "fileType": "檔案",
+      "text": "文字",
+      "wordDocument": "文件",
+      "excelSpreadsheet": "試算表",
+      "csvSpreadsheet": "試算表",
+      "ppt": "簡報",
+      "image": "圖片",
+      "peopleData": "人才資料"
+    },
+    "code_interpreter": {
+      "name": "執行程式碼",
+      "description": "在沙箱環境中執行 Python 程式碼",
+      "action": "正在執行程式碼",
+      "pre_action": "正在撰寫程式碼"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "正在產生釐清問題...",
+      "defaultTitle": "需要更多資訊",
+      "submit": "提交",
+      "skip": "跳過（使用預設值）",
+      "skipHint": "跳過將使用建議的預設選項繼續",
+      "submitted": "已提交",
+      "loadFailed": "表單載入失敗",
+      "loadFailedDescription": "抱歉，問題表單產生時遇到了一些問題，請重試。",
+      "skipped": "已跳過",
+      "aborted": "已停止產生釐清問題"
+    },
+    "askForConfirmation": {
+      "loading": "正在載入確認請求...",
+      "needConfirmation": "需要確認",
+      "confirm": "確認",
+      "deny": "拒絕",
+      "confirmed": "已確認",
+      "denied": "已拒絕",
+      "failed": "確認請求失敗",
+      "skipped": "已跳過",
+      "aborted": "已停止產生確認請求"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "建立檔案",
+      "rewriteFile": "重寫檔案",
+      "deleteFile": "刪除檔案",
+      "editFile": "編輯檔案",
+      "fileOperation": "檔案操作",
+      "executing": "執行中...",
+      "executionError": "執行出錯",
+      "success": "成功",
+      "failed": "失敗"
+    },
+    "shell": {
+      "executeCommand": "執行命令",
+      "checkOutput": "檢查輸出",
+      "terminateCommand": "終止命令",
+      "listSessions": "列出工作階段",
+      "shellCommand": "Shell 命令",
+      "executionError": "執行出錯",
+      "executing": "執行中...",
+      "sending": "傳送中...",
+      "completed": "已完成",
+      "sent": "已傳送",
+      "failed": "失敗",
+      "sessions": "個工作階段"
+    },
+    "parallelResearch": {
+      "deepResearch": "深度研究",
+      "researchReport": "研究報告",
+      "researchFailed": "研究失敗",
+      "researching": "研究中...",
+      "completed": "已完成",
+      "executeResearch": "執行研究",
+      "characters": "字元",
+      "citations": "引用"
+    },
+    "reflect": {
+      "reflecting": "反思",
+      "reflectingText": "正在反思...",
+      "completed": "完成"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "成功",
+      "failed": "失敗",
+      "inputParams": "輸入參數",
+      "executionResult": "執行結果",
+      "error": "錯誤",
+      "waiting": "等待執行...",
+      "noOutput": "暫無輸出資料",
+      "noResults": "暫無結果",
+      "noCrawlResults": "暫無爬取結果",
+      "noExtractResults": "暫無擷取結果",
+      "noMapResults": "暫無對應結果",
+      "noReflection": "暫無反思內容",
+      "waitingTask": "等待任務開始...",
+      "title": "標題",
+      "url": "URL",
+      "session": "工作階段",
+      "activeSessions": "活躍工作階段",
+      "output": "輸出",
+      "parameters": "參數",
+      "executeCommand": "執行命令",
+      "updatedContent": "更新後的內容",
+      "editInstructions": "編輯說明：",
+      "extractedData": "擷取的資料:",
+      "suggestions": "個建議:",
+      "screenshot": "截圖",
+      "fullPage": "完整頁面",
+      "visibleArea": "可視區域",
+      "pageContent": "頁面內容",
+      "characters": "字元",
+      "taskResult": "任務結果:",
+      "initializationStatus": "初始化狀態:",
+      "initialized": "已初始化",
+      "notInitialized": "未初始化",
+      "viewBrowserSession": "查看瀏覽器工作階段",
+      "clickToViewFullImage": "點擊查看原圖",
+      "screenshotFullSize": "截圖 (完整頁面)",
+      "screenshotVisible": "截圖 (可視區域)",
+      "pageCount": "頁面數:",
+      "timeTaken": "耗時:",
+      "linkCount": "連結數:",
+      "extractFailed": "擷取失敗:",
+      "charactersCount": "字元"
+    },
+    "browser": {
+      "browserNavigation": "瀏覽器導覽",
+      "pageAction": "頁面操作",
+      "dataExtract": "資料擷取",
+      "observeAction": "觀察操作",
+      "pageScreenshot": "頁面截圖",
+      "getContent": "取得內容",
+      "wait": "等待",
+      "smartTask": "智慧任務",
+      "closeBrowser": "關閉瀏覽器",
+      "browserStatus": "瀏覽器狀態",
+      "browserOperation": "瀏覽器操作",
+      "executingBrowserOperation": "正在執行瀏覽器操作..."
+    },
+    "files": {
+      "createFile": "建立檔案",
+      "rewriteFile": "重寫檔案",
+      "deleteFile": "刪除檔案",
+      "editFile": "編輯檔案",
+      "fileOperation": "檔案操作",
+      "createDocx": "建立 Word 文件",
+      "createPptx": "建立 PowerPoint 簡報",
+      "createXlsx": "建立 Excel 試算表",
+      "createPdf": "建立 PDF 文件",
+      "createImage": "建立圖片",
+      "generatePeopleData": "產生人才資料",
+      "documentContent": "文件內容"
+    },
+    "shell": {
+      "executeCommand": "執行命令",
+      "checkOutput": "檢查輸出",
+      "terminateCommand": "終止命令",
+      "listSessions": "列出工作階段",
+      "shellCommand": "Shell 命令"
+    },
+    "codeInterpreter": {
+      "description": "功能描述",
+      "pythonCode": "Python 程式碼",
+      "envVariables": "環境變數",
+      "timeout": "逾時時間",
+      "seconds": "秒",
+      "stdout": "標準輸出",
+      "stderr": "標準錯誤",
+      "executing": "正在執行程式碼..."
+    },
+    "parallelResearch": {
+      "researchQuery": "研究查詢",
+      "reportGuidance": "報告指引:",
+      "executingDeepResearch": "正在執行深度研究...",
+      "mayTakeMinutes": "這可能需要 5-45 分鐘，取決於研究複雜度",
+      "researchExecutionFailed": "研究執行失敗",
+      "citations": "引用數",
+      "characters": "字元數",
+      "completionTime": "完成時間",
+      "structuredDataOutput": "結構化資料輸出",
+      "noResearchData": "暫無研究資料"
+    },
+    "reflect": {
+      "reflection": "反思",
+      "researchPlanning": "AI 的研究規劃與反思",
+      "reflectionNotes": "反思筆記",
+      "noReflection": "暫無反思內容"
+    },
+    "generateReport": {
+      "reportConfig": "報告設定",
+      "viewDetailedConfig": "查看詳細設定",
+      "topic": "主題",
+      "focusAreas": "重點領域",
+      "researchData": "研究資料",
+      "generatingReport": "正在產生報告",
+      "reportGenerated": "報告已產生",
+      "analyzingData": "正在分析資料並產生報告...",
+      "reportContent": "報告內容",
+      "generating": "產生中...",
+      "reportGenerationComplete": "報告產生完成",
+      "generationFailed": "產生失敗",
+      "reportGenerationError": "報告產生過程中發生錯誤",
+      "comparisonAnalysis": "比較分析",
+      "listDirectory": "清單目錄",
+      "topicOverview": "主題概述",
+      "directAnswer": "直接回答"
+    },
+    "peopleData": {
+      "organizing": "正在產生人才資料...",
+      "exportSuccess": "已完成人才資料產生",
+      "exportFailed": "人才資料產生失敗",
+      "totalCount": "總計：{count} 人",
+      "noData": "暫無人才資料"
+    }
+  },
+  "canvas": {
+    "selectFile": "請選擇一個檔案進行預覽",
+    "loading": "正在載入檔案...",
+    "loadingDefault": "載入中...",
+    "unsupportedFormat": "不支援的檔案格式",
+    "downloadFile": "下載檔案",
+    "maximize": "最大化",
+    "restore": "還原",
+    "close": "關閉",
+    "fileTypes": {
+      "text": "文字檔案",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "圖片",
+      "pdf": "PDF 文件",
+      "word": "Word 文件",
+      "excel": "Excel 試算表",
+      "ppt": "簡報",
+      "people-data": "人員資料",
+      "unsupported": "不支援的格式"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "未知",
+        "notSupported": "此格式暫不支援預覽，請下載後處理。",
+        "downloadButton": "下載檔案",
+        "tip": "提示：下載後可使用對應的應用程式開啟查看"
+      },
+      "word": {
+        "converting": "正在轉換文件...",
+        "convertingDoc": "正在轉換 .doc 檔案...",
+        "loading": "載入中...",
+        "convertFailed": "檔案載入失敗，請檢查檔案是否受損後重新開啟"
+      },
+      "excel": {
+        "converting": "正在轉換舊版格式...",
+        "parsing": "正在解析試算表...",
+        "loading": "載入中...",
+        "parseFailed": "試算表解析失敗，請嘗試下載後查看",
+        "emptyTable": "試算表為空"
+      },
+      "ppt": {
+        "notSupported": "{format} 簡報暫不支援線上預覽",
+        "downloadButton": "下載檔案",
+        "tip": "提示：下載後可使用 {format} 或相容軟體開啟查看完整內容"
+      },
+      "peopleData": {
+        "parsing": "正在解析人員資料...",
+        "loading": "載入中...",
+        "parseFailed": "人員資料解析失敗，請檢查資料格式",
+        "noData": "暫無人員資料",
+        "csvHeaders": [
+          "姓名",
+          "地點",
+          "目前公司",
+          "目前職位",
+          "工作年資",
+          "最近工作經歷",
+          "學歷",
+          "AI 摘要",
+          "信箱",
+          "電話",
+          "資料更新",
+          "詳情連結"
+        ],
+        "workExperience": "工作經歷",
+        "recentWorkExperience": "最近工作經歷",
+        "noWorkExperience": "暫無工作經歷",
+        "present": "至今",
+        "more": "更多",
+        "linkedinProfile": "LinkedIn 個人檔案",
+        "viewDetails": "查看詳情"
+      },
+      "html": {
+        "loading": "載入中...",
+        "securityWarning": "此 HTML 內容在沙箱環境中執行以保障安全",
+        "emptyHtml": "HTML 內容為空"
+      },
+      "json": {
+        "loading": "載入中...",
+        "parseFailed": "JSON 解析失敗，請檢查資料格式",
+        "emptyJson": "JSON 內容為空",
+        "validJson": "有效 JSON",
+        "characters": "字元",
+        "copy": "複製",
+        "copied": "已複製",
+        "rawContent": "原始內容："
+      },
+      "image": {
+        "loading": "載入中...",
+        "reset": "重設"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "待執行",
+      "running": "任務執行中",
+      "paused": "任務已停止",
+      "completed": "任務已完成",
+      "failed": "任務失敗",
+      "cancelled": "Cancelled",
+      "waiting_for_user": "等待使用者"
+    },
+    "maximize": "最大化",
+    "expandWorkspace": "展開工作區",
+    "restore": "還原",
+    "durationRunning": "已執行",
+    "durationCompleted": "耗時",
+    "taskProgress": "任務進度",
+    "expandTaskList": "展開任務清單",
+    "collapseTaskList": "收合任務清單"
+  }
+}

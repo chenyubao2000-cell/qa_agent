@@ -11,16 +11,16 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 5
+      "actualWorkers": 4
     },
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "/Users/stephen/Documents/code/qa_agent/tests/e2e/mira_online/test-results",
         "repeatEach": 1,
-        "retries": 3,
+        "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 4
         },
         "id": "setup",
         "name": "setup",
@@ -34,9 +34,9 @@
       {
         "outputDir": "/Users/stephen/Documents/code/qa_agent/tests/e2e/mira_online/test-results",
         "repeatEach": 1,
-        "retries": 3,
+        "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 4
         },
         "id": "data-setup",
         "name": "data-setup",
@@ -50,12 +50,12 @@
       {
         "outputDir": "/Users/stephen/Documents/code/qa_agent/tests/e2e/mira_online/test-results",
         "repeatEach": 1,
-        "retries": 3,
+        "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 4
         },
-        "id": "e2e-zh",
-        "name": "e2e-zh",
+        "id": "e2e-en",
+        "name": "e2e-en",
         "testDir": "/Users/stephen/Documents/code/qa_agent/tests/e2e/mira_online/tests/e2e",
         "testIgnore": [],
         "testMatch": [
@@ -115,16 +115,16 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 189,
+                  "duration": 342,
                   "errors": [],
                   "stdout": [
                     {
-                      "text": "Auth state is fresh (1m old), reusing.\n"
+                      "text": "Auth state is fresh (25m old), reusing.\n"
                     }
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-04-15T18:15:22.620Z",
+                  "startTime": "2026-04-16T23:27:12.811Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -134,7 +134,7 @@
           ],
           "id": "17e3fe6f4d9d8bd79c6b-60f085b113a677673906",
           "file": "auth.setup.ts",
-          "line": 11,
+          "line": 20,
           "column": 6
         }
       ]
@@ -161,40 +161,31 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 26083,
+                  "duration": 2,
                   "errors": [],
                   "stdout": [
                     {
-                      "text": "[data-setup] taskWithCodeUrl: using cached URL /task/lvRqI4Td5pRY49Nl\n"
+                      "text": "[data-setup] taskWithCodeUrl: using cached URL /task/alqJNbg1hlmDpWJD\n"
                     },
                     {
-                      "text": "[data-setup] taskWithFilesUrl: using cached URL /task/Y5Li5ICpJrTFWk3l\n"
+                      "text": "[data-setup] taskWithFilesUrl: using cached URL /task/GEt0RP1HYaR35IuR\n"
                     },
                     {
-                      "text": "[data-setup] taskWithToolChainUrl: using cached URL /task/Ts93b6XyK9pPIJ1T\n"
+                      "text": "[data-setup] taskWithPeopleDataUrl: using cached URL /task/z84aqzIvC8UPCcH7\n"
                     },
                     {
-                      "text": "[data-setup] Creating 2 resources in parallel...\n"
+                      "text": "[data-setup] taskWithToolChainUrl: using cached URL /task/kJYfMBzvPG8tPmVb\n"
                     },
                     {
-                      "text": "[data-setup] Creating shareUrl...\n"
+                      "text": "[data-setup] shareUrl: using cached URL /share/WCDsrYP5ebZJrplh?token=rAtkoG8E96cgjlSQfQ7bEDWGTgQylJm8Uz7bihLvWpo\n"
                     },
                     {
-                      "text": "[data-setup] Creating taskWithPeopleDataUrl...\n"
-                    },
-                    {
-                      "text": "[data-setup] taskWithPeopleDataUrl: /task/kA9oisiWbx2eQHqz\n"
-                    },
-                    {
-                      "text": "[data-setup] shareUrl: /share/R6A0NTAYd1sJHTo6?token=91NZIrDfE1DZOXvhMzCuJ27n4itLszrgGTD-rJbgoxo\n"
-                    },
-                    {
-                      "text": "[data-setup] Done. Created 2/2, 5 total cached.\n"
+                      "text": "[data-setup] All data cached, nothing to create.\n"
                     }
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-04-15T18:15:23.591Z",
+                  "startTime": "2026-04-16T23:27:14.607Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -204,791 +195,8 @@
           ],
           "id": "7b0d3f333b4a0e7194ae-3a58cc56880b4bb3eceb",
           "file": "data.setup.ts",
-          "line": 200,
+          "line": 257,
           "column": 6
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/ai-elements-branch.test.ts",
-      "file": "testcases/generated/ai-elements-branch.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-AIE-CONVERSATION · AI 对话元素渲染",
-          "file": "testcases/generated/ai-elements-branch.test.ts",
-          "line": 13,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-BR-AIE-001 已完成任务页面显示用户消息和助手消息",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4940,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithCodeUrl] Using preset URL: /task/lvRqI4Td5pRY49Nl\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:10.817Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "1271eea7c2697c62beca-ac99c7ca2d25b2fcb239",
-              "file": "testcases/generated/ai-elements-branch.test.ts",
-              "line": 15,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/canvas-download-prd.test.ts",
-      "file": "testcases/generated/canvas-download-prd.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-CDLD-FORMAT",
-          "file": "testcases/generated/canvas-download-prd.test.ts",
-          "line": 51,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-PRD-CDLD-003 People Data downloads xlsx directly",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 90000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 6786,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithPeopleDataUrl] Using preset URL: /task/kA9oisiWbx2eQHqz\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:10.785Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "1351633f3f4b17d6847b-1c2e971ba6274937b870",
-              "file": "testcases/generated/canvas-download-prd.test.ts",
-              "line": 52,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/canvas-preview-prd.test.ts",
-      "file": "testcases/generated/canvas-preview-prd.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-CVPV-FULLSCREEN",
-          "file": "testcases/generated/canvas-preview-prd.test.ts",
-          "line": 15,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-PRD-CVPV-001 Canvas maximize",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 5376,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:10.801Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "9f54e00b8ea6684419aa-0e6dfb25bfa39f7eeabc",
-              "file": "testcases/generated/canvas-preview-prd.test.ts",
-              "line": 16,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/forgot-password-cdp.test.ts",
-      "file": "testcases/generated/forgot-password-cdp.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Forgot Password Form",
-          "file": "testcases/generated/forgot-password-cdp.test.ts",
-          "line": 12,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-FP-001 输入有效邮箱后点击发送重置链接，进入确认步骤",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 4502,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:10.786Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "d3f95526d68fa13d2c94-c99d8a696566062a709a",
-              "file": "testcases/generated/forgot-password-cdp.test.ts",
-              "line": 13,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/join-waitlist-cdp.test.ts",
-      "file": "testcases/generated/join-waitlist-cdp.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "[CDP] Join Waitlist Form",
-          "file": "testcases/generated/join-waitlist-cdp.test.ts",
-          "line": 12,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-JW-001 使用合法邮箱填写表单（覆盖 V1-V5）",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 4102,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:10.795Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "259c34f6e1e03b0e8696-4a2e5cfd452c51040809",
-              "file": "testcases/generated/join-waitlist-cdp.test.ts",
-              "line": 13,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/mira-home-cdp.test.ts",
-      "file": "testcases/generated/mira-home-cdp.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "[CDP] Mira Homepage",
-          "file": "testcases/generated/mira-home-cdp.test.ts",
-          "line": 12,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-HOME-002 导航\"登录\"链接跳转到 /task",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 2985,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:15.485Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "42519b89274a179fdec1-41c5d2061f47374a3f01",
-              "file": "testcases/generated/mira-home-cdp.test.ts",
-              "line": 41,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/people-data-download-prd.test.ts",
-      "file": "testcases/generated/people-data-download-prd.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-PDD-DOWNLOAD · People Data 下载 — 入口与触发",
-          "file": "testcases/generated/people-data-download-prd.test.ts",
-          "line": 14,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-PRD-PDD-001 People Data 任务结果区域 — 下载按钮触发 XLSX 下载",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 5306,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithPeopleDataUrl] Using preset URL: /task/kA9oisiWbx2eQHqz\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:16.011Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "86ace02238499465567d-9251b177248aafcb583b",
-              "file": "testcases/generated/people-data-download-prd.test.ts",
-              "line": 16,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/share-branch.test.ts",
-      "file": "testcases/generated/share-branch.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "[Branch] Share Page — Valid View",
-          "file": "testcases/generated/share-branch.test.ts",
-          "line": 16,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-BR-SHARE-001 有效分享链接正常展示任务内容",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 3270,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:shareUrl] Using preset URL: /share/R6A0NTAYd1sJHTo6?token=91NZIrDfE1DZOXvhMzCuJ27n4itLszrgGTD-rJbgoxo\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:16.190Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b850fd9103fbea7f93ca-550b7400ec848b6d8855",
-              "file": "testcases/generated/share-branch.test.ts",
-              "line": 20,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/sign-in-cdp.test.ts",
-      "file": "testcases/generated/sign-in-cdp.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "[CDP] Sign-In Page",
-          "file": "testcases/generated/sign-in-cdp.test.ts",
-          "line": 15,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-SIGNIN-001 输入有效邮箱后继续按钮可用并进入密码步骤",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 3609,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:16.612Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "d0da1f451f81131e9f78-14450ee0c8c2e8b20920",
-              "file": "testcases/generated/sign-in-cdp.test.ts",
-              "line": 16,
-              "column": 7
-            },
-            {
-              "title": "TC-CDP-SIGNIN-005 输入正确密码后登录成功跳转到 /task",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 7161,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:18.326Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "d0da1f451f81131e9f78-72c4e18fc61312cfd732",
-              "file": "testcases/generated/sign-in-cdp.test.ts",
-              "line": 53,
-              "column": 7
-            },
-            {
-              "title": "TC-CDP-SIGNIN-011 完整登录流程 — 邮箱 → 密码 → 成功跳转",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 6990,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:18.479Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "d0da1f451f81131e9f78-10583bb1f4ce760f49f8",
-              "file": "testcases/generated/sign-in-cdp.test.ts",
-              "line": 126,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/task-cdp.test.ts",
-      "file": "testcases/generated/task-cdp.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-TASK-INPUT · Chat Input Area",
-          "file": "testcases/generated/task-cdp.test.ts",
-          "line": 11,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-TASK-015 新任务页面显示欢迎标题、输入框和场景建议",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4339,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:19.468Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "568f48c61f9577b20fbb-2f0f068993ab09521d14",
-              "file": "testcases/generated/task-cdp.test.ts",
-              "line": 12,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "US-TASK-DETAIL · Task Detail View",
-          "file": "testcases/generated/task-cdp.test.ts",
-          "line": 213,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-TASK-013 点击侧边栏任务项进入任务详情页",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 6267,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:20.230Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "568f48c61f9577b20fbb-0b1e63a324388f446ad8",
-              "file": "testcases/generated/task-cdp.test.ts",
-              "line": 214,
-              "column": 7
-            },
-            {
-              "title": "TC-CDP-TASK-014 在任务详情页点击\"新建任务\"返回空白视图",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 7777,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:21.331Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "568f48c61f9577b20fbb-5c81073eb9d64683d6e8",
-              "file": "testcases/generated/task-cdp.test.ts",
-              "line": 223,
-              "column": 7
-            },
-            {
-              "title": "TC-CDP-TASK-017 任务详情页显示聊天历史元素",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 7413,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:23.812Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "568f48c61f9577b20fbb-4f27ad39eafb0b02d8cf",
-              "file": "testcases/generated/task-cdp.test.ts",
-              "line": 238,
-              "column": 7
-            }
-          ]
         }
       ]
     },
@@ -1000,17 +208,16 @@
       "specs": [],
       "suites": [
         {
-          "title": "US-CONV-MSGSEND · 消息发送功能",
+          "title": "US-CONV-WORKSPACE · 工作区面板",
           "file": "testcases/generated/task-conversation-chat-conversation-cdp.test.ts",
-          "line": 100,
+          "line": 292,
           "column": 6,
           "specs": [
             {
-              "title": "TC-CDP-CONV-003 仅上传文件（无文字）点击 Submit 后导航至任务详情",
+              "title": "TC-CDP-CONV-016 工作区面板打开后文件上传按钮仍可访问",
               "ok": true,
               "tags": [
-                "P0",
-                "smoke",
+                "P1",
                 "regression",
                 "full"
               ],
@@ -1019,263 +226,23 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 7262,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:25.480Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "84eab024baf53fc9c510-4af3942a446b555a228a",
-              "file": "testcases/generated/task-conversation-chat-conversation-cdp.test.ts",
-              "line": 102,
-              "column": 7
-            },
-            {
-              "title": "TC-CDP-CONV-013 上传文件 + 输入文字 + 发送，验证聊天记录同时显示文件和文字",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 6913,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:25.495Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "84eab024baf53fc9c510-bac252079c1c833ab731",
-              "file": "testcases/generated/task-conversation-chat-conversation-cdp.test.ts",
-              "line": 160,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/task-file-preview-cdp.test.ts",
-      "file": "testcases/generated/task-file-preview-cdp.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-PREVIEW-01 · 文件网格显示",
-          "file": "testcases/generated/task-file-preview-cdp.test.ts",
-          "line": 31,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-FP-001 任务完成后显示文件卡片网格",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 3898,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:26.506Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "be9578ea118e0dfc0393-d04f38971839b1da5acc",
-              "file": "testcases/generated/task-file-preview-cdp.test.ts",
-              "line": 32,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "US-PREVIEW-02 · 文本文件预览",
-          "file": "testcases/generated/task-file-preview-cdp.test.ts",
-          "line": 77,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-FP-004 点击 JSON 文件打开预览面板",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 5215,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:29.116Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "be9578ea118e0dfc0393-04468d5b5bbe3c5d3ee7",
-              "file": "testcases/generated/task-file-preview-cdp.test.ts",
-              "line": 78,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "US-PREVIEW-03 · 表格文件预览",
-          "file": "testcases/generated/task-file-preview-cdp.test.ts",
-          "line": 98,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-FP-007 点击 XLSX/CSV 文件打开电子表格预览",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 6142,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:30.411Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "be9578ea118e0dfc0393-f6f6928aecae29ed40eb",
-              "file": "testcases/generated/task-file-preview-cdp.test.ts",
-              "line": 99,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "US-PREVIEW-04 · PDF 文件预览",
-          "file": "testcases/generated/task-file-preview-cdp.test.ts",
-          "line": 124,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-FP-009 点击 PDF 文件打开 PDF 预览（含页码导航）",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
                   "results": [
                     {
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6266,
+                      "duration": 12323,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T18:16:31.231Z",
+                      "startTime": "2026-04-16T23:27:16.227Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1283,26 +250,24 @@
                   "status": "expected"
                 }
               ],
-              "id": "be9578ea118e0dfc0393-4ba92668590337069be1",
-              "file": "testcases/generated/task-file-preview-cdp.test.ts",
-              "line": 125,
+              "id": "84eab024baf53fc9c510-d1a2bbb101f426648726",
+              "file": "testcases/generated/task-conversation-chat-conversation-cdp.test.ts",
+              "line": 357,
               "column": 7
             }
           ]
         },
         {
-          "title": "US-PREVIEW-05 · 图片文件预览",
-          "file": "testcases/generated/task-file-preview-cdp.test.ts",
-          "line": 147,
+          "title": "US-CONV-I18N · i18n 文本验证",
+          "file": "testcases/generated/task-conversation-chat-conversation-cdp.test.ts",
+          "line": 387,
           "column": 6,
           "specs": [
             {
-              "title": "TC-CDP-FP-010 点击 PNG 文件打开图片预览（含缩放控件）",
+              "title": "TC-CDP-CONV-019 添加照片或文件按钮 i18n 文本正确",
               "ok": true,
               "tags": [
-                "P0",
-                "smoke",
-                "regression",
+                "P2",
                 "full"
               ],
               "tests": [
@@ -1310,121 +275,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
                   "results": [
                     {
                       "workerIndex": 3,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 5157,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:32.415Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "be9578ea118e0dfc0393-4f43bc73c0d63114190e",
-              "file": "testcases/generated/task-file-preview-cdp.test.ts",
-              "line": 148,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "US-PREVIEW-07 · PPTX 文件预览",
-          "file": "testcases/generated/task-file-preview-cdp.test.ts",
-          "line": 207,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-FP-014 点击 PPTX 文件打开演示文稿预览",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 6263,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:32.749Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "be9578ea118e0dfc0393-17c5abaf4ab4cb113797",
-              "file": "testcases/generated/task-file-preview-cdp.test.ts",
-              "line": 208,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "US-PREVIEW-08 · 预览面板交互",
-          "file": "testcases/generated/task-file-preview-cdp.test.ts",
-          "line": 230,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-FP-017 人才数据卡片点击打开工作区面板显示候选人列表",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 6581,
+                      "duration": 12015,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T18:16:34.335Z",
+                      "startTime": "2026-04-16T23:27:16.226Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1432,216 +295,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "be9578ea118e0dfc0393-aad4dbcb8a3b4ee232bf",
-              "file": "testcases/generated/task-file-preview-cdp.test.ts",
-              "line": 272,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/task-sidebar-cdp.test.ts",
-      "file": "testcases/generated/task-sidebar-cdp.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-SIDEBAR-01 · 侧边栏可见性控制",
-          "file": "testcases/generated/task-sidebar-cdp.test.ts",
-          "line": 23,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CDP-SB-001 侧边栏展开状态下点击 Toggle 折叠侧边栏",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 4665,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:36.561Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "bdfeb868e33878eb59dc-99927f68afd7bdb29255",
-              "file": "testcases/generated/task-sidebar-cdp.test.ts",
-              "line": 24,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/tool-chain-smoke-prd.test.ts",
-      "file": "testcases/generated/tool-chain-smoke-prd.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-TOOL-SMOKE -- Multi-tool chain smoke",
-          "file": "testcases/generated/tool-chain-smoke-prd.test.ts",
-          "line": 14,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-PRD-TCS-001 多工具链任务正常完成并显示任务已完成",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 120000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 3048,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:37.505Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "49862c9420f723af84f9-df6a48babd12fef86e4a",
-              "file": "testcases/generated/tool-chain-smoke-prd.test.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "TC-PRD-TCS-002 多工具链任务生成的文件卡片可见（至少3种格式）",
-              "ok": true,
-              "tags": [
-                "P0",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 120000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 2727,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:37.576Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "49862c9420f723af84f9-8df571effd92e70005dc",
-              "file": "testcases/generated/tool-chain-smoke-prd.test.ts",
-              "line": 29,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "testcases/generated/upload-input-prd.test.ts",
-      "file": "testcases/generated/upload-input-prd.test.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "US-UPINP-DISPLAY -- File Capsule Display Style",
-          "file": "testcases/generated/upload-input-prd.test.ts",
-          "line": 21,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-PRD-UPINP-001 -- PDF file capsule shows icon, filename, type label PDF, size with 1-decimal unit",
-              "ok": true,
-              "tags": [
-                "P1",
-                "smoke",
-                "regression",
-                "full"
-              ],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 6517,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-15T18:16:39.019Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "303d3019aa346926189a-3a8aaaa768ce38571b7e",
-              "file": "testcases/generated/upload-input-prd.test.ts",
-              "line": 22,
+              "id": "84eab024baf53fc9c510-cf2e45d717be5a1b6ca5",
+              "file": "testcases/generated/task-conversation-chat-conversation-cdp.test.ts",
+              "line": 388,
               "column": 7
             }
           ]
@@ -1656,17 +312,16 @@
       "specs": [],
       "suites": [
         {
-          "title": "US-VF-ENTRY - View All Files -- entry visibility",
+          "title": "US-VF-MODAL - View All Files -- panel open and close",
           "file": "testcases/generated/view-all-files-prd.test.ts",
-          "line": 23,
+          "line": 59,
           "column": 6,
           "specs": [
             {
-              "title": "TC-PRD-VF-001: toolbar entry button visible when task has files",
+              "title": "TC-PRD-VF-005: files panel shows file cards after opening",
               "ok": true,
               "tags": [
                 "P1",
-                "smoke",
                 "regression",
                 "full"
               ],
@@ -1675,19 +330,23 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "e2e-zh",
-                  "projectName": "e2e-zh",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 5123,
+                      "duration": 10206,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T18:16:40.312Z",
+                      "startTime": "2026-04-16T23:27:16.227Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1695,9 +354,58 @@
                   "status": "expected"
                 }
               ],
-              "id": "7b01ceb31b261e84ef65-4ef74d8ec2d75aa00d43",
+              "id": "7b01ceb31b261e84ef65-73edd667de952a2f52ac",
               "file": "testcases/generated/view-all-files-prd.test.ts",
-              "line": 26,
+              "line": 99,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "US-VF-BATCH - View All Files -- batch download",
+          "file": "testcases/generated/view-all-files-prd.test.ts",
+          "line": 155,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-PRD-VF-020: clicking select all again deselects all files",
+              "ok": true,
+              "tags": [
+                "P2",
+                "full"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-en",
+                  "projectName": "e2e-en",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 14560,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-16T23:27:16.230Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7b01ceb31b261e84ef65-b60f7f2cb49598ebd145",
+              "file": "testcases/generated/view-all-files-prd.test.ts",
+              "line": 247,
               "column": 7
             }
           ]
@@ -1707,9 +415,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-04-15T18:15:22.171Z",
-    "duration": 795337.482,
-    "expected": 31,
+    "startTime": "2026-04-16T23:27:12.085Z",
+    "duration": 19978.696,
+    "expected": 6,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

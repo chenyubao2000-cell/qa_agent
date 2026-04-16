@@ -36,7 +36,7 @@ export default defineConfig({
   globalTimeout: 20 * 60_000,
   timeout: 60_000,
   fullyParallel: true,
-  retries: process.env.CI ? 1 : 3,
+  retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 3 : 5,
   outputDir: "./test-results",
   reporter: [

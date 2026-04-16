@@ -1,8 +1,9 @@
-import { type Page, type Locator } from '@playwright/test';
-import type { I18n } from '../fixtures';
+import { type Page, type Locator } from "@playwright/test";
+import type { I18n } from "../fixtures";
+import { i18nRegex } from "../i18n-helpers";
 
 const SHARE_URL =
-  'https://mira-bff-preview.up.railway.app/share/C2J66q10Qw3Fw1uS?token=Gi5-TZFZeyKP96B3352xtxTAHW8qK9GigLCMPT8IbGA';
+  "https://mira-bff-preview.up.railway.app/share/C2J66q10Qw3Fw1uS?token=Gi5-TZFZeyKP96B3352xtxTAHW8qK9GigLCMPT8IbGA";
 
 export class TalentListPage {
   private readonly page: Page;
@@ -22,49 +23,68 @@ export class TalentListPage {
     this.i18n = i18n;
 
     // Result cards on the share page (chat log area)
-    this.onePersonCard = page.getByRole('button', { name: /case01_技术人才.*1 人/ });
-    this.sixPersonCard = page.getByRole('button', { name: /case01_技术人才.*6 人/ });
+    this.onePersonCard = page.getByRole("button", {
+      name: /case01_技术人才.*1 人/,
+    });
+    this.sixPersonCard = page.getByRole("button", {
+      name: /case01_技术人才.*6 人/,
+    });
 
     // Side / fullscreen panel control buttons
-    this.maximizeBtn = page.getByRole('button', { name: '最大化' });
-    this.restoreBtn = page.getByRole('button', { name: '还原' });
-    this.closePanelBtn = page.getByRole('button', { name: '关闭' });
+    this.maximizeBtn = page.getByRole("button", {
+      name: i18n
+        ? i18n.t("canvas.maximize")
+        : i18nRegex("canvas.maximize", { exact: true }),
+    });
+    this.restoreBtn = page.getByRole("button", {
+      name: i18n
+        ? i18n.t("canvas.restore")
+        : i18nRegex("canvas.restore", { exact: true }),
+    });
+    this.closePanelBtn = page.getByRole("button", {
+      name: i18n
+        ? i18n.t("canvas.close")
+        : i18nRegex("canvas.close", { exact: true }),
+    });
   }
 
   // ── Navigation ──
 
   /** Navigate directly to the share page (public, no auth required). */
   async gotoSharePage(): Promise<void> {
-    await this.page.goto(SHARE_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-    await this.page.waitForLoadState('networkidle').catch(() => {});
+    await this.page.goto(SHARE_URL, {
+      waitUntil: "domcontentloaded",
+      timeout: 30_000,
+    });
+    await this.page.waitForLoadState("networkidle").catch(() => {});
   }
 
   // ── Result card interactions ──
 
   async clickOnePersonCard(): Promise<void> {
-    await this.onePersonCard.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.onePersonCard.waitFor({ state: "visible", timeout: 15_000 });
     await this.onePersonCard.click();
   }
 
   async clickSixPersonCard(): Promise<void> {
-    await this.sixPersonCard.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.sixPersonCard.waitFor({ state: "visible", timeout: 15_000 });
     await this.sixPersonCard.click();
   }
 
   // ── Side panel / fullscreen panel interactions ──
 
   async clickMaximize(): Promise<void> {
-    await this.maximizeBtn.waitFor({ state: 'visible', timeout: 10_000 });
+    await this.maximizeBtn.waitFor({ state: "visible", timeout: 10_000 });
     await this.maximizeBtn.click();
   }
 
   async clickRestore(): Promise<void> {
-    await this.restoreBtn.waitFor({ state: 'visible', timeout: 10_000 });
+    await this.restoreBtn.waitFor({ state: "visible", timeout: 10_000 });
     await this.restoreBtn.click();
   }
 
   async closePanel(): Promise<void> {
-    await this.closePanelBtn.waitFor({ state: 'visible', timeout: 10_000 });
+    await this.closePanelBtn.waitFor({ state: "visible", timeout: 10_000 });
     await this.closePanelBtn.click();
   }
 
@@ -125,18 +145,21 @@ export class TalentListPage {
   /** Wait for skeleton placeholders to disappear (data loaded). */
   private async waitForDataLoaded(): Promise<void> {
     const grid = this.getTalentGrid();
-    await grid.waitFor({ state: 'attached', timeout: 10_000 }).catch(() => {});
+    await grid.waitFor({ state: "attached", timeout: 10_000 }).catch(() => {});
     // Wait until skeleton pulse animation disappears (real cards have visible text)
-    await this.page.locator('.fixed.inset-0 [class*="grid-cols"] [class*="animate-pulse"]')
-      .first().waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {});
+    await this.page
+      .locator('.fixed.inset-0 [class*="grid-cols"] [class*="animate-pulse"]')
+      .first()
+      .waitFor({ state: "hidden", timeout: 15_000 })
+      .catch(() => {});
   }
 
   async getGridTemplateColumns(): Promise<string> {
     await this.waitForDataLoaded();
     return this.page.evaluate(() => {
-      const panel = document.querySelector('.fixed.inset-0');
+      const panel = document.querySelector(".fixed.inset-0");
       const gridEl = panel?.querySelector('[class*="grid-cols"]');
-      if (!gridEl) return 'NOT_FOUND';
+      if (!gridEl) return "NOT_FOUND";
       return window.getComputedStyle(gridEl).gridTemplateColumns;
     });
   }
@@ -149,7 +172,7 @@ export class TalentListPage {
   async getGridChildCount(): Promise<number> {
     await this.waitForDataLoaded();
     return this.page.evaluate(() => {
-      const panel = document.querySelector('.fixed.inset-0');
+      const panel = document.querySelector(".fixed.inset-0");
       const gridEl = panel?.querySelector('[class*="grid-cols"]');
       if (!gridEl) return 0;
       return gridEl.childElementCount;
@@ -158,10 +181,10 @@ export class TalentListPage {
 
   /**
    * Counts the number of separate column widths in a gridTemplateColumns string.
-   * e.g. "463px 463px 463px 463px" → 4 columns
+   * e.g. "463px 463px 463px 463px" -> 4 columns
    */
   parseColumnCount(gridTemplateColumns: string): number {
-    if (!gridTemplateColumns || gridTemplateColumns === 'NOT_FOUND') return 0;
+    if (!gridTemplateColumns || gridTemplateColumns === "NOT_FOUND") return 0;
     return gridTemplateColumns.trim().split(/\s+/).length;
   }
 
@@ -169,23 +192,25 @@ export class TalentListPage {
    * Waits for the side panel to become visible after clicking a result card.
    */
   async waitForPanelOpen(): Promise<void> {
-    await this.maximizeBtn.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.maximizeBtn.waitFor({ state: "visible", timeout: 15_000 });
   }
 
   /**
    * Waits for the fullscreen panel state (restore button visible).
    */
   async waitForFullscreenPanel(): Promise<void> {
-    await this.restoreBtn.waitFor({ state: 'visible', timeout: 10_000 });
+    await this.restoreBtn.waitFor({ state: "visible", timeout: 10_000 });
   }
 
   /**
    * On narrow viewports (< ~782px), clicking a card opens the panel directly
-   * in fullscreen mode — no side-panel step, no "最大化" button.
+   * in fullscreen mode — no side-panel step, no maximize button.
    * Waits for the fixed fullscreen overlay to appear (grid container visible).
    */
   async waitForFullscreenPanelOrDirect(): Promise<void> {
-    await this.page.locator('.fixed.inset-0 [class*="grid-cols"]')
-      .first().waitFor({ state: 'visible', timeout: 15_000 });
+    await this.page
+      .locator('.fixed.inset-0 [class*="grid-cols"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 15_000 });
   }
 }

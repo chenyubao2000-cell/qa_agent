@@ -4,6 +4,13 @@
 // generated: 2026-03-24T00:00:00Z
 import { test, expect } from '../../fixtures';
 import { TaskPage } from '../../pages/task.page';
+import { i18nTitleSelector } from '../../i18n-helpers';
+
+// Preview panel (canvas): docked side panel containing file header, slide body, page counter.
+// Identify by canvas.close button title (works across en/zh).
+function getPreviewPanel(page: any) {
+  return page.locator(`div.border-l:has(${i18nTitleSelector('button', 'canvas.close')})`).last();
+}
 
 // Helper: navigate to the task with generated files (URL from worker-scope fixture)
 async function gotoTaskWithFiles(taskPage: TaskPage, page: any, taskUrl: string) {
@@ -215,11 +222,17 @@ test.describe('US-PREVIEW-07 · PPTX 文件预览', () => {
       const pptxCard = findFileCardByExt(taskPage, page, 'pptx');
       await expect(pptxCard).toBeVisible({ timeout: 5000 });
       await pptxCard.click();
-      await page.waitForTimeout(2000);
 
-      // Preview panel should show .pptx filename and page navigation
-      await expect(page.getByText(/\.pptx/).last()).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText(/\d+\s*\/\s*\d+/).first()).toBeVisible({ timeout: 10_000 });
+      // Scope to the preview panel so ".pptx" and the page counter don't
+      // match unrelated content (e.g. chat text mentioning .pptx, or
+      // "Claude 3.5/4" inside slide tables which matches \d+/\d+).
+      const panel = getPreviewPanel(page);
+      await expect(panel).toBeVisible({ timeout: 10_000 });
+      await expect(panel.getByText(/\.pptx/i).first()).toBeVisible({ timeout: 5000 });
+      // Page counter is an exact "N/M" text node in the panel footer.
+      await expect(
+        panel.getByText(/^\s*\d+\s*\/\s*\d+\s*$/).first(),
+      ).toBeVisible({ timeout: 10_000 });
     }
   );
 });

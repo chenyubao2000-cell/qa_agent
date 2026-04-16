@@ -1,0 +1,163 @@
+[dotenv@17.3.1] injecting env (6) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+
+Running 19 tests using 5 workers
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+
+[1A[2K[1/19] [setup] › tests/e2e/auth.setup.ts:20:6 › authenticate
+[1A[2K[setup] › tests/e2e/auth.setup.ts:20:6 › authenticate
+Auth state is stale (37m old), re-authenticating.
+
+[1A[2KLogin successful as chenyubao2000@163.com, saving auth state.
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+
+[1A[2K[2/19] [data-setup] › tests/e2e/data.setup.ts:257:6 › create test data
+[1A[2K[data-setup] › tests/e2e/data.setup.ts:257:6 › create test data
+[data-setup] taskWithCodeUrl: using cached URL /task/alqJNbg1hlmDpWJD
+
+[1A[2K[data-setup] taskWithFilesUrl: using cached URL /task/GEt0RP1HYaR35IuR
+
+[1A[2K[data-setup] taskWithPeopleDataUrl: using cached URL /task/z84aqzIvC8UPCcH7
+
+[1A[2K[data-setup] taskWithToolChainUrl: using cached URL /task/kJYfMBzvPG8tPmVb
+
+[1A[2K[data-setup] shareUrl: using cached URL /share/WCDsrYP5ebZJrplh?token=rAtkoG8E96cgjlSQfQ7bEDWGTgQylJm8Uz7bihLvWpo
+
+[1A[2K[data-setup] All data cached, nothing to create.
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+[1A[2K[3/19] [e2e-en] › tests/e2e/testcases/generated/people-data-download-prd.test.ts:155:7 › US-PDD-ERROR · People Data 下载异常处理 › TC-PRD-PDD-006 下载失败时显示 toast 错误提示 @P1 @regression @full
+[1A[2K[4/19] [e2e-en] › tests/e2e/testcases/generated/ai-elements-branch.test.ts:168:7 › US-AIE-SCENARIO · 端到端场景 › TC-BR-AIE-006 完整的任务对话浏览场景——查看消息、代码块、工具卡片、完成状态 @P1 @regression @full
+[1A[2K[5/19] [e2e-en] › tests/e2e/testcases/generated/task-conversation-chat-conversation-cdp.test.ts:180:7 › US-CONV-MSGSEND · 消息发送功能 › TC-CDP-CONV-009 用户消息发送后显示在聊天日志中并带复制按钮 @P1 @regression @full
+[1A[2K[6/19] [e2e-en] › tests/e2e/testcases/generated/task-conversation-chat-conversation-cdp.test.ts:357:7 › US-CONV-WORKSPACE · 工作区面板 › TC-CDP-CONV-016 工作区面板打开后文件上传按钮仍可访问 @P1 @regression @full
+[1A[2K[7/19] [e2e-en] › tests/e2e/testcases/generated/task-conversation-chat-conversation-cdp.test.ts:388:7 › US-CONV-I18N · i18n 文本验证 › TC-CDP-CONV-019 添加照片或文件按钮 i18n 文本正确 @P2 @full
+[1A[2K[e2e-en] › tests/e2e/testcases/generated/people-data-download-prd.test.ts:155:7 › US-PDD-ERROR · People Data 下载异常处理 › TC-PRD-PDD-006 下载失败时显示 toast 错误提示 @P1 @regression @full
+[fixture:taskWithPeopleDataUrl] Using preset URL: /task/z84aqzIvC8UPCcH7
+
+[1A[2K[e2e-en] › tests/e2e/testcases/generated/ai-elements-branch.test.ts:168:7 › US-AIE-SCENARIO · 端到端场景 › TC-BR-AIE-006 完整的任务对话浏览场景——查看消息、代码块、工具卡片、完成状态 @P1 @regression @full
+[fixture:taskWithFilesUrl] Using preset URL: /task/GEt0RP1HYaR35IuR
+
+[1A[2K[e2e-en] › tests/e2e/testcases/generated/task-conversation-chat-conversation-cdp.test.ts:357:7 › US-CONV-WORKSPACE · 工作区面板 › TC-CDP-CONV-016 工作区面板打开后文件上传按钮仍可访问 @P1 @regression @full
+[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb
+
+[1A[2K[8/19] [e2e-en] › tests/e2e/testcases/generated/task-sidebar-cdp.test.ts:380:7 › US-SIDEBAR-05 · 重命名弹窗 › TC-CDP-SB-014 重命名任务输入新名称后点击"保存"更新任务名 @P1 @regression @full
+[1A[2K[9/19] [e2e-en] › tests/e2e/testcases/generated/task-sidebar-cdp.test.ts:535:7 › US-SIDEBAR-06 · 删除弹窗 › TC-CDP-SB-016 删除确认弹窗点击"删除"后任务从列表移除 @P1 @regression @full
+[1A[2K  1) [e2e-en] › tests/e2e/testcases/generated/task-conversation-chat-conversation-cdp.test.ts:357:7 › US-CONV-WORKSPACE · 工作区面板 › TC-CDP-CONV-016 工作区面板打开后文件上传按钮仍可访问 @P1 @regression @full 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: 'Add photos or files' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByRole('button', { name: 'Add photos or files' })[22m
+
+
+      369 |
+      370 |       // Assert file upload button remains accessible
+    > 371 |       await expect(taskPage.getFileUploadButton()).toBeVisible();
+          |                                                    ^
+      372 |       await expect(taskPage.getFileUploadButton()).toHaveAttribute(
+      373 |         "aria-label",
+      374 |         i18nRegex("chatbot.addAttachments"),
+        at /Users/stephen/Documents/code/qa_agent/tests/e2e/mira_online/tests/e2e/testcases/generated/task-conversation-chat-conversation-cdp.test.ts:371:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/testcases-generated-task-c-8550a-CONV-016-工作区面板打开后文件上传按钮仍可访问-e2e-en/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/testcases-generated-task-c-8550a-CONV-016-工作区面板打开后文件上传按钮仍可访问-e2e-en/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/testcases-generated-task-c-8550a-CONV-016-工作区面板打开后文件上传按钮仍可访问-e2e-en/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/testcases-generated-task-c-8550a-CONV-016-工作区面板打开后文件上传按钮仍可访问-e2e-en/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/testcases-generated-task-c-8550a-CONV-016-工作区面板打开后文件上传按钮仍可访问-e2e-en/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[10/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:99:7 › US-VF-MODAL - View All Files -- panel open and close › TC-PRD-VF-005: files panel shows file cards after opening @P1 @regression @full
+[1A[2K[e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:99:7 › US-VF-MODAL - View All Files -- panel open and close › TC-PRD-VF-005: files panel shows file cards after opening @P1 @regression @full
+[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+
+[1A[2K[11/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:62:7 › US-VF-MODAL - View All Files -- panel open and close › TC-PRD-VF-003: clicking toolbar button opens files panel @P1 @regression @full
+[1A[2K[e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:62:7 › US-VF-MODAL - View All Files -- panel open and close › TC-PRD-VF-003: clicking toolbar button opens files panel @P1 @regression @full
+[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb
+
+[1A[2K[12/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:136:7 › US-VF-MODAL - View All Files -- panel open and close › TC-PRD-VF-019: batch download icon button visible in panel header @P1 @regression @full
+[1A[2K[13/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:158:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-011: clicking batch download icon enters selection mode @P1 @regression @full
+[1A[2K  2) [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:62:7 › US-VF-MODAL - View All Files -- panel open and close › TC-PRD-VF-003: clicking toolbar button opens files panel @P1 @regression @full 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('heading', { name: /All files in this task|此任务中的所有文件/i }) to be visible[22m
+
+
+       at pages/task.page.view-all-files.fragment.ts:134
+
+      132 |
+      133 |   async waitForFilesPanelOpen(): Promise<void> {
+    > 134 |     await this.filesPanelTitle.waitFor({ state: "visible", timeout: 10_000 });
+          |                                ^
+      135 |   }
+      136 |
+      137 |   async waitForFilesPanelClosed(): Promise<void> {
+        at ViewAllFilesFragment.waitForFilesPanelOpen (/Users/stephen/Documents/code/qa_agent/tests/e2e/mira_online/tests/e2e/pages/task.page.view-all-files.fragment.ts:134:32)
+        at /Users/stephen/Documents/code/qa_agent/tests/e2e/mira_online/tests/e2e/testcases/generated/view-all-files-prd.test.ts:74:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/testcases-generated-view-a-b618e-ar-button-opens-files-panel-e2e-en/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/testcases-generated-view-a-b618e-ar-button-opens-files-panel-e2e-en/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/testcases-generated-view-a-b618e-ar-button-opens-files-panel-e2e-en/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/testcases-generated-view-a-b618e-ar-button-opens-files-panel-e2e-en/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/testcases-generated-view-a-b618e-ar-button-opens-files-panel-e2e-en/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+[1A[2K[14/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:178:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-008: clicking select all checks all file checkboxes @P1 @regression @full
+[1A[2K[15/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:204:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-009: selecting a file enables batch download button @P1 @regression @full
+[1A[2K[e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:178:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-008: clicking select all checks all file checkboxes @P1 @regression @full
+[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb
+
+[1A[2K[16/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:225:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-012: clicking cancel exits selection mode @P1 @regression @full
+[1A[2K[e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:225:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-012: clicking cancel exits selection mode @P1 @regression @full
+[fixture:taskWithToolChainUrl] Using preset URL: /task/kJYfMBzvPG8tPmVb
+
+[1A[2K[17/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:247:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-020: clicking select all again deselects all files @P2 @full
+[1A[2K[18/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:274:7 › US-VF-BATCH - View All Files -- batch download › TC-PRD-VF-021: individual file download button is visible @P2 @full
+[1A[2K[19/19] [e2e-en] › tests/e2e/testcases/generated/view-all-files-prd.test.ts:303:7 › US-VF-E2E - View All Files -- end-to-end scenarios › TC-PRD-VF-013: full batch download flow select files and trigger download @P1 @regression @full

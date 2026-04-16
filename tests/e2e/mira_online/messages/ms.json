@@ -1,0 +1,1212 @@
+{
+  "common": {
+    "welcome": "Selamat Datang",
+    "logout": "Log Keluar",
+    "settings": "Tetapan",
+    "home": "Utama",
+    "dashboard": "Papan Pemuka",
+    "language": "Bahasa"
+  },
+  "email": {
+    "verification": {
+      "subject": "Sahkan e-mel anda - {appName}",
+      "title": "Sahkan e-mel anda",
+      "heading": "Sahkan alamat e-mel anda",
+      "body": "Terima kasih kerana mendaftar untuk {appName}! Untuk melindungi akaun anda, kami perlu mengesahkan e-mel anda. Sila klik butang di bawah untuk mengesahkan:",
+      "button": "Sahkan e-mel",
+      "linkHint": "Atau salin dan tampal pautan ini ke pelayar anda:",
+      "ignoreHint": "Jika anda tidak mendaftar untuk {appName}, sila abaikan e-mel ini.",
+      "footer": "© {year} {appName}. Hak cipta terpelihara."
+    },
+    "resetPassword": {
+      "subject": "Tetapkan semula kata laluan - {appName}",
+      "title": "Tetapkan semula kata laluan",
+      "heading": "Tetapkan semula kata laluan anda",
+      "body": "Kami menerima permintaan anda untuk menetapkan semula kata laluan. Sila klik butang di bawah untuk menetapkan kata laluan baharu:",
+      "button": "Tetapkan semula kata laluan",
+      "linkHint": "Jika butang tidak berfungsi, salin dan tampal pautan ini ke pelayar anda:",
+      "ignoreHint": "Jika anda tidak meminta penetapan semula kata laluan, sila abaikan e-mel ini. Kata laluan anda akan kekal tidak berubah."
+    },
+    "otp": {
+      "subject": "Kod pengesahan anda telah dihantar, sila semak",
+      "title": "Kod Pengesahan E-mel",
+      "greeting": "Helo,",
+      "body": "Anda sedang mengesahkan e-mel akaun Mira anda. Sila gunakan kod pengesahan berikut:",
+      "expireHint": "Kod ini sah selama 10 minit. Jangan kongsikan dengan sesiapa.",
+      "ignoreHint": "Jika anda tidak mendaftar untuk Mira, sila abaikan e-mel ini.",
+      "footer": "© {year} {appName}. Hak cipta terpelihara."
+    },
+    "waitlistOtp": {
+      "subject": "Kod pengesahan anda - Senarai Menunggu {appName}",
+      "title": "Kod Pengesahan E-mel",
+      "greeting": "Helo,",
+      "body": "Anda sedang memohon untuk menyertai senarai menunggu {appName}. Sila gunakan kod berikut untuk mengesahkan e-mel kerja anda:",
+      "expireHint": "Kod ini sah selama 10 minit. Jangan kongsikan dengan sesiapa.",
+      "ignoreHint": "Jika anda tidak memohon untuk menyertai senarai menunggu {appName}, sila abaikan e-mel ini.",
+      "footer": "© {year} {appName}. Hak cipta terpelihara."
+    },
+    "invitation": {
+      "subject": "Kod Jemputan {appName} Anda",
+      "title": "Kod Jemputan Mira Anda Sudah Sedia",
+      "greeting": "Hai {name},",
+      "body": "Terima kasih kerana memohon akses awal Mira! Permohonan anda telah diluluskan. Gunakan kod jemputan di bawah untuk bermula:",
+      "activateButton": "Aktifkan Sekarang",
+      "ignoreHint": "Jika anda tidak memohon akses awal Mira, sila abaikan e-mel ini.",
+      "footer": "© 2025 {appName}. Hak cipta terpelihara."
+    }
+  },
+  "files": {
+    "types": {
+      "text": "Teks",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "Imej",
+      "peopleData": "Data Individu"
+    }
+  },
+  "dashboard": {
+    "title": "Papan Pemuka",
+    "overview": "Gambaran Keseluruhan",
+    "statistics": "Statistik",
+    "welcome": "Apa yang boleh saya bantu?",
+    "tryScenarios": "Cuba senario ini"
+  },
+  "chatbot": {
+    "sendMessage": "Hantar Mesej",
+    "placeholder": "Sila masukkan...",
+    "addAttachments": "Tambah foto atau fail",
+    "uploadLocalFile": "Muat naik fail tempatan",
+    "uploadError": "Muat naik fail gagal",
+    "uploadErrorMaxFiles": "Bilangan fail maksimum telah melebihi had",
+    "uploadErrorMaxFileSize": "Saiz fail melebihi had",
+    "uploadErrorAccept": "Jenis fail tidak disokong",
+    "uploadErrorAcceptPartial": "{count} fail dengan format tidak disokong diabaikan",
+    "uploadErrorMaxFileSizePartial": "{count} fail melebihi had saiz diabaikan",
+    "uploadErrorUpload": "Muat naik fail gagal, sila cuba lagi",
+    "typing": "Menaip...",
+    "thinking": "Berfikir...",
+    "aborted": "Mira telah berhenti. Hantar mesej baharu untuk meneruskan",
+    "waitingForUser": "Mira akan meneruskan selepas respons anda",
+    "completed": "Tugasan selesai",
+    "retry": "Cuba Semula",
+    "copy": "Salin",
+    "search": "Cari",
+    "searchPlaceholder": "Cari tugasan...",
+    "newChat": "Tugasan Baharu",
+    "taskList": "Tugasan",
+    "taskListDescription": "Urus dan lihat semua tugasan",
+    "taskId": "ID Tugasan",
+    "confirmDelete": "Sahkan Padam Tugasan",
+    "deleteWarning": "Tindakan ini tidak boleh dibatalkan. Ini akan memadamkan tugasan dan semua mesejnya secara kekal.",
+    "cancel": "Batal",
+    "delete": "Padam",
+    "rename": "Namakan Semula",
+    "renameTask": "Namakan Semula Tugasan",
+    "editTitle": "Sunting Tajuk",
+    "enterTaskName": "Masukkan nama tugasan",
+    "newTaskName": "Nama tugasan baharu",
+    "taskName": "Nama tugasan",
+    "save": "Simpan",
+    "moreActions": "Lagi tindakan",
+    "taskDetails": "Butiran Tugasan",
+    "taskTitle": "Tajuk Tugasan",
+    "creditsConsumed": "Kredit Digunakan",
+    "createdTime": "Masa Dicipta",
+    "history": "Sejarah Tugasan",
+    "noHistory": "Tiada tugasan lagi",
+    "noSearchResults": "Tiada tugasan sepadan ditemui",
+    "deleteChat": "Padam Tugasan",
+    "today": "Hari Ini",
+    "yesterday": "Semalam",
+    "thisWeek": "Minggu Ini",
+    "last7Days": "7 hari lepas",
+    "last30Days": "30 hari lepas",
+    "older": "Lebih lama",
+    "tasks": "Tugasan",
+    "projects": "Projek",
+    "library": "Perpustakaan",
+    "chatNotFound": "Perbualan Tidak Ditemui",
+    "chatNotFoundDescription": "Maaf, tugasan yang anda cuba akses tidak wujud atau telah dipadamkan.",
+    "noPermission": "Akses Ditolak",
+    "noPermissionDescription": "Maaf, anda tidak mempunyai kebenaran untuk mengakses tugasan ini.",
+    "share": "Kongsi",
+    "shareChat": "Kongsi Perbualan",
+    "shareChatDescription": "Kongsi perbualan ini dengan orang lain melalui pautan",
+    "shareLink": "Pautan Kongsi",
+    "copyLink": "Salin Pautan",
+    "copied": "Disalin",
+    "createShareLink": "Cipta Pautan Kongsi",
+    "creating": "Mencipta...",
+    "removeShare": "Buang Kongsi",
+    "removing": "Membuang...",
+    "shareDescription": "Sesiapa yang mempunyai pautan ini boleh melihat perbualan ini",
+    "createShareDescription": "Cipta pautan kongsi supaya orang lain boleh melihat perbualan ini",
+    "close": "Tutup",
+    "emptyStateTitle": "Tiada mesej lagi",
+    "emptyStateDescription": "Mulakan perbualan untuk melihat mesej di sini",
+    "errors": {
+      "renameUnauthorized": "Anda tidak mempunyai kebenaran untuk menamakan semula tugasan ini",
+      "renameChatNotFound": "Tugasan tidak ditemui atau telah dipadamkan",
+      "renameTitleTooLong": "Nama tugasan terlalu panjang, maksimum {maxLength} aksara dibenarkan",
+      "renameTitleEmpty": "Nama tugasan tidak boleh kosong",
+      "renameFailed": "Gagal menamakan semula tugasan, sila cuba lagi kemudian",
+      "updateFailed": "Gagal mengemas kini, sila cuba lagi kemudian"
+    }
+  },
+  "share": {
+    "notFound": "Perbualan Tidak Ditemui",
+    "notFoundDescription": "Maaf, perbualan yang anda cuba akses tidak wujud atau telah dipadamkan.",
+    "invalidLink": "Pautan Tidak Sah",
+    "invalidLinkDescription": "Maaf, pautan kongsi ini tidak sah atau telah tamat tempoh.",
+    "backToHome": "Kembali ke Utama"
+  },
+  "homepage": {
+    "nav": {
+      "features": "Ciri-ciri",
+      "getStarted": "Sertai Senarai Menunggu",
+      "signIn": "Log masuk",
+      "goToHomepage": "Pergi ke halaman utama"
+    },
+    "hero": {
+      "title": "Lanjutan Diri Anda",
+      "subtitle1": "Bermula dengan Pengambilan Pekerja.",
+      "subtitle2": "Lebih Banyak Akan Datang.",
+      "description": "Mira bukan sekadar ejen. Ia adalah rakan digital anda.",
+      "getStarted": "Sertai Senarai Menunggu"
+    },
+    "features": {
+      "label": "Ciri-ciri",
+      "core": "Teras",
+      "recruiting": "Pengambilan Pekerja",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "Bekerja Dengan Anda, Bukan Untuk Anda",
+          "desc1": "Mira melaksanakan tugasan secara automatik dan bekerjasama dengan anda apabila keputusan penting diperlukan.",
+          "desc2": "Jadual dikongsi, konteks dikongsi."
+        },
+        "trainedByYou": {
+          "title": "Dilatih oleh Anda — Atau Belajar daripada Anda",
+          "desc1": "Tentukan kemahiran dan latih Mira secara eksplisit,",
+          "desc2": "atau biarkan ia belajar daripada aliran kerja dan tingkah laku sebenar anda dari semasa ke semasa."
+        },
+        "topTierModels": {
+          "title": "Dibina atas Model Terbaik, Direka untuk Realiti",
+          "desc1": "Dikuasakan oleh model terkini, kejuruteraan gred pengeluaran",
+          "desc2": "dan dipandu oleh pakar domain sebenar."
+        },
+        "integratedTools": {
+          "title": "Disepadukan dengan Alatan Sedia Ada Anda",
+          "desc1": "Berfungsi lancar dengan alatan yang anda sudah gunakan — Airtable, Slack, Gmail,",
+          "desc2": "OneDrive, dan banyak lagi."
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "Data Calon",
+          "desc1": "Kumpulkan data calon berstruktur dan tidak berstruktur daripada pelbagai sumber.",
+          "desc2": "Luaskan liputan dengan Sambungan Chrome Mira apabila maklumat tambahan berasaskan web diperlukan."
+        },
+        "communication": {
+          "title": "Komunikasi & Susulan",
+          "desc1": "Menyokong panggilan keluar dan e-mel.",
+          "desc2": "Semua rekod komunikasi dikaitkan secara automatik dengan calon yang berkenaan."
+        },
+        "recruitingSkills": {
+          "title": "Kemahiran Pengambilan Pekerja",
+          "desc1": "Kemahiran pengambilan pekerja terbina dalam yang direka untuk penjelasan peranan, penilaian calon,",
+          "desc2": "dan sokongan keputusan pengambilan."
+        },
+        "securityTrust": {
+          "title": "Keselamatan & Kepercayaan",
+          "desc1": "Direka untuk kegunaan perusahaan.",
+          "desc2": "Mematuhi GDPR dan keperluan perlindungan data lain, dengan pilihan Pengekalan Data Sifar (ZDR)."
+        }
+      }
+    },
+    "cta": {
+      "title": "Mohon Akses Awal",
+      "description": "Mira kini dalam beta persendirian.",
+      "button": "Sertai senarai menunggu"
+    }
+  },
+  "Layout": {
+    "signOut": "Log Keluar",
+    "language": "Bahasa",
+    "theme": "Tema",
+    "light": "Cerah",
+    "dark": "Gelap",
+    "system": "Sistem",
+    "mockUserName": "Pengguna Ujian"
+  },
+  "admin": {
+    "nav": {
+      "management": "Pengurusan",
+      "dashboard": "Papan Pemuka",
+      "waitlist": "Senarai Menunggu",
+      "invitationCodes": "Kod Jemputan",
+      "scenarioCards": "Kad Senario",
+      "admins": "Pentadbir",
+      "backToApp": "Kembali ke Aplikasi"
+    },
+    "dashboard": {
+      "title": "Papan Pemuka",
+      "description": "Gambaran keseluruhan operasi sistem",
+      "sections": {
+        "overview": "Gambaran Keseluruhan",
+        "quickActions": "Tindakan Pantas"
+      },
+      "stats": {
+        "totalUsers": "Jumlah Pengguna",
+        "activatedUsers": "{count} diaktifkan",
+        "pendingWaitlist": "Permohonan Menunggu",
+        "totalWaitlist": "{count} dalam senarai menunggu",
+        "availableCodes": "Kod Tersedia",
+        "totalCodes": "{count} jumlah kod",
+        "activationRate": "Kadar Pengaktifan",
+        "activatedOfTotal": "{activated}/{total} diaktifkan",
+        "needsAttention": "Perlu perhatian"
+      },
+      "quickLinks": {
+        "waitlist": "Pengurusan Senarai Menunggu",
+        "waitlistDesc": "Semak permohonan dan hantar kod jemputan",
+        "invitationCodes": "Pengurusan Kod Jemputan",
+        "invitationCodesDesc": "Jana, lihat dan eksport kod jemputan",
+        "pendingCount": "menunggu",
+        "availableCount": "tersedia"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "Kumpulan Kod Jemputan",
+      "description": "Urus kod jemputan secara pukal, jana dan edarkan terlebih dahulu",
+      "refresh": "Muat Semula",
+      "export": "Eksport",
+      "generate": "Jana Kod",
+      "generating": "Menjana...",
+      "loading": "Memuatkan...",
+      "noCodes": "Tiada kod lagi",
+      "copy": "Salin",
+      "copied": "Disalin",
+      "copyFailed": "Salin gagal",
+      "generatePrompt": "Masukkan bilangan kod untuk dijana (1-1000)",
+      "generateCountError": "Bilangan mesti antara 1 dan 1000",
+      "generateSuccess": "Berjaya menjana {count} kod jemputan",
+      "generateFailed": "Gagal menjana kod, sila cuba lagi",
+      "exportSuccess": "Eksport berjaya",
+      "searchPlaceholder": "Cari kod...",
+      "stats": {
+        "total": "Jumlah",
+        "unused": "Belum Digunakan",
+        "used": "Digunakan",
+        "expired": "Tamat Tempoh"
+      },
+      "filter": {
+        "all": "Semua",
+        "unused": "Belum Digunakan",
+        "used": "Digunakan",
+        "expired": "Tamat Tempoh"
+      },
+      "status": {
+        "unused": "Belum Digunakan",
+        "used": "Digunakan",
+        "expired": "Tamat Tempoh"
+      },
+      "table": {
+        "code": "Kod",
+        "status": "Status",
+        "usedBy": "Digunakan Oleh",
+        "batch": "Kelompok",
+        "createdAt": "Dicipta Pada",
+        "usedAt": "Digunakan Pada",
+        "actions": "Tindakan"
+      },
+      "pagination": {
+        "previous": "Sebelumnya",
+        "next": "Seterusnya",
+        "page": "Halaman {current} / {total}",
+        "total": "{count} jumlah"
+      }
+    },
+    "admins": {
+      "title": "Pengurusan Pentadbir",
+      "description": "Lihat dan urus pentadbir sistem",
+      "refresh": "Muat Semula",
+      "loading": "Memuatkan...",
+      "loadFailed": "Gagal memuatkan",
+      "noAdmins": "Tiada pentadbir",
+      "addAdmin": "Tambah Pentadbir",
+      "addSuccess": "Pentadbir berjaya ditambah",
+      "addFailed": "Gagal menambah pentadbir, sila cuba lagi",
+      "remove": "Buang",
+      "removeSuccess": "Pentadbir berjaya dibuang",
+      "removeFailed": "Gagal membuang pentadbir, sila cuba lagi",
+      "addDialog": {
+        "title": "Tambah Pentadbir",
+        "description": "Cari mengikut nama atau e-mel untuk memberikan keistimewaan pentadbir",
+        "searchPlaceholder": "Cari nama atau e-mel...",
+        "searching": "Mencari...",
+        "noResults": "Tiada pengguna sepadan ditemui",
+        "cancel": "Batal",
+        "confirm": "Sahkan"
+      },
+      "removeDialog": {
+        "title": "Sahkan Buang Pentadbir",
+        "description": "Adakah anda pasti mahu membuang keistimewaan pentadbir daripada {name}? Tindakan ini boleh dibatalkan.",
+        "cancel": "Batal",
+        "confirm": "Sahkan Buang"
+      },
+      "table": {
+        "user": "Pengguna",
+        "email": "E-mel",
+        "createdAt": "Didaftar Pada",
+        "actions": "Tindakan"
+      }
+    },
+    "waitlist": {
+      "title": "Pengurusan Senarai Menunggu",
+      "description": "Urus pemohon dan hantar e-mel kod jemputan kepada pengguna yang diluluskan",
+      "refresh": "Muat Semula",
+      "loading": "Memuatkan...",
+      "noItems": "Tiada permohonan ditemui",
+      "searchPlaceholder": "Cari mengikut e-mel atau nama...",
+      "sendInvitation": "Hantar Jemputan",
+      "sendBatch": "Hantar Jemputan",
+      "sending": "Menghantar...",
+      "confirmSend": "Sahkan Hantar",
+      "confirmSendDesc": "Anda akan menghantar e-mel jemputan dengan kod jemputan kepada {count} pemohon, menggunakan {count} kod. Teruskan?",
+      "sendSuccess": "Berjaya menghantar {count} e-mel jemputan",
+      "sendPartialSuccess": "{success} dihantar, {fail} gagal",
+      "sendFailed": "Penghantaran gagal, sila cuba lagi",
+      "noPendingSelected": "Semua entri yang dipilih telah diproses",
+      "resend": "Hantar Semula",
+      "resendSuccess": "E-mel jemputan berjaya dihantar semula",
+      "resendFailed": "Hantar semula gagal, sila cuba lagi",
+      "copyCode": "Salin kod jemputan",
+      "copySuccess": "Kod jemputan disalin",
+      "copyFailed": "Salin gagal, sila salin secara manual",
+      "filter": {
+        "all": "Semua",
+        "pending": "Menunggu",
+        "approved": "Dihantar",
+        "rejected": "Ditolak",
+        "activated": "Diaktifkan"
+      },
+      "status": {
+        "pending": "Menunggu",
+        "approved": "Dihantar",
+        "rejected": "Ditolak",
+        "activated": "Diaktifkan"
+      },
+      "table": {
+        "name": "Nama",
+        "company": "Syarikat",
+        "role": "Peranan",
+        "email": "E-mel",
+        "useCase": "Kes Penggunaan",
+        "locale": "Bahasa",
+        "createdAt": "Tarikh Permohonan",
+        "invitationCode": "Kod Jemputan",
+        "status": "Status",
+        "actions": "Tindakan"
+      },
+      "pagination": {
+        "previous": "Sebelumnya",
+        "next": "Seterusnya",
+        "page": "Halaman {current} / {total}",
+        "total": "{count} jumlah"
+      }
+    },
+    "scenarioCards": {
+      "title": "Kad Senario",
+      "description": "Urus kad senario pratetap yang dipaparkan di halaman penciptaan tugasan. Pengguna klik untuk memulakan tugasan pencarian segera.",
+      "refresh": "Muat Semula",
+      "loading": "Memuatkan...",
+      "noItems": "Tiada kad senario",
+      "addCard": "Tambah Kad",
+      "editCard": "Sunting Kad",
+      "deleteCard": "Padam",
+      "deleteConfirm": "Adakah anda pasti mahu memadamkan kad ini? Tindakan ini tidak boleh dibatalkan.",
+      "saveSuccess": "Berjaya disimpan",
+      "saveFailed": "Simpan gagal, sila cuba lagi",
+      "deleteSuccess": "Berjaya dipadamkan",
+      "deleteFailed": "Padam gagal, sila cuba lagi",
+      "createSuccess": "Berjaya dicipta",
+      "createFailed": "Cipta gagal, sila cuba lagi",
+      "table": {
+        "caseId": "ID Kes",
+        "contentZh": "Kandungan Cina",
+        "contentEn": "Kandungan Inggeris",
+        "sortOrder": "Susunan",
+        "isActive": "Status",
+        "actions": "Tindakan"
+      },
+      "status": {
+        "active": "Aktif",
+        "inactive": "Tidak Aktif"
+      },
+      "form": {
+        "caseId": "ID Kes",
+        "caseIdPlaceholder": "cth. case_fullstack (tidak boleh diubah selepas dicipta)",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "Susunan (lebih rendah = dahulu)",
+        "isActive": "Aktifkan kad ini",
+        "cancel": "Batal",
+        "save": "Simpan",
+        "create": "Cipta"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "Log Masuk",
+    "signUp": "Daftar",
+    "signOut": "Log Keluar",
+    "signInDescription": "Masukkan e-mel dan kata laluan anda untuk log masuk",
+    "signUpDescription": "Cipta akaun baharu",
+    "email": "E-mel",
+    "password": "Kata Laluan",
+    "confirmPassword": "Sahkan Kata Laluan",
+    "name": "Nama",
+    "signInSuccess": "Berjaya log masuk",
+    "signUpSuccess": "Berjaya mendaftar! Sila semak e-mel anda untuk mengesahkan akaun",
+    "emailVerificationRequired": "Pengesahan e-mel diperlukan",
+    "emailVerificationSent": "E-mel pengesahan dihantar",
+    "emailVerificationMessage": "Kami telah menghantar e-mel pengesahan ke peti masuk anda. Sila klik pautan dalam e-mel untuk mengesahkan akaun anda sebelum log masuk.",
+    "emailVerificationResend": "Hantar semula e-mel pengesahan",
+    "checkYourEmail": "Semak e-mel anda",
+    "emailNotVerified": "E-mel belum disahkan. Sila sahkan e-mel anda terlebih dahulu",
+    "orContinueWith": "atau",
+    "continueWithGitHub": "Teruskan dengan GitHub",
+    "continueWithGoogle": "Teruskan dengan Google",
+    "continueWithMicrosoft": "Teruskan dengan Microsoft",
+    "continueWithApple": "Teruskan dengan Apple",
+    "forgotPassword": "Lupa kata laluan",
+    "forgotPasswordTitle": "Lupa Kata Laluan",
+    "forgotPasswordDescription": "Masukkan alamat e-mel anda dan kami akan menghantar pautan untuk menetapkan semula kata laluan anda",
+    "forgotPasswordConfirmDescription": "Klik \"Teruskan\" untuk menghantar pautan tetapan semula kata laluan ke <emailLink>{email}</emailLink>",
+    "continueButton": "Teruskan",
+    "returnToLogin": "Kembali ke Log Masuk",
+    "resetPasswordTitle": "Tetapkan Semula Kata Laluan",
+    "resetPasswordDescription": "Sila masukkan kata laluan baharu anda",
+    "sendResetLink": "Hantar Pautan Tetapan Semula",
+    "resetPassword": "Tetapkan Semula Kata Laluan",
+    "resetPasswordSuccess": "Kata laluan berjaya ditetapkan semula! Mengalihkan ke log masuk...",
+    "resetPasswordError": "Gagal menetapkan semula kata laluan. Sila cuba lagi",
+    "resetPasswordEmailSent": "E-mel tetapan semula kata laluan dihantar",
+    "resetPasswordEmailError": "Gagal menghantar e-mel tetapan semula kata laluan",
+    "resetPasswordEmailMessage": "Kami telah menghantar pautan tetapan semula kata laluan ke e-mel anda. Sila semak peti masuk anda dan klik pautan untuk menetapkan semula kata laluan anda.",
+    "invalidResetToken": "Token tetapan semula tidak sah",
+    "invalidResetLink": "Pautan Tetapan Semula Tidak Sah atau Tamat Tempoh",
+    "invalidResetLinkMessage": "Pautan tetapan semula kata laluan ini tidak sah atau telah tamat tempoh. Sila mohon tetapan semula kata laluan baharu.",
+    "requestNewLink": "Mohon Pautan Baharu",
+    "backToSignIn": "Kembali ke Log Masuk",
+    "rememberPassword": "Ingat kata laluan anda?",
+    "newPassword": "Kata Laluan Baharu",
+    "confirmNewPassword": "Sahkan Kata Laluan Baharu",
+    "noAccount": "Tiada akaun?",
+    "hasAccount": "Sudah mempunyai akaun?",
+    "passwordMismatch": "Kata laluan tidak sepadan",
+    "agreeToTerms": "Saya bersetuju dengan",
+    "termsOfService": "Syarat Perkhidmatan",
+    "and": "dan",
+    "privacyPolicy": "Dasar Privasi",
+    "settings": "Tetapan",
+    "validation": {
+      "emailInvalid": "Sila masukkan alamat e-mel yang sah",
+      "passwordMinLength": "Kata laluan mesti sekurang-kurangnya 8 aksara",
+      "passwordStrength": "Kata laluan mesti sekurang-kurangnya 8 aksara dan mengandungi huruf, nombor, dan simbol",
+      "nameMinLength": "Nama mesti sekurang-kurangnya 2 aksara",
+      "termsRequired": "Anda mesti bersetuju dengan Syarat Perkhidmatan dan Dasar Privasi",
+      "fieldRequired": "Medan ini diperlukan"
+    },
+    "checkSpamFolder": "Tidak menerima e-mel? Semak folder spam anda",
+    "backToLogin": "Kembali ke Log Masuk",
+    "unifiedTitle": "Log masuk atau Daftar",
+    "unifiedSubtitle": "Bangkitkan Mira anda",
+    "continueTitle": "Teruskan",
+    "emailPlaceholder": "Masukkan alamat e-mel anda",
+    "emailLabel": "E-mel",
+    "editLink": "Sunting",
+    "enterPasswordTitle": "Masukkan kata laluan",
+    "createPasswordTitle": "Cipta kata laluan",
+    "createAccountTitle": "Cipta Akaun",
+    "createAccountDescription": "Tetapkan kata laluan untuk {email}",
+    "editEmail": "Sunting e-mel",
+    "passwordStrengthHint": "Kata laluan mesti sekurang-kurangnya 12 aksara dan mengandungi huruf, nombor, dan simbol",
+    "showPassword": "Tunjukkan kata laluan",
+    "hidePassword": "Sembunyikan kata laluan",
+    "verifyEmailTitle": "Sahkan e-mel anda",
+    "verifyEmailDescription": "Kami menghantar kod pengesahan ke {email}",
+    "enterOtp": "Masukkan kod pengesahan",
+    "otpPlaceholder": "Masukkan kod pengesahan",
+    "resendCode": "Hantar semula kod pengesahan",
+    "resendCodeCountdown": "Dihantar semula. Cuba lagi dalam {seconds}s",
+    "changeEmail": "Tukar alamat e-mel",
+    "otpError": "Kod salah, sila cuba lagi",
+    "otpExpired": "Kod telah tamat tempoh, sila hantar semula",
+    "otpResendSuccess": "Kod pengesahan dihantar",
+    "otpResendFailed": "Gagal menghantar, sila cuba lagi kemudian",
+    "checkSpamFolderHint": "Tidak menerima e-mel? Semak folder spam anda",
+    "verifyEmail": {
+      "title": "Sahkan e-mel anda",
+      "description": "Kami menghantar kod pengesahan ke",
+      "descriptionSuffix": "",
+      "goToEmail": "Buka e-mel",
+      "otpLabel": "Kod pengesahan",
+      "otpPlaceholder": "Masukkan kod pengesahan",
+      "otpInputLabel": "Digit ke-{index}",
+      "verifying": "Mengesahkan...",
+      "resend": "Hantar Semula",
+      "resendCountdown": "{seconds}s",
+      "resendSuccess": "Kod berjaya dihantar semula",
+      "resendFailed": "Gagal menghantar semula, sila cuba lagi",
+      "changeEmail": "Tukar e-mel",
+      "invalidOtp": "Kod tidak sah, sila cuba lagi",
+      "success": "E-mel berjaya disahkan"
+    },
+    "activateVerifyTitle": "Sahkan kod jemputan anda",
+    "activateCurrentEmail": "E-mel semasa ",
+    "activateNoCode": "Tiada kod jemputan?",
+    "activateApplyNow": "Mohon sekarang",
+    "signOutLink": "Log keluar",
+    "waitlistTitle": "Sertai Senarai Menunggu",
+    "waitlistDescription": "Isi maklumat di bawah dan kami akan menghantar kod jemputan eksklusif selepas semakan.",
+    "waitlistName": "Nama",
+    "waitlistCompany": "Syarikat",
+    "waitlistRole": "Peranan / Jawatan",
+    "waitlistUseCase": "Kes Penggunaan",
+    "waitlistSubmit": "Hantar Permohonan",
+    "waitlistSubmitting": "Menghantar...",
+    "waitlistJoined": "Disertai pada {time}",
+    "waitlistLearnMore": "Ketahui lebih lanjut",
+    "joinWaitlist": {
+      "title": "Sertai Senarai Menunggu",
+      "description": "Kami akan menghantar kod jemputan setelah permohonan anda diluluskan.",
+      "descriptionHint": "Menyediakan maklumat yang tepat dan terperinci akan membantu mempercepatkan proses semakan.",
+      "workEmail": "E-mel Kerja",
+      "emailPlaceholder": "nama@syarikat.com",
+      "sendOtp": "Hantar Kod Pengesahan",
+      "resendOtp": "Hantar Semula",
+      "otpCountdown": "{seconds}s",
+      "otpLabel": "Kod Pengesahan",
+      "otpPlaceholder": "Masukkan kod pengesahan",
+      "verifyOtp": "Sahkan",
+      "changeEmail": "Tukar e-mel",
+      "name": "Nama",
+      "namePlaceholder": "Masukkan nama anda",
+      "company": "Syarikat",
+      "companyPlaceholder": "Masukkan nama syarikat anda",
+      "role": "Peranan / Jawatan",
+      "rolePlaceholder": "Masukkan peranan anda",
+      "useCase": "Bagaimana anda bercadang menggunakan Mira",
+      "useCasePlaceholder": "Huraikan kes penggunaan anda",
+      "submit": "Hantar Permohonan",
+      "submitting": "Menghantar...",
+      "cancel": "Batal",
+      "successTitle": "Permohonan Dihantar",
+      "successDescription": "Setelah diluluskan, kami akan menghantar kod jemputan anda ke: ",
+      "backToHome": "Kembali ke Halaman Utama",
+      "otpSent": "Kod pengesahan dihantar",
+      "emailVerified": "Berjaya disahkan!",
+      "errors": {
+        "otpExpired": "Kod pengesahan telah tamat tempoh, sila hantar semula",
+        "otpIncorrect": "Kod salah, sila cuba lagi",
+        "otpLengthRequired": "Sila masukkan kod pengesahan 6 digit",
+        "sendFailed": "Gagal menghantar, sila cuba lagi",
+        "verifyFailed": "Pengesahan gagal, sila cuba lagi",
+        "submitFailed": "Penghantaran gagal, sila cuba lagi",
+        "nameRequired": "Sila masukkan nama anda",
+        "companyRequired": "Sila masukkan nama syarikat anda",
+        "roleRequired": "Sila masukkan peranan anda",
+        "useCaseRequired": "Sila huraikan kes penggunaan anda",
+        "accountAlreadyActivated": "Akaun ini sudah diaktifkan, sila log masuk!",
+        "alreadySubmitted": "E-mel ini sudah dihantar, sila tunggu dengan sabar!",
+        "emailInvalid": "Sila masukkan alamat e-mel yang sah",
+        "emailNotVerified": "Sila sahkan e-mel anda sebelum menghantar",
+        "otpNotVerified": "Sila masukkan dan sahkan kod sebelum menghantar"
+      }
+    },
+    "activate": "Aktifkan",
+    "activateAccount": "Aktifkan Akaun",
+    "activateTitle": "Aktifkan Akaun Anda",
+    "activateDescription": "Sila masukkan kod jemputan anda untuk terus menggunakan Mira",
+    "yourActivationCode": "Kod jemputan anda ialah:",
+    "activationCode": "Kod Jemputan",
+    "enterActivationCode": "Masukkan kod jemputan",
+    "activationCodePlaceholder": "Masukkan kod jemputan anda",
+    "activating": "Mengaktifkan...",
+    "activationSuccess": "Akaun berjaya diaktifkan!",
+    "activationSuccessDescription": "Mengalihkan ke halaman utama...",
+    "activationCodeRequired": "Sila masukkan kod jemputan",
+    "activationCodeTooShort": "Kod jemputan terlalu pendek",
+    "activationCodeIncorrect": "Kod jemputan tidak sah, sila cuba lagi",
+    "invalidInvitationCode": "Kod jemputan tidak sah",
+    "activationContactAdmin": "Jika anda tidak menerima kod jemputan, sila hubungi pentadbir",
+    "accountActivated": "Akaun diaktifkan",
+    "accountNotActivated": "Akaun belum diaktifkan. Sila aktifkan akaun anda terlebih dahulu",
+    "errors": {
+      "emailAlreadyRegistered": "E-mel ini sudah didaftarkan. Sila gunakan e-mel lain atau log masuk terus",
+      "invalidEmailOrPassword": "E-mel atau kata laluan tidak sah. Sila semak dan cuba lagi",
+      "emailNotVerified": "E-mel belum disahkan. Sila sahkan e-mel anda terlebih dahulu",
+      "passwordTooShort": "Kata laluan terlalu pendek. Sila gunakan kata laluan yang lebih panjang",
+      "passwordTooLong": "Kata laluan terlalu panjang. Sila gunakan kata laluan yang lebih pendek",
+      "passwordAlreadySet": "Akaun ini sudah mempunyai kata laluan yang ditetapkan",
+      "invalidEmail": "Format e-mel tidak sah",
+      "emailAlreadyVerified": "E-mel sudah disahkan",
+      "emailMismatch": "E-mel tidak sepadan",
+      "sessionExpired": "Sesi telah tamat tempoh. Sila log masuk semula",
+      "sessionNotFresh": "Sesi telah tamat tempoh. Sila sahkan semula identiti anda",
+      "invalidOrExpiredToken": "Token tidak sah atau telah tamat tempoh",
+      "accountAlreadyLinked": "Akaun ini sudah dipautkan",
+      "cannotUnlinkLastAccount": "Tidak dapat menyahpaut akaun terakhir anda",
+      "accountNotFound": "Akaun tidak ditemui",
+      "rateLimitExceeded": "Terlalu banyak percubaan. Sila cuba lagi kemudian",
+      "securityError": "Pengesahan keselamatan gagal. Sila cuba lagi",
+      "validationError": "Pengesahan input gagal. Sila semak maklumat anda",
+      "serverError": "Ralat pelayan. Sila cuba lagi kemudian",
+      "providerError": "Ralat perkhidmatan log masuk pihak ketiga",
+      "invalidInput": "Input tidak sah. Sila semak dan cuba lagi",
+      "unauthorized": "Tidak dibenarkan. Sila log masuk terlebih dahulu",
+      "forbidden": "Kebenaran tidak mencukupi",
+      "notFound": "Sumber tidak ditemui",
+      "unprocessableEntity": "Permintaan tidak dapat diproses",
+      "unknown": "Ralat tidak diketahui. Sila cuba lagi kemudian"
+    }
+  },
+  "workspace": {
+    "title": "Ruang Kerja Mira",
+    "backToLiveView": "Kembali ke Paparan Langsung",
+    "selectTool": "Pilih alat untuk melihat butiran",
+    "noToolsEnabled": "Tiada alat didayakan",
+    "usingTool": "Mira sedang menggunakan",
+    "processing": "Memproses",
+    "completed": "Selesai",
+    "failed": "Gagal",
+    "realTime": "langsung",
+    "goToStart": "Pergi ke permulaan",
+    "previous": "Sebelumnya",
+    "next": "Seterusnya"
+  },
+  "search": {
+    "aiSummary": "Ringkasan AI",
+    "noResults": "Tiada hasil carian"
+  },
+  "toolStatus": {
+    "processing": "Memproses...",
+    "searching": "Mencari...",
+    "crawling": "Merangkak...",
+    "mapping": "Memetakan...",
+    "extracting": "Mengekstrak...",
+    "items": "item",
+    "suggestions": "cadangan",
+    "screenshotComplete": "Tangkapan Skrin Selesai",
+    "operationFailed": "Operasi Gagal",
+    "crawlFailed": "Rangkakan Gagal",
+    "extractFailed": "Pengekstrakan Gagal",
+    "mapFailed": "Pemetaan Gagal",
+    "searchFailed": "Carian Gagal",
+    "pages": "halaman",
+    "links": "pautan",
+    "results": "keputusan",
+    "fullPage": "Halaman Penuh",
+    "visibleArea": "Kawasan Boleh Lihat",
+    "clickToView": "Klik untuk Lihat",
+    "unknownQuery": "Pertanyaan Tidak Diketahui",
+    "processingUrls": "Memproses {count} URL...",
+    "websiteCrawl": "Rangkakan Laman Web",
+    "contentExtract": "Pengekstrakan Kandungan",
+    "websiteMap": "Peta Laman Web"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "Permintaan Pengesahan",
+      "description": "Minta pengesahan pengguna untuk tindakan"
+    },
+    "clarifyQuestion": {
+      "name": "Soalan Penjelasan",
+      "description": "Minta maklumat lanjut daripada pengguna"
+    },
+    "maps_weather": {
+      "name": "Pertanyaan Cuaca",
+      "description": "Pertanyaan cuaca bandar"
+    },
+    "exa_search": {
+      "name": "Carian Web",
+      "description": "Lakukan carian semantik neural menggunakan Exa AI, mengembalikan hasil yang relevan dan berkualiti tinggi"
+    },
+    "exa_company_search": {
+      "name": "Carian Syarikat",
+      "description": "Cari syarikat, organisasi dan perniagaan, dioptimumkan untuk penyelidikan pasaran dan pembangunan perniagaan",
+      "action": "Mencari syarikat"
+    },
+    "exa_people_search": {
+      "name": "Carian Individu",
+      "description": "Cari profesional, calon dan profil LinkedIn, dioptimumkan untuk pengambilan pekerja dan pencarian bakat",
+      "action": "Mencari individu"
+    },
+    "generate_people_data": {
+      "name": "Penjanaan Data Individu",
+      "description": "Susun hasil carian individu ke dalam fail data yang boleh dimuat turun",
+      "action": "Menjana data individu"
+    },
+    "export_data": {
+      "name": "Eksport Data",
+      "description": "Data Dieksport",
+      "action": "Mengeksport data"
+    },
+    "sb_file_create": {
+      "name": "Cipta Fail",
+      "description": "Cipta fail baharu dalam kotak pasir",
+      "action": "Mencipta fail"
+    },
+    "sb_file_rewrite": {
+      "name": "Tulis Semula Fail",
+      "description": "Tulis semula kandungan fail sepenuhnya",
+      "action": "Menulis semula fail"
+    },
+    "sb_file_delete": {
+      "name": "Padam Fail",
+      "description": "Padam fail yang ditentukan",
+      "action": "Memadamkan fail"
+    },
+    "sb_file_edit": {
+      "name": "Sunting Fail",
+      "description": "Sunting fail dengan bantuan AI",
+      "action": "Menyunting fail"
+    },
+    "sb_docx_create": {
+      "name": "Cipta Dokumen Word",
+      "description": "Cipta dokumen Word (format .docx) dalam kotak pasir",
+      "action": "Mencipta dokumen Word"
+    },
+    "sb_pptx_create": {
+      "name": "Cipta Pembentangan PowerPoint",
+      "description": "Cipta pembentangan PowerPoint (format .pptx) dalam kotak pasir",
+      "action": "Mencipta pembentangan PowerPoint"
+    },
+    "sb_xlsx_create": {
+      "name": "Cipta Hamparan Excel",
+      "description": "Cipta hamparan Excel (format .xlsx) dalam kotak pasir",
+      "action": "Mencipta hamparan Excel"
+    },
+    "sb_pdf_create": {
+      "name": "Cipta Dokumen PDF",
+      "description": "Cipta dokumen PDF (format .pdf) dalam kotak pasir",
+      "action": "Mencipta dokumen PDF"
+    },
+    "sb_image_create": {
+      "name": "Cipta Imej",
+      "description": "Cipta imej dalam kotak pasir (PNG, JPG, SVG, dll.)",
+      "action": "Mencipta imej"
+    },
+    "sb_command_execute": {
+      "name": "Jalankan Arahan",
+      "description": "Jalankan arahan Shell dalam kotak pasir",
+      "action": "Menjalankan arahan"
+    },
+    "sb_command_logs_get": {
+      "name": "Semak Output",
+      "description": "Semak output pelaksanaan arahan"
+    },
+    "sb_command_terminate": {
+      "name": "Tamatkan Arahan",
+      "description": "Tamatkan arahan yang sedang berjalan",
+      "action": "Menamatkan arahan"
+    },
+    "sb_command_running_list": {
+      "name": "Senarai Sesi",
+      "description": "Senarai semua sesi tmux yang aktif"
+    },
+    "reflect_tool": {
+      "name": "Refleksi",
+      "description": "Perancangan penyelidikan dan refleksi strategi"
+    },
+    "browserNavigate": {
+      "name": "Navigasi Pelayar",
+      "description": "Navigasi ke halaman web yang ditentukan"
+    },
+    "browserAct": {
+      "name": "Tindakan Halaman",
+      "description": "Jalankan interaksi halaman"
+    },
+    "browserExtract": {
+      "name": "Pengekstrakan Data",
+      "description": "Ekstrak data berstruktur daripada halaman"
+    },
+    "browserObserve": {
+      "name": "Tindakan Pemerhatian",
+      "description": "Pratonton tindakan tanpa melaksanakan"
+    },
+    "browserScreenshot": {
+      "name": "Tangkapan Skrin Halaman",
+      "description": "Tangkap halaman semasa"
+    },
+    "browserGetContent": {
+      "name": "Dapatkan Kandungan",
+      "description": "Dapatkan kandungan halaman"
+    },
+    "browserWait": {
+      "name": "Tunggu",
+      "description": "Tunggu syarat yang ditentukan"
+    },
+    "browserAgentTask": {
+      "name": "Tugasan Pintar",
+      "description": "Jalankan tugasan berbilang langkah yang kompleks"
+    },
+    "browserClose": {
+      "name": "Tutup Pelayar",
+      "description": "Tutup sesi pelayar"
+    },
+    "browserStatus": {
+      "name": "Status Pelayar",
+      "description": "Lihat status pelayar"
+    },
+    "complete": {
+      "name": "Hantar Fail",
+      "description": "Hantar fail kepada pengguna",
+      "createdTime": "Dicipta: ",
+      "downloadFile": "Muat turun fail",
+      "deliveryFailed": "Penghantaran gagal",
+      "previewNotImplemented": "Pratonton fail belum dilaksanakan",
+      "download": "Muat Turun",
+      "preview": "Pratonton",
+      "previewMetadataLoading": "Maklumat fail sedang dimuatkan, sila cuba sebentar lagi",
+      "completed": "Tugasan selesai",
+      "downloadSuccess": "Fail berjaya dimuat turun",
+      "downloadFailed": "Gagal memuat turun fail, sila cuba lagi",
+      "fileType": "Fail",
+      "text": "Teks",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "Imej",
+      "peopleData": "Data Individu"
+    },
+    "code_interpreter": {
+      "name": "Jalankan Kod",
+      "description": "Jalankan kod Python dalam persekitaran kotak pasir",
+      "action": "Menjalankan kod",
+      "pre_action": "Menulis kod"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "Menjana soalan penjelasan...",
+      "defaultTitle": "Maklumat lanjut diperlukan",
+      "submit": "Hantar",
+      "skip": "Langkau (guna lalai)",
+      "skipHint": "Melangkau akan meneruskan dengan pilihan lalai yang disyorkan",
+      "submitted": "Dihantar",
+      "loadFailed": "Gagal memuatkan borang",
+      "loadFailedDescription": "Maaf, terdapat masalah menjana borang soalan. Sila cuba lagi.",
+      "skipped": "Dilangkau",
+      "aborted": "Berhenti menjana soalan penjelasan"
+    },
+    "askForConfirmation": {
+      "loading": "Memuatkan permintaan pengesahan...",
+      "needConfirmation": "Pengesahan diperlukan",
+      "confirm": "Ya",
+      "deny": "Tidak",
+      "confirmed": "Disahkan",
+      "denied": "Ditolak",
+      "failed": "Permintaan pengesahan gagal",
+      "skipped": "Dilangkau",
+      "aborted": "Berhenti menjana permintaan pengesahan"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "Cipta Fail",
+      "rewriteFile": "Tulis Semula Fail",
+      "deleteFile": "Padam Fail",
+      "editFile": "Sunting Fail",
+      "fileOperation": "Operasi Fail",
+      "executing": "Melaksanakan...",
+      "executionError": "Ralat Pelaksanaan",
+      "success": "Berjaya",
+      "failed": "Gagal"
+    },
+    "shell": {
+      "executeCommand": "Jalankan Arahan",
+      "checkOutput": "Semak Output",
+      "terminateCommand": "Tamatkan Arahan",
+      "listSessions": "Senarai Sesi",
+      "shellCommand": "Arahan Shell",
+      "executionError": "Ralat Pelaksanaan",
+      "executing": "Melaksanakan...",
+      "sending": "Menghantar...",
+      "completed": "Selesai",
+      "sent": "Dihantar",
+      "failed": "Gagal",
+      "sessions": "sesi"
+    },
+    "parallelResearch": {
+      "deepResearch": "Penyelidikan Mendalam",
+      "researchReport": "Laporan Penyelidikan",
+      "researchFailed": "Penyelidikan Gagal",
+      "researching": "Menyelidik...",
+      "completed": "Selesai",
+      "executeResearch": "Jalankan Penyelidikan",
+      "characters": "aksara",
+      "citations": "petikan"
+    },
+    "reflect": {
+      "reflecting": "Refleksi",
+      "reflectingText": "Merefleks...",
+      "completed": "Selesai"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "Berjaya",
+      "failed": "Gagal",
+      "inputParams": "Parameter Input",
+      "executionResult": "Hasil Pelaksanaan",
+      "error": "Ralat",
+      "waiting": "Menunggu pelaksanaan...",
+      "noOutput": "Tiada data output",
+      "noResults": "Tiada keputusan",
+      "noCrawlResults": "Tiada hasil rangkakan",
+      "noExtractResults": "Tiada hasil pengekstrakan",
+      "noMapResults": "Tiada hasil pemetaan",
+      "noReflection": "Tiada kandungan refleksi",
+      "waitingTask": "Menunggu tugasan bermula...",
+      "title": "Tajuk",
+      "url": "URL",
+      "session": "Sesi",
+      "activeSessions": "Sesi Aktif",
+      "output": "Output",
+      "parameters": "Parameter",
+      "executeCommand": "Jalankan Arahan",
+      "updatedContent": "Kandungan Dikemas Kini",
+      "editInstructions": "Arahan Suntingan:",
+      "extractedData": "Data Diekstrak:",
+      "suggestions": "cadangan:",
+      "screenshot": "Tangkapan Skrin",
+      "fullPage": "Halaman Penuh",
+      "visibleArea": "Kawasan Boleh Lihat",
+      "pageContent": "Kandungan Halaman",
+      "characters": "aksara",
+      "taskResult": "Hasil Tugasan:",
+      "initializationStatus": "Status Permulaan:",
+      "initialized": "Dimulakan",
+      "notInitialized": "Belum Dimulakan",
+      "viewBrowserSession": "Lihat Sesi Pelayar",
+      "clickToViewFullImage": "Klik untuk lihat imej penuh",
+      "screenshotFullSize": "Tangkapan Skrin (Halaman Penuh)",
+      "screenshotVisible": "Tangkapan Skrin (Kawasan Boleh Lihat)",
+      "pageCount": "Halaman:",
+      "timeTaken": "Masa:",
+      "linkCount": "Pautan:",
+      "extractFailed": "Pengekstrakan Gagal:",
+      "charactersCount": "aksara"
+    },
+    "browser": {
+      "browserNavigation": "Navigasi Pelayar",
+      "pageAction": "Tindakan Halaman",
+      "dataExtract": "Pengekstrakan Data",
+      "observeAction": "Tindakan Pemerhatian",
+      "pageScreenshot": "Tangkapan Skrin Halaman",
+      "getContent": "Dapatkan Kandungan",
+      "wait": "Tunggu",
+      "smartTask": "Tugasan Pintar",
+      "closeBrowser": "Tutup Pelayar",
+      "browserStatus": "Status Pelayar",
+      "browserOperation": "Operasi Pelayar",
+      "executingBrowserOperation": "Melaksanakan operasi pelayar..."
+    },
+    "files": {
+      "createFile": "Cipta Fail",
+      "rewriteFile": "Tulis Semula Fail",
+      "deleteFile": "Padam Fail",
+      "editFile": "Sunting Fail",
+      "fileOperation": "Operasi Fail",
+      "createDocx": "Cipta Dokumen Word",
+      "createPptx": "Cipta Pembentangan PowerPoint",
+      "createXlsx": "Cipta Hamparan Excel",
+      "createPdf": "Cipta Dokumen PDF",
+      "createImage": "Cipta Imej",
+      "generatePeopleData": "Jana Data Individu",
+      "documentContent": "Kandungan Dokumen"
+    },
+    "shell": {
+      "executeCommand": "Jalankan Arahan",
+      "checkOutput": "Semak Output",
+      "terminateCommand": "Tamatkan Arahan",
+      "listSessions": "Senarai Sesi",
+      "shellCommand": "Arahan Shell"
+    },
+    "codeInterpreter": {
+      "description": "Penerangan",
+      "pythonCode": "Kod Python",
+      "envVariables": "Pemboleh Ubah Persekitaran",
+      "timeout": "Tamat Masa",
+      "seconds": "saat",
+      "stdout": "Output Piawai",
+      "stderr": "Ralat Piawai",
+      "executing": "Melaksanakan kod..."
+    },
+    "parallelResearch": {
+      "researchQuery": "Pertanyaan Penyelidikan",
+      "reportGuidance": "Panduan Laporan:",
+      "executingDeepResearch": "Melaksanakan penyelidikan mendalam...",
+      "mayTakeMinutes": "Ini mungkin mengambil masa 5-45 minit bergantung pada kerumitan penyelidikan",
+      "researchExecutionFailed": "Pelaksanaan penyelidikan gagal",
+      "citations": "Petikan",
+      "characters": "Aksara",
+      "completionTime": "Masa Siap",
+      "structuredDataOutput": "Output Data Berstruktur",
+      "noResearchData": "Tiada data penyelidikan"
+    },
+    "reflect": {
+      "reflection": "Refleksi",
+      "researchPlanning": "Perancangan dan Refleksi Penyelidikan AI",
+      "reflectionNotes": "Nota Refleksi",
+      "noReflection": "Tiada kandungan refleksi"
+    },
+    "generateReport": {
+      "reportConfig": "Konfigurasi Laporan",
+      "viewDetailedConfig": "Lihat Konfigurasi Terperinci",
+      "topic": "Topik",
+      "focusAreas": "Bidang Fokus",
+      "researchData": "Data Penyelidikan",
+      "generatingReport": "Menjana Laporan",
+      "reportGenerated": "Laporan Dijana",
+      "analyzingData": "Menganalisis data dan menjana laporan...",
+      "reportContent": "Kandungan Laporan",
+      "generating": "Menjana...",
+      "reportGenerationComplete": "Penjanaan Laporan Selesai",
+      "generationFailed": "Penjanaan Gagal",
+      "reportGenerationError": "Ralat berlaku semasa penjanaan laporan",
+      "comparisonAnalysis": "Analisis Perbandingan",
+      "listDirectory": "Senarai Direktori",
+      "topicOverview": "Gambaran Keseluruhan Topik",
+      "directAnswer": "Jawapan Langsung"
+    },
+    "peopleData": {
+      "organizing": "Menjana Data Individu...",
+      "exportSuccess": "Penjanaan Data Individu selesai",
+      "exportFailed": "Penjanaan Data Individu gagal",
+      "totalCount": "Jumlah: {count} orang",
+      "noData": "Tiada Data Individu tersedia"
+    }
+  },
+  "canvas": {
+    "selectFile": "Pilih fail untuk pratonton",
+    "loading": "Memuatkan fail...",
+    "loadingDefault": "Memuatkan...",
+    "unsupportedFormat": "Format fail tidak disokong",
+    "downloadFile": "Muat turun fail",
+    "maximize": "Besarkan",
+    "restore": "Pulihkan",
+    "close": "Tutup",
+    "fileTypes": {
+      "text": "Fail teks",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "Imej",
+      "pdf": "Dokumen PDF",
+      "word": "Dokumen Word",
+      "excel": "Hamparan Excel",
+      "ppt": "Pembentangan",
+      "people-data": "Data Individu",
+      "unsupported": "Format tidak disokong"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "Tidak Diketahui",
+        "notSupported": "Format ini tidak disokong untuk pratonton. Sila muat turun untuk melihatnya.",
+        "downloadButton": "Muat turun fail",
+        "tip": "Petua: Muat turun dan buka dengan aplikasi yang sesuai"
+      },
+      "word": {
+        "converting": "Menukar dokumen...",
+        "convertingDoc": "Menukar fail .doc...",
+        "loading": "Memuatkan...",
+        "convertFailed": "Pemuatan fail gagal. Sila semak jika fail rosak dan cuba buka semula."
+      },
+      "excel": {
+        "converting": "Menukar format lama...",
+        "parsing": "Mengurai hamparan...",
+        "loading": "Memuatkan...",
+        "parseFailed": "Penguraian hamparan gagal, sila muat turun dan lihat",
+        "emptyTable": "Jadual kosong"
+      },
+      "ppt": {
+        "notSupported": "Pembentangan {format} tidak disokong untuk pratonton dalam talian",
+        "downloadButton": "Muat turun fail",
+        "tip": "Petua: Muat turun dan buka dengan {format} atau perisian yang serasi untuk melihat kandungan penuh"
+      },
+      "peopleData": {
+        "parsing": "Mengurai data individu...",
+        "loading": "Memuatkan...",
+        "parseFailed": "Gagal mengurai data individu, sila semak format data",
+        "noData": "Tiada data individu tersedia",
+        "csvHeaders": [
+          "Nama",
+          "Lokasi",
+          "Syarikat Semasa",
+          "Jawatan Semasa",
+          "Tahun Pengalaman",
+          "Sejarah Kerja Terkini",
+          "Pendidikan",
+          "Ringkasan AI",
+          "E-mel",
+          "Telefon",
+          "Data Dikemas Kini",
+          "URL Butiran"
+        ],
+        "workExperience": "Pengalaman Kerja",
+        "recentWorkExperience": "Pengalaman Kerja Terkini",
+        "noWorkExperience": "Tiada pengalaman kerja",
+        "present": "Kini",
+        "more": "lagi",
+        "linkedinProfile": "Profil LinkedIn",
+        "viewDetails": "Lihat butiran"
+      },
+      "html": {
+        "loading": "Memuatkan...",
+        "securityWarning": "Kandungan HTML ini dijalankan dalam persekitaran kotak pasir untuk keselamatan",
+        "emptyHtml": "Kandungan HTML kosong"
+      },
+      "json": {
+        "loading": "Memuatkan...",
+        "parseFailed": "Gagal mengurai JSON, sila semak format data",
+        "emptyJson": "Kandungan JSON kosong",
+        "validJson": "JSON Sah",
+        "characters": "aksara",
+        "copy": "Salin",
+        "copied": "Disalin",
+        "rawContent": "Kandungan Mentah:"
+      },
+      "image": {
+        "loading": "Memuatkan...",
+        "reset": "Tetapkan Semula"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "Menunggu",
+      "running": "Berjalan",
+      "paused": "Dijeda",
+      "completed": "Selesai",
+      "failed": "Gagal",
+      "cancelled": "Cancelled",
+      "waiting_for_user": "Menunggu pengguna"
+    },
+    "maximize": "Besarkan",
+    "expandWorkspace": "Kembangkan ruang kerja",
+    "restore": "Pulihkan",
+    "durationRunning": "Berjalan selama",
+    "durationCompleted": "Tempoh",
+    "taskProgress": "Kemajuan tugasan",
+    "expandTaskList": "Kembangkan senarai tugasan",
+    "collapseTaskList": "Kuncupkan senarai tugasan"
+  }
+}

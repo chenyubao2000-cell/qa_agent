@@ -1,0 +1,1212 @@
+{
+  "common": {
+    "welcome": "Chào mừng",
+    "logout": "Đăng xuất",
+    "settings": "Cài đặt",
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "language": "Ngôn ngữ"
+  },
+  "email": {
+    "verification": {
+      "subject": "Xác minh email của bạn - {appName}",
+      "title": "Xác minh email của bạn",
+      "heading": "Xác minh địa chỉ email của bạn",
+      "body": "Cảm ơn bạn đã đăng ký {appName}! Để bảo mật tài khoản, chúng tôi cần xác minh email của bạn. Vui lòng nhấn nút bên dưới để xác minh:",
+      "button": "Xác minh email",
+      "linkHint": "Hoặc sao chép và dán liên kết này vào trình duyệt của bạn:",
+      "ignoreHint": "Nếu bạn không đăng ký {appName}, vui lòng bỏ qua email này.",
+      "footer": "© {year} {appName}. Bảo lưu mọi quyền."
+    },
+    "resetPassword": {
+      "subject": "Đặt lại mật khẩu - {appName}",
+      "title": "Đặt lại mật khẩu",
+      "heading": "Đặt lại mật khẩu của bạn",
+      "body": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu của bạn. Vui lòng nhấn nút bên dưới để thiết lập mật khẩu mới:",
+      "button": "Đặt lại mật khẩu",
+      "linkHint": "Nếu nút không hoạt động, hãy sao chép và dán liên kết này vào trình duyệt của bạn:",
+      "ignoreHint": "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này. Mật khẩu của bạn sẽ không thay đổi."
+    },
+    "otp": {
+      "subject": "Mã xác minh của bạn đã được gửi, vui lòng kiểm tra",
+      "title": "Mã xác minh email",
+      "greeting": "Xin chào,",
+      "body": "Bạn đang xác minh email tài khoản Mira. Vui lòng sử dụng mã xác minh sau:",
+      "expireHint": "Mã này có hiệu lực trong 10 phút. Không chia sẻ với bất kỳ ai.",
+      "ignoreHint": "Nếu bạn không đăng ký Mira, vui lòng bỏ qua email này.",
+      "footer": "© {year} {appName}. Bảo lưu mọi quyền."
+    },
+    "waitlistOtp": {
+      "subject": "Mã xác minh của bạn - Danh sách chờ {appName}",
+      "title": "Mã xác minh email",
+      "greeting": "Xin chào,",
+      "body": "Bạn đang đăng ký tham gia danh sách chờ {appName}. Vui lòng sử dụng mã sau để xác minh email công việc của bạn:",
+      "expireHint": "Mã này có hiệu lực trong 10 phút. Không chia sẻ với bất kỳ ai.",
+      "ignoreHint": "Nếu bạn không đăng ký tham gia danh sách chờ {appName}, vui lòng bỏ qua email này.",
+      "footer": "© {year} {appName}. Bảo lưu mọi quyền."
+    },
+    "invitation": {
+      "subject": "Mã mời {appName} của bạn",
+      "title": "Mã mời Mira của bạn đã sẵn sàng",
+      "greeting": "Xin chào {name},",
+      "body": "Cảm ơn bạn đã đăng ký truy cập sớm Mira! Đơn đăng ký của bạn đã được phê duyệt. Sử dụng mã mời bên dưới để bắt đầu:",
+      "activateButton": "Kích hoạt ngay",
+      "ignoreHint": "Nếu bạn không đăng ký truy cập sớm Mira, vui lòng bỏ qua email này.",
+      "footer": "© 2025 {appName}. Bảo lưu mọi quyền."
+    }
+  },
+  "files": {
+    "types": {
+      "text": "Văn bản",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "Hình ảnh",
+      "peopleData": "Dữ liệu nhân sự"
+    }
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "overview": "Tổng quan",
+    "statistics": "Thống kê",
+    "welcome": "Tôi có thể giúp gì cho bạn?",
+    "tryScenarios": "Thử các tình huống này"
+  },
+  "chatbot": {
+    "sendMessage": "Gửi tin nhắn",
+    "placeholder": "Vui lòng nhập...",
+    "addAttachments": "Thêm ảnh hoặc tệp",
+    "uploadLocalFile": "Tải tệp từ máy",
+    "uploadError": "Tải tệp thất bại",
+    "uploadErrorMaxFiles": "Đã vượt quá số lượng tệp tối đa",
+    "uploadErrorMaxFileSize": "Kích thước tệp vượt quá giới hạn",
+    "uploadErrorAccept": "Định dạng tệp không được hỗ trợ",
+    "uploadErrorAcceptPartial": "Đã bỏ qua {count} tệp có định dạng không được hỗ trợ",
+    "uploadErrorMaxFileSizePartial": "Đã bỏ qua {count} tệp vượt quá giới hạn kích thước",
+    "uploadErrorUpload": "Tải tệp thất bại, vui lòng thử lại",
+    "typing": "Đang nhập...",
+    "thinking": "Đang suy nghĩ...",
+    "aborted": "Mira đã dừng. Gửi tin nhắn mới để tiếp tục",
+    "waitingForUser": "Mira sẽ tiếp tục sau phản hồi của bạn",
+    "completed": "Tác vụ hoàn thành",
+    "retry": "Thử lại",
+    "copy": "Sao chép",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm kiếm tác vụ...",
+    "newChat": "Tác vụ mới",
+    "taskList": "Tác vụ",
+    "taskListDescription": "Quản lý và xem tất cả tác vụ",
+    "taskId": "Mã tác vụ",
+    "confirmDelete": "Xác nhận xóa tác vụ",
+    "deleteWarning": "Hành động này không thể hoàn tác. Tác vụ và tất cả tin nhắn sẽ bị xóa vĩnh viễn.",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "rename": "Đổi tên",
+    "renameTask": "Đổi tên tác vụ",
+    "editTitle": "Chỉnh sửa tiêu đề",
+    "enterTaskName": "Nhập tên tác vụ",
+    "newTaskName": "Tên tác vụ mới",
+    "taskName": "Tên tác vụ",
+    "save": "Lưu",
+    "moreActions": "Thêm hành động",
+    "taskDetails": "Chi tiết tác vụ",
+    "taskTitle": "Tiêu đề tác vụ",
+    "creditsConsumed": "Tín dụng đã sử dụng",
+    "createdTime": "Thời gian tạo",
+    "history": "Lịch sử tác vụ",
+    "noHistory": "Chưa có tác vụ nào",
+    "noSearchResults": "Không tìm thấy tác vụ phù hợp",
+    "deleteChat": "Xóa tác vụ",
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "thisWeek": "Tuần này",
+    "last7Days": "7 ngày qua",
+    "last30Days": "30 ngày qua",
+    "older": "Cũ hơn",
+    "tasks": "Tác vụ",
+    "projects": "Dự án",
+    "library": "Thư viện",
+    "chatNotFound": "Không tìm thấy cuộc trò chuyện",
+    "chatNotFoundDescription": "Xin lỗi, tác vụ bạn đang tìm không tồn tại hoặc đã bị xóa.",
+    "noPermission": "Truy cập bị từ chối",
+    "noPermissionDescription": "Xin lỗi, bạn không có quyền truy cập tác vụ này.",
+    "share": "Chia sẻ",
+    "shareChat": "Chia sẻ cuộc trò chuyện",
+    "shareChatDescription": "Chia sẻ cuộc trò chuyện này với người khác qua liên kết",
+    "shareLink": "Liên kết chia sẻ",
+    "copyLink": "Sao chép liên kết",
+    "copied": "Đã sao chép",
+    "createShareLink": "Tạo liên kết chia sẻ",
+    "creating": "Đang tạo...",
+    "removeShare": "Xóa chia sẻ",
+    "removing": "Đang xóa...",
+    "shareDescription": "Bất kỳ ai có liên kết này đều có thể xem cuộc trò chuyện",
+    "createShareDescription": "Tạo liên kết chia sẻ để người khác có thể xem cuộc trò chuyện này",
+    "close": "Đóng",
+    "emptyStateTitle": "Chưa có tin nhắn",
+    "emptyStateDescription": "Bắt đầu cuộc trò chuyện để xem tin nhắn tại đây",
+    "errors": {
+      "renameUnauthorized": "Bạn không có quyền đổi tên tác vụ này",
+      "renameChatNotFound": "Không tìm thấy tác vụ hoặc đã bị xóa",
+      "renameTitleTooLong": "Tên tác vụ quá dài, tối đa {maxLength} ký tự",
+      "renameTitleEmpty": "Tên tác vụ không được để trống",
+      "renameFailed": "Đổi tên tác vụ thất bại, vui lòng thử lại sau",
+      "updateFailed": "Cập nhật thất bại, vui lòng thử lại sau"
+    }
+  },
+  "share": {
+    "notFound": "Không tìm thấy cuộc trò chuyện",
+    "notFoundDescription": "Xin lỗi, cuộc trò chuyện bạn đang tìm không tồn tại hoặc đã bị xóa.",
+    "invalidLink": "Liên kết không hợp lệ",
+    "invalidLinkDescription": "Xin lỗi, liên kết chia sẻ này không hợp lệ hoặc đã hết hạn.",
+    "backToHome": "Quay lại trang chủ"
+  },
+  "homepage": {
+    "nav": {
+      "features": "Tính năng",
+      "getStarted": "Tham gia danh sách chờ",
+      "signIn": "Đăng nhập",
+      "goToHomepage": "Về trang chủ"
+    },
+    "hero": {
+      "title": "Phần mở rộng của bạn",
+      "subtitle1": "Bắt đầu với Tuyển dụng.",
+      "subtitle2": "Và còn nhiều hơn nữa.",
+      "description": "Mira không chỉ là một trợ lý AI. Đó là bản sao kỹ thuật số của bạn.",
+      "getStarted": "Tham gia danh sách chờ"
+    },
+    "features": {
+      "label": "Tính năng",
+      "core": "Cốt lõi",
+      "recruiting": "Tuyển dụng",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "Làm việc cùng bạn, không phải thay bạn",
+          "desc1": "Mira thực hiện tác vụ tự động và cộng tác với bạn khi cần đưa ra quyết định.",
+          "desc2": "Chung lịch trình, chung bối cảnh."
+        },
+        "trainedByYou": {
+          "title": "Được bạn đào tạo — Hoặc tự học từ bạn",
+          "desc1": "Xác định kỹ năng và đào tạo Mira một cách rõ ràng,",
+          "desc2": "hoặc để Mira tự học từ quy trình và hành vi thực tế của bạn theo thời gian."
+        },
+        "topTierModels": {
+          "title": "Xây dựng trên các mô hình hàng đầu, được thiết kế cho thực tế",
+          "desc1": "Được hỗ trợ bởi các mô hình tiên tiến nhất, kỹ thuật cấp sản phẩm",
+          "desc2": "và được hướng dẫn bởi các chuyên gia lĩnh vực thực thụ."
+        },
+        "integratedTools": {
+          "title": "Tích hợp vào các công cụ hiện có của bạn",
+          "desc1": "Hoạt động liền mạch với các công cụ bạn đang sử dụng — Airtable, Slack, Gmail,",
+          "desc2": "OneDrive và nhiều hơn nữa."
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "Dữ liệu ứng viên",
+          "desc1": "Tổng hợp dữ liệu ứng viên có cấu trúc và phi cấu trúc từ nhiều nguồn.",
+          "desc2": "Mở rộng phạm vi với Tiện ích Chrome của Mira khi cần thêm thông tin từ web."
+        },
+        "communication": {
+          "title": "Liên lạc & Theo dõi",
+          "desc1": "Hỗ trợ cuộc gọi và email đi.",
+          "desc2": "Tất cả bản ghi liên lạc được tự động liên kết với ứng viên tương ứng."
+        },
+        "recruitingSkills": {
+          "title": "Kỹ năng tuyển dụng",
+          "desc1": "Kỹ năng tuyển dụng tích hợp sẵn được thiết kế để làm rõ vai trò, đánh giá ứng viên,",
+          "desc2": "và hỗ trợ quyết định tuyển dụng."
+        },
+        "securityTrust": {
+          "title": "Bảo mật & Tin cậy",
+          "desc1": "Được thiết kế cho doanh nghiệp.",
+          "desc2": "Tuân thủ GDPR và các yêu cầu bảo vệ dữ liệu khác, với tùy chọn Không lưu trữ dữ liệu (ZDR)."
+        }
+      }
+    },
+    "cta": {
+      "title": "Yêu cầu truy cập sớm",
+      "description": "Mira hiện đang trong giai đoạn beta riêng tư.",
+      "button": "Tham gia danh sách chờ"
+    }
+  },
+  "Layout": {
+    "signOut": "Đăng xuất",
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "light": "Sáng",
+    "dark": "Tối",
+    "system": "Hệ thống",
+    "mockUserName": "Người dùng thử nghiệm"
+  },
+  "admin": {
+    "nav": {
+      "management": "Quản lý",
+      "dashboard": "Bảng điều khiển",
+      "waitlist": "Danh sách chờ",
+      "invitationCodes": "Mã mời",
+      "scenarioCards": "Thẻ tình huống",
+      "admins": "Quản trị viên",
+      "backToApp": "Quay lại ứng dụng"
+    },
+    "dashboard": {
+      "title": "Bảng điều khiển",
+      "description": "Tổng quan vận hành hệ thống",
+      "sections": {
+        "overview": "Tổng quan",
+        "quickActions": "Hành động nhanh"
+      },
+      "stats": {
+        "totalUsers": "Tổng người dùng",
+        "activatedUsers": "{count} đã kích hoạt",
+        "pendingWaitlist": "Đơn đăng ký chờ duyệt",
+        "totalWaitlist": "{count} trong danh sách chờ",
+        "availableCodes": "Mã khả dụng",
+        "totalCodes": "{count} mã tổng cộng",
+        "activationRate": "Tỷ lệ kích hoạt",
+        "activatedOfTotal": "{activated}/{total} đã kích hoạt",
+        "needsAttention": "Cần chú ý"
+      },
+      "quickLinks": {
+        "waitlist": "Quản lý danh sách chờ",
+        "waitlistDesc": "Xem xét đơn đăng ký và gửi mã mời",
+        "invitationCodes": "Quản lý mã mời",
+        "invitationCodesDesc": "Tạo, xem và xuất mã mời",
+        "pendingCount": "đang chờ",
+        "availableCount": "khả dụng"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "Kho mã mời",
+      "description": "Quản lý mã mời hàng loạt, tạo và phân phối trước",
+      "refresh": "Làm mới",
+      "export": "Xuất",
+      "generate": "Tạo mã",
+      "generating": "Đang tạo...",
+      "loading": "Đang tải...",
+      "noCodes": "Chưa có mã nào",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép",
+      "copyFailed": "Sao chép thất bại",
+      "generatePrompt": "Nhập số lượng mã cần tạo (1-1000)",
+      "generateCountError": "Số lượng phải từ 1 đến 1000",
+      "generateSuccess": "Đã tạo thành công {count} mã mời",
+      "generateFailed": "Tạo mã thất bại, vui lòng thử lại",
+      "exportSuccess": "Xuất thành công",
+      "searchPlaceholder": "Tìm kiếm mã...",
+      "stats": {
+        "total": "Tổng cộng",
+        "unused": "Chưa dùng",
+        "used": "Đã dùng",
+        "expired": "Hết hạn"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "unused": "Chưa dùng",
+        "used": "Đã dùng",
+        "expired": "Hết hạn"
+      },
+      "status": {
+        "unused": "Chưa dùng",
+        "used": "Đã dùng",
+        "expired": "Hết hạn"
+      },
+      "table": {
+        "code": "Mã",
+        "status": "Trạng thái",
+        "usedBy": "Người sử dụng",
+        "batch": "Lô",
+        "createdAt": "Ngày tạo",
+        "usedAt": "Ngày sử dụng",
+        "actions": "Hành động"
+      },
+      "pagination": {
+        "previous": "Trước",
+        "next": "Tiếp",
+        "page": "Trang {current} / {total}",
+        "total": "Tổng {count}"
+      }
+    },
+    "admins": {
+      "title": "Quản lý quản trị viên",
+      "description": "Xem và quản lý quản trị viên hệ thống",
+      "refresh": "Làm mới",
+      "loading": "Đang tải...",
+      "loadFailed": "Tải thất bại",
+      "noAdmins": "Không có quản trị viên",
+      "addAdmin": "Thêm quản trị viên",
+      "addSuccess": "Đã thêm quản trị viên thành công",
+      "addFailed": "Thêm quản trị viên thất bại, vui lòng thử lại",
+      "remove": "Xóa",
+      "removeSuccess": "Đã xóa quản trị viên thành công",
+      "removeFailed": "Xóa quản trị viên thất bại, vui lòng thử lại",
+      "addDialog": {
+        "title": "Thêm quản trị viên",
+        "description": "Tìm kiếm theo tên hoặc email để cấp quyền quản trị",
+        "searchPlaceholder": "Tìm kiếm tên hoặc email...",
+        "searching": "Đang tìm kiếm...",
+        "noResults": "Không tìm thấy người dùng phù hợp",
+        "cancel": "Hủy",
+        "confirm": "Xác nhận"
+      },
+      "removeDialog": {
+        "title": "Xác nhận xóa quản trị viên",
+        "description": "Bạn có chắc muốn xóa quyền quản trị của {name}? Hành động này có thể hoàn tác.",
+        "cancel": "Hủy",
+        "confirm": "Xác nhận xóa"
+      },
+      "table": {
+        "user": "Người dùng",
+        "email": "Email",
+        "createdAt": "Ngày đăng ký",
+        "actions": "Hành động"
+      }
+    },
+    "waitlist": {
+      "title": "Quản lý danh sách chờ",
+      "description": "Quản lý người đăng ký và gửi email mã mời cho người dùng đã được phê duyệt",
+      "refresh": "Làm mới",
+      "loading": "Đang tải...",
+      "noItems": "Không tìm thấy đơn đăng ký",
+      "searchPlaceholder": "Tìm kiếm theo email hoặc tên...",
+      "sendInvitation": "Gửi lời mời",
+      "sendBatch": "Gửi lời mời hàng loạt",
+      "sending": "Đang gửi...",
+      "confirmSend": "Xác nhận gửi",
+      "confirmSendDesc": "Bạn sắp gửi email mời kèm mã mời cho {count} người đăng ký, sử dụng {count} mã. Tiếp tục?",
+      "sendSuccess": "Đã gửi thành công {count} email mời",
+      "sendPartialSuccess": "Đã gửi {success}, thất bại {fail}",
+      "sendFailed": "Gửi thất bại, vui lòng thử lại",
+      "noPendingSelected": "Tất cả mục đã chọn đều đã được xử lý",
+      "resend": "Gửi lại",
+      "resendSuccess": "Đã gửi lại email mời thành công",
+      "resendFailed": "Gửi lại thất bại, vui lòng thử lại",
+      "copyCode": "Sao chép mã mời",
+      "copySuccess": "Đã sao chép mã mời",
+      "copyFailed": "Sao chép thất bại, vui lòng sao chép thủ công",
+      "filter": {
+        "all": "Tất cả",
+        "pending": "Đang chờ",
+        "approved": "Đã gửi",
+        "rejected": "Bị từ chối",
+        "activated": "Đã kích hoạt"
+      },
+      "status": {
+        "pending": "Đang chờ",
+        "approved": "Đã gửi",
+        "rejected": "Bị từ chối",
+        "activated": "Đã kích hoạt"
+      },
+      "table": {
+        "name": "Tên",
+        "company": "Công ty",
+        "role": "Vai trò",
+        "email": "Email",
+        "useCase": "Mục đích sử dụng",
+        "locale": "Ngôn ngữ",
+        "createdAt": "Ngày đăng ký",
+        "invitationCode": "Mã mời",
+        "status": "Trạng thái",
+        "actions": "Hành động"
+      },
+      "pagination": {
+        "previous": "Trước",
+        "next": "Tiếp",
+        "page": "Trang {current} / {total}",
+        "total": "Tổng {count}"
+      }
+    },
+    "scenarioCards": {
+      "title": "Thẻ tình huống",
+      "description": "Quản lý thẻ tình huống mẫu hiển thị trên trang tạo tác vụ. Người dùng nhấn để bắt đầu tác vụ tìm kiếm ngay lập tức.",
+      "refresh": "Làm mới",
+      "loading": "Đang tải...",
+      "noItems": "Không có thẻ tình huống",
+      "addCard": "Thêm thẻ",
+      "editCard": "Sửa thẻ",
+      "deleteCard": "Xóa",
+      "deleteConfirm": "Bạn có chắc muốn xóa thẻ này? Hành động này không thể hoàn tác.",
+      "saveSuccess": "Lưu thành công",
+      "saveFailed": "Lưu thất bại, vui lòng thử lại",
+      "deleteSuccess": "Xóa thành công",
+      "deleteFailed": "Xóa thất bại, vui lòng thử lại",
+      "createSuccess": "Tạo thành công",
+      "createFailed": "Tạo thất bại, vui lòng thử lại",
+      "table": {
+        "caseId": "Mã tình huống",
+        "contentZh": "Nội dung tiếng Trung",
+        "contentEn": "Nội dung tiếng Anh",
+        "sortOrder": "Thứ tự",
+        "isActive": "Trạng thái",
+        "actions": "Hành động"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "inactive": "Không hoạt động"
+      },
+      "form": {
+        "caseId": "Mã tình huống",
+        "caseIdPlaceholder": "ví dụ: case_fullstack (không thể thay đổi sau khi tạo)",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "Thứ tự sắp xếp (số nhỏ hơn hiển thị trước)",
+        "isActive": "Kích hoạt thẻ này",
+        "cancel": "Hủy",
+        "save": "Lưu",
+        "create": "Tạo"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "signOut": "Đăng xuất",
+    "signInDescription": "Nhập email và mật khẩu để đăng nhập",
+    "signUpDescription": "Tạo tài khoản mới",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "name": "Tên",
+    "signInSuccess": "Đăng nhập thành công",
+    "signUpSuccess": "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản",
+    "emailVerificationRequired": "Cần xác minh email",
+    "emailVerificationSent": "Email xác minh đã được gửi",
+    "emailVerificationMessage": "Chúng tôi đã gửi email xác minh đến hộp thư của bạn. Vui lòng nhấn liên kết trong email để xác minh tài khoản trước khi đăng nhập.",
+    "emailVerificationResend": "Gửi lại email xác minh",
+    "checkYourEmail": "Kiểm tra email của bạn",
+    "emailNotVerified": "Email chưa được xác minh. Vui lòng xác minh email trước",
+    "orContinueWith": "hoặc",
+    "continueWithGitHub": "Tiếp tục với GitHub",
+    "continueWithGoogle": "Tiếp tục với Google",
+    "continueWithMicrosoft": "Tiếp tục với Microsoft",
+    "continueWithApple": "Tiếp tục với Apple",
+    "forgotPassword": "Quên mật khẩu",
+    "forgotPasswordTitle": "Quên mật khẩu",
+    "forgotPasswordDescription": "Nhập địa chỉ email và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu",
+    "forgotPasswordConfirmDescription": "Nhấn \"Tiếp tục\" để gửi liên kết đặt lại mật khẩu đến <emailLink>{email}</emailLink>",
+    "continueButton": "Tiếp tục",
+    "returnToLogin": "Quay lại đăng nhập",
+    "resetPasswordTitle": "Đặt lại mật khẩu",
+    "resetPasswordDescription": "Vui lòng nhập mật khẩu mới của bạn",
+    "sendResetLink": "Gửi liên kết đặt lại",
+    "resetPassword": "Đặt lại mật khẩu",
+    "resetPasswordSuccess": "Đặt lại mật khẩu thành công! Đang chuyển hướng đến trang đăng nhập...",
+    "resetPasswordError": "Đặt lại mật khẩu thất bại. Vui lòng thử lại",
+    "resetPasswordEmailSent": "Email đặt lại mật khẩu đã được gửi",
+    "resetPasswordEmailError": "Gửi email đặt lại mật khẩu thất bại",
+    "resetPasswordEmailMessage": "Chúng tôi đã gửi liên kết đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư và nhấn liên kết để đặt lại mật khẩu.",
+    "invalidResetToken": "Mã đặt lại không hợp lệ",
+    "invalidResetLink": "Liên kết đặt lại không hợp lệ hoặc đã hết hạn",
+    "invalidResetLinkMessage": "Liên kết đặt lại mật khẩu này không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu đặt lại mật khẩu mới.",
+    "requestNewLink": "Yêu cầu liên kết mới",
+    "backToSignIn": "Quay lại đăng nhập",
+    "rememberPassword": "Nhớ mật khẩu?",
+    "newPassword": "Mật khẩu mới",
+    "confirmNewPassword": "Xác nhận mật khẩu mới",
+    "noAccount": "Chưa có tài khoản?",
+    "hasAccount": "Đã có tài khoản?",
+    "passwordMismatch": "Mật khẩu không khớp",
+    "agreeToTerms": "Tôi đồng ý với",
+    "termsOfService": "Điều khoản dịch vụ",
+    "and": "và",
+    "privacyPolicy": "Chính sách bảo mật",
+    "settings": "Cài đặt",
+    "validation": {
+      "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+      "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+      "passwordStrength": "Mật khẩu phải có ít nhất 8 ký tự và bao gồm chữ cái, số và ký hiệu",
+      "nameMinLength": "Tên phải có ít nhất 2 ký tự",
+      "termsRequired": "Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật",
+      "fieldRequired": "Trường này là bắt buộc"
+    },
+    "checkSpamFolder": "Không nhận được email? Kiểm tra thư mục spam",
+    "backToLogin": "Quay lại đăng nhập",
+    "unifiedTitle": "Đăng nhập hoặc Đăng ký",
+    "unifiedSubtitle": "Đánh thức Mira của bạn",
+    "continueTitle": "Tiếp tục",
+    "emailPlaceholder": "Nhập địa chỉ email của bạn",
+    "emailLabel": "Email",
+    "editLink": "Sửa",
+    "enterPasswordTitle": "Nhập mật khẩu",
+    "createPasswordTitle": "Tạo mật khẩu",
+    "createAccountTitle": "Tạo tài khoản",
+    "createAccountDescription": "Đặt mật khẩu cho {email}",
+    "editEmail": "Sửa email",
+    "passwordStrengthHint": "Mật khẩu phải có ít nhất 12 ký tự và bao gồm chữ cái, số và ký hiệu",
+    "showPassword": "Hiện mật khẩu",
+    "hidePassword": "Ẩn mật khẩu",
+    "verifyEmailTitle": "Xác minh email của bạn",
+    "verifyEmailDescription": "Chúng tôi đã gửi mã xác minh đến {email}",
+    "enterOtp": "Nhập mã xác minh",
+    "otpPlaceholder": "Nhập mã xác minh",
+    "resendCode": "Gửi lại mã xác minh",
+    "resendCodeCountdown": "Đã gửi lại. Thử lại sau {seconds} giây",
+    "changeEmail": "Đổi địa chỉ email",
+    "otpError": "Mã không đúng, vui lòng thử lại",
+    "otpExpired": "Mã đã hết hạn, vui lòng gửi lại",
+    "otpResendSuccess": "Đã gửi mã xác minh",
+    "otpResendFailed": "Gửi thất bại, vui lòng thử lại sau",
+    "checkSpamFolderHint": "Không nhận được email? Kiểm tra thư mục spam",
+    "verifyEmail": {
+      "title": "Xác minh email của bạn",
+      "description": "Chúng tôi đã gửi mã xác minh đến",
+      "descriptionSuffix": "",
+      "goToEmail": "Mở email",
+      "otpLabel": "Mã xác minh",
+      "otpPlaceholder": "Nhập mã xác minh",
+      "otpInputLabel": "Chữ số {index}",
+      "verifying": "Đang xác minh...",
+      "resend": "Gửi lại",
+      "resendCountdown": "{seconds} giây",
+      "resendSuccess": "Đã gửi lại mã thành công",
+      "resendFailed": "Gửi lại thất bại, vui lòng thử lại",
+      "changeEmail": "Đổi email",
+      "invalidOtp": "Mã không hợp lệ, vui lòng thử lại",
+      "success": "Xác minh email thành công"
+    },
+    "activateVerifyTitle": "Xác minh mã mời của bạn",
+    "activateCurrentEmail": "Email hiện tại ",
+    "activateNoCode": "Chưa có mã mời?",
+    "activateApplyNow": "Đăng ký ngay",
+    "signOutLink": "Đăng xuất",
+    "waitlistTitle": "Tham gia danh sách chờ",
+    "waitlistDescription": "Điền thông tin bên dưới và chúng tôi sẽ gửi cho bạn mã mời riêng sau khi xét duyệt.",
+    "waitlistName": "Tên",
+    "waitlistCompany": "Công ty",
+    "waitlistRole": "Vai trò / Chức vụ",
+    "waitlistUseCase": "Mục đích sử dụng",
+    "waitlistSubmit": "Gửi đơn đăng ký",
+    "waitlistSubmitting": "Đang gửi...",
+    "waitlistJoined": "Đã tham gia lúc {time}",
+    "waitlistLearnMore": "Tìm hiểu thêm",
+    "joinWaitlist": {
+      "title": "Tham gia danh sách chờ",
+      "description": "Chúng tôi sẽ gửi mã mời sau khi đơn đăng ký của bạn được phê duyệt.",
+      "descriptionHint": "Cung cấp thông tin chính xác và chi tiết sẽ giúp đẩy nhanh quá trình xét duyệt.",
+      "workEmail": "Email công việc",
+      "emailPlaceholder": "ten@congty.com",
+      "sendOtp": "Gửi mã xác minh",
+      "resendOtp": "Gửi lại",
+      "otpCountdown": "{seconds} giây",
+      "otpLabel": "Mã xác minh",
+      "otpPlaceholder": "Nhập mã xác minh",
+      "verifyOtp": "Xác minh",
+      "changeEmail": "Đổi email",
+      "name": "Tên",
+      "namePlaceholder": "Nhập tên của bạn",
+      "company": "Công ty",
+      "companyPlaceholder": "Nhập tên công ty",
+      "role": "Vai trò / Chức vụ",
+      "rolePlaceholder": "Nhập vai trò của bạn",
+      "useCase": "Bạn dự định sử dụng Mira như thế nào",
+      "useCasePlaceholder": "Mô tả mục đích sử dụng của bạn",
+      "submit": "Gửi đơn đăng ký",
+      "submitting": "Đang gửi...",
+      "cancel": "Hủy",
+      "successTitle": "Đã gửi đơn đăng ký",
+      "successDescription": "Sau khi được phê duyệt, chúng tôi sẽ gửi mã mời đến: ",
+      "backToHome": "Quay lại trang chủ",
+      "otpSent": "Đã gửi mã xác minh",
+      "emailVerified": "Xác minh thành công!",
+      "errors": {
+        "otpExpired": "Mã xác minh đã hết hạn, vui lòng gửi lại",
+        "otpIncorrect": "Mã không đúng, vui lòng thử lại",
+        "otpLengthRequired": "Vui lòng nhập mã xác minh 6 chữ số",
+        "sendFailed": "Gửi thất bại, vui lòng thử lại",
+        "verifyFailed": "Xác minh thất bại, vui lòng thử lại",
+        "submitFailed": "Gửi thất bại, vui lòng thử lại",
+        "nameRequired": "Vui lòng nhập tên của bạn",
+        "companyRequired": "Vui lòng nhập tên công ty",
+        "roleRequired": "Vui lòng nhập vai trò của bạn",
+        "useCaseRequired": "Vui lòng mô tả mục đích sử dụng",
+        "accountAlreadyActivated": "Tài khoản này đã được kích hoạt, vui lòng đăng nhập!",
+        "alreadySubmitted": "Email này đã được gửi, vui lòng kiên nhẫn chờ đợi!",
+        "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+        "emailNotVerified": "Vui lòng xác minh email trước khi gửi",
+        "otpNotVerified": "Vui lòng nhập và xác minh mã trước khi gửi"
+      }
+    },
+    "activate": "Kích hoạt",
+    "activateAccount": "Kích hoạt tài khoản",
+    "activateTitle": "Kích hoạt tài khoản của bạn",
+    "activateDescription": "Vui lòng nhập mã mời để tiếp tục sử dụng Mira",
+    "yourActivationCode": "Mã mời của bạn là:",
+    "activationCode": "Mã mời",
+    "enterActivationCode": "Nhập mã mời",
+    "activationCodePlaceholder": "Nhập mã mời của bạn",
+    "activating": "Đang kích hoạt...",
+    "activationSuccess": "Kích hoạt tài khoản thành công!",
+    "activationSuccessDescription": "Đang chuyển hướng về trang chủ...",
+    "activationCodeRequired": "Vui lòng nhập mã mời",
+    "activationCodeTooShort": "Mã mời quá ngắn",
+    "activationCodeIncorrect": "Mã mời không hợp lệ, vui lòng thử lại",
+    "invalidInvitationCode": "Mã mời không hợp lệ",
+    "activationContactAdmin": "Nếu bạn chưa nhận được mã mời, vui lòng liên hệ quản trị viên",
+    "accountActivated": "Tài khoản đã được kích hoạt",
+    "accountNotActivated": "Tài khoản chưa được kích hoạt. Vui lòng kích hoạt tài khoản trước",
+    "errors": {
+      "emailAlreadyRegistered": "Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập trực tiếp",
+      "invalidEmailOrPassword": "Email hoặc mật khẩu không đúng. Vui lòng kiểm tra và thử lại",
+      "emailNotVerified": "Email chưa được xác minh. Vui lòng xác minh email trước",
+      "passwordTooShort": "Mật khẩu quá ngắn. Vui lòng sử dụng mật khẩu dài hơn",
+      "passwordTooLong": "Mật khẩu quá dài. Vui lòng sử dụng mật khẩu ngắn hơn",
+      "passwordAlreadySet": "Tài khoản này đã có mật khẩu",
+      "invalidEmail": "Định dạng email không hợp lệ",
+      "emailAlreadyVerified": "Email đã được xác minh",
+      "emailMismatch": "Email không khớp",
+      "sessionExpired": "Phiên đã hết hạn. Vui lòng đăng nhập lại",
+      "sessionNotFresh": "Phiên đã hết hạn. Vui lòng xác thực lại",
+      "invalidOrExpiredToken": "Mã thông báo không hợp lệ hoặc đã hết hạn",
+      "accountAlreadyLinked": "Tài khoản này đã được liên kết",
+      "cannotUnlinkLastAccount": "Không thể hủy liên kết tài khoản cuối cùng",
+      "accountNotFound": "Không tìm thấy tài khoản",
+      "rateLimitExceeded": "Quá nhiều lần thử. Vui lòng thử lại sau",
+      "securityError": "Xác thực bảo mật thất bại. Vui lòng thử lại",
+      "validationError": "Xác thực dữ liệu nhập thất bại. Vui lòng kiểm tra thông tin",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau",
+      "providerError": "Lỗi dịch vụ đăng nhập bên thứ ba",
+      "invalidInput": "Dữ liệu nhập không hợp lệ. Vui lòng kiểm tra và thử lại",
+      "unauthorized": "Chưa được ủy quyền. Vui lòng đăng nhập trước",
+      "forbidden": "Không đủ quyền truy cập",
+      "notFound": "Không tìm thấy tài nguyên",
+      "unprocessableEntity": "Không thể xử lý yêu cầu",
+      "unknown": "Lỗi không xác định. Vui lòng thử lại sau"
+    }
+  },
+  "workspace": {
+    "title": "Không gian làm việc của Mira",
+    "backToLiveView": "Quay lại chế độ trực tiếp",
+    "selectTool": "Chọn một công cụ để xem chi tiết",
+    "noToolsEnabled": "Không có công cụ nào được bật",
+    "usingTool": "Mira đang sử dụng",
+    "processing": "Đang xử lý",
+    "completed": "Hoàn thành",
+    "failed": "Thất bại",
+    "realTime": "trực tiếp",
+    "goToStart": "Về đầu trang",
+    "previous": "Trước",
+    "next": "Tiếp"
+  },
+  "search": {
+    "aiSummary": "Tóm tắt AI",
+    "noResults": "Không có kết quả tìm kiếm"
+  },
+  "toolStatus": {
+    "processing": "Đang xử lý...",
+    "searching": "Đang tìm kiếm...",
+    "crawling": "Đang thu thập...",
+    "mapping": "Đang lập bản đồ...",
+    "extracting": "Đang trích xuất...",
+    "items": "mục",
+    "suggestions": "gợi ý",
+    "screenshotComplete": "Chụp màn hình hoàn tất",
+    "operationFailed": "Thao tác thất bại",
+    "crawlFailed": "Thu thập thất bại",
+    "extractFailed": "Trích xuất thất bại",
+    "mapFailed": "Lập bản đồ thất bại",
+    "searchFailed": "Tìm kiếm thất bại",
+    "pages": "trang",
+    "links": "liên kết",
+    "results": "kết quả",
+    "fullPage": "Toàn trang",
+    "visibleArea": "Vùng hiển thị",
+    "clickToView": "Nhấn để xem",
+    "unknownQuery": "Truy vấn không xác định",
+    "processingUrls": "Đang xử lý {count} URL...",
+    "websiteCrawl": "Thu thập trang web",
+    "contentExtract": "Trích xuất nội dung",
+    "websiteMap": "Bản đồ trang web"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "Yêu cầu xác nhận",
+      "description": "Yêu cầu người dùng xác nhận hành động"
+    },
+    "clarifyQuestion": {
+      "name": "Làm rõ câu hỏi",
+      "description": "Hỏi người dùng thêm thông tin"
+    },
+    "maps_weather": {
+      "name": "Truy vấn thời tiết",
+      "description": "Truy vấn thời tiết thành phố"
+    },
+    "exa_search": {
+      "name": "Tìm kiếm web",
+      "description": "Thực hiện tìm kiếm ngữ nghĩa thần kinh bằng Exa AI, trả về kết quả chất lượng cao phù hợp"
+    },
+    "exa_company_search": {
+      "name": "Tìm kiếm công ty",
+      "description": "Tìm kiếm công ty, tổ chức và doanh nghiệp, tối ưu cho nghiên cứu thị trường và phát triển kinh doanh",
+      "action": "Đang tìm kiếm công ty"
+    },
+    "exa_people_search": {
+      "name": "Tìm kiếm nhân sự",
+      "description": "Tìm kiếm chuyên gia, ứng viên và hồ sơ LinkedIn, tối ưu cho tuyển dụng và tìm kiếm nhân tài",
+      "action": "Đang tìm kiếm nhân sự"
+    },
+    "generate_people_data": {
+      "name": "Tạo dữ liệu nhân sự",
+      "description": "Tổng hợp kết quả tìm kiếm nhân sự thành tệp dữ liệu có thể tải xuống",
+      "action": "Đang tạo dữ liệu nhân sự"
+    },
+    "export_data": {
+      "name": "Xuất dữ liệu",
+      "description": "Đã xuất dữ liệu",
+      "action": "Đang xuất dữ liệu"
+    },
+    "sb_file_create": {
+      "name": "Tạo tệp",
+      "description": "Tạo tệp mới trong sandbox",
+      "action": "Đang tạo tệp"
+    },
+    "sb_file_rewrite": {
+      "name": "Viết lại tệp",
+      "description": "Viết lại hoàn toàn nội dung tệp",
+      "action": "Đang viết lại tệp"
+    },
+    "sb_file_delete": {
+      "name": "Xóa tệp",
+      "description": "Xóa tệp được chỉ định",
+      "action": "Đang xóa tệp"
+    },
+    "sb_file_edit": {
+      "name": "Chỉnh sửa tệp",
+      "description": "Chỉnh sửa tệp với sự hỗ trợ của AI",
+      "action": "Đang chỉnh sửa tệp"
+    },
+    "sb_docx_create": {
+      "name": "Tạo tài liệu Word",
+      "description": "Tạo tài liệu Word (định dạng .docx) trong sandbox",
+      "action": "Đang tạo tài liệu Word"
+    },
+    "sb_pptx_create": {
+      "name": "Tạo bài trình bày PowerPoint",
+      "description": "Tạo bài trình bày PowerPoint (định dạng .pptx) trong sandbox",
+      "action": "Đang tạo bài trình bày PowerPoint"
+    },
+    "sb_xlsx_create": {
+      "name": "Tạo bảng tính Excel",
+      "description": "Tạo bảng tính Excel (định dạng .xlsx) trong sandbox",
+      "action": "Đang tạo bảng tính Excel"
+    },
+    "sb_pdf_create": {
+      "name": "Tạo tài liệu PDF",
+      "description": "Tạo tài liệu PDF (định dạng .pdf) trong sandbox",
+      "action": "Đang tạo tài liệu PDF"
+    },
+    "sb_image_create": {
+      "name": "Tạo hình ảnh",
+      "description": "Tạo hình ảnh trong sandbox (PNG, JPG, SVG, v.v.)",
+      "action": "Đang tạo hình ảnh"
+    },
+    "sb_command_execute": {
+      "name": "Thực thi lệnh",
+      "description": "Thực thi lệnh Shell trong sandbox",
+      "action": "Đang thực thi lệnh"
+    },
+    "sb_command_logs_get": {
+      "name": "Kiểm tra kết quả",
+      "description": "Kiểm tra kết quả thực thi lệnh"
+    },
+    "sb_command_terminate": {
+      "name": "Kết thúc lệnh",
+      "description": "Kết thúc lệnh đang chạy",
+      "action": "Đang kết thúc lệnh"
+    },
+    "sb_command_running_list": {
+      "name": "Danh sách phiên",
+      "description": "Liệt kê tất cả phiên tmux đang hoạt động"
+    },
+    "reflect_tool": {
+      "name": "Suy ngẫm",
+      "description": "Lập kế hoạch nghiên cứu và suy ngẫm chiến lược"
+    },
+    "browserNavigate": {
+      "name": "Điều hướng trình duyệt",
+      "description": "Điều hướng đến trang web được chỉ định"
+    },
+    "browserAct": {
+      "name": "Thao tác trang",
+      "description": "Thực hiện tương tác trên trang"
+    },
+    "browserExtract": {
+      "name": "Trích xuất dữ liệu",
+      "description": "Trích xuất dữ liệu có cấu trúc từ trang"
+    },
+    "browserObserve": {
+      "name": "Quan sát hành động",
+      "description": "Xem trước hành động mà không thực thi"
+    },
+    "browserScreenshot": {
+      "name": "Chụp màn hình trang",
+      "description": "Chụp trang hiện tại"
+    },
+    "browserGetContent": {
+      "name": "Lấy nội dung",
+      "description": "Lấy nội dung trang"
+    },
+    "browserWait": {
+      "name": "Chờ",
+      "description": "Chờ điều kiện được chỉ định"
+    },
+    "browserAgentTask": {
+      "name": "Tác vụ thông minh",
+      "description": "Thực hiện tác vụ phức tạp nhiều bước"
+    },
+    "browserClose": {
+      "name": "Đóng trình duyệt",
+      "description": "Đóng phiên trình duyệt"
+    },
+    "browserStatus": {
+      "name": "Trạng thái trình duyệt",
+      "description": "Xem trạng thái trình duyệt"
+    },
+    "complete": {
+      "name": "Giao tệp",
+      "description": "Giao tệp cho người dùng",
+      "createdTime": "Đã tạo: ",
+      "downloadFile": "Tải tệp xuống",
+      "deliveryFailed": "Giao tệp thất bại",
+      "previewNotImplemented": "Xem trước tệp chưa được triển khai",
+      "download": "Tải xuống",
+      "preview": "Xem trước",
+      "previewMetadataLoading": "Thông tin tệp đang tải, vui lòng thử lại sau giây lát",
+      "completed": "Tác vụ hoàn thành",
+      "downloadSuccess": "Tải tệp thành công",
+      "downloadFailed": "Tải tệp thất bại, vui lòng thử lại",
+      "fileType": "Tệp",
+      "text": "Văn bản",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "Hình ảnh",
+      "peopleData": "Dữ liệu nhân sự"
+    },
+    "code_interpreter": {
+      "name": "Thực thi mã",
+      "description": "Thực thi mã Python trong môi trường sandbox",
+      "action": "Đang thực thi mã",
+      "pre_action": "Đang viết mã"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "Đang tạo câu hỏi làm rõ...",
+      "defaultTitle": "Cần thêm thông tin",
+      "submit": "Gửi",
+      "skip": "Bỏ qua (dùng mặc định)",
+      "skipHint": "Bỏ qua sẽ tiếp tục với các tùy chọn mặc định được đề xuất",
+      "submitted": "Đã gửi",
+      "loadFailed": "Tải biểu mẫu thất bại",
+      "loadFailedDescription": "Xin lỗi, đã xảy ra sự cố khi tạo biểu mẫu câu hỏi. Vui lòng thử lại.",
+      "skipped": "Đã bỏ qua",
+      "aborted": "Đã dừng tạo câu hỏi làm rõ"
+    },
+    "askForConfirmation": {
+      "loading": "Đang tải yêu cầu xác nhận...",
+      "needConfirmation": "Cần xác nhận",
+      "confirm": "Có",
+      "deny": "Không",
+      "confirmed": "Đã xác nhận",
+      "denied": "Đã từ chối",
+      "failed": "Yêu cầu xác nhận thất bại",
+      "skipped": "Đã bỏ qua",
+      "aborted": "Đã dừng tạo yêu cầu xác nhận"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "Tạo tệp",
+      "rewriteFile": "Viết lại tệp",
+      "deleteFile": "Xóa tệp",
+      "editFile": "Chỉnh sửa tệp",
+      "fileOperation": "Thao tác tệp",
+      "executing": "Đang thực thi...",
+      "executionError": "Lỗi thực thi",
+      "success": "Thành công",
+      "failed": "Thất bại"
+    },
+    "shell": {
+      "executeCommand": "Thực thi lệnh",
+      "checkOutput": "Kiểm tra kết quả",
+      "terminateCommand": "Kết thúc lệnh",
+      "listSessions": "Danh sách phiên",
+      "shellCommand": "Lệnh Shell",
+      "executionError": "Lỗi thực thi",
+      "executing": "Đang thực thi...",
+      "sending": "Đang gửi...",
+      "completed": "Hoàn thành",
+      "sent": "Đã gửi",
+      "failed": "Thất bại",
+      "sessions": "phiên"
+    },
+    "parallelResearch": {
+      "deepResearch": "Nghiên cứu chuyên sâu",
+      "researchReport": "Báo cáo nghiên cứu",
+      "researchFailed": "Nghiên cứu thất bại",
+      "researching": "Đang nghiên cứu...",
+      "completed": "Hoàn thành",
+      "executeResearch": "Thực hiện nghiên cứu",
+      "characters": "ký tự",
+      "citations": "trích dẫn"
+    },
+    "reflect": {
+      "reflecting": "Suy ngẫm",
+      "reflectingText": "Đang suy ngẫm...",
+      "completed": "Hoàn thành"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "Thành công",
+      "failed": "Thất bại",
+      "inputParams": "Tham số đầu vào",
+      "executionResult": "Kết quả thực thi",
+      "error": "Lỗi",
+      "waiting": "Đang chờ thực thi...",
+      "noOutput": "Không có dữ liệu đầu ra",
+      "noResults": "Không có kết quả",
+      "noCrawlResults": "Không có kết quả thu thập",
+      "noExtractResults": "Không có kết quả trích xuất",
+      "noMapResults": "Không có kết quả bản đồ",
+      "noReflection": "Không có nội dung suy ngẫm",
+      "waitingTask": "Đang chờ tác vụ bắt đầu...",
+      "title": "Tiêu đề",
+      "url": "URL",
+      "session": "Phiên",
+      "activeSessions": "Phiên đang hoạt động",
+      "output": "Đầu ra",
+      "parameters": "Tham số",
+      "executeCommand": "Thực thi lệnh",
+      "updatedContent": "Nội dung đã cập nhật",
+      "editInstructions": "Hướng dẫn chỉnh sửa:",
+      "extractedData": "Dữ liệu đã trích xuất:",
+      "suggestions": "gợi ý:",
+      "screenshot": "Ảnh chụp màn hình",
+      "fullPage": "Toàn trang",
+      "visibleArea": "Vùng hiển thị",
+      "pageContent": "Nội dung trang",
+      "characters": "ký tự",
+      "taskResult": "Kết quả tác vụ:",
+      "initializationStatus": "Trạng thái khởi tạo:",
+      "initialized": "Đã khởi tạo",
+      "notInitialized": "Chưa khởi tạo",
+      "viewBrowserSession": "Xem phiên trình duyệt",
+      "clickToViewFullImage": "Nhấn để xem ảnh đầy đủ",
+      "screenshotFullSize": "Ảnh chụp màn hình (Toàn trang)",
+      "screenshotVisible": "Ảnh chụp màn hình (Vùng hiển thị)",
+      "pageCount": "Số trang:",
+      "timeTaken": "Thời gian:",
+      "linkCount": "Số liên kết:",
+      "extractFailed": "Trích xuất thất bại:",
+      "charactersCount": "ký tự"
+    },
+    "browser": {
+      "browserNavigation": "Điều hướng trình duyệt",
+      "pageAction": "Thao tác trang",
+      "dataExtract": "Trích xuất dữ liệu",
+      "observeAction": "Quan sát hành động",
+      "pageScreenshot": "Chụp màn hình trang",
+      "getContent": "Lấy nội dung",
+      "wait": "Chờ",
+      "smartTask": "Tác vụ thông minh",
+      "closeBrowser": "Đóng trình duyệt",
+      "browserStatus": "Trạng thái trình duyệt",
+      "browserOperation": "Thao tác trình duyệt",
+      "executingBrowserOperation": "Đang thực hiện thao tác trình duyệt..."
+    },
+    "files": {
+      "createFile": "Tạo tệp",
+      "rewriteFile": "Viết lại tệp",
+      "deleteFile": "Xóa tệp",
+      "editFile": "Chỉnh sửa tệp",
+      "fileOperation": "Thao tác tệp",
+      "createDocx": "Tạo tài liệu Word",
+      "createPptx": "Tạo bài trình bày PowerPoint",
+      "createXlsx": "Tạo bảng tính Excel",
+      "createPdf": "Tạo tài liệu PDF",
+      "createImage": "Tạo hình ảnh",
+      "generatePeopleData": "Tạo dữ liệu nhân sự",
+      "documentContent": "Nội dung tài liệu"
+    },
+    "shell": {
+      "executeCommand": "Thực thi lệnh",
+      "checkOutput": "Kiểm tra kết quả",
+      "terminateCommand": "Kết thúc lệnh",
+      "listSessions": "Danh sách phiên",
+      "shellCommand": "Lệnh Shell"
+    },
+    "codeInterpreter": {
+      "description": "Mô tả",
+      "pythonCode": "Mã Python",
+      "envVariables": "Biến môi trường",
+      "timeout": "Thời gian chờ",
+      "seconds": "giây",
+      "stdout": "Đầu ra chuẩn",
+      "stderr": "Lỗi chuẩn",
+      "executing": "Đang thực thi mã..."
+    },
+    "parallelResearch": {
+      "researchQuery": "Truy vấn nghiên cứu",
+      "reportGuidance": "Hướng dẫn báo cáo:",
+      "executingDeepResearch": "Đang thực hiện nghiên cứu chuyên sâu...",
+      "mayTakeMinutes": "Quá trình này có thể mất 5-45 phút tùy thuộc vào độ phức tạp của nghiên cứu",
+      "researchExecutionFailed": "Thực hiện nghiên cứu thất bại",
+      "citations": "Trích dẫn",
+      "characters": "Ký tự",
+      "completionTime": "Thời gian hoàn thành",
+      "structuredDataOutput": "Dữ liệu đầu ra có cấu trúc",
+      "noResearchData": "Không có dữ liệu nghiên cứu"
+    },
+    "reflect": {
+      "reflection": "Suy ngẫm",
+      "researchPlanning": "Lập kế hoạch và suy ngẫm nghiên cứu AI",
+      "reflectionNotes": "Ghi chú suy ngẫm",
+      "noReflection": "Không có nội dung suy ngẫm"
+    },
+    "generateReport": {
+      "reportConfig": "Cấu hình báo cáo",
+      "viewDetailedConfig": "Xem cấu hình chi tiết",
+      "topic": "Chủ đề",
+      "focusAreas": "Lĩnh vực trọng tâm",
+      "researchData": "Dữ liệu nghiên cứu",
+      "generatingReport": "Đang tạo báo cáo",
+      "reportGenerated": "Đã tạo báo cáo",
+      "analyzingData": "Đang phân tích dữ liệu và tạo báo cáo...",
+      "reportContent": "Nội dung báo cáo",
+      "generating": "Đang tạo...",
+      "reportGenerationComplete": "Tạo báo cáo hoàn tất",
+      "generationFailed": "Tạo thất bại",
+      "reportGenerationError": "Đã xảy ra lỗi trong quá trình tạo báo cáo",
+      "comparisonAnalysis": "Phân tích so sánh",
+      "listDirectory": "Danh sách thư mục",
+      "topicOverview": "Tổng quan chủ đề",
+      "directAnswer": "Trả lời trực tiếp"
+    },
+    "peopleData": {
+      "organizing": "Đang tạo dữ liệu nhân sự...",
+      "exportSuccess": "Tạo dữ liệu nhân sự hoàn tất",
+      "exportFailed": "Tạo dữ liệu nhân sự thất bại",
+      "totalCount": "Tổng cộng: {count} người",
+      "noData": "Không có dữ liệu nhân sự"
+    }
+  },
+  "canvas": {
+    "selectFile": "Chọn tệp để xem trước",
+    "loading": "Đang tải tệp...",
+    "loadingDefault": "Đang tải...",
+    "unsupportedFormat": "Định dạng tệp không được hỗ trợ",
+    "downloadFile": "Tải tệp xuống",
+    "maximize": "Phóng to",
+    "restore": "Khôi phục",
+    "close": "Đóng",
+    "fileTypes": {
+      "text": "Tệp văn bản",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "Hình ảnh",
+      "pdf": "Tài liệu PDF",
+      "word": "Tài liệu Word",
+      "excel": "Bảng tính Excel",
+      "ppt": "Bài trình bày",
+      "people-data": "Dữ liệu nhân sự",
+      "unsupported": "Định dạng không được hỗ trợ"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "Không xác định",
+        "notSupported": "Định dạng này không hỗ trợ xem trước. Vui lòng tải xuống để xem.",
+        "downloadButton": "Tải tệp xuống",
+        "tip": "Mẹo: Tải xuống và mở bằng ứng dụng tương ứng"
+      },
+      "word": {
+        "converting": "Đang chuyển đổi tài liệu...",
+        "convertingDoc": "Đang chuyển đổi tệp .doc...",
+        "loading": "Đang tải...",
+        "convertFailed": "Tải tệp thất bại. Vui lòng kiểm tra xem tệp có bị hỏng không và thử mở lại."
+      },
+      "excel": {
+        "converting": "Đang chuyển đổi định dạng cũ...",
+        "parsing": "Đang phân tích bảng tính...",
+        "loading": "Đang tải...",
+        "parseFailed": "Phân tích bảng tính thất bại, vui lòng tải xuống và xem",
+        "emptyTable": "Bảng trống"
+      },
+      "ppt": {
+        "notSupported": "Bài trình bày {format} không hỗ trợ xem trực tuyến",
+        "downloadButton": "Tải tệp xuống",
+        "tip": "Mẹo: Tải xuống và mở bằng {format} hoặc phần mềm tương thích để xem đầy đủ nội dung"
+      },
+      "peopleData": {
+        "parsing": "Đang phân tích dữ liệu nhân sự...",
+        "loading": "Đang tải...",
+        "parseFailed": "Phân tích dữ liệu nhân sự thất bại, vui lòng kiểm tra định dạng dữ liệu",
+        "noData": "Không có dữ liệu nhân sự",
+        "csvHeaders": [
+          "Tên",
+          "Địa điểm",
+          "Công ty hiện tại",
+          "Vị trí hiện tại",
+          "Số năm kinh nghiệm",
+          "Lịch sử công việc gần đây",
+          "Học vấn",
+          "Tóm tắt AI",
+          "Email",
+          "Điện thoại",
+          "Cập nhật dữ liệu",
+          "URL chi tiết"
+        ],
+        "workExperience": "Kinh nghiệm làm việc",
+        "recentWorkExperience": "Kinh nghiệm làm việc gần đây",
+        "noWorkExperience": "Không có kinh nghiệm làm việc",
+        "present": "Hiện tại",
+        "more": "thêm",
+        "linkedinProfile": "Hồ sơ LinkedIn",
+        "viewDetails": "Xem chi tiết"
+      },
+      "html": {
+        "loading": "Đang tải...",
+        "securityWarning": "Nội dung HTML này chạy trong môi trường cách ly để đảm bảo bảo mật",
+        "emptyHtml": "Nội dung HTML trống"
+      },
+      "json": {
+        "loading": "Đang tải...",
+        "parseFailed": "Phân tích JSON thất bại, vui lòng kiểm tra định dạng dữ liệu",
+        "emptyJson": "Nội dung JSON trống",
+        "validJson": "JSON hợp lệ",
+        "characters": "ký tự",
+        "copy": "Sao chép",
+        "copied": "Đã sao chép",
+        "rawContent": "Nội dung gốc:"
+      },
+      "image": {
+        "loading": "Đang tải...",
+        "reset": "Đặt lại"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "Chờ",
+      "running": "Đang chạy",
+      "paused": "Tạm dừng",
+      "completed": "Hoàn thành",
+      "failed": "Thất bại",
+      "cancelled": "Cancelled",
+      "waiting_for_user": "Đang chờ người dùng"
+    },
+    "maximize": "Phóng to",
+    "expandWorkspace": "Mở rộng không gian làm việc",
+    "restore": "Khôi phục",
+    "durationRunning": "Đang chạy trong",
+    "durationCompleted": "Thời lượng",
+    "taskProgress": "Tiến độ tác vụ",
+    "expandTaskList": "Mở rộng danh sách tác vụ",
+    "collapseTaskList": "Thu gọn danh sách tác vụ"
+  }
+}

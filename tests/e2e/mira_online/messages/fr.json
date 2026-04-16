@@ -53,24 +53,6 @@
       "activateButton": "Activer maintenant",
       "ignoreHint": "Si vous n'avez pas postulé pour l'accès anticipé à Mira, veuillez ignorer cet e-mail.",
       "footer": "© 2025 {appName}. Tous droits réservés."
-    },
-    "invitationUnregistered": {
-      "subject": "Votre code d'invitation {appName}",
-      "title": "Votre code d'invitation Mira est prêt",
-      "greeting": "Bonjour {name},",
-      "body": "Merci d'avoir postulé à l'accès anticipé à Mira ! Votre candidature a été approuvée. Cliquez sur le bouton ci-dessous pour définir votre mot de passe et activer votre compte en une seule étape, sans avoir à saisir le code d'invitation manuellement :",
-      "activateButton": "Activation rapide",
-      "ignoreHint": "Si vous n'avez pas postulé à l'accès anticipé à Mira, veuillez ignorer cet e-mail.",
-      "footer": "© 2025 {appName}. Tous droits réservés."
-    },
-    "invitationRegistered": {
-      "subject": "Votre code d'invitation {appName}",
-      "title": "Votre code d'invitation Mira est prêt",
-      "greeting": "Bonjour {name},",
-      "body": "Merci d'avoir postulé à l'accès anticipé à Mira ! Votre candidature a été approuvée. Comme vous avez déjà un compte Mira, il vous suffit de vous connecter pour activer votre compte, sans avoir à saisir le code d'invitation manuellement :",
-      "activateButton": "Se connecter à Mira",
-      "ignoreHint": "Si vous n'avez pas postulé à l'accès anticipé à Mira, veuillez ignorer cet e-mail.",
-      "footer": "© 2025 {appName}. Tous droits réservés."
     }
   },
   "files": {
@@ -81,7 +63,6 @@
       "csvSpreadsheet": "CSV",
       "ppt": "PPT",
       "image": "Image",
-      "code": "Code",
       "peopleData": "Données de contacts"
     }
   },
@@ -96,8 +77,6 @@
     "sendMessage": "Envoyer le message",
     "placeholder": "Veuillez saisir...",
     "addAttachments": "Ajouter des photos ou fichiers",
-    "removeAttachment": "Supprimer la pièce jointe",
-    "uploading": "Envoi en cours...",
     "uploadLocalFile": "Importer un fichier local",
     "uploadError": "Échec de l'envoi du fichier",
     "uploadErrorMaxFiles": "Nombre maximum de fichiers dépassé",
@@ -137,7 +116,6 @@
     "createdTime": "Date de création",
     "history": "Historique des tâches",
     "noHistory": "Aucune tâche pour le moment",
-    "viewAllFiles": "Voir tous les fichiers",
     "noSearchResults": "Aucune tâche correspondante trouvée",
     "deleteChat": "Supprimer la tâche",
     "today": "Aujourd'hui",
@@ -168,8 +146,6 @@
     "close": "Fermer",
     "emptyStateTitle": "Aucun message pour le moment",
     "emptyStateDescription": "Commencez une conversation pour voir les messages ici",
-    "suggestedFollowUps": "Suggestions de suivi",
-    "suggestionRetry": "Une erreur est survenue. Veuillez réessayer.",
     "errors": {
       "renameUnauthorized": "Vous n'avez pas la permission de renommer cette tâche",
       "renameChatNotFound": "Tâche introuvable ou supprimée",
@@ -177,14 +153,7 @@
       "renameTitleEmpty": "Le nom de la tâche ne peut pas être vide",
       "renameFailed": "Échec du renommage de la tâche, veuillez réessayer plus tard",
       "updateFailed": "Échec de la mise à jour, veuillez réessayer plus tard"
-    },
-    "uploadErrorEmptyFile": "Impossible de téléverser un fichier vide",
-    "rateLimitExceeded": "Trop de requêtes, veuillez réessayer plus tard.",
-    "requestFailed": "Une erreur est survenue lors du traitement de votre requête.",
-    "contextLimitTitle": "Limite de conversation atteinte",
-    "contextLimitDescription": "Impossible de continuer à répondre. Vous pouvez toujours consulter le contenu existant. Créez une nouvelle tâche pour continuer.",
-    "contextLimitInterrupted": "Tâche interrompue, créez une nouvelle tâche pour continuer",
-    "contextLimitAction": "Créer une nouvelle tâche"
+    }
   },
   "share": {
     "notFound": "Conversation introuvable",
@@ -269,27 +238,7 @@
     "light": "Clair",
     "dark": "Sombre",
     "system": "Système",
-    "mockUserName": "Utilisateur test",
-    "usage": "Utilisation"
-  },
-  "usage": {
-    "title": "Utilisation",
-    "menu": "Utilisation",
-    "balance": "Solde restant",
-    "availableCredits": "Crédits disponibles",
-    "monthlyUsage": "Utilisation mensuelle",
-    "monthlyStats": "{used} / {quota} crédits utilisés ({percentage} %)",
-    "trendTitle": "7 derniers jours",
-    "historyTitle": "Historique de consommation",
-    "columnTime": "Date",
-    "columnTask": "Conversation",
-    "columnModel": "Modèle",
-    "columnCredits": "Crédits",
-    "unnamedTask": "Conversation sans nom",
-    "noRecords": "Aucun enregistrement pour le moment",
-    "page": "Page {page} sur {total}",
-    "previousPage": "Précédent",
-    "nextPage": "Suivant"
+    "mockUserName": "Utilisateur test"
   },
   "admin": {
     "nav": {
@@ -466,8 +415,7 @@
         "next": "Suivant",
         "page": "Page {current} / {total}",
         "total": "{count} au total"
-      },
-      "selectAllPending": "Tout sélectionner en attente"
+      }
     },
     "scenarioCards": {
       "title": "Cartes de scénarios",
@@ -491,9 +439,7 @@
         "contentEn": "Contenu en anglais",
         "sortOrder": "Ordre",
         "isActive": "Statut",
-        "actions": "Actions",
-        "languages": "Langues",
-        "languageCoverage": "{count}/{total} langues"
+        "actions": "Actions"
       },
       "status": {
         "active": "Actif",
@@ -502,26 +448,16 @@
       "form": {
         "caseId": "ID du cas",
         "caseIdPlaceholder": "ex. case_fullstack (ne peut pas être modifié après la création)",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
         "sortOrder": "Ordre de tri (plus petit = en premier)",
         "isActive": "Activer cette carte",
         "cancel": "Annuler",
         "save": "Enregistrer",
-        "create": "Créer",
-        "content": "Contenu",
-        "description": "Description",
-        "contentPlaceholder": "Contenu en {locale}",
-        "descriptionPlaceholder": "Description en {locale}"
+        "create": "Créer"
       }
-    },
-    "auth": {
-      "forbidden": "Accès refusé",
-      "forbiddenDescription": "Vous n'avez pas l'autorisation d'accéder à cette page"
-    },
-    "errors": {
-      "loadFailed": "Échec du chargement",
-      "loadScenarioCardsFailed": "Échec du chargement des cartes de scénario",
-      "caseIdRequired": "Case ID est requis",
-      "englishContentRequired": "Le contenu en anglais est requis"
     }
   },
   "auth": {
@@ -738,56 +674,6 @@
       "notFound": "Ressource introuvable",
       "unprocessableEntity": "La requête ne peut pas être traitée",
       "unknown": "Erreur inconnue. Veuillez réessayer plus tard"
-    },
-    "quickActivate": {
-      "title": "Bienvenue sur Mira",
-      "description": "Votre candidature a été approuvée. Définissez un mot de passe pour terminer l'inscription et vous connecter.",
-      "emailLabel": "E-mail",
-      "codeLabel": "Code d'invitation",
-      "passwordLabel": "Définir un mot de passe",
-      "passwordPlaceholder": "••••••••",
-      "passwordHint": "Le mot de passe doit contenir au moins 8 caractères, dont des lettres, chiffres et symboles",
-      "continueButton": "Continuer",
-      "footerText": "En cliquant sur « Continuer », un compte sera créé avec l'e-mail ci-dessus, activé et connecté automatiquement.",
-      "hasAccount": "Vous avez déjà un compte ? Se connecter",
-      "missingParams": "Paramètres du lien incomplets. Veuillez rouvrir depuis l'e-mail.",
-      "activating": "Inscription et activation en cours...",
-      "codeInvalid": "Le code d'invitation est invalide ou expiré",
-      "codeUsed": "Ce code d'invitation a déjà été utilisé",
-      "emailExists": "Cet e-mail est déjà enregistré. Veuillez vous connecter.",
-      "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
-      "showPassword": "Afficher le mot de passe",
-      "hidePassword": "Masquer le mot de passe"
-    },
-    "waitlistApply": {
-      "title": "Rejoindre la liste d'attente",
-      "description": "Mira est actuellement en accès anticipé. Remplissez le formulaire ci-dessous pour postuler. Nous vous enverrons un code d'invitation après approbation.",
-      "emailLabel": "E-mail",
-      "nameLabel": "Nom",
-      "namePlaceholder": "Votre nom",
-      "companyLabel": "Entreprise",
-      "companyPlaceholder": "Nom de l'entreprise",
-      "roleLabel": "Poste",
-      "rolePlaceholder": "Votre poste",
-      "useCaseLabel": "Comment comptez-vous utiliser Mira ?",
-      "useCasePlaceholder": "Votre cas d'usage",
-      "submitButton": "Soumettre la candidature",
-      "hasCodeButton": "J'ai déjà un code d'invitation",
-      "signOut": "Se déconnecter",
-      "submitSuccess": "Candidature soumise. Veuillez attendre l'examen.",
-      "errors": {
-        "nameRequired": "Le nom est requis",
-        "companyRequired": "L'entreprise est requise",
-        "roleRequired": "Le poste est requis",
-        "useCaseRequired": "Le cas d'usage est requis",
-        "submitFailed": "Échec de la soumission. Veuillez réessayer plus tard."
-      }
-    },
-    "waitlistPending": {
-      "title": "Candidature en cours d'examen",
-      "description": "Votre candidature à l'accès anticipé a été soumise. Nous vous enverrons un code d'invitation par e-mail après approbation.",
-      "hasCodeButton": "J'ai déjà un code d'invitation",
-      "signOut": "Se déconnecter"
     }
   },
   "workspace": {
@@ -803,27 +689,6 @@
     "goToStart": "Aller au début",
     "previous": "Précédent",
     "next": "Suivant"
-  },
-  "taskFiles": {
-    "title": "Tous les fichiers de cette tâche",
-    "empty": "Aucun fichier dans cette tâche",
-    "today": "Aujourd'hui",
-    "yesterday": "Hier",
-    "fileCount": "{count} fichiers",
-    "downloadAll": "Tout télécharger",
-    "batchDownload": "Téléchargement par lot",
-    "selectAll": "Tout sélectionner",
-    "cancelSelection": "Annuler",
-    "download": "Télécharger",
-    "loadError": "Échec du chargement de la liste des fichiers",
-    "loadErrorRetry": "Échec du chargement de la liste des fichiers, veuillez actualiser et réessayer",
-    "refreshNow": "Actualiser maintenant",
-    "downloadError": "Échec du téléchargement, veuillez réessayer",
-    "downloadAllError": "Échec de la compression, veuillez réessayer plus tard !",
-    "packing": "Compression en cours...",
-    "close": "Fermer",
-    "sourceUpload": "Import",
-    "sourceOutput": "Document"
   },
   "search": {
     "aiSummary": "Résumé IA",
@@ -885,9 +750,7 @@
     "generate_people_data": {
       "name": "Génération de données de contacts",
       "description": "Compiler les résultats de recherche de personnes dans un fichier de données téléchargeable",
-      "action": "Génération des données de contacts en cours",
-      "categoryLabel": "Données de contacts",
-      "dataUnit": "personnes"
+      "action": "Génération des données de contacts en cours"
     },
     "export_data": {
       "name": "Exporter les données",
@@ -1014,8 +877,6 @@
       "completed": "Tâche terminée",
       "downloadSuccess": "Fichier téléchargé avec succès",
       "downloadFailed": "Échec du téléchargement du fichier, veuillez réessayer",
-      "viewAllFiles": "Voir tous les fichiers de cette tâche",
-      "previewFailed": "Échec de l'aperçu du fichier",
       "fileType": "Fichier",
       "text": "Texte",
       "wordDocument": "Word",
@@ -1030,120 +891,6 @@
       "description": "Exécuter du code Python dans un environnement bac à sable",
       "action": "Exécution du code en cours",
       "pre_action": "Écriture du code en cours"
-    },
-    "bua_navigate": {
-      "name": "Naviguer",
-      "description": "Naviguer vers une URL dans le navigateur"
-    },
-    "bua_click": {
-      "name": "Cliquer",
-      "description": "Cliquer sur un élément de la page"
-    },
-    "bua_type": {
-      "name": "Saisir",
-      "description": "Saisir du texte dans un champ de saisie"
-    },
-    "bua_scroll": {
-      "name": "Défiler",
-      "description": "Faire défiler la page"
-    },
-    "bua_extract_content": {
-      "name": "Extraire le contenu",
-      "description": "Extraire le contenu de la page"
-    },
-    "bua_check_status": {
-      "name": "Vérifier le navigateur",
-      "description": "Vérifier le statut de l'extension du navigateur"
-    },
-    "bua_wait_for_user": {
-      "name": "En attente de l'utilisateur",
-      "description": "En attente de l'utilisateur pour résoudre un obstacle",
-      "defaultReason": "Action manuelle requise",
-      "continue": "Continuer",
-      "resuming": "Reprise en cours...",
-      "resumed": "Reprise effectuée"
-    },
-    "bua_snapshot": {
-      "name": "Instantané de la page",
-      "description": "Obtenir un instantané des éléments interactifs"
-    },
-    "bua_hover": {
-      "name": "Survoler",
-      "description": "Survoler un élément de la page"
-    },
-    "bua_fill": {
-      "name": "Remplir",
-      "description": "Remplir un champ de saisie spécifique"
-    },
-    "bua_fill_form": {
-      "name": "Remplir le formulaire",
-      "description": "Remplir plusieurs champs de formulaire"
-    },
-    "bua_press_key": {
-      "name": "Appuyer sur une touche",
-      "description": "Simuler une pression de touche du clavier"
-    },
-    "bua_handle_dialog": {
-      "name": "Gérer la boîte de dialogue",
-      "description": "Gérer une boîte de dialogue JavaScript"
-    },
-    "bua_wait_for": {
-      "name": "Attendre",
-      "description": "Attendre l'apparition du contenu"
-    },
-    "bua_screenshot": {
-      "name": "Capture d'écran",
-      "description": "Prendre une capture d'écran de la page"
-    },
-    "bua_new_tab": {
-      "name": "Nouvel onglet",
-      "description": "Ouvrir un nouvel onglet du navigateur"
-    },
-    "bua_list_tabs": {
-      "name": "Lister les onglets",
-      "description": "Lister tous les onglets ouverts"
-    },
-    "bua_select_tab": {
-      "name": "Changer d'onglet",
-      "description": "Basculer vers un onglet spécifique"
-    },
-    "bua_close_tab": {
-      "name": "Fermer l'onglet",
-      "description": "Fermer un onglet spécifique"
-    },
-    "bua_evaluate": {
-      "name": "Exécuter un script",
-      "description": "Exécuter du JavaScript dans la page"
-    },
-    "bua_session": {
-      "navigating": "Navigation vers",
-      "clicking": "Clic sur l'élément...",
-      "typing": "Saisie du texte...",
-      "scrolling": "Défilement",
-      "extracting": "Extraction du contenu...",
-      "waitingForUser": "En attente de l'utilisateur...",
-      "processing": "Traitement en cours...",
-      "error": "Échec de l'action",
-      "unknownError": "Une erreur inconnue s'est produite",
-      "obstacleDetected": "Obstacle détecté",
-      "resumed": "Session reprise",
-      "snapshot": "Prise d'instantané...",
-      "hovering": "Survol...",
-      "filling": "Remplissage du champ...",
-      "filling_form": "Remplissage du formulaire...",
-      "pressing_key": "Pression de touche...",
-      "handling_dialog": "Gestion de la boîte de dialogue...",
-      "waiting": "En attente...",
-      "screenshot": "Capture d'écran en cours...",
-      "opening_tab": "Ouverture de l'onglet...",
-      "switching_tab": "Changement d'onglet...",
-      "evaluating": "Exécution du script..."
-    },
-    "evaluate_people": {
-      "name": "Évaluation de correspondance des personnes",
-      "description": "Évaluez la correspondance des personnes avec une description de poste avec une évaluation structurée et des motifs",
-      "action": "Évaluation de correspondance en cours",
-      "summary": "{total} évalués · {strong} forte correspondance"
     }
   },
   "toolForms": {
@@ -1345,31 +1092,7 @@
       "exportSuccess": "Génération des données de contacts terminée",
       "exportFailed": "Échec de la génération des données de contacts",
       "totalCount": "Total : {count} personnes",
-      "countSummary": "{count} personnes",
-      "noData": "Aucune donnée de contacts disponible",
-      "close": "Fermer"
-    },
-    "peopleSearch": {
-      "searching": "Recherche de personnes en cours...",
-      "searchFailed": "Échec de la recherche",
-      "totalCount": "{count} personnes trouvées",
-      "noResults": "Aucune personne correspondante trouvée"
-    },
-    "evaluatePeople": {
-      "evaluating": "Évaluation des candidats...",
-      "evaluationFailed": "Échec de l'évaluation",
-      "noResults": "Aucun résultat d'évaluation",
-      "totalEvaluated": "{count} personnes évaluées",
-      "strongCount": "Forte {count}",
-      "potentialCount": "Potentiel {count}",
-      "weakCount": "Faible {count}",
-      "errorCount": "Échec {count}",
-      "matchLevel": {
-        "strong": "Forte",
-        "potential": "Potentiel",
-        "weak": "Faible",
-        "error": "Échec"
-      }
+      "noData": "Aucune donnée de contacts disponible"
     }
   },
   "canvas": {
@@ -1377,23 +1100,10 @@
     "loading": "Chargement du fichier...",
     "loadingDefault": "Chargement en cours...",
     "unsupportedFormat": "Format de fichier non pris en charge",
-    "loadError": "Échec du chargement du fichier. Veuillez vérifier si le fichier est endommagé et réessayer de l'ouvrir.",
-    "retry": "Réessayer",
     "downloadFile": "Télécharger le fichier",
     "maximize": "Agrandir",
     "restore": "Restaurer",
     "close": "Fermer",
-    "downloadFormats": {
-      "original": "Original",
-      "pdf": "PDF",
-      "md": "MD",
-      "docx": "DOCX",
-      "csv": "CSV",
-      "xlsx": "XLSX"
-    },
-    "downloadGenerating": "Génération du fichier...",
-    "downloadDownloading": "Téléchargement en cours...",
-    "downloadSuccess": "Téléchargement réussi",
     "fileTypes": {
       "text": "Fichier texte",
       "markdown": "Markdown",
@@ -1428,12 +1138,6 @@
         "emptyTable": "Le tableau est vide"
       },
       "ppt": {
-        "convertingPpt": "Conversion du format ancien...",
-        "rendering": "Rendu des diapositives...",
-        "loading": "Chargement en cours...",
-        "convertFailed": "Échec du chargement du fichier. Veuillez vérifier si le fichier est endommagé et réessayer de l'ouvrir.",
-        "renderFailed": "Échec du rendu des diapositives",
-        "pageIndicator": "{current}/{total}",
         "notSupported": "L'aperçu en ligne des présentations {format} n'est pas pris en charge",
         "downloadButton": "Télécharger le fichier",
         "tip": "Astuce : Téléchargez et ouvrez avec {format} ou un logiciel compatible pour consulter l'intégralité du contenu"
@@ -1460,72 +1164,10 @@
         "workExperience": "Expérience professionnelle",
         "recentWorkExperience": "Expérience professionnelle récente",
         "noWorkExperience": "Aucune expérience professionnelle",
-        "noWorkExperienceData": "Aucune information sur l'expérience professionnelle",
-        "noEducationData": "Aucune information sur la formation",
-        "expandMore": "+{n} de plus",
-        "collapseMore": "-{n} de moins",
-        "education": "Formation",
         "present": "Présent",
-        "csvExportNotFetched": "Non récupéré",
-        "csvExportQuerying": "Requête en cours...",
-        "csvExportYearsUnit": " ans",
-        "xlsxHeaderName": "Nom",
-        "xlsxHeaderLocation": "Localisation",
-        "xlsxHeaderCurrentCompany": "Entreprise actuelle",
-        "xlsxHeaderCurrentPosition": "Poste actuel",
-        "xlsxHeaderYearsOfExp": "Années d'exp.",
-        "xlsxHeaderRecentWorkHistory": "Expérience récente",
-        "xlsxHeaderEducation": "Formation",
-        "xlsxHeaderAiSummary": "Résumé IA",
-        "xlsxHeaderEmail": "E-mail",
-        "xlsxHeaderPhone": "Téléphone",
-        "xlsxHeaderDataUpdated": "Données mises à jour",
-        "xlsxHeaderDetailsUrl": "URL de détails",
         "more": "plus",
         "linkedinProfile": "Profil LinkedIn",
-        "website": "Site web personnel",
-        "viewDetails": "Voir les détails",
-        "hasEmail": "E-mail disponible",
-        "hasPhone": "Téléphone disponible",
-        "getEmail": "Obtenir l'e-mail",
-        "getPhone": "Obtenir le téléphone",
-        "fetching": "Enrichissement...",
-        "phonePending": "Enrichissement...",
-        "enrichError": "Échec de la récupération",
-        "notFound": "Non disponible",
-        "viewEmail": "Voir l'e-mail",
-        "viewPhone": "Voir le téléphone",
-        "noEmail": "Pas d'e-mail",
-        "noPhone": "Pas de téléphone",
-        "enrichFailed": "Échec de la récupération. Veuillez réessayer plus tard.",
-        "copyToClipboard": "Copier",
-        "copied": "Copié",
-        "sendEmail": "Envoyer un e-mail",
-        "callPhone": "Appeler",
-        "cancel": "Annuler",
-        "confirm": "OK",
-        "confirmGetEmailDesc": "Confirmer la récupération de l'e-mail de ce contact ?",
-        "confirmGetPhoneDesc": "Confirmer la récupération du numéro de téléphone de ce contact ?",
-        "confirmGetBtn": "Confirmer",
-        "getSuccessTitle": "Récupéré avec succès",
-        "getFailedTitle": "Échec de la récupération",
-        "creditConsumed": "1 crédit consommé",
-        "copySuccess": "Copié avec succès !",
-        "noEmailFound": "Aucune adresse e-mail trouvée pour cette personne.",
-        "noPhoneFound": "Aucun numéro de téléphone trouvé pour cette personne.",
-        "phonePendingDesc": "Le numéro de téléphone est en cours de récupération, cela prend généralement quelques minutes. Cliquez à nouveau sur ce bouton quand il sera prêt.",
-        "networkError": "Erreur réseau. Veuillez réessayer plus tard.",
-        "yearsExp": " ans d'exp.",
-        "expYears": "{n} ans d'exp.",
-        "expLessThan1yr": "< 1 an d'exp.",
-        "daysAgo": "j",
-        "weeksAgo": "sem.",
-        "monthsAgo": "mois",
-        "yearsAgo": "an(s)",
-        "lastUpdated": "Dernière mise à jour : {date}",
-        "headerCount": "{count} personnes",
-        "downloadCsv": "Télécharger le CSV",
-        "aiSummary": "Résumé IA"
+        "viewDetails": "Voir les détails"
       },
       "html": {
         "loading": "Chargement en cours...",
@@ -1546,9 +1188,7 @@
         "loading": "Chargement en cours...",
         "reset": "Réinitialiser"
       }
-    },
-    "downloadFailed": "Échec du téléchargement",
-    "fileInfoIncomplete": "Informations de fichier incomplètes, conversion impossible"
+    }
   },
   "plan": {
     "status": {
@@ -1557,7 +1197,7 @@
       "paused": "En pause",
       "completed": "Terminé",
       "failed": "Échoué",
-      "cancelled": "Annulé",
+      "cancelled": "Cancelled",
       "waiting_for_user": "En attente de l'utilisateur"
     },
     "maximize": "Agrandir",
@@ -1568,14 +1208,5 @@
     "taskProgress": "Progression de la tâche",
     "expandTaskList": "Développer la liste des tâches",
     "collapseTaskList": "Réduire la liste des tâches"
-  },
-  "error": {
-    "title": "Une erreur est survenue",
-    "description": "La page a rencontré une erreur inattendue. Veuillez réessayer plus tard.",
-    "retry": "Réessayer",
-    "backToHome": "Retour à l'accueil",
-    "backToSignIn": "Retour à la connexion",
-    "notFoundTitle": "Page introuvable",
-    "notFoundDescription": "La page que vous recherchez n'existe pas ou a été supprimée."
   }
 }

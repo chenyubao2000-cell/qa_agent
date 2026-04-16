@@ -1,17 +1,21 @@
-import { type Page } from '@playwright/test';
-import type { I18n } from '../fixtures';
+import { type Page } from "@playwright/test";
+import type { I18n } from "../fixtures";
+import { i18nRegex } from "../i18n-helpers";
 
 export class SharePage {
-  constructor(private readonly page: Page, private readonly i18n?: I18n) {}
+  constructor(
+    private readonly page: Page,
+    private readonly i18n?: I18n,
+  ) {}
 
   // ── Header ──
   private get miraLogoLink() {
     // Share page: Mira logo link in banner has no accessible name (icon-only link)
-    return this.page.getByRole('banner').getByRole('link').first();
+    return this.page.getByRole("banner").getByRole("link").first();
   }
 
   private get taskTitle() {
-    return this.page.locator('header span.text-foreground');
+    return this.page.locator("header span.text-foreground");
   }
 
   // ── Valid share: content area ──
@@ -21,35 +25,50 @@ export class SharePage {
 
   // ── Error: invalid link ──
   private get invalidLinkHeading() {
-    const text = this.i18n ? this.i18n.t('share.invalidLink') : '链接无效';
-    return this.page.getByRole('heading', { name: text });
+    return this.page.getByRole("heading", {
+      name: this.i18n
+        ? this.i18n.t("share.invalidLink")
+        : i18nRegex("share.invalidLink"),
+    });
   }
 
   private get invalidLinkDescription() {
-    const text = this.i18n ? this.i18n.t('share.invalidLinkDescription') : '抱歉，此分享链接无效或已过期。';
-    return this.page.getByText(text);
+    return this.page.getByText(
+      this.i18n
+        ? this.i18n.t("share.invalidLinkDescription")
+        : i18nRegex("share.invalidLinkDescription"),
+    );
   }
 
   // ── Error: not found ──
   private get notFoundHeading() {
-    const text = this.i18n ? this.i18n.t('share.notFound') : '会话不存在';
-    return this.page.getByRole('heading', { name: text });
+    return this.page.getByRole("heading", {
+      name: this.i18n
+        ? this.i18n.t("share.notFound")
+        : i18nRegex("share.notFound"),
+    });
   }
 
   private get notFoundDescription() {
-    const text = this.i18n ? this.i18n.t('share.notFoundDescription') : '抱歉，您访问的会话不存在或已被删除。';
-    return this.page.getByText(text);
+    return this.page.getByText(
+      this.i18n
+        ? this.i18n.t("share.notFoundDescription")
+        : i18nRegex("share.notFoundDescription"),
+    );
   }
 
   // ── Read-only mode indicators ──
   private get textareaInput() {
-    return this.page.locator('textarea');
+    return this.page.locator("textarea");
   }
 
   // ── Shared navigation ──
   private get backToHomeLink() {
-    const text = this.i18n ? this.i18n.t('share.backToHome') : '返回首页';
-    return this.page.getByRole('link', { name: text });
+    return this.page.getByRole("link", {
+      name: this.i18n
+        ? this.i18n.t("share.backToHome")
+        : i18nRegex("share.backToHome"),
+    });
   }
 
   // ── Public getters ──
@@ -95,7 +114,10 @@ export class SharePage {
   async goto(path: string) {
     // Share error pages may never fire 'load' (SSR with hanging resources),
     // use 'domcontentloaded' to avoid timeout; allow 45s for slow server lookups
-    await this.page.goto(path, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await this.page.goto(path, {
+      waitUntil: "domcontentloaded",
+      timeout: 45_000,
+    });
   }
 
   async clickBackToHome() {

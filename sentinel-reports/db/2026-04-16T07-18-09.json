@@ -1,0 +1,16 @@
+{
+  "platform": "db",
+  "timestamp": "2026-04-16T07:18:09.817Z",
+  "changedFiles": [
+    ".claude/rules/ai-sdk-schema.md",
+    ".claude/rules/references/ai-sdk-schema-research-2026-04.md",
+    "apps/mira-work/lib/ai/__tests__/schema-repair.test.ts",
+    "apps/mira-work/lib/ai/schema-repair.ts",
+    "apps/mira-work/lib/db/migrations/031_add_match_evaluation_fields.sql",
+    "apps/mira-work/lib/db/migrations/032_populate_scenario_cards_i18n.sql",
+    "apps/mira-work/lib/db/migrations/032_remove_numeric_scoring.sql",
+    "apps/mira-work/lib/db/schemas/usage.ts"
+  ],
+  "severity": "warning",
+  "suggestion": "检测到 DB schema 变更，建议运行兼容性测试并验证 migration 脚本"
+}

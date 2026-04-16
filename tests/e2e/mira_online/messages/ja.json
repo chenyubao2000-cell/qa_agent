@@ -1,0 +1,1212 @@
+{
+  "common": {
+    "welcome": "ようこそ",
+    "logout": "ログアウト",
+    "settings": "設定",
+    "home": "ホーム",
+    "dashboard": "ダッシュボード",
+    "language": "言語"
+  },
+  "email": {
+    "verification": {
+      "subject": "メールアドレスの確認 - {appName}",
+      "title": "メールアドレスの確認",
+      "heading": "メールアドレスを確認してください",
+      "body": "{appName}にご登録いただきありがとうございます。アカウントを保護するため、メールアドレスの確認が必要です。下のボタンをクリックして確認してください：",
+      "button": "メールアドレスを確認",
+      "linkHint": "または、以下のリンクをブラウザにコピーして貼り付けてください：",
+      "ignoreHint": "{appName}に登録した覚えがない場合は、このメールを無視してください。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "resetPassword": {
+      "subject": "パスワードのリセット - {appName}",
+      "title": "パスワードのリセット",
+      "heading": "パスワードをリセットしてください",
+      "body": "パスワードリセットのリクエストを受け付けました。下のボタンをクリックして、新しいパスワードを設定してください：",
+      "button": "パスワードをリセット",
+      "linkHint": "ボタンが機能しない場合は、以下のリンクをブラウザにコピーして貼り付けてください：",
+      "ignoreHint": "パスワードのリセットをリクエストしていない場合は、このメールを無視してください。パスワードは変更されません。"
+    },
+    "otp": {
+      "subject": "確認コードが送信されました。ご確認ください",
+      "title": "メール確認コード",
+      "greeting": "こんにちは、",
+      "body": "Miraアカウントのメールアドレスを確認しています。以下の確認コードをご利用ください：",
+      "expireHint": "このコードの有効期限は10分間です。他の方と共有しないでください。",
+      "ignoreHint": "Miraに登録した覚えがない場合は、このメールを無視してください。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "waitlistOtp": {
+      "subject": "確認コード - {appName} ウェイトリスト",
+      "title": "メール確認コード",
+      "greeting": "こんにちは、",
+      "body": "{appName}のウェイトリストに申し込みいただいています。以下のコードを使用して、仕事用メールアドレスを確認してください：",
+      "expireHint": "このコードの有効期限は10分間です。他の方と共有しないでください。",
+      "ignoreHint": "{appName}のウェイトリストに申し込みをしていない場合は、このメールを無視してください。",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "invitation": {
+      "subject": "{appName} 招待コードのお知らせ",
+      "title": "Mira招待コードのご案内",
+      "greeting": "{name}様、",
+      "body": "Miraの早期アクセスにお申し込みいただきありがとうございます。申請が承認されました。以下の招待コードを使用して、ご利用を開始してください：",
+      "activateButton": "今すぐ有効化",
+      "ignoreHint": "Miraの早期アクセスに申し込みをしていない場合は、このメールを無視してください。",
+      "footer": "© 2025 {appName}. All rights reserved."
+    }
+  },
+  "files": {
+    "types": {
+      "text": "テキスト",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "画像",
+      "peopleData": "人材データ"
+    }
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "overview": "概要",
+    "statistics": "統計",
+    "welcome": "何かお手伝いできることはありますか？",
+    "tryScenarios": "こちらのシナリオをお試しください"
+  },
+  "chatbot": {
+    "sendMessage": "メッセージを送信",
+    "placeholder": "入力してください...",
+    "addAttachments": "写真またはファイルを追加",
+    "uploadLocalFile": "ローカルファイルをアップロード",
+    "uploadError": "ファイルのアップロードに失敗しました",
+    "uploadErrorMaxFiles": "ファイル数の上限を超えています",
+    "uploadErrorMaxFileSize": "ファイルサイズが上限を超えています",
+    "uploadErrorAccept": "サポートされていないファイル形式です",
+    "uploadErrorAcceptPartial": "サポートされていない形式のファイルが{count}件無視されました",
+    "uploadErrorMaxFileSizePartial": "サイズ上限を超えるファイルが{count}件無視されました",
+    "uploadErrorUpload": "ファイルのアップロードに失敗しました。再度お試しください",
+    "typing": "入力中...",
+    "thinking": "考え中...",
+    "aborted": "Miraが停止しました。新しいメッセージを送信して続行してください",
+    "waitingForUser": "あなたの応答をお待ちしています",
+    "completed": "タスク完了",
+    "retry": "再試行",
+    "copy": "コピー",
+    "search": "検索",
+    "searchPlaceholder": "タスクを検索...",
+    "newChat": "新しいタスク",
+    "taskList": "タスク",
+    "taskListDescription": "すべてのタスクを管理・閲覧",
+    "taskId": "タスクID",
+    "confirmDelete": "タスクの削除を確認",
+    "deleteWarning": "この操作は取り消せません。タスクとすべてのメッセージが完全に削除されます。",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "rename": "名前を変更",
+    "renameTask": "タスク名を変更",
+    "editTitle": "タイトルを編集",
+    "enterTaskName": "タスク名を入力",
+    "newTaskName": "新しいタスク名",
+    "taskName": "タスク名",
+    "save": "保存",
+    "moreActions": "その他の操作",
+    "taskDetails": "タスクの詳細",
+    "taskTitle": "タスクのタイトル",
+    "creditsConsumed": "消費クレジット",
+    "createdTime": "作成日時",
+    "history": "タスク履歴",
+    "noHistory": "タスクはまだありません",
+    "noSearchResults": "一致するタスクが見つかりません",
+    "deleteChat": "タスクを削除",
+    "today": "今日",
+    "yesterday": "昨日",
+    "thisWeek": "今週",
+    "last7Days": "過去7日間",
+    "last30Days": "過去30日間",
+    "older": "それ以前",
+    "tasks": "タスク",
+    "projects": "プロジェクト",
+    "library": "ライブラリ",
+    "chatNotFound": "チャットが見つかりません",
+    "chatNotFoundDescription": "申し訳ありませんが、アクセスしようとしているタスクは存在しないか、削除されています。",
+    "noPermission": "アクセスが拒否されました",
+    "noPermissionDescription": "申し訳ありませんが、このタスクにアクセスする権限がありません。",
+    "share": "共有",
+    "shareChat": "チャットを共有",
+    "shareChatDescription": "リンクを使って他の方とこの会話を共有します",
+    "shareLink": "共有リンク",
+    "copyLink": "リンクをコピー",
+    "copied": "コピーしました",
+    "createShareLink": "共有リンクを作成",
+    "creating": "作成中...",
+    "removeShare": "共有を解除",
+    "removing": "解除中...",
+    "shareDescription": "このリンクを持つ方は誰でもこの会話を閲覧できます",
+    "createShareDescription": "共有リンクを作成して、他の方がこの会話を閲覧できるようにします",
+    "close": "閉じる",
+    "emptyStateTitle": "メッセージはまだありません",
+    "emptyStateDescription": "会話を始めると、ここにメッセージが表示されます",
+    "errors": {
+      "renameUnauthorized": "このタスクの名前を変更する権限がありません",
+      "renameChatNotFound": "タスクが見つからないか、削除されています",
+      "renameTitleTooLong": "タスク名が長すぎます。最大{maxLength}文字までです",
+      "renameTitleEmpty": "タスク名を空にすることはできません",
+      "renameFailed": "タスク名の変更に失敗しました。後ほど再度お試しください",
+      "updateFailed": "更新に失敗しました。後ほど再度お試しください"
+    }
+  },
+  "share": {
+    "notFound": "チャットが見つかりません",
+    "notFoundDescription": "申し訳ありませんが、アクセスしようとしているチャットは存在しないか、削除されています。",
+    "invalidLink": "無効なリンク",
+    "invalidLinkDescription": "申し訳ありませんが、この共有リンクは無効か、有効期限が切れています。",
+    "backToHome": "ホームに戻る"
+  },
+  "homepage": {
+    "nav": {
+      "features": "機能",
+      "getStarted": "ウェイトリストに参加",
+      "signIn": "サインイン",
+      "goToHomepage": "ホームページへ"
+    },
+    "hero": {
+      "title": "あなたの延長",
+      "subtitle1": "まずは採用から。",
+      "subtitle2": "さらに続きます。",
+      "description": "Miraは単なるエージェントではありません。あなたのデジタルパートナーです。",
+      "getStarted": "ウェイトリストに参加"
+    },
+    "features": {
+      "label": "機能",
+      "core": "コア",
+      "recruiting": "採用",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "あなたのために働くのではなく、あなたと一緒に働く",
+          "desc1": "Miraはタスクを自律的に実行し、重要な判断が必要なときはあなたと協力します。",
+          "desc2": "スケジュールもコンテキストも共有します。"
+        },
+        "trainedByYou": {
+          "title": "あなたがトレーニングする、またはあなたから学ぶ",
+          "desc1": "スキルを定義してMiraを明示的にトレーニングするか、",
+          "desc2": "あなたの実際のワークフローや行動から時間をかけて学習させることができます。"
+        },
+        "topTierModels": {
+          "title": "トップレベルのモデルで構築、現実に最適化",
+          "desc1": "最先端のモデルを搭載し、プロダクショングレードのエンジニアリングと",
+          "desc2": "実際のドメインエキスパートの知見に基づいています。"
+        },
+        "integratedTools": {
+          "title": "既存のツールとシームレスに統合",
+          "desc1": "すでにお使いのツール（Airtable、Slack、Gmail、",
+          "desc2": "OneDriveなど）とシームレスに連携します。"
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "候補者データ",
+          "desc1": "複数のソースから構造化・非構造化の候補者データを集約します。",
+          "desc2": "追加のWeb情報が必要な場合は、Mira Chrome拡張機能でカバレッジを拡大できます。"
+        },
+        "communication": {
+          "title": "コミュニケーションとフォローアップ",
+          "desc1": "アウトバウンドの電話やメールに対応。",
+          "desc2": "すべての通信記録は対応する候補者に自動的にリンクされます。"
+        },
+        "recruitingSkills": {
+          "title": "採用スキル",
+          "desc1": "役割の明確化、候補者の評価、",
+          "desc2": "採用判断の支援のために設計された組み込みの採用スキルです。"
+        },
+        "securityTrust": {
+          "title": "セキュリティと信頼",
+          "desc1": "エンタープライズ利用を想定した設計。",
+          "desc2": "GDPRおよびその他のデータ保護要件に準拠し、ゼロデータ保持（ZDR）オプションを提供します。"
+        }
+      }
+    },
+    "cta": {
+      "title": "早期アクセスをリクエスト",
+      "description": "Miraは現在プライベートベータ版です。",
+      "button": "ウェイトリストに参加"
+    }
+  },
+  "Layout": {
+    "signOut": "サインアウト",
+    "language": "言語",
+    "theme": "テーマ",
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム",
+    "mockUserName": "テストユーザー"
+  },
+  "admin": {
+    "nav": {
+      "management": "管理",
+      "dashboard": "ダッシュボード",
+      "waitlist": "ウェイトリスト",
+      "invitationCodes": "招待コード",
+      "scenarioCards": "シナリオカード",
+      "admins": "管理者",
+      "backToApp": "アプリに戻る"
+    },
+    "dashboard": {
+      "title": "ダッシュボード",
+      "description": "システム運用の概要",
+      "sections": {
+        "overview": "概要",
+        "quickActions": "クイックアクション"
+      },
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "activatedUsers": "{count}人が有効化済み",
+        "pendingWaitlist": "保留中の申請",
+        "totalWaitlist": "ウェイトリストに{count}人",
+        "availableCodes": "利用可能なコード",
+        "totalCodes": "コード合計{count}件",
+        "activationRate": "有効化率",
+        "activatedOfTotal": "{activated}/{total}が有効化済み",
+        "needsAttention": "要対応"
+      },
+      "quickLinks": {
+        "waitlist": "ウェイトリスト管理",
+        "waitlistDesc": "申請を確認し、招待コードを送信",
+        "invitationCodes": "招待コード管理",
+        "invitationCodesDesc": "招待コードの生成、閲覧、エクスポート",
+        "pendingCount": "保留中",
+        "availableCount": "利用可能"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "招待コードプール",
+      "description": "招待コードの一括管理、事前生成・配布",
+      "refresh": "更新",
+      "export": "エクスポート",
+      "generate": "コードを生成",
+      "generating": "生成中...",
+      "loading": "読み込み中...",
+      "noCodes": "コードはまだありません",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "copyFailed": "コピーに失敗しました",
+      "generatePrompt": "生成するコード数を入力してください（1〜1000）",
+      "generateCountError": "数は1〜1000の間で指定してください",
+      "generateSuccess": "招待コードを{count}件生成しました",
+      "generateFailed": "コードの生成に失敗しました。再度お試しください",
+      "exportSuccess": "エクスポートに成功しました",
+      "searchPlaceholder": "コードを検索...",
+      "stats": {
+        "total": "合計",
+        "unused": "未使用",
+        "used": "使用済み",
+        "expired": "期限切れ"
+      },
+      "filter": {
+        "all": "すべて",
+        "unused": "未使用",
+        "used": "使用済み",
+        "expired": "期限切れ"
+      },
+      "status": {
+        "unused": "未使用",
+        "used": "使用済み",
+        "expired": "期限切れ"
+      },
+      "table": {
+        "code": "コード",
+        "status": "ステータス",
+        "usedBy": "使用者",
+        "batch": "バッチ",
+        "createdAt": "作成日時",
+        "usedAt": "使用日時",
+        "actions": "操作"
+      },
+      "pagination": {
+        "previous": "前へ",
+        "next": "次へ",
+        "page": "{current} / {total} ページ",
+        "total": "合計{count}件"
+      }
+    },
+    "admins": {
+      "title": "管理者管理",
+      "description": "システム管理者の閲覧と管理",
+      "refresh": "更新",
+      "loading": "読み込み中...",
+      "loadFailed": "読み込みに失敗しました",
+      "noAdmins": "管理者がいません",
+      "addAdmin": "管理者を追加",
+      "addSuccess": "管理者を追加しました",
+      "addFailed": "管理者の追加に失敗しました。再度お試しください",
+      "remove": "削除",
+      "removeSuccess": "管理者を削除しました",
+      "removeFailed": "管理者の削除に失敗しました。再度お試しください",
+      "addDialog": {
+        "title": "管理者を追加",
+        "description": "名前またはメールアドレスで検索して管理者権限を付与",
+        "searchPlaceholder": "名前またはメールで検索...",
+        "searching": "検索中...",
+        "noResults": "一致するユーザーが見つかりません",
+        "cancel": "キャンセル",
+        "confirm": "確認"
+      },
+      "removeDialog": {
+        "title": "管理者の削除を確認",
+        "description": "{name}の管理者権限を削除してもよろしいですか？この操作は元に戻すことができます。",
+        "cancel": "キャンセル",
+        "confirm": "削除を確認"
+      },
+      "table": {
+        "user": "ユーザー",
+        "email": "メール",
+        "createdAt": "登録日時",
+        "actions": "操作"
+      }
+    },
+    "waitlist": {
+      "title": "ウェイトリスト管理",
+      "description": "申請者を管理し、承認済みユーザーに招待コードメールを送信",
+      "refresh": "更新",
+      "loading": "読み込み中...",
+      "noItems": "申請はありません",
+      "searchPlaceholder": "メールまたは名前で検索...",
+      "sendInvitation": "招待を送信",
+      "sendBatch": "一括招待を送信",
+      "sending": "送信中...",
+      "confirmSend": "送信を確認",
+      "confirmSendDesc": "{count}人の申請者に招待コード付きのメールを送信し、{count}件のコードを消費します。続行しますか？",
+      "sendSuccess": "招待メールを{count}件送信しました",
+      "sendPartialSuccess": "{success}件送信、{fail}件失敗",
+      "sendFailed": "送信に失敗しました。再度お試しください",
+      "noPendingSelected": "選択されたすべてのエントリーは処理済みです",
+      "resend": "再送信",
+      "resendSuccess": "招待メールを再送信しました",
+      "resendFailed": "再送信に失敗しました。再度お試しください",
+      "copyCode": "招待コードをコピー",
+      "copySuccess": "招待コードをコピーしました",
+      "copyFailed": "コピーに失敗しました。手動でコピーしてください",
+      "filter": {
+        "all": "すべて",
+        "pending": "保留中",
+        "approved": "送信済み",
+        "rejected": "却下",
+        "activated": "有効化済み"
+      },
+      "status": {
+        "pending": "保留中",
+        "approved": "送信済み",
+        "rejected": "却下",
+        "activated": "有効化済み"
+      },
+      "table": {
+        "name": "名前",
+        "company": "会社名",
+        "role": "役職",
+        "email": "メール",
+        "useCase": "利用目的",
+        "locale": "言語",
+        "createdAt": "申請日時",
+        "invitationCode": "招待コード",
+        "status": "ステータス",
+        "actions": "操作"
+      },
+      "pagination": {
+        "previous": "前へ",
+        "next": "次へ",
+        "page": "{current} / {total} ページ",
+        "total": "合計{count}件"
+      }
+    },
+    "scenarioCards": {
+      "title": "シナリオカード",
+      "description": "タスク作成ページに表示されるプリセットシナリオカードを管理します。ユーザーがクリックすると、即座にソーシングタスクが開始されます。",
+      "refresh": "更新",
+      "loading": "読み込み中...",
+      "noItems": "シナリオカードがありません",
+      "addCard": "カードを追加",
+      "editCard": "カードを編集",
+      "deleteCard": "削除",
+      "deleteConfirm": "このカードを削除してもよろしいですか？この操作は取り消せません。",
+      "saveSuccess": "保存しました",
+      "saveFailed": "保存に失敗しました。再度お試しください",
+      "deleteSuccess": "削除しました",
+      "deleteFailed": "削除に失敗しました。再度お試しください",
+      "createSuccess": "作成しました",
+      "createFailed": "作成に失敗しました。再度お試しください",
+      "table": {
+        "caseId": "ケースID",
+        "contentZh": "中国語コンテンツ",
+        "contentEn": "英語コンテンツ",
+        "sortOrder": "順序",
+        "isActive": "ステータス",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "有効",
+        "inactive": "無効"
+      },
+      "form": {
+        "caseId": "ケースID",
+        "caseIdPlaceholder": "例：case_fullstack（作成後は変更できません）",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "表示順（小さいほど先に表示）",
+        "isActive": "このカードを有効にする",
+        "cancel": "キャンセル",
+        "save": "保存",
+        "create": "作成"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "サインイン",
+    "signUp": "サインアップ",
+    "signOut": "サインアウト",
+    "signInDescription": "メールアドレスとパスワードでサインイン",
+    "signUpDescription": "新しいアカウントを作成",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "confirmPassword": "パスワードの確認",
+    "name": "名前",
+    "signInSuccess": "サインインしました",
+    "signUpSuccess": "サインアップしました。メールを確認してアカウントを認証してください",
+    "emailVerificationRequired": "メール認証が必要です",
+    "emailVerificationSent": "認証メールを送信しました",
+    "emailVerificationMessage": "認証メールを受信トレイに送信しました。メール内のリンクをクリックしてアカウントを認証した後、サインインしてください。",
+    "emailVerificationResend": "認証メールを再送信",
+    "checkYourEmail": "メールをご確認ください",
+    "emailNotVerified": "メールが未認証です。先にメールアドレスを認証してください",
+    "orContinueWith": "または",
+    "continueWithGitHub": "GitHubで続ける",
+    "continueWithGoogle": "Googleで続ける",
+    "continueWithMicrosoft": "Microsoftで続ける",
+    "continueWithApple": "Appleで続ける",
+    "forgotPassword": "パスワードをお忘れですか",
+    "forgotPasswordTitle": "パスワードをお忘れの方",
+    "forgotPasswordDescription": "メールアドレスを入力してください。パスワードリセット用のリンクをお送りします",
+    "forgotPasswordConfirmDescription": "「続行」をクリックすると、<emailLink>{email}</emailLink>にパスワードリセット用のリンクが送信されます",
+    "continueButton": "続行",
+    "returnToLogin": "サインインに戻る",
+    "resetPasswordTitle": "パスワードのリセット",
+    "resetPasswordDescription": "新しいパスワードを入力してください",
+    "sendResetLink": "リセットリンクを送信",
+    "resetPassword": "パスワードをリセット",
+    "resetPasswordSuccess": "パスワードをリセットしました。サインインページにリダイレクトします...",
+    "resetPasswordError": "パスワードのリセットに失敗しました。再度お試しください",
+    "resetPasswordEmailSent": "パスワードリセットメールを送信しました",
+    "resetPasswordEmailError": "パスワードリセットメールの送信に失敗しました",
+    "resetPasswordEmailMessage": "パスワードリセットのリンクをメールに送信しました。受信トレイを確認し、リンクをクリックしてパスワードをリセットしてください。",
+    "invalidResetToken": "無効なリセットトークン",
+    "invalidResetLink": "リセットリンクが無効または期限切れです",
+    "invalidResetLinkMessage": "このパスワードリセットリンクは無効か、期限が切れています。新しいパスワードリセットをリクエストしてください。",
+    "requestNewLink": "新しいリンクをリクエスト",
+    "backToSignIn": "サインインに戻る",
+    "rememberPassword": "パスワードを覚えていますか？",
+    "newPassword": "新しいパスワード",
+    "confirmNewPassword": "新しいパスワードの確認",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "hasAccount": "すでにアカウントをお持ちですか？",
+    "passwordMismatch": "パスワードが一致しません",
+    "agreeToTerms": "以下に同意します",
+    "termsOfService": "利用規約",
+    "and": "および",
+    "privacyPolicy": "プライバシーポリシー",
+    "settings": "設定",
+    "validation": {
+      "emailInvalid": "有効なメールアドレスを入力してください",
+      "passwordMinLength": "パスワードは8文字以上である必要があります",
+      "passwordStrength": "パスワードは8文字以上で、英字、数字、記号を含める必要があります",
+      "nameMinLength": "名前は2文字以上である必要があります",
+      "termsRequired": "利用規約とプライバシーポリシーに同意する必要があります",
+      "fieldRequired": "この項目は必須です"
+    },
+    "checkSpamFolder": "メールが届きませんか？迷惑メールフォルダをご確認ください",
+    "backToLogin": "ログインに戻る",
+    "unifiedTitle": "サインインまたはサインアップ",
+    "unifiedSubtitle": "Miraを起動する",
+    "continueTitle": "続行",
+    "emailPlaceholder": "メールアドレスを入力",
+    "emailLabel": "メールアドレス",
+    "editLink": "編集",
+    "enterPasswordTitle": "パスワードを入力",
+    "createPasswordTitle": "パスワードを作成",
+    "createAccountTitle": "アカウントを作成",
+    "createAccountDescription": "{email}のパスワードを設定",
+    "editEmail": "メールアドレスを変更",
+    "passwordStrengthHint": "パスワードは12文字以上で、英字、数字、記号を含める必要があります",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを非表示",
+    "verifyEmailTitle": "メールアドレスを確認",
+    "verifyEmailDescription": "{email}に確認コードを送信しました",
+    "enterOtp": "確認コードを入力",
+    "otpPlaceholder": "確認コードを入力",
+    "resendCode": "確認コードを再送信",
+    "resendCodeCountdown": "再送信しました。{seconds}秒後に再試行できます",
+    "changeEmail": "メールアドレスを変更",
+    "otpError": "コードが正しくありません。再度お試しください",
+    "otpExpired": "コードの有効期限が切れました。再送信してください",
+    "otpResendSuccess": "確認コードを送信しました",
+    "otpResendFailed": "送信に失敗しました。後ほど再度お試しください",
+    "checkSpamFolderHint": "メールが届きませんか？迷惑メールフォルダをご確認ください",
+    "verifyEmail": {
+      "title": "メールアドレスを確認",
+      "description": "確認コードを送信しました：",
+      "descriptionSuffix": "",
+      "goToEmail": "メールを開く",
+      "otpLabel": "確認コード",
+      "otpPlaceholder": "確認コードを入力",
+      "otpInputLabel": "{index}桁目",
+      "verifying": "確認中...",
+      "resend": "再送信",
+      "resendCountdown": "{seconds}秒",
+      "resendSuccess": "コードを再送信しました",
+      "resendFailed": "再送信に失敗しました。再度お試しください",
+      "changeEmail": "メールアドレスを変更",
+      "invalidOtp": "無効なコードです。再度お試しください",
+      "success": "メールアドレスの確認が完了しました"
+    },
+    "activateVerifyTitle": "招待コードを確認",
+    "activateCurrentEmail": "現在のメールアドレス ",
+    "activateNoCode": "招待コードをお持ちでないですか？",
+    "activateApplyNow": "今すぐ申請",
+    "signOutLink": "サインアウト",
+    "waitlistTitle": "ウェイトリストに参加",
+    "waitlistDescription": "以下の情報をご記入ください。審査後、限定招待コードをお送りします。",
+    "waitlistName": "名前",
+    "waitlistCompany": "会社名",
+    "waitlistRole": "役職",
+    "waitlistUseCase": "利用目的",
+    "waitlistSubmit": "申請を送信",
+    "waitlistSubmitting": "送信中...",
+    "waitlistJoined": "{time}に参加済み",
+    "waitlistLearnMore": "詳しく見る",
+    "joinWaitlist": {
+      "title": "ウェイトリストに参加",
+      "description": "申請が承認されたら、招待コードをお送りします。",
+      "descriptionHint": "正確で詳細な情報をご提供いただくと、審査が迅速に進みます。",
+      "workEmail": "仕事用メールアドレス",
+      "emailPlaceholder": "name@company.com",
+      "sendOtp": "確認コードを送信",
+      "resendOtp": "再送信",
+      "otpCountdown": "{seconds}秒",
+      "otpLabel": "確認コード",
+      "otpPlaceholder": "確認コードを入力",
+      "verifyOtp": "確認",
+      "changeEmail": "メールアドレスを変更",
+      "name": "名前",
+      "namePlaceholder": "名前を入力",
+      "company": "会社名",
+      "companyPlaceholder": "会社名を入力",
+      "role": "役職",
+      "rolePlaceholder": "役職を入力",
+      "useCase": "Miraの利用予定",
+      "useCasePlaceholder": "利用目的をご記入ください",
+      "submit": "申請を送信",
+      "submitting": "送信中...",
+      "cancel": "キャンセル",
+      "successTitle": "申請が送信されました",
+      "successDescription": "承認後、招待コードを以下のアドレスにお送りします：",
+      "backToHome": "ホームページに戻る",
+      "otpSent": "確認コードを送信しました",
+      "emailVerified": "確認に成功しました！",
+      "errors": {
+        "otpExpired": "確認コードの有効期限が切れました。再送信してください",
+        "otpIncorrect": "コードが正しくありません。再度お試しください",
+        "otpLengthRequired": "6桁の確認コードを入力してください",
+        "sendFailed": "送信に失敗しました。再度お試しください",
+        "verifyFailed": "確認に失敗しました。再度お試しください",
+        "submitFailed": "送信に失敗しました。再度お試しください",
+        "nameRequired": "名前を入力してください",
+        "companyRequired": "会社名を入力してください",
+        "roleRequired": "役職を入力してください",
+        "useCaseRequired": "利用目的をご記入ください",
+        "accountAlreadyActivated": "このアカウントはすでに有効化されています。サインインしてください！",
+        "alreadySubmitted": "このメールアドレスはすでに送信済みです。しばらくお待ちください！",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "emailNotVerified": "送信前にメールアドレスを確認してください",
+        "otpNotVerified": "送信前にコードを入力して確認してください"
+      }
+    },
+    "activate": "有効化",
+    "activateAccount": "アカウントを有効化",
+    "activateTitle": "アカウントを有効化",
+    "activateDescription": "Miraのご利用を続けるには、招待コードを入力してください",
+    "yourActivationCode": "あなたの招待コード：",
+    "activationCode": "招待コード",
+    "enterActivationCode": "招待コードを入力",
+    "activationCodePlaceholder": "招待コードを入力してください",
+    "activating": "有効化中...",
+    "activationSuccess": "アカウントの有効化に成功しました！",
+    "activationSuccessDescription": "ホームにリダイレクトしています...",
+    "activationCodeRequired": "招待コードを入力してください",
+    "activationCodeTooShort": "招待コードが短すぎます",
+    "activationCodeIncorrect": "無効な招待コードです。再度お試しください",
+    "invalidInvitationCode": "無効な招待コード",
+    "activationContactAdmin": "招待コードが届かない場合は、管理者にお問い合わせください",
+    "accountActivated": "アカウントが有効化されました",
+    "accountNotActivated": "アカウントが未有効化です。先にアカウントを有効化してください",
+    "errors": {
+      "emailAlreadyRegistered": "このメールアドレスはすでに登録されています。別のメールアドレスを使用するか、直接サインインしてください",
+      "invalidEmailOrPassword": "メールアドレスまたはパスワードが無効です。確認して再度お試しください",
+      "emailNotVerified": "メールが未認証です。先にメールアドレスを認証してください",
+      "passwordTooShort": "パスワードが短すぎます。より長いパスワードを使用してください",
+      "passwordTooLong": "パスワードが長すぎます。より短いパスワードを使用してください",
+      "passwordAlreadySet": "このアカウントにはすでにパスワードが設定されています",
+      "invalidEmail": "無効なメールアドレス形式です",
+      "emailAlreadyVerified": "メールアドレスはすでに認証済みです",
+      "emailMismatch": "メールアドレスが一致しません",
+      "sessionExpired": "セッションの有効期限が切れました。再度サインインしてください",
+      "sessionNotFresh": "セッションの有効期限が切れました。再認証してください",
+      "invalidOrExpiredToken": "トークンが無効か、期限切れです",
+      "accountAlreadyLinked": "このアカウントはすでにリンクされています",
+      "cannotUnlinkLastAccount": "最後のアカウントのリンクを解除することはできません",
+      "accountNotFound": "アカウントが見つかりません",
+      "rateLimitExceeded": "試行回数が多すぎます。後ほど再度お試しください",
+      "securityError": "セキュリティの検証に失敗しました。再度お試しください",
+      "validationError": "入力の検証に失敗しました。情報をご確認ください",
+      "serverError": "サーバーエラーが発生しました。後ほど再度お試しください",
+      "providerError": "サードパーティログインサービスのエラーです",
+      "invalidInput": "無効な入力です。確認して再度お試しください",
+      "unauthorized": "認証されていません。先にサインインしてください",
+      "forbidden": "権限が不足しています",
+      "notFound": "リソースが見つかりません",
+      "unprocessableEntity": "リクエストを処理できません",
+      "unknown": "不明なエラーが発生しました。後ほど再度お試しください"
+    }
+  },
+  "workspace": {
+    "title": "Miraのワークスペース",
+    "backToLiveView": "ライブビューに戻る",
+    "selectTool": "ツールを選択して詳細を表示",
+    "noToolsEnabled": "有効なツールがありません",
+    "usingTool": "Miraが使用中",
+    "processing": "処理中",
+    "completed": "完了",
+    "failed": "失敗",
+    "realTime": "ライブ",
+    "goToStart": "最初に移動",
+    "previous": "前へ",
+    "next": "次へ"
+  },
+  "search": {
+    "aiSummary": "AI要約",
+    "noResults": "検索結果がありません"
+  },
+  "toolStatus": {
+    "processing": "処理中...",
+    "searching": "検索中...",
+    "crawling": "クロール中...",
+    "mapping": "マッピング中...",
+    "extracting": "抽出中...",
+    "items": "件",
+    "suggestions": "件の提案",
+    "screenshotComplete": "スクリーンショット完了",
+    "operationFailed": "操作に失敗しました",
+    "crawlFailed": "クロールに失敗しました",
+    "extractFailed": "抽出に失敗しました",
+    "mapFailed": "マッピングに失敗しました",
+    "searchFailed": "検索に失敗しました",
+    "pages": "ページ",
+    "links": "リンク",
+    "results": "件の結果",
+    "fullPage": "全ページ",
+    "visibleArea": "表示領域",
+    "clickToView": "クリックして表示",
+    "unknownQuery": "不明なクエリ",
+    "processingUrls": "{count}件のURLを処理中...",
+    "websiteCrawl": "Webサイトクロール",
+    "contentExtract": "コンテンツ抽出",
+    "websiteMap": "Webサイトマップ"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "確認リクエスト",
+      "description": "操作についてユーザーの確認をリクエスト"
+    },
+    "clarifyQuestion": {
+      "name": "質問の明確化",
+      "description": "ユーザーに追加情報を確認"
+    },
+    "maps_weather": {
+      "name": "天気情報",
+      "description": "都市の天気を検索"
+    },
+    "exa_search": {
+      "name": "Web検索",
+      "description": "Exa AIを使用したニューラルセマンティック検索で、高品質な関連結果を取得"
+    },
+    "exa_company_search": {
+      "name": "企業検索",
+      "description": "市場調査やビジネス開発に最適化された、企業・組織の検索",
+      "action": "企業を検索中"
+    },
+    "exa_people_search": {
+      "name": "人材検索",
+      "description": "採用やタレントソーシングに最適化された、専門家・候補者・LinkedInプロフィールの検索",
+      "action": "人材を検索中"
+    },
+    "generate_people_data": {
+      "name": "人材データ生成",
+      "description": "人材検索結果をダウンロード可能なデータファイルにまとめる",
+      "action": "人材データを生成中"
+    },
+    "export_data": {
+      "name": "データエクスポート",
+      "description": "データをエクスポートしました",
+      "action": "データをエクスポート中"
+    },
+    "sb_file_create": {
+      "name": "ファイル作成",
+      "description": "サンドボックスに新しいファイルを作成",
+      "action": "ファイルを作成中"
+    },
+    "sb_file_rewrite": {
+      "name": "ファイル書き換え",
+      "description": "ファイルの内容を完全に書き換え",
+      "action": "ファイルを書き換え中"
+    },
+    "sb_file_delete": {
+      "name": "ファイル削除",
+      "description": "指定されたファイルを削除",
+      "action": "ファイルを削除中"
+    },
+    "sb_file_edit": {
+      "name": "ファイル編集",
+      "description": "AIアシスタンスでファイルを編集",
+      "action": "ファイルを編集中"
+    },
+    "sb_docx_create": {
+      "name": "Wordドキュメント作成",
+      "description": "サンドボックスにWordドキュメント（.docx形式）を作成",
+      "action": "Wordドキュメントを作成中"
+    },
+    "sb_pptx_create": {
+      "name": "PowerPointプレゼンテーション作成",
+      "description": "サンドボックスにPowerPointプレゼンテーション（.pptx形式）を作成",
+      "action": "PowerPointプレゼンテーションを作成中"
+    },
+    "sb_xlsx_create": {
+      "name": "Excelスプレッドシート作成",
+      "description": "サンドボックスにExcelスプレッドシート（.xlsx形式）を作成",
+      "action": "Excelスプレッドシートを作成中"
+    },
+    "sb_pdf_create": {
+      "name": "PDFドキュメント作成",
+      "description": "サンドボックスにPDFドキュメント（.pdf形式）を作成",
+      "action": "PDFドキュメントを作成中"
+    },
+    "sb_image_create": {
+      "name": "画像作成",
+      "description": "サンドボックスに画像（PNG、JPG、SVGなど）を作成",
+      "action": "画像を作成中"
+    },
+    "sb_command_execute": {
+      "name": "コマンド実行",
+      "description": "サンドボックスでShellコマンドを実行",
+      "action": "コマンドを実行中"
+    },
+    "sb_command_logs_get": {
+      "name": "出力を確認",
+      "description": "コマンド実行の出力を確認"
+    },
+    "sb_command_terminate": {
+      "name": "コマンド終了",
+      "description": "実行中のコマンドを終了",
+      "action": "コマンドを終了中"
+    },
+    "sb_command_running_list": {
+      "name": "セッション一覧",
+      "description": "すべてのアクティブなtmuxセッションを一覧表示"
+    },
+    "reflect_tool": {
+      "name": "リフレクション",
+      "description": "調査計画と戦略の振り返り"
+    },
+    "browserNavigate": {
+      "name": "ブラウザナビゲーション",
+      "description": "指定されたWebページに移動"
+    },
+    "browserAct": {
+      "name": "ページアクション",
+      "description": "ページ操作を実行"
+    },
+    "browserExtract": {
+      "name": "データ抽出",
+      "description": "ページから構造化データを抽出"
+    },
+    "browserObserve": {
+      "name": "アクション監視",
+      "description": "実行せずにアクションをプレビュー"
+    },
+    "browserScreenshot": {
+      "name": "ページスクリーンショット",
+      "description": "現在のページをキャプチャ"
+    },
+    "browserGetContent": {
+      "name": "コンテンツ取得",
+      "description": "ページのコンテンツを取得"
+    },
+    "browserWait": {
+      "name": "待機",
+      "description": "指定された条件を待機"
+    },
+    "browserAgentTask": {
+      "name": "スマートタスク",
+      "description": "複雑なマルチステップタスクを実行"
+    },
+    "browserClose": {
+      "name": "ブラウザを閉じる",
+      "description": "ブラウザセッションを閉じる"
+    },
+    "browserStatus": {
+      "name": "ブラウザステータス",
+      "description": "ブラウザの状態を表示"
+    },
+    "complete": {
+      "name": "ファイルを納品",
+      "description": "ユーザーにファイルを納品",
+      "createdTime": "作成日時：",
+      "downloadFile": "ファイルをダウンロード",
+      "deliveryFailed": "納品に失敗しました",
+      "previewNotImplemented": "ファイルプレビューは未実装です",
+      "download": "ダウンロード",
+      "preview": "プレビュー",
+      "previewMetadataLoading": "ファイル情報を読み込み中です。しばらくしてから再度お試しください",
+      "completed": "タスク完了",
+      "downloadSuccess": "ファイルをダウンロードしました",
+      "downloadFailed": "ファイルのダウンロードに失敗しました。再度お試しください",
+      "fileType": "ファイル",
+      "text": "テキスト",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "画像",
+      "peopleData": "人材データ"
+    },
+    "code_interpreter": {
+      "name": "コード実行",
+      "description": "サンドボックス環境でPythonコードを実行",
+      "action": "コードを実行中",
+      "pre_action": "コードを作成中"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "明確化のための質問を生成中...",
+      "defaultTitle": "追加情報が必要です",
+      "submit": "送信",
+      "skip": "スキップ（デフォルトを使用）",
+      "skipHint": "スキップすると、推奨デフォルトオプションで続行されます",
+      "submitted": "送信済み",
+      "loadFailed": "フォームの読み込みに失敗しました",
+      "loadFailedDescription": "申し訳ありませんが、質問フォームの生成に問題がありました。再度お試しください。",
+      "skipped": "スキップしました",
+      "aborted": "明確化の質問の生成を停止しました"
+    },
+    "askForConfirmation": {
+      "loading": "確認リクエストを読み込み中...",
+      "needConfirmation": "確認が必要です",
+      "confirm": "はい",
+      "deny": "いいえ",
+      "confirmed": "確認しました",
+      "denied": "拒否しました",
+      "failed": "確認リクエストに失敗しました",
+      "skipped": "スキップしました",
+      "aborted": "確認リクエストの生成を停止しました"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "ファイル作成",
+      "rewriteFile": "ファイル書き換え",
+      "deleteFile": "ファイル削除",
+      "editFile": "ファイル編集",
+      "fileOperation": "ファイル操作",
+      "executing": "実行中...",
+      "executionError": "実行エラー",
+      "success": "成功",
+      "failed": "失敗"
+    },
+    "shell": {
+      "executeCommand": "コマンド実行",
+      "checkOutput": "出力を確認",
+      "terminateCommand": "コマンド終了",
+      "listSessions": "セッション一覧",
+      "shellCommand": "Shellコマンド",
+      "executionError": "実行エラー",
+      "executing": "実行中...",
+      "sending": "送信中...",
+      "completed": "完了",
+      "sent": "送信済み",
+      "failed": "失敗",
+      "sessions": "セッション"
+    },
+    "parallelResearch": {
+      "deepResearch": "ディープリサーチ",
+      "researchReport": "調査レポート",
+      "researchFailed": "調査に失敗しました",
+      "researching": "調査中...",
+      "completed": "完了",
+      "executeResearch": "調査を実行",
+      "characters": "文字",
+      "citations": "引用"
+    },
+    "reflect": {
+      "reflecting": "リフレクション",
+      "reflectingText": "振り返り中...",
+      "completed": "完了"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "成功",
+      "failed": "失敗",
+      "inputParams": "入力パラメータ",
+      "executionResult": "実行結果",
+      "error": "エラー",
+      "waiting": "実行待ち...",
+      "noOutput": "出力データがありません",
+      "noResults": "結果がありません",
+      "noCrawlResults": "クロール結果がありません",
+      "noExtractResults": "抽出結果がありません",
+      "noMapResults": "マップ結果がありません",
+      "noReflection": "リフレクション内容がありません",
+      "waitingTask": "タスクの開始を待機中...",
+      "title": "タイトル",
+      "url": "URL",
+      "session": "セッション",
+      "activeSessions": "アクティブセッション",
+      "output": "出力",
+      "parameters": "パラメータ",
+      "executeCommand": "コマンド実行",
+      "updatedContent": "更新されたコンテンツ",
+      "editInstructions": "編集指示：",
+      "extractedData": "抽出データ：",
+      "suggestions": "件の提案：",
+      "screenshot": "スクリーンショット",
+      "fullPage": "全ページ",
+      "visibleArea": "表示領域",
+      "pageContent": "ページコンテンツ",
+      "characters": "文字",
+      "taskResult": "タスク結果：",
+      "initializationStatus": "初期化ステータス：",
+      "initialized": "初期化済み",
+      "notInitialized": "未初期化",
+      "viewBrowserSession": "ブラウザセッションを表示",
+      "clickToViewFullImage": "クリックして拡大表示",
+      "screenshotFullSize": "スクリーンショット（全ページ）",
+      "screenshotVisible": "スクリーンショット（表示領域）",
+      "pageCount": "ページ数：",
+      "timeTaken": "所要時間：",
+      "linkCount": "リンク数：",
+      "extractFailed": "抽出失敗：",
+      "charactersCount": "文字"
+    },
+    "browser": {
+      "browserNavigation": "ブラウザナビゲーション",
+      "pageAction": "ページアクション",
+      "dataExtract": "データ抽出",
+      "observeAction": "アクション監視",
+      "pageScreenshot": "ページスクリーンショット",
+      "getContent": "コンテンツ取得",
+      "wait": "待機",
+      "smartTask": "スマートタスク",
+      "closeBrowser": "ブラウザを閉じる",
+      "browserStatus": "ブラウザステータス",
+      "browserOperation": "ブラウザ操作",
+      "executingBrowserOperation": "ブラウザ操作を実行中..."
+    },
+    "files": {
+      "createFile": "ファイル作成",
+      "rewriteFile": "ファイル書き換え",
+      "deleteFile": "ファイル削除",
+      "editFile": "ファイル編集",
+      "fileOperation": "ファイル操作",
+      "createDocx": "Wordドキュメント作成",
+      "createPptx": "PowerPointプレゼンテーション作成",
+      "createXlsx": "Excelスプレッドシート作成",
+      "createPdf": "PDFドキュメント作成",
+      "createImage": "画像作成",
+      "generatePeopleData": "人材データ生成",
+      "documentContent": "ドキュメント内容"
+    },
+    "shell": {
+      "executeCommand": "コマンド実行",
+      "checkOutput": "出力を確認",
+      "terminateCommand": "コマンド終了",
+      "listSessions": "セッション一覧",
+      "shellCommand": "Shellコマンド"
+    },
+    "codeInterpreter": {
+      "description": "説明",
+      "pythonCode": "Pythonコード",
+      "envVariables": "環境変数",
+      "timeout": "タイムアウト",
+      "seconds": "秒",
+      "stdout": "標準出力",
+      "stderr": "標準エラー出力",
+      "executing": "コードを実行中..."
+    },
+    "parallelResearch": {
+      "researchQuery": "調査クエリ",
+      "reportGuidance": "レポートガイダンス：",
+      "executingDeepResearch": "ディープリサーチを実行中...",
+      "mayTakeMinutes": "調査の複雑さに応じて5〜45分かかる場合があります",
+      "researchExecutionFailed": "調査の実行に失敗しました",
+      "citations": "引用",
+      "characters": "文字",
+      "completionTime": "完了時間",
+      "structuredDataOutput": "構造化データ出力",
+      "noResearchData": "調査データがありません"
+    },
+    "reflect": {
+      "reflection": "リフレクション",
+      "researchPlanning": "AI調査計画と振り返り",
+      "reflectionNotes": "振り返りメモ",
+      "noReflection": "リフレクション内容がありません"
+    },
+    "generateReport": {
+      "reportConfig": "レポート設定",
+      "viewDetailedConfig": "詳細設定を表示",
+      "topic": "トピック",
+      "focusAreas": "重点分野",
+      "researchData": "調査データ",
+      "generatingReport": "レポートを生成中",
+      "reportGenerated": "レポート生成完了",
+      "analyzingData": "データを分析してレポートを生成中...",
+      "reportContent": "レポート内容",
+      "generating": "生成中...",
+      "reportGenerationComplete": "レポートの生成が完了しました",
+      "generationFailed": "生成に失敗しました",
+      "reportGenerationError": "レポート生成中にエラーが発生しました",
+      "comparisonAnalysis": "比較分析",
+      "listDirectory": "ディレクトリ一覧",
+      "topicOverview": "トピック概要",
+      "directAnswer": "直接回答"
+    },
+    "peopleData": {
+      "organizing": "人材データを生成中...",
+      "exportSuccess": "人材データの生成が完了しました",
+      "exportFailed": "人材データの生成に失敗しました",
+      "totalCount": "合計：{count}人",
+      "noData": "人材データがありません"
+    }
+  },
+  "canvas": {
+    "selectFile": "ファイルを選択してプレビュー",
+    "loading": "ファイルを読み込み中...",
+    "loadingDefault": "読み込み中...",
+    "unsupportedFormat": "サポートされていないファイル形式",
+    "downloadFile": "ファイルをダウンロード",
+    "maximize": "最大化",
+    "restore": "元に戻す",
+    "close": "閉じる",
+    "fileTypes": {
+      "text": "テキストファイル",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "画像",
+      "pdf": "PDFドキュメント",
+      "word": "Wordドキュメント",
+      "excel": "Excelスプレッドシート",
+      "ppt": "プレゼンテーション",
+      "people-data": "人材データ",
+      "unsupported": "サポートされていない形式"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "不明",
+        "notSupported": "この形式はプレビューに対応していません。ダウンロードしてご覧ください。",
+        "downloadButton": "ファイルをダウンロード",
+        "tip": "ヒント：ダウンロードして対応するアプリケーションで開いてください"
+      },
+      "word": {
+        "converting": "ドキュメントを変換中...",
+        "convertingDoc": ".docファイルを変換中...",
+        "loading": "読み込み中...",
+        "convertFailed": "ファイルの読み込みに失敗しました。ファイルが破損していないか確認して、再度開いてください。"
+      },
+      "excel": {
+        "converting": "旧形式を変換中...",
+        "parsing": "スプレッドシートを解析中...",
+        "loading": "読み込み中...",
+        "parseFailed": "スプレッドシートの解析に失敗しました。ダウンロードしてご覧ください",
+        "emptyTable": "テーブルは空です"
+      },
+      "ppt": {
+        "notSupported": "{format}プレゼンテーションはオンラインプレビューに対応していません",
+        "downloadButton": "ファイルをダウンロード",
+        "tip": "ヒント：ダウンロードして{format}または互換ソフトウェアで開くと、全内容を閲覧できます"
+      },
+      "peopleData": {
+        "parsing": "人材データを解析中...",
+        "loading": "読み込み中...",
+        "parseFailed": "人材データの解析に失敗しました。データ形式を確認してください",
+        "noData": "人材データがありません",
+        "csvHeaders": [
+          "名前",
+          "所在地",
+          "現在の会社",
+          "現在の役職",
+          "経験年数",
+          "直近の職歴",
+          "学歴",
+          "AI要約",
+          "メール",
+          "電話",
+          "データ更新日",
+          "詳細URL"
+        ],
+        "workExperience": "職歴",
+        "recentWorkExperience": "直近の職歴",
+        "noWorkExperience": "職歴なし",
+        "present": "現在",
+        "more": "さらに表示",
+        "linkedinProfile": "LinkedInプロフィール",
+        "viewDetails": "詳細を表示"
+      },
+      "html": {
+        "loading": "読み込み中...",
+        "securityWarning": "このHTMLコンテンツはセキュリティのためサンドボックス環境で実行されています",
+        "emptyHtml": "HTMLコンテンツが空です"
+      },
+      "json": {
+        "loading": "読み込み中...",
+        "parseFailed": "JSONの解析に失敗しました。データ形式を確認してください",
+        "emptyJson": "JSONコンテンツが空です",
+        "validJson": "有効なJSON",
+        "characters": "文字",
+        "copy": "コピー",
+        "copied": "コピーしました",
+        "rawContent": "生データ："
+      },
+      "image": {
+        "loading": "読み込み中...",
+        "reset": "リセット"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "待機中",
+      "running": "実行中",
+      "paused": "一時停止",
+      "completed": "完了",
+      "failed": "失敗",
+      "cancelled": "Cancelled",
+      "waiting_for_user": "ユーザー待ち"
+    },
+    "maximize": "最大化",
+    "expandWorkspace": "ワークスペースを展開",
+    "restore": "元に戻す",
+    "durationRunning": "実行時間",
+    "durationCompleted": "所要時間",
+    "taskProgress": "タスクの進捗",
+    "expandTaskList": "タスク一覧を展開",
+    "collapseTaskList": "タスク一覧を折りたたむ"
+  }
+}

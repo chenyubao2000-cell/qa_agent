@@ -1,0 +1,1212 @@
+{
+  "common": {
+    "welcome": "Bienvenido",
+    "logout": "Cerrar sesión",
+    "settings": "Configuración",
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "language": "Idioma"
+  },
+  "email": {
+    "verification": {
+      "subject": "Verifique su correo electrónico - {appName}",
+      "title": "Verifique su correo electrónico",
+      "heading": "Verifique su dirección de correo electrónico",
+      "body": "Gracias por registrarse en {appName}. Para proteger su cuenta, necesitamos verificar su correo electrónico. Haga clic en el botón a continuación para verificar:",
+      "button": "Verificar correo electrónico",
+      "linkHint": "O copie y pegue este enlace en su navegador:",
+      "ignoreHint": "Si no se registró en {appName}, ignore este correo electrónico.",
+      "footer": "© {year} {appName}. Todos los derechos reservados."
+    },
+    "resetPassword": {
+      "subject": "Restablecer contraseña - {appName}",
+      "title": "Restablecer contraseña",
+      "heading": "Restablezca su contraseña",
+      "body": "Recibimos su solicitud para restablecer su contraseña. Haga clic en el botón a continuación para establecer una nueva contraseña:",
+      "button": "Restablecer contraseña",
+      "linkHint": "Si el botón no funciona, copie y pegue este enlace en su navegador:",
+      "ignoreHint": "Si no solicitó un restablecimiento de contraseña, ignore este correo electrónico. Su contraseña permanecerá sin cambios."
+    },
+    "otp": {
+      "subject": "Su código de verificación ha sido enviado, por favor revíselo",
+      "title": "Código de verificación por correo electrónico",
+      "greeting": "Hola,",
+      "body": "Está verificando el correo electrónico de su cuenta Mira. Utilice el siguiente código de verificación:",
+      "expireHint": "Este código es válido por 10 minutos. No lo comparta con nadie.",
+      "ignoreHint": "Si no se registró en Mira, ignore este correo electrónico.",
+      "footer": "© {year} {appName}. Todos los derechos reservados."
+    },
+    "waitlistOtp": {
+      "subject": "Su código de verificación - Lista de espera de {appName}",
+      "title": "Código de verificación por correo electrónico",
+      "greeting": "Hola,",
+      "body": "Está solicitando unirse a la lista de espera de {appName}. Utilice el siguiente código para verificar su correo electrónico laboral:",
+      "expireHint": "Este código es válido por 10 minutos. No lo comparta con nadie.",
+      "ignoreHint": "Si no solicitó unirse a la lista de espera de {appName}, ignore este correo electrónico.",
+      "footer": "© {year} {appName}. Todos los derechos reservados."
+    },
+    "invitation": {
+      "subject": "Su código de invitación de {appName}",
+      "title": "Su código de invitación de Mira está listo",
+      "greeting": "Hola {name},",
+      "body": "Gracias por solicitar acceso anticipado a Mira. Su solicitud ha sido aprobada. Utilice el código de invitación a continuación para comenzar:",
+      "activateButton": "Activar ahora",
+      "ignoreHint": "Si no solicitó acceso anticipado a Mira, ignore este correo electrónico.",
+      "footer": "© 2025 {appName}. Todos los derechos reservados."
+    }
+  },
+  "files": {
+    "types": {
+      "text": "Texto",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "Imagen",
+      "peopleData": "Datos de personas"
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "overview": "Resumen",
+    "statistics": "Estadísticas",
+    "welcome": "¿En qué puedo ayudarle?",
+    "tryScenarios": "Pruebe estos escenarios"
+  },
+  "chatbot": {
+    "sendMessage": "Enviar mensaje",
+    "placeholder": "Escriba aquí...",
+    "addAttachments": "Agregar fotos o archivos",
+    "uploadLocalFile": "Subir archivo local",
+    "uploadError": "Error al subir el archivo",
+    "uploadErrorMaxFiles": "Se excedió el número máximo de archivos",
+    "uploadErrorMaxFileSize": "El tamaño del archivo excede el límite",
+    "uploadErrorAccept": "Tipo de archivo no compatible",
+    "uploadErrorAcceptPartial": "{count} archivo(s) con formato no compatible fueron ignorados",
+    "uploadErrorMaxFileSizePartial": "{count} archivo(s) que exceden el límite de tamaño fueron ignorados",
+    "uploadErrorUpload": "Error al subir el archivo, intente de nuevo",
+    "typing": "Escribiendo...",
+    "thinking": "Pensando...",
+    "aborted": "Mira se detuvo. Envíe un nuevo mensaje para continuar",
+    "waitingForUser": "Mira continuará después de su respuesta",
+    "completed": "Tarea completada",
+    "retry": "Reintentar",
+    "copy": "Copiar",
+    "search": "Buscar",
+    "searchPlaceholder": "Buscar tareas...",
+    "newChat": "Nueva tarea",
+    "taskList": "Tareas",
+    "taskListDescription": "Administrar y ver todas las tareas",
+    "taskId": "ID de tarea",
+    "confirmDelete": "Confirmar eliminación de tarea",
+    "deleteWarning": "Esta acción no se puede deshacer. Se eliminará permanentemente la tarea y todos sus mensajes.",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "rename": "Renombrar",
+    "renameTask": "Renombrar tarea",
+    "editTitle": "Editar título",
+    "enterTaskName": "Ingrese el nombre de la tarea",
+    "newTaskName": "Nuevo nombre de tarea",
+    "taskName": "Nombre de tarea",
+    "save": "Guardar",
+    "moreActions": "Más acciones",
+    "taskDetails": "Detalles de la tarea",
+    "taskTitle": "Título de la tarea",
+    "creditsConsumed": "Créditos consumidos",
+    "createdTime": "Fecha de creación",
+    "history": "Historial de tareas",
+    "noHistory": "Aún no hay tareas",
+    "noSearchResults": "No se encontraron tareas coincidentes",
+    "deleteChat": "Eliminar tarea",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "thisWeek": "Esta semana",
+    "last7Days": "Últimos 7 días",
+    "last30Days": "Últimos 30 días",
+    "older": "Anteriores",
+    "tasks": "Tareas",
+    "projects": "Proyectos",
+    "library": "Biblioteca",
+    "chatNotFound": "Chat no encontrado",
+    "chatNotFoundDescription": "La tarea a la que intenta acceder no existe o ha sido eliminada.",
+    "noPermission": "Acceso denegado",
+    "noPermissionDescription": "No tiene permiso para acceder a esta tarea.",
+    "share": "Compartir",
+    "shareChat": "Compartir chat",
+    "shareChatDescription": "Comparta esta conversación con otros mediante un enlace",
+    "shareLink": "Enlace para compartir",
+    "copyLink": "Copiar enlace",
+    "copied": "Copiado",
+    "createShareLink": "Crear enlace para compartir",
+    "creating": "Creando...",
+    "removeShare": "Eliminar enlace compartido",
+    "removing": "Eliminando...",
+    "shareDescription": "Cualquier persona con este enlace puede ver esta conversación",
+    "createShareDescription": "Cree un enlace para compartir para que otros puedan ver esta conversación",
+    "close": "Cerrar",
+    "emptyStateTitle": "Aún no hay mensajes",
+    "emptyStateDescription": "Inicie una conversación para ver los mensajes aquí",
+    "errors": {
+      "renameUnauthorized": "No tiene permiso para renombrar esta tarea",
+      "renameChatNotFound": "Tarea no encontrada o ha sido eliminada",
+      "renameTitleTooLong": "El nombre de la tarea es demasiado largo, máximo {maxLength} caracteres permitidos",
+      "renameTitleEmpty": "El nombre de la tarea no puede estar vacío",
+      "renameFailed": "Error al renombrar la tarea, intente de nuevo más tarde",
+      "updateFailed": "Error al actualizar, intente de nuevo más tarde"
+    }
+  },
+  "share": {
+    "notFound": "Chat no encontrado",
+    "notFoundDescription": "El chat al que intenta acceder no existe o ha sido eliminado.",
+    "invalidLink": "Enlace inválido",
+    "invalidLinkDescription": "Este enlace para compartir es inválido o ha expirado.",
+    "backToHome": "Volver al inicio"
+  },
+  "homepage": {
+    "nav": {
+      "features": "Características",
+      "getStarted": "Unirse a la lista de espera",
+      "signIn": "Iniciar sesión",
+      "goToHomepage": "Ir a la página principal"
+    },
+    "hero": {
+      "title": "Extensión de usted",
+      "subtitle1": "Comenzando con reclutamiento.",
+      "subtitle2": "Más por venir.",
+      "description": "Mira no es solo un agente. Es su contraparte digital.",
+      "getStarted": "Unirse a la lista de espera"
+    },
+    "features": {
+      "label": "Características",
+      "core": "Principal",
+      "recruiting": "Reclutamiento",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "Trabaja con usted, no para usted",
+          "desc1": "Mira ejecuta tareas de forma autónoma y colabora con usted cuando las decisiones importan.",
+          "desc2": "Agendas compartidas, contexto compartido."
+        },
+        "trainedByYou": {
+          "title": "Entrenado por usted — o aprende de usted",
+          "desc1": "Defina habilidades y entrene a Mira explícitamente,",
+          "desc2": "o deje que aprenda de sus flujos de trabajo y comportamiento a lo largo del tiempo."
+        },
+        "topTierModels": {
+          "title": "Construido sobre modelos de primer nivel, diseñado para la realidad",
+          "desc1": "Impulsado por modelos de última generación, ingeniería de nivel de producción",
+          "desc2": "y guiado por expertos reales en el dominio."
+        },
+        "integratedTools": {
+          "title": "Integrado en sus herramientas existentes",
+          "desc1": "Funciona sin problemas con las herramientas que ya utiliza: Airtable, Slack, Gmail,",
+          "desc2": "OneDrive y más."
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "Datos de candidatos",
+          "desc1": "Agregue datos de candidatos estructurados y no estructurados de múltiples fuentes.",
+          "desc2": "Amplíe la cobertura con la extensión de Chrome de Mira cuando se necesite información adicional basada en la web."
+        },
+        "communication": {
+          "title": "Comunicación y seguimiento",
+          "desc1": "Soporte para llamadas y correos electrónicos salientes.",
+          "desc2": "Todos los registros de comunicación se vinculan automáticamente al candidato correspondiente."
+        },
+        "recruitingSkills": {
+          "title": "Habilidades de reclutamiento",
+          "desc1": "Habilidades de reclutamiento integradas diseñadas para clarificación de roles, evaluación de candidatos",
+          "desc2": "y apoyo en decisiones de contratación."
+        },
+        "securityTrust": {
+          "title": "Seguridad y confianza",
+          "desc1": "Diseñado para uso empresarial.",
+          "desc2": "Cumple con GDPR y otros requisitos de protección de datos, con retención cero de datos (ZDR) opcional."
+        }
+      }
+    },
+    "cta": {
+      "title": "Solicitar acceso anticipado",
+      "description": "Mira se encuentra actualmente en beta privada.",
+      "button": "Unirse a la lista de espera"
+    }
+  },
+  "Layout": {
+    "signOut": "Cerrar sesión",
+    "language": "Idioma",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema",
+    "mockUserName": "Usuario de prueba"
+  },
+  "admin": {
+    "nav": {
+      "management": "Administración",
+      "dashboard": "Panel",
+      "waitlist": "Lista de espera",
+      "invitationCodes": "Códigos de invitación",
+      "scenarioCards": "Tarjetas de escenarios",
+      "admins": "Administradores",
+      "backToApp": "Volver a la aplicación"
+    },
+    "dashboard": {
+      "title": "Panel",
+      "description": "Resumen de operaciones del sistema",
+      "sections": {
+        "overview": "Resumen",
+        "quickActions": "Acciones rápidas"
+      },
+      "stats": {
+        "totalUsers": "Total de usuarios",
+        "activatedUsers": "{count} activados",
+        "pendingWaitlist": "Solicitudes pendientes",
+        "totalWaitlist": "{count} en lista de espera",
+        "availableCodes": "Códigos disponibles",
+        "totalCodes": "{count} códigos en total",
+        "activationRate": "Tasa de activación",
+        "activatedOfTotal": "{activated}/{total} activados",
+        "needsAttention": "Requiere atención"
+      },
+      "quickLinks": {
+        "waitlist": "Gestión de lista de espera",
+        "waitlistDesc": "Revisar solicitudes y enviar códigos de invitación",
+        "invitationCodes": "Gestión de códigos de invitación",
+        "invitationCodesDesc": "Generar, ver y exportar códigos de invitación",
+        "pendingCount": "pendientes",
+        "availableCount": "disponibles"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "Pool de códigos de invitación",
+      "description": "Administre códigos de invitación en lote, genere y distribuya con anticipación",
+      "refresh": "Actualizar",
+      "export": "Exportar",
+      "generate": "Generar códigos",
+      "generating": "Generando...",
+      "loading": "Cargando...",
+      "noCodes": "Aún no hay códigos",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "copyFailed": "Error al copiar",
+      "generatePrompt": "Ingrese la cantidad de códigos a generar (1-1000)",
+      "generateCountError": "La cantidad debe estar entre 1 y 1000",
+      "generateSuccess": "Se generaron exitosamente {count} códigos de invitación",
+      "generateFailed": "Error al generar códigos, intente de nuevo",
+      "exportSuccess": "Exportación exitosa",
+      "searchPlaceholder": "Buscar códigos...",
+      "stats": {
+        "total": "Total",
+        "unused": "Sin usar",
+        "used": "Usados",
+        "expired": "Expirados"
+      },
+      "filter": {
+        "all": "Todos",
+        "unused": "Sin usar",
+        "used": "Usados",
+        "expired": "Expirados"
+      },
+      "status": {
+        "unused": "Sin usar",
+        "used": "Usado",
+        "expired": "Expirado"
+      },
+      "table": {
+        "code": "Código",
+        "status": "Estado",
+        "usedBy": "Usado por",
+        "batch": "Lote",
+        "createdAt": "Fecha de creación",
+        "usedAt": "Fecha de uso",
+        "actions": "Acciones"
+      },
+      "pagination": {
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "page": "Página {current} / {total}",
+        "total": "{count} en total"
+      }
+    },
+    "admins": {
+      "title": "Gestión de administradores",
+      "description": "Ver y administrar los administradores del sistema",
+      "refresh": "Actualizar",
+      "loading": "Cargando...",
+      "loadFailed": "Error al cargar",
+      "noAdmins": "No hay administradores",
+      "addAdmin": "Agregar administrador",
+      "addSuccess": "Administrador agregado exitosamente",
+      "addFailed": "Error al agregar administrador, intente de nuevo",
+      "remove": "Eliminar",
+      "removeSuccess": "Administrador eliminado exitosamente",
+      "removeFailed": "Error al eliminar administrador, intente de nuevo",
+      "addDialog": {
+        "title": "Agregar administrador",
+        "description": "Busque por nombre o correo electrónico para otorgar privilegios de administrador",
+        "searchPlaceholder": "Buscar nombre o correo electrónico...",
+        "searching": "Buscando...",
+        "noResults": "No se encontraron usuarios coincidentes",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar"
+      },
+      "removeDialog": {
+        "title": "Confirmar eliminación de administrador",
+        "description": "¿Está seguro de que desea eliminar los privilegios de administrador de {name}? Esta acción se puede deshacer.",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar eliminación"
+      },
+      "table": {
+        "user": "Usuario",
+        "email": "Correo electrónico",
+        "createdAt": "Fecha de registro",
+        "actions": "Acciones"
+      }
+    },
+    "waitlist": {
+      "title": "Gestión de lista de espera",
+      "description": "Administre solicitantes y envíe correos con códigos de invitación a los usuarios aprobados",
+      "refresh": "Actualizar",
+      "loading": "Cargando...",
+      "noItems": "No se encontraron solicitudes",
+      "searchPlaceholder": "Buscar por correo electrónico o nombre...",
+      "sendInvitation": "Enviar invitación",
+      "sendBatch": "Enviar invitaciones",
+      "sending": "Enviando...",
+      "confirmSend": "Confirmar envío",
+      "confirmSendDesc": "Está a punto de enviar correos de invitación con códigos de invitación a {count} solicitante(s), consumiendo {count} códigos. ¿Desea continuar?",
+      "sendSuccess": "Se enviaron exitosamente {count} correo(s) de invitación",
+      "sendPartialSuccess": "{success} enviados, {fail} fallidos",
+      "sendFailed": "Error en el envío, intente de nuevo",
+      "noPendingSelected": "Todas las entradas seleccionadas ya han sido procesadas",
+      "resend": "Reenviar",
+      "resendSuccess": "Correo de invitación reenviado exitosamente",
+      "resendFailed": "Error al reenviar, intente de nuevo",
+      "copyCode": "Copiar código de invitación",
+      "copySuccess": "Código de invitación copiado",
+      "copyFailed": "Error al copiar, copie manualmente",
+      "filter": {
+        "all": "Todos",
+        "pending": "Pendiente",
+        "approved": "Enviado",
+        "rejected": "Rechazado",
+        "activated": "Activado"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "approved": "Enviado",
+        "rejected": "Rechazado",
+        "activated": "Activado"
+      },
+      "table": {
+        "name": "Nombre",
+        "company": "Empresa",
+        "role": "Rol",
+        "email": "Correo electrónico",
+        "useCase": "Caso de uso",
+        "locale": "Idioma",
+        "createdAt": "Fecha de solicitud",
+        "invitationCode": "Código de invitación",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "pagination": {
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "page": "Página {current} / {total}",
+        "total": "{count} en total"
+      }
+    },
+    "scenarioCards": {
+      "title": "Tarjetas de escenarios",
+      "description": "Administre las tarjetas de escenarios preconfiguradas que se muestran en la página de creación de tareas. Los usuarios hacen clic para iniciar una tarea de búsqueda al instante.",
+      "refresh": "Actualizar",
+      "loading": "Cargando...",
+      "noItems": "No hay tarjetas de escenarios",
+      "addCard": "Agregar tarjeta",
+      "editCard": "Editar tarjeta",
+      "deleteCard": "Eliminar",
+      "deleteConfirm": "¿Está seguro de que desea eliminar esta tarjeta? Esta acción no se puede deshacer.",
+      "saveSuccess": "Guardado exitosamente",
+      "saveFailed": "Error al guardar, intente de nuevo",
+      "deleteSuccess": "Eliminado exitosamente",
+      "deleteFailed": "Error al eliminar, intente de nuevo",
+      "createSuccess": "Creado exitosamente",
+      "createFailed": "Error al crear, intente de nuevo",
+      "table": {
+        "caseId": "ID del caso",
+        "contentZh": "Contenido en chino",
+        "contentEn": "Contenido en inglés",
+        "sortOrder": "Orden",
+        "isActive": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "form": {
+        "caseId": "ID del caso",
+        "caseIdPlaceholder": "Ej.: case_fullstack (no se puede cambiar después de la creación)",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "Orden de clasificación (menor = primero)",
+        "isActive": "Habilitar esta tarjeta",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "create": "Crear"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "signOut": "Cerrar sesión",
+    "signInDescription": "Ingrese su correo electrónico y contraseña para iniciar sesión",
+    "signUpDescription": "Crear una nueva cuenta",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "name": "Nombre",
+    "signInSuccess": "Sesión iniciada exitosamente",
+    "signUpSuccess": "Registro exitoso. Revise su correo electrónico para verificar su cuenta",
+    "emailVerificationRequired": "Se requiere verificación de correo electrónico",
+    "emailVerificationSent": "Correo de verificación enviado",
+    "emailVerificationMessage": "Hemos enviado un correo de verificación a su bandeja de entrada. Haga clic en el enlace del correo para verificar su cuenta antes de iniciar sesión.",
+    "emailVerificationResend": "Reenviar correo de verificación",
+    "checkYourEmail": "Revise su correo electrónico",
+    "emailNotVerified": "Correo electrónico no verificado. Verifique su correo electrónico primero",
+    "orContinueWith": "o",
+    "continueWithGitHub": "Continuar con GitHub",
+    "continueWithGoogle": "Continuar con Google",
+    "continueWithMicrosoft": "Continuar con Microsoft",
+    "continueWithApple": "Continuar con Apple",
+    "forgotPassword": "Olvidé mi contraseña",
+    "forgotPasswordTitle": "Olvidé mi contraseña",
+    "forgotPasswordDescription": "Ingrese su dirección de correo electrónico y le enviaremos un enlace para restablecer su contraseña",
+    "forgotPasswordConfirmDescription": "Haga clic en \"Continuar\" para enviar un enlace de restablecimiento de contraseña a <emailLink>{email}</emailLink>",
+    "continueButton": "Continuar",
+    "returnToLogin": "Volver a iniciar sesión",
+    "resetPasswordTitle": "Restablecer contraseña",
+    "resetPasswordDescription": "Ingrese su nueva contraseña",
+    "sendResetLink": "Enviar enlace de restablecimiento",
+    "resetPassword": "Restablecer contraseña",
+    "resetPasswordSuccess": "Contraseña restablecida exitosamente. Redirigiendo al inicio de sesión...",
+    "resetPasswordError": "Error al restablecer la contraseña. Intente de nuevo",
+    "resetPasswordEmailSent": "Correo de restablecimiento de contraseña enviado",
+    "resetPasswordEmailError": "Error al enviar el correo de restablecimiento de contraseña",
+    "resetPasswordEmailMessage": "Hemos enviado un enlace de restablecimiento de contraseña a su correo electrónico. Revise su bandeja de entrada y haga clic en el enlace para restablecer su contraseña.",
+    "invalidResetToken": "Token de restablecimiento inválido",
+    "invalidResetLink": "Enlace de restablecimiento inválido o expirado",
+    "invalidResetLinkMessage": "Este enlace de restablecimiento de contraseña es inválido o ha expirado. Solicite un nuevo restablecimiento de contraseña.",
+    "requestNewLink": "Solicitar nuevo enlace",
+    "backToSignIn": "Volver al inicio de sesión",
+    "rememberPassword": "¿Recuerda su contraseña?",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirmar nueva contraseña",
+    "noAccount": "¿No tiene una cuenta?",
+    "hasAccount": "¿Ya tiene una cuenta?",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "agreeToTerms": "Acepto los",
+    "termsOfService": "Términos de servicio",
+    "and": "y",
+    "privacyPolicy": "Política de privacidad",
+    "settings": "Configuración",
+    "validation": {
+      "emailInvalid": "Ingrese una dirección de correo electrónico válida",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+      "passwordStrength": "La contraseña debe tener al menos 8 caracteres e incluir letras, números y símbolos",
+      "nameMinLength": "El nombre debe tener al menos 2 caracteres",
+      "termsRequired": "Debe aceptar los Términos de servicio y la Política de privacidad",
+      "fieldRequired": "Este campo es obligatorio"
+    },
+    "checkSpamFolder": "¿No recibió el correo? Revise su carpeta de spam",
+    "backToLogin": "Volver al inicio de sesión",
+    "unifiedTitle": "Iniciar sesión o registrarse",
+    "unifiedSubtitle": "Despierte a su Mira",
+    "continueTitle": "Continuar",
+    "emailPlaceholder": "Ingrese su dirección de correo electrónico",
+    "emailLabel": "Correo electrónico",
+    "editLink": "Editar",
+    "enterPasswordTitle": "Ingrese su contraseña",
+    "createPasswordTitle": "Crear contraseña",
+    "createAccountTitle": "Crear cuenta",
+    "createAccountDescription": "Establezca una contraseña para {email}",
+    "editEmail": "Editar correo electrónico",
+    "passwordStrengthHint": "La contraseña debe tener al menos 12 caracteres e incluir letras, números y símbolos",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "verifyEmailTitle": "Verifique su correo electrónico",
+    "verifyEmailDescription": "Enviamos un código de verificación a {email}",
+    "enterOtp": "Ingrese el código de verificación",
+    "otpPlaceholder": "Ingrese el código de verificación",
+    "resendCode": "Reenviar código de verificación",
+    "resendCodeCountdown": "Reenviado. Intente de nuevo en {seconds}s",
+    "changeEmail": "Cambiar dirección de correo electrónico",
+    "otpError": "Código incorrecto, intente de nuevo",
+    "otpExpired": "El código ha expirado, reenvíelo",
+    "otpResendSuccess": "Código de verificación enviado",
+    "otpResendFailed": "Error al enviar, intente de nuevo más tarde",
+    "checkSpamFolderHint": "¿No recibió el correo? Revise su carpeta de spam",
+    "verifyEmail": {
+      "title": "Verifique su correo electrónico",
+      "description": "Enviamos un código de verificación a",
+      "descriptionSuffix": "",
+      "goToEmail": "Abrir correo electrónico",
+      "otpLabel": "Código de verificación",
+      "otpPlaceholder": "Ingrese el código de verificación",
+      "otpInputLabel": "Dígito {index}",
+      "verifying": "Verificando...",
+      "resend": "Reenviar",
+      "resendCountdown": "{seconds}s",
+      "resendSuccess": "Código reenviado exitosamente",
+      "resendFailed": "Error al reenviar, intente de nuevo",
+      "changeEmail": "Cambiar correo electrónico",
+      "invalidOtp": "Código inválido, intente de nuevo",
+      "success": "Correo electrónico verificado exitosamente"
+    },
+    "activateVerifyTitle": "Verifique su código de invitación",
+    "activateCurrentEmail": "Correo electrónico actual ",
+    "activateNoCode": "¿No tiene un código de invitación?",
+    "activateApplyNow": "Solicitar ahora",
+    "signOutLink": "Cerrar sesión",
+    "waitlistTitle": "Unirse a la lista de espera",
+    "waitlistDescription": "Complete la información a continuación y le enviaremos un código de invitación exclusivo después de la revisión.",
+    "waitlistName": "Nombre",
+    "waitlistCompany": "Empresa",
+    "waitlistRole": "Rol / Puesto",
+    "waitlistUseCase": "Caso de uso",
+    "waitlistSubmit": "Enviar solicitud",
+    "waitlistSubmitting": "Enviando...",
+    "waitlistJoined": "Unido el {time}",
+    "waitlistLearnMore": "Más información",
+    "joinWaitlist": {
+      "title": "Unirse a la lista de espera",
+      "description": "Le enviaremos un código de invitación una vez que su solicitud haya sido aprobada.",
+      "descriptionHint": "Proporcionar información precisa y detallada ayudará a agilizar el proceso de revisión.",
+      "workEmail": "Correo electrónico laboral",
+      "emailPlaceholder": "nombre@empresa.com",
+      "sendOtp": "Enviar código de verificación",
+      "resendOtp": "Reenviar",
+      "otpCountdown": "{seconds}s",
+      "otpLabel": "Código de verificación",
+      "otpPlaceholder": "Ingrese el código de verificación",
+      "verifyOtp": "Verificar",
+      "changeEmail": "Cambiar correo electrónico",
+      "name": "Nombre",
+      "namePlaceholder": "Ingrese su nombre",
+      "company": "Empresa",
+      "companyPlaceholder": "Ingrese el nombre de su empresa",
+      "role": "Rol / Puesto",
+      "rolePlaceholder": "Ingrese su rol",
+      "useCase": "¿Cómo planea usar Mira?",
+      "useCasePlaceholder": "Describa su caso de uso",
+      "submit": "Enviar solicitud",
+      "submitting": "Enviando...",
+      "cancel": "Cancelar",
+      "successTitle": "Solicitud enviada",
+      "successDescription": "Una vez aprobada, le enviaremos su código de invitación a: ",
+      "backToHome": "Volver a la página principal",
+      "otpSent": "Código de verificación enviado",
+      "emailVerified": "Verificado exitosamente",
+      "errors": {
+        "otpExpired": "El código de verificación expiró, reenvíelo",
+        "otpIncorrect": "Código incorrecto, intente de nuevo",
+        "otpLengthRequired": "Ingrese un código de verificación de 6 dígitos",
+        "sendFailed": "Error al enviar, intente de nuevo",
+        "verifyFailed": "Error en la verificación, intente de nuevo",
+        "submitFailed": "Error en el envío, intente de nuevo",
+        "nameRequired": "Ingrese su nombre",
+        "companyRequired": "Ingrese el nombre de su empresa",
+        "roleRequired": "Ingrese su rol",
+        "useCaseRequired": "Describa su caso de uso",
+        "accountAlreadyActivated": "Esta cuenta ya está activada. Inicie sesión.",
+        "alreadySubmitted": "Este correo electrónico ya fue enviado. Espere pacientemente.",
+        "emailInvalid": "Ingrese una dirección de correo electrónico válida",
+        "emailNotVerified": "Verifique su correo electrónico antes de enviar",
+        "otpNotVerified": "Ingrese y verifique el código antes de enviar"
+      }
+    },
+    "activate": "Activar",
+    "activateAccount": "Activar cuenta",
+    "activateTitle": "Active su cuenta",
+    "activateDescription": "Ingrese su código de invitación para continuar usando Mira",
+    "yourActivationCode": "Su código de invitación es:",
+    "activationCode": "Código de invitación",
+    "enterActivationCode": "Ingrese el código de invitación",
+    "activationCodePlaceholder": "Ingrese su código de invitación",
+    "activating": "Activando...",
+    "activationSuccess": "Cuenta activada exitosamente",
+    "activationSuccessDescription": "Redirigiendo al inicio...",
+    "activationCodeRequired": "Ingrese el código de invitación",
+    "activationCodeTooShort": "El código de invitación es demasiado corto",
+    "activationCodeIncorrect": "Código de invitación inválido, intente de nuevo",
+    "invalidInvitationCode": "Código de invitación inválido",
+    "activationContactAdmin": "Si no recibió su código de invitación, comuníquese con el administrador",
+    "accountActivated": "Cuenta activada",
+    "accountNotActivated": "Cuenta no activada. Active su cuenta primero",
+    "errors": {
+      "emailAlreadyRegistered": "Este correo electrónico ya está registrado. Use un correo diferente o inicie sesión directamente",
+      "invalidEmailOrPassword": "Correo electrónico o contraseña inválidos. Verifique e intente de nuevo",
+      "emailNotVerified": "Correo electrónico no verificado. Verifique su correo electrónico primero",
+      "passwordTooShort": "La contraseña es demasiado corta. Use una contraseña más larga",
+      "passwordTooLong": "La contraseña es demasiado larga. Use una contraseña más corta",
+      "passwordAlreadySet": "Esta cuenta ya tiene una contraseña establecida",
+      "invalidEmail": "Formato de correo electrónico inválido",
+      "emailAlreadyVerified": "El correo electrónico ya está verificado",
+      "emailMismatch": "El correo electrónico no coincide",
+      "sessionExpired": "La sesión ha expirado. Inicie sesión de nuevo",
+      "sessionNotFresh": "La sesión ha expirado. Vuelva a autenticarse",
+      "invalidOrExpiredToken": "El token es inválido o ha expirado",
+      "accountAlreadyLinked": "Esta cuenta ya está vinculada",
+      "cannotUnlinkLastAccount": "No se puede desvincular su última cuenta",
+      "accountNotFound": "Cuenta no encontrada",
+      "rateLimitExceeded": "Demasiados intentos. Intente de nuevo más tarde",
+      "securityError": "Error en la validación de seguridad. Intente de nuevo",
+      "validationError": "Error en la validación de datos. Verifique su información",
+      "serverError": "Error del servidor. Intente de nuevo más tarde",
+      "providerError": "Error en el servicio de inicio de sesión de terceros",
+      "invalidInput": "Datos inválidos. Verifique e intente de nuevo",
+      "unauthorized": "No autorizado. Inicie sesión primero",
+      "forbidden": "Permisos insuficientes",
+      "notFound": "Recurso no encontrado",
+      "unprocessableEntity": "No se puede procesar la solicitud",
+      "unknown": "Error desconocido. Intente de nuevo más tarde"
+    }
+  },
+  "workspace": {
+    "title": "Espacio de trabajo de Mira",
+    "backToLiveView": "Volver a la vista en vivo",
+    "selectTool": "Seleccione una herramienta para ver los detalles",
+    "noToolsEnabled": "No hay herramientas habilitadas",
+    "usingTool": "Mira está usando",
+    "processing": "Procesando",
+    "completed": "Completado",
+    "failed": "Fallido",
+    "realTime": "en vivo",
+    "goToStart": "Ir al inicio",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
+  "search": {
+    "aiSummary": "Resumen de IA",
+    "noResults": "Sin resultados de búsqueda"
+  },
+  "toolStatus": {
+    "processing": "Procesando...",
+    "searching": "Buscando...",
+    "crawling": "Rastreando...",
+    "mapping": "Mapeando...",
+    "extracting": "Extrayendo...",
+    "items": "elementos",
+    "suggestions": "sugerencias",
+    "screenshotComplete": "Captura de pantalla completada",
+    "operationFailed": "Operación fallida",
+    "crawlFailed": "Error en el rastreo",
+    "extractFailed": "Error en la extracción",
+    "mapFailed": "Error en el mapeo",
+    "searchFailed": "Error en la búsqueda",
+    "pages": "páginas",
+    "links": "enlaces",
+    "results": "resultados",
+    "fullPage": "Página completa",
+    "visibleArea": "Área visible",
+    "clickToView": "Clic para ver",
+    "unknownQuery": "Consulta desconocida",
+    "processingUrls": "Procesando {count} URLs...",
+    "websiteCrawl": "Rastreo de sitio web",
+    "contentExtract": "Extracción de contenido",
+    "websiteMap": "Mapa del sitio web"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "Solicitud de confirmación",
+      "description": "Solicitar confirmación del usuario para una acción"
+    },
+    "clarifyQuestion": {
+      "name": "Clarificar pregunta",
+      "description": "Solicitar más información al usuario"
+    },
+    "maps_weather": {
+      "name": "Consulta de clima",
+      "description": "Consultar el clima de una ciudad"
+    },
+    "exa_search": {
+      "name": "Búsqueda web",
+      "description": "Realizar búsqueda semántica neuronal usando Exa AI, devolviendo resultados relevantes de alta calidad"
+    },
+    "exa_company_search": {
+      "name": "Búsqueda de empresas",
+      "description": "Buscar empresas, organizaciones y negocios, optimizado para investigación de mercado y desarrollo de negocios",
+      "action": "Buscando empresas"
+    },
+    "exa_people_search": {
+      "name": "Búsqueda de personas",
+      "description": "Buscar profesionales, candidatos y perfiles de LinkedIn, optimizado para reclutamiento y búsqueda de talento",
+      "action": "Buscando personas"
+    },
+    "generate_people_data": {
+      "name": "Generación de datos de personas",
+      "description": "Compilar resultados de búsqueda de personas en un archivo de datos descargable",
+      "action": "Generando datos de personas"
+    },
+    "export_data": {
+      "name": "Exportar datos",
+      "description": "Datos exportados",
+      "action": "Exportando datos"
+    },
+    "sb_file_create": {
+      "name": "Crear archivo",
+      "description": "Crear un nuevo archivo en el sandbox",
+      "action": "Creando archivo"
+    },
+    "sb_file_rewrite": {
+      "name": "Reescribir archivo",
+      "description": "Reescribir completamente el contenido del archivo",
+      "action": "Reescribiendo archivo"
+    },
+    "sb_file_delete": {
+      "name": "Eliminar archivo",
+      "description": "Eliminar el archivo especificado",
+      "action": "Eliminando archivo"
+    },
+    "sb_file_edit": {
+      "name": "Editar archivo",
+      "description": "Editar archivo con asistencia de IA",
+      "action": "Editando archivo"
+    },
+    "sb_docx_create": {
+      "name": "Crear documento Word",
+      "description": "Crear documento Word (formato .docx) en el sandbox",
+      "action": "Creando documento Word"
+    },
+    "sb_pptx_create": {
+      "name": "Crear presentación PowerPoint",
+      "description": "Crear presentación PowerPoint (formato .pptx) en el sandbox",
+      "action": "Creando presentación PowerPoint"
+    },
+    "sb_xlsx_create": {
+      "name": "Crear hoja de cálculo Excel",
+      "description": "Crear hoja de cálculo Excel (formato .xlsx) en el sandbox",
+      "action": "Creando hoja de cálculo Excel"
+    },
+    "sb_pdf_create": {
+      "name": "Crear documento PDF",
+      "description": "Crear documento PDF (formato .pdf) en el sandbox",
+      "action": "Creando documento PDF"
+    },
+    "sb_image_create": {
+      "name": "Crear imagen",
+      "description": "Crear imagen en el sandbox (PNG, JPG, SVG, etc.)",
+      "action": "Creando imagen"
+    },
+    "sb_command_execute": {
+      "name": "Ejecutar comando",
+      "description": "Ejecutar comando Shell en el sandbox",
+      "action": "Ejecutando comando"
+    },
+    "sb_command_logs_get": {
+      "name": "Ver salida",
+      "description": "Ver la salida de ejecución del comando"
+    },
+    "sb_command_terminate": {
+      "name": "Terminar comando",
+      "description": "Terminar el comando en ejecución",
+      "action": "Terminando comando"
+    },
+    "sb_command_running_list": {
+      "name": "Listar sesiones",
+      "description": "Listar todas las sesiones tmux activas"
+    },
+    "reflect_tool": {
+      "name": "Reflexionar",
+      "description": "Planificación de investigación y reflexión estratégica"
+    },
+    "browserNavigate": {
+      "name": "Navegar en el navegador",
+      "description": "Navegar a la página web especificada"
+    },
+    "browserAct": {
+      "name": "Acción en página",
+      "description": "Ejecutar interacción en la página"
+    },
+    "browserExtract": {
+      "name": "Extraer datos",
+      "description": "Extraer datos estructurados de la página"
+    },
+    "browserObserve": {
+      "name": "Observar acción",
+      "description": "Vista previa de acción sin ejecutar"
+    },
+    "browserScreenshot": {
+      "name": "Captura de pantalla",
+      "description": "Capturar la página actual"
+    },
+    "browserGetContent": {
+      "name": "Obtener contenido",
+      "description": "Obtener contenido de la página"
+    },
+    "browserWait": {
+      "name": "Esperar",
+      "description": "Esperar la condición especificada"
+    },
+    "browserAgentTask": {
+      "name": "Tarea inteligente",
+      "description": "Ejecutar tareas complejas de múltiples pasos"
+    },
+    "browserClose": {
+      "name": "Cerrar navegador",
+      "description": "Cerrar sesión del navegador"
+    },
+    "browserStatus": {
+      "name": "Estado del navegador",
+      "description": "Ver estado del navegador"
+    },
+    "complete": {
+      "name": "Entregar archivos",
+      "description": "Entregar archivos al usuario",
+      "createdTime": "Creado: ",
+      "downloadFile": "Descargar archivo",
+      "deliveryFailed": "Error en la entrega",
+      "previewNotImplemented": "Vista previa de archivo no implementada",
+      "download": "Descargar",
+      "preview": "Vista previa",
+      "previewMetadataLoading": "La información del archivo se está cargando, intente de nuevo en un momento",
+      "completed": "Tarea completada",
+      "downloadSuccess": "Archivo descargado exitosamente",
+      "downloadFailed": "Error al descargar el archivo, intente de nuevo",
+      "fileType": "Archivo",
+      "text": "Texto",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "Imagen",
+      "peopleData": "Datos de personas"
+    },
+    "code_interpreter": {
+      "name": "Ejecutar código",
+      "description": "Ejecutar código Python en entorno sandbox",
+      "action": "Ejecutando código",
+      "pre_action": "Escribiendo código"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "Generando preguntas de clarificación...",
+      "defaultTitle": "Se necesita más información",
+      "submit": "Enviar",
+      "skip": "Omitir (usar valores predeterminados)",
+      "skipHint": "Al omitir se procederá con las opciones predeterminadas recomendadas",
+      "submitted": "Enviado",
+      "loadFailed": "Error al cargar el formulario",
+      "loadFailedDescription": "Hubo un problema al generar el formulario de preguntas. Intente de nuevo.",
+      "skipped": "Omitido",
+      "aborted": "Se detuvo la generación de preguntas de clarificación"
+    },
+    "askForConfirmation": {
+      "loading": "Cargando solicitud de confirmación...",
+      "needConfirmation": "Se necesita confirmación",
+      "confirm": "Sí",
+      "deny": "No",
+      "confirmed": "Confirmado",
+      "denied": "Denegado",
+      "failed": "Error en la solicitud de confirmación",
+      "skipped": "Omitido",
+      "aborted": "Se detuvo la generación de solicitud de confirmación"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "Crear archivo",
+      "rewriteFile": "Reescribir archivo",
+      "deleteFile": "Eliminar archivo",
+      "editFile": "Editar archivo",
+      "fileOperation": "Operación de archivo",
+      "executing": "Ejecutando...",
+      "executionError": "Error de ejecución",
+      "success": "Éxito",
+      "failed": "Fallido"
+    },
+    "shell": {
+      "executeCommand": "Ejecutar comando",
+      "checkOutput": "Ver salida",
+      "terminateCommand": "Terminar comando",
+      "listSessions": "Listar sesiones",
+      "shellCommand": "Comando Shell",
+      "executionError": "Error de ejecución",
+      "executing": "Ejecutando...",
+      "sending": "Enviando...",
+      "completed": "Completado",
+      "sent": "Enviado",
+      "failed": "Fallido",
+      "sessions": "sesiones"
+    },
+    "parallelResearch": {
+      "deepResearch": "Investigación profunda",
+      "researchReport": "Informe de investigación",
+      "researchFailed": "Error en la investigación",
+      "researching": "Investigando...",
+      "completed": "Completado",
+      "executeResearch": "Ejecutar investigación",
+      "characters": "caracteres",
+      "citations": "citas"
+    },
+    "reflect": {
+      "reflecting": "Reflexionar",
+      "reflectingText": "Reflexionando...",
+      "completed": "Completado"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "Éxito",
+      "failed": "Fallido",
+      "inputParams": "Parámetros de entrada",
+      "executionResult": "Resultado de ejecución",
+      "error": "Error",
+      "waiting": "Esperando ejecución...",
+      "noOutput": "Sin datos de salida",
+      "noResults": "Sin resultados",
+      "noCrawlResults": "Sin resultados de rastreo",
+      "noExtractResults": "Sin resultados de extracción",
+      "noMapResults": "Sin resultados de mapeo",
+      "noReflection": "Sin contenido de reflexión",
+      "waitingTask": "Esperando que inicie la tarea...",
+      "title": "Título",
+      "url": "URL",
+      "session": "Sesión",
+      "activeSessions": "Sesiones activas",
+      "output": "Salida",
+      "parameters": "Parámetros",
+      "executeCommand": "Ejecutar comando",
+      "updatedContent": "Contenido actualizado",
+      "editInstructions": "Instrucciones de edición:",
+      "extractedData": "Datos extraídos:",
+      "suggestions": "sugerencias:",
+      "screenshot": "Captura de pantalla",
+      "fullPage": "Página completa",
+      "visibleArea": "Área visible",
+      "pageContent": "Contenido de página",
+      "characters": "caracteres",
+      "taskResult": "Resultado de la tarea:",
+      "initializationStatus": "Estado de inicialización:",
+      "initialized": "Inicializado",
+      "notInitialized": "No inicializado",
+      "viewBrowserSession": "Ver sesión del navegador",
+      "clickToViewFullImage": "Clic para ver imagen completa",
+      "screenshotFullSize": "Captura de pantalla (Página completa)",
+      "screenshotVisible": "Captura de pantalla (Área visible)",
+      "pageCount": "Páginas:",
+      "timeTaken": "Tiempo:",
+      "linkCount": "Enlaces:",
+      "extractFailed": "Error en la extracción:",
+      "charactersCount": "caracteres"
+    },
+    "browser": {
+      "browserNavigation": "Navegación del navegador",
+      "pageAction": "Acción en página",
+      "dataExtract": "Extracción de datos",
+      "observeAction": "Observar acción",
+      "pageScreenshot": "Captura de pantalla de página",
+      "getContent": "Obtener contenido",
+      "wait": "Esperar",
+      "smartTask": "Tarea inteligente",
+      "closeBrowser": "Cerrar navegador",
+      "browserStatus": "Estado del navegador",
+      "browserOperation": "Operación del navegador",
+      "executingBrowserOperation": "Ejecutando operación del navegador..."
+    },
+    "files": {
+      "createFile": "Crear archivo",
+      "rewriteFile": "Reescribir archivo",
+      "deleteFile": "Eliminar archivo",
+      "editFile": "Editar archivo",
+      "fileOperation": "Operación de archivo",
+      "createDocx": "Crear documento Word",
+      "createPptx": "Crear presentación PowerPoint",
+      "createXlsx": "Crear hoja de cálculo Excel",
+      "createPdf": "Crear documento PDF",
+      "createImage": "Crear imagen",
+      "generatePeopleData": "Generar datos de personas",
+      "documentContent": "Contenido del documento"
+    },
+    "shell": {
+      "executeCommand": "Ejecutar comando",
+      "checkOutput": "Ver salida",
+      "terminateCommand": "Terminar comando",
+      "listSessions": "Listar sesiones",
+      "shellCommand": "Comando Shell"
+    },
+    "codeInterpreter": {
+      "description": "Descripción",
+      "pythonCode": "Código Python",
+      "envVariables": "Variables de entorno",
+      "timeout": "Tiempo de espera",
+      "seconds": "segundos",
+      "stdout": "Salida estándar",
+      "stderr": "Error estándar",
+      "executing": "Ejecutando código..."
+    },
+    "parallelResearch": {
+      "researchQuery": "Consulta de investigación",
+      "reportGuidance": "Guía del informe:",
+      "executingDeepResearch": "Ejecutando investigación profunda...",
+      "mayTakeMinutes": "Esto puede tardar de 5 a 45 minutos dependiendo de la complejidad de la investigación",
+      "researchExecutionFailed": "Error en la ejecución de la investigación",
+      "citations": "Citas",
+      "characters": "Caracteres",
+      "completionTime": "Tiempo de finalización",
+      "structuredDataOutput": "Salida de datos estructurados",
+      "noResearchData": "Sin datos de investigación"
+    },
+    "reflect": {
+      "reflection": "Reflexión",
+      "researchPlanning": "Planificación y reflexión de investigación con IA",
+      "reflectionNotes": "Notas de reflexión",
+      "noReflection": "Sin contenido de reflexión"
+    },
+    "generateReport": {
+      "reportConfig": "Configuración del informe",
+      "viewDetailedConfig": "Ver configuración detallada",
+      "topic": "Tema",
+      "focusAreas": "Áreas de enfoque",
+      "researchData": "Datos de investigación",
+      "generatingReport": "Generando informe",
+      "reportGenerated": "Informe generado",
+      "analyzingData": "Analizando datos y generando informe...",
+      "reportContent": "Contenido del informe",
+      "generating": "Generando...",
+      "reportGenerationComplete": "Generación de informe completada",
+      "generationFailed": "Error en la generación",
+      "reportGenerationError": "Ocurrió un error durante la generación del informe",
+      "comparisonAnalysis": "Análisis comparativo",
+      "listDirectory": "Listar directorio",
+      "topicOverview": "Resumen del tema",
+      "directAnswer": "Respuesta directa"
+    },
+    "peopleData": {
+      "organizing": "Generando datos de personas...",
+      "exportSuccess": "Generación de datos de personas completada",
+      "exportFailed": "Error en la generación de datos de personas",
+      "totalCount": "Total: {count} personas",
+      "noData": "No hay datos de personas disponibles"
+    }
+  },
+  "canvas": {
+    "selectFile": "Seleccione un archivo para obtener una vista previa",
+    "loading": "Cargando archivo...",
+    "loadingDefault": "Cargando...",
+    "unsupportedFormat": "Formato de archivo no compatible",
+    "downloadFile": "Descargar archivo",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Cerrar",
+    "fileTypes": {
+      "text": "Archivo de texto",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "Imagen",
+      "pdf": "Documento PDF",
+      "word": "Documento Word",
+      "excel": "Hoja de cálculo Excel",
+      "ppt": "Presentación",
+      "people-data": "Datos de personas",
+      "unsupported": "Formato no compatible"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "Desconocido",
+        "notSupported": "Este formato no es compatible con la vista previa. Descárguelo para verlo.",
+        "downloadButton": "Descargar archivo",
+        "tip": "Consejo: Descargue y abra con la aplicación correspondiente"
+      },
+      "word": {
+        "converting": "Convirtiendo documento...",
+        "convertingDoc": "Convirtiendo archivo .doc...",
+        "loading": "Cargando...",
+        "convertFailed": "Error al cargar el archivo. Verifique si el archivo está dañado e intente abrirlo de nuevo."
+      },
+      "excel": {
+        "converting": "Convirtiendo formato heredado...",
+        "parsing": "Analizando hoja de cálculo...",
+        "loading": "Cargando...",
+        "parseFailed": "Error al analizar la hoja de cálculo, descargue y vea",
+        "emptyTable": "La tabla está vacía"
+      },
+      "ppt": {
+        "notSupported": "La presentación {format} no es compatible con la vista previa en línea",
+        "downloadButton": "Descargar archivo",
+        "tip": "Consejo: Descargue y abra con {format} o software compatible para ver el contenido completo"
+      },
+      "peopleData": {
+        "parsing": "Analizando datos de personas...",
+        "loading": "Cargando...",
+        "parseFailed": "Error al analizar los datos de personas, verifique el formato de datos",
+        "noData": "No hay datos de personas disponibles",
+        "csvHeaders": [
+          "Nombre",
+          "Ubicación",
+          "Empresa actual",
+          "Puesto actual",
+          "Años de exp.",
+          "Historial laboral reciente",
+          "Educación",
+          "Resumen de IA",
+          "Correo electrónico",
+          "Teléfono",
+          "Datos actualizados",
+          "URL de detalles"
+        ],
+        "workExperience": "Experiencia laboral",
+        "recentWorkExperience": "Experiencia laboral reciente",
+        "noWorkExperience": "Sin experiencia laboral",
+        "present": "Presente",
+        "more": "más",
+        "linkedinProfile": "Perfil de LinkedIn",
+        "viewDetails": "Ver detalles"
+      },
+      "html": {
+        "loading": "Cargando...",
+        "securityWarning": "Este contenido HTML se ejecuta en un entorno aislado por seguridad",
+        "emptyHtml": "El contenido HTML está vacío"
+      },
+      "json": {
+        "loading": "Cargando...",
+        "parseFailed": "Error al analizar JSON, verifique el formato de datos",
+        "emptyJson": "El contenido JSON está vacío",
+        "validJson": "JSON válido",
+        "characters": "caracteres",
+        "copy": "Copiar",
+        "copied": "Copiado",
+        "rawContent": "Contenido sin procesar:"
+      },
+      "image": {
+        "loading": "Cargando...",
+        "reset": "Restablecer"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "Inactivo",
+      "running": "En ejecución",
+      "paused": "Pausado",
+      "completed": "Completado",
+      "failed": "Fallido",
+      "cancelled": "Cancelled",
+      "waiting_for_user": "Esperando al usuario"
+    },
+    "maximize": "Maximizar",
+    "expandWorkspace": "Expandir espacio de trabajo",
+    "restore": "Restaurar",
+    "durationRunning": "En ejecución durante",
+    "durationCompleted": "Duración",
+    "taskProgress": "Progreso de la tarea",
+    "expandTaskList": "Expandir lista de tareas",
+    "collapseTaskList": "Contraer lista de tareas"
+  }
+}

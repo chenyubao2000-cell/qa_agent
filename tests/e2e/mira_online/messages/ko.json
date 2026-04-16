@@ -1,0 +1,1212 @@
+{
+  "common": {
+    "welcome": "환영합니다",
+    "logout": "로그아웃",
+    "settings": "설정",
+    "home": "홈",
+    "dashboard": "대시보드",
+    "language": "언어"
+  },
+  "email": {
+    "verification": {
+      "subject": "이메일을 인증해 주세요 - {appName}",
+      "title": "이메일 인증",
+      "heading": "이메일 주소를 인증해 주세요",
+      "body": "{appName}에 가입해 주셔서 감사합니다! 계정을 안전하게 보호하기 위해 이메일 인증이 필요합니다. 아래 버튼을 눌러 인증해 주세요:",
+      "button": "이메일 인증",
+      "linkHint": "또는 아래 링크를 복사해 브라우저에 붙여넣어 주세요:",
+      "ignoreHint": "{appName}에 가입하지 않으셨다면 이 이메일은 무시해 주세요.",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "resetPassword": {
+      "subject": "비밀번호 재설정 - {appName}",
+      "title": "비밀번호 재설정",
+      "heading": "비밀번호를 재설정해 주세요",
+      "body": "비밀번호 재설정 요청이 접수되었습니다. 아래 버튼을 눌러 새 비밀번호를 설정해 주세요:",
+      "button": "비밀번호 재설정",
+      "linkHint": "버튼이 작동하지 않으면 아래 링크를 복사해 브라우저에 붙여넣어 주세요:",
+      "ignoreHint": "비밀번호 재설정을 요청하지 않으셨다면 이 이메일은 무시해 주세요. 비밀번호는 변경되지 않습니다."
+    },
+    "otp": {
+      "subject": "인증 코드가 전송되었습니다. 확인해 주세요",
+      "title": "이메일 인증 코드",
+      "greeting": "안녕하세요,",
+      "body": "Mira 계정 이메일을 인증하는 중입니다. 아래 인증 코드를 입력해 주세요:",
+      "expireHint": "이 코드는 10분 동안만 유효합니다. 다른 사람과 공유하지 마세요.",
+      "ignoreHint": "Mira에 가입하지 않으셨다면 이 이메일은 무시해 주세요.",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "waitlistOtp": {
+      "subject": "인증 코드 - {appName} 대기자 명단",
+      "title": "이메일 인증 코드",
+      "greeting": "안녕하세요,",
+      "body": "{appName} 대기자 명단 참여를 신청하고 계십니다. 아래 코드를 사용해 업무용 이메일을 인증해 주세요:",
+      "expireHint": "이 코드는 10분 동안만 유효합니다. 다른 사람과 공유하지 마세요.",
+      "ignoreHint": "{appName} 대기자 명단 참여를 신청하지 않으셨다면 이 이메일은 무시해 주세요.",
+      "footer": "© {year} {appName}. All rights reserved."
+    },
+    "invitation": {
+      "subject": "{appName} 초대 코드",
+      "title": "Mira 초대 코드가 준비되었습니다",
+      "greeting": "{name}님, 안녕하세요.",
+      "body": "Mira 얼리 액세스를 신청해 주셔서 감사합니다! 신청이 승인되었습니다. 아래 초대 코드를 사용해 시작해 보세요:",
+      "activateButton": "지금 활성화",
+      "ignoreHint": "Mira 얼리 액세스를 신청하지 않으셨다면 이 이메일은 무시해 주세요.",
+      "footer": "© 2025 {appName}. All rights reserved."
+    }
+  },
+  "files": {
+    "types": {
+      "text": "텍스트",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "이미지",
+      "peopleData": "인물 데이터"
+    }
+  },
+  "dashboard": {
+    "title": "대시보드",
+    "overview": "개요",
+    "statistics": "통계",
+    "welcome": "무엇을 도와드릴까요?",
+    "tryScenarios": "이 시나리오를 사용해 보세요"
+  },
+  "chatbot": {
+    "sendMessage": "메시지 보내기",
+    "placeholder": "입력해 주세요...",
+    "addAttachments": "사진 또는 파일 추가",
+    "uploadLocalFile": "로컬 파일 업로드",
+    "uploadError": "파일 업로드에 실패했습니다",
+    "uploadErrorMaxFiles": "최대 파일 개수를 초과했습니다",
+    "uploadErrorMaxFileSize": "파일 크기가 제한을 초과했습니다",
+    "uploadErrorAccept": "지원하지 않는 파일 형식입니다",
+    "uploadErrorAcceptPartial": "지원하지 않는 형식의 파일 {count}개는 무시되었습니다",
+    "uploadErrorMaxFileSizePartial": "크기 제한을 초과한 파일 {count}개는 무시되었습니다",
+    "uploadErrorUpload": "파일 업로드에 실패했습니다. 다시 시도해 주세요",
+    "typing": "입력 중...",
+    "thinking": "생각 중...",
+    "aborted": "Mira가 중지되었습니다. 계속하려면 새 메시지를 보내 주세요",
+    "waitingForUser": "응답해 주시면 Mira가 계속 진행합니다",
+    "completed": "작업이 완료되었습니다",
+    "retry": "다시 시도",
+    "copy": "복사",
+    "search": "검색",
+    "searchPlaceholder": "작업 검색...",
+    "newChat": "새 작업",
+    "taskList": "작업",
+    "taskListDescription": "모든 작업을 관리하고 확인합니다",
+    "taskId": "작업 ID",
+    "confirmDelete": "작업 삭제 확인",
+    "deleteWarning": "이 작업은 되돌릴 수 없습니다. 작업과 모든 메시지가 영구적으로 삭제됩니다.",
+    "cancel": "취소",
+    "delete": "삭제",
+    "rename": "이름 변경",
+    "renameTask": "작업 이름 변경",
+    "editTitle": "제목 수정",
+    "enterTaskName": "작업 이름을 입력해 주세요",
+    "newTaskName": "새 작업 이름",
+    "taskName": "작업 이름",
+    "save": "저장",
+    "moreActions": "추가 작업",
+    "taskDetails": "작업 상세 정보",
+    "taskTitle": "작업 제목",
+    "creditsConsumed": "사용한 크레딧",
+    "createdTime": "생성 시간",
+    "history": "작업 기록",
+    "noHistory": "아직 작업이 없습니다",
+    "noSearchResults": "일치하는 작업이 없습니다",
+    "deleteChat": "작업 삭제",
+    "today": "오늘",
+    "yesterday": "어제",
+    "thisWeek": "이번 주",
+    "last7Days": "최근 7일",
+    "last30Days": "최근 30일",
+    "older": "이전",
+    "tasks": "작업",
+    "projects": "프로젝트",
+    "library": "라이브러리",
+    "chatNotFound": "채팅을 찾을 수 없습니다",
+    "chatNotFoundDescription": "죄송합니다. 접근하려는 작업이 없거나 삭제되었습니다.",
+    "noPermission": "접근 권한이 없습니다",
+    "noPermissionDescription": "죄송합니다. 이 작업에 접근할 권한이 없습니다.",
+    "share": "공유",
+    "shareChat": "채팅 공유",
+    "shareChatDescription": "링크로 이 대화를 다른 사람과 공유합니다",
+    "shareLink": "공유 링크",
+    "copyLink": "링크 복사",
+    "copied": "복사됨",
+    "createShareLink": "공유 링크 만들기",
+    "creating": "생성 중...",
+    "removeShare": "공유 해제",
+    "removing": "해제 중...",
+    "shareDescription": "이 링크가 있는 누구나 이 대화를 볼 수 있습니다",
+    "createShareDescription": "다른 사람이 이 대화를 볼 수 있도록 공유 링크를 만드세요",
+    "close": "닫기",
+    "emptyStateTitle": "아직 메시지가 없습니다",
+    "emptyStateDescription": "대화를 시작하면 여기에 메시지가 표시됩니다",
+    "errors": {
+      "renameUnauthorized": "이 작업의 이름을 변경할 권한이 없습니다",
+      "renameChatNotFound": "작업을 찾을 수 없거나 삭제되었습니다",
+      "renameTitleTooLong": "작업 이름이 너무 깁니다. 최대 {maxLength}자까지 입력할 수 있습니다",
+      "renameTitleEmpty": "작업 이름은 비워둘 수 없습니다",
+      "renameFailed": "작업 이름 변경에 실패했습니다. 나중에 다시 시도해 주세요",
+      "updateFailed": "업데이트에 실패했습니다. 나중에 다시 시도해 주세요"
+    }
+  },
+  "share": {
+    "notFound": "채팅을 찾을 수 없습니다",
+    "notFoundDescription": "죄송합니다. 접근하려는 채팅이 없거나 삭제되었습니다.",
+    "invalidLink": "유효하지 않은 링크입니다",
+    "invalidLinkDescription": "죄송합니다. 이 공유 링크는 유효하지 않거나 만료되었습니다.",
+    "backToHome": "홈으로 돌아가기"
+  },
+  "homepage": {
+    "nav": {
+      "features": "기능",
+      "getStarted": "대기자 명단 참여",
+      "signIn": "로그인",
+      "goToHomepage": "홈페이지로 이동"
+    },
+    "hero": {
+      "title": "당신의 확장",
+      "subtitle1": "채용부터 시작합니다.",
+      "subtitle2": "더 많은 것이 이어집니다.",
+      "description": "Mira는 단순한 에이전트가 아닙니다. 당신의 디지털 분신입니다.",
+      "getStarted": "대기자 명단 참여"
+    },
+    "features": {
+      "label": "기능",
+      "core": "핵심",
+      "recruiting": "채용",
+      "coreFeatures": {
+        "workWithYou": {
+          "title": "대신하는 것이 아니라 함께 일합니다",
+          "desc1": "Mira는 작업을 자율적으로 수행하고, 중요한 의사결정이 필요한 순간에는 사용자와 협업합니다.",
+          "desc2": "일정도, 맥락도 함께 공유합니다."
+        },
+        "trainedByYou": {
+          "title": "직접 가르치거나, 사용자를 통해 학습합니다",
+          "desc1": "스킬을 정의하고 Mira를 명시적으로 학습시킬 수 있으며,",
+          "desc2": "실제 워크플로와 행동을 바탕으로 시간이 지날수록 스스로 학습하게 할 수도 있습니다."
+        },
+        "topTierModels": {
+          "title": "최상급 모델 위에, 현실을 위한 엔지니어링",
+          "desc1": "최첨단 모델과 프로덕션급 엔지니어링을 기반으로 하며,",
+          "desc2": "실제 도메인 전문가의 지식으로 방향을 잡습니다."
+        },
+        "integratedTools": {
+          "title": "이미 사용 중인 도구에 자연스럽게 연결됩니다",
+          "desc1": "Airtable, Slack, Gmail 등 이미 사용 중인 도구와 자연스럽게 연동되며,",
+          "desc2": "OneDrive를 비롯한 다양한 서비스와 함께 작동합니다."
+        }
+      },
+      "recruitingFeatures": {
+        "candidateData": {
+          "title": "후보자 데이터",
+          "desc1": "여러 출처의 정형 및 비정형 후보자 데이터를 통합합니다.",
+          "desc2": "웹 기반 정보가 추가로 필요할 때는 Mira Chrome Extension으로 범위를 넓힐 수 있습니다."
+        },
+        "communication": {
+          "title": "커뮤니케이션 및 후속 조치",
+          "desc1": "아웃바운드 전화와 이메일을 지원합니다.",
+          "desc2": "모든 커뮤니케이션 기록은 해당 후보자에게 자동으로 연결됩니다."
+        },
+        "recruitingSkills": {
+          "title": "채용 스킬",
+          "desc1": "직무 정의, 후보자 평가,",
+          "desc2": "채용 의사결정 지원을 위해 설계된 기본 채용 스킬이 제공됩니다."
+        },
+        "securityTrust": {
+          "title": "보안 및 신뢰",
+          "desc1": "엔터프라이즈 환경을 고려해 설계되었습니다.",
+          "desc2": "GDPR 및 기타 데이터 보호 요구사항을 준수하며, 필요에 따라 Zero Data Retention (ZDR) 옵션도 제공합니다."
+        }
+      }
+    },
+    "cta": {
+      "title": "얼리 액세스 신청",
+      "description": "Mira는 현재 비공개 베타로 운영 중입니다.",
+      "button": "대기자 명단 참여"
+    }
+  },
+  "Layout": {
+    "signOut": "로그아웃",
+    "language": "언어",
+    "theme": "테마",
+    "light": "라이트",
+    "dark": "다크",
+    "system": "시스템",
+    "mockUserName": "테스트 사용자"
+  },
+  "admin": {
+    "nav": {
+      "management": "관리",
+      "dashboard": "대시보드",
+      "waitlist": "대기자 명단",
+      "invitationCodes": "초대 코드",
+      "scenarioCards": "시나리오 카드",
+      "admins": "관리자",
+      "backToApp": "앱으로 돌아가기"
+    },
+    "dashboard": {
+      "title": "대시보드",
+      "description": "시스템 운영 개요",
+      "sections": {
+        "overview": "개요",
+        "quickActions": "빠른 작업"
+      },
+      "stats": {
+        "totalUsers": "전체 사용자",
+        "activatedUsers": "{count}명 활성화됨",
+        "pendingWaitlist": "대기 중인 신청",
+        "totalWaitlist": "대기자 명단 {count}명",
+        "availableCodes": "사용 가능한 코드",
+        "totalCodes": "총 코드 {count}개",
+        "activationRate": "활성화율",
+        "activatedOfTotal": "{activated}/{total} 활성화됨",
+        "needsAttention": "확인이 필요함"
+      },
+      "quickLinks": {
+        "waitlist": "대기자 명단 관리",
+        "waitlistDesc": "신청서를 검토하고 초대 코드를 발송합니다",
+        "invitationCodes": "초대 코드 관리",
+        "invitationCodesDesc": "초대 코드를 생성하고 확인하며 내보냅니다",
+        "pendingCount": "대기 중",
+        "availableCount": "사용 가능"
+      }
+    },
+    "invitationCodesPool": {
+      "title": "초대 코드 풀",
+      "description": "초대 코드를 일괄 관리하고 미리 생성 및 배포합니다",
+      "refresh": "새로고침",
+      "export": "내보내기",
+      "generate": "코드 생성",
+      "generating": "생성 중...",
+      "loading": "불러오는 중...",
+      "noCodes": "아직 코드가 없습니다",
+      "copy": "복사",
+      "copied": "복사됨",
+      "copyFailed": "복사에 실패했습니다",
+      "generatePrompt": "생성할 코드 수를 입력해 주세요 (1-1000)",
+      "generateCountError": "수량은 1에서 1000 사이여야 합니다",
+      "generateSuccess": "초대 코드 {count}개를 생성했습니다",
+      "generateFailed": "코드 생성에 실패했습니다. 다시 시도해 주세요",
+      "exportSuccess": "내보내기에 성공했습니다",
+      "searchPlaceholder": "코드 검색...",
+      "stats": {
+        "total": "전체",
+        "unused": "미사용",
+        "used": "사용됨",
+        "expired": "만료됨"
+      },
+      "filter": {
+        "all": "전체",
+        "unused": "미사용",
+        "used": "사용됨",
+        "expired": "만료됨"
+      },
+      "status": {
+        "unused": "미사용",
+        "used": "사용됨",
+        "expired": "만료됨"
+      },
+      "table": {
+        "code": "코드",
+        "status": "상태",
+        "usedBy": "사용자",
+        "batch": "배치",
+        "createdAt": "생성일",
+        "usedAt": "사용일",
+        "actions": "작업"
+      },
+      "pagination": {
+        "previous": "이전",
+        "next": "다음",
+        "page": "{current} / {total}페이지",
+        "total": "총 {count}개"
+      }
+    },
+    "admins": {
+      "title": "관리자 관리",
+      "description": "시스템 관리자를 조회하고 관리합니다",
+      "refresh": "새로고침",
+      "loading": "불러오는 중...",
+      "loadFailed": "불러오기에 실패했습니다",
+      "noAdmins": "관리자가 없습니다",
+      "addAdmin": "관리자 추가",
+      "addSuccess": "관리자가 추가되었습니다",
+      "addFailed": "관리자 추가에 실패했습니다. 다시 시도해 주세요",
+      "remove": "삭제",
+      "removeSuccess": "관리자가 삭제되었습니다",
+      "removeFailed": "관리자 삭제에 실패했습니다. 다시 시도해 주세요",
+      "addDialog": {
+        "title": "관리자 추가",
+        "description": "이름 또는 이메일로 검색해 관리자 권한을 부여합니다",
+        "searchPlaceholder": "이름 또는 이메일 검색...",
+        "searching": "검색 중...",
+        "noResults": "일치하는 사용자를 찾을 수 없습니다",
+        "cancel": "취소",
+        "confirm": "확인"
+      },
+      "removeDialog": {
+        "title": "관리자 삭제 확인",
+        "description": "{name}님의 관리자 권한을 삭제하시겠습니까? 이 작업은 되돌릴 수 있습니다.",
+        "cancel": "취소",
+        "confirm": "삭제 확인"
+      },
+      "table": {
+        "user": "사용자",
+        "email": "이메일",
+        "createdAt": "등록일",
+        "actions": "작업"
+      }
+    },
+    "waitlist": {
+      "title": "대기자 명단 관리",
+      "description": "신청자를 관리하고 승인된 사용자에게 초대 코드 이메일을 보냅니다",
+      "refresh": "새로고침",
+      "loading": "불러오는 중...",
+      "noItems": "신청 내역이 없습니다",
+      "searchPlaceholder": "이메일 또는 이름 검색...",
+      "sendInvitation": "초대 보내기",
+      "sendBatch": "초대 일괄 발송",
+      "sending": "보내는 중...",
+      "confirmSend": "발송 확인",
+      "confirmSendDesc": "선택한 신청자 {count}명에게 초대 코드가 포함된 이메일을 보내려고 합니다. 코드 {count}개가 사용됩니다. 계속하시겠습니까?",
+      "sendSuccess": "초대 이메일 {count}건을 보냈습니다",
+      "sendPartialSuccess": "{success}건 전송, {fail}건 실패",
+      "sendFailed": "전송에 실패했습니다. 다시 시도해 주세요",
+      "noPendingSelected": "선택한 항목은 모두 이미 처리되었습니다",
+      "resend": "재전송",
+      "resendSuccess": "초대 이메일을 다시 보냈습니다",
+      "resendFailed": "재전송에 실패했습니다. 다시 시도해 주세요",
+      "copyCode": "초대 코드 복사",
+      "copySuccess": "초대 코드가 복사되었습니다",
+      "copyFailed": "복사에 실패했습니다. 직접 복사해 주세요",
+      "filter": {
+        "all": "전체",
+        "pending": "대기 중",
+        "approved": "전송됨",
+        "rejected": "거절됨",
+        "activated": "활성화됨"
+      },
+      "status": {
+        "pending": "대기 중",
+        "approved": "전송됨",
+        "rejected": "거절됨",
+        "activated": "활성화됨"
+      },
+      "table": {
+        "name": "이름",
+        "company": "회사",
+        "role": "직함",
+        "email": "이메일",
+        "useCase": "사용 목적",
+        "locale": "언어",
+        "createdAt": "신청일",
+        "invitationCode": "초대 코드",
+        "status": "상태",
+        "actions": "작업"
+      },
+      "pagination": {
+        "previous": "이전",
+        "next": "다음",
+        "page": "{current} / {total}페이지",
+        "total": "총 {count}개"
+      }
+    },
+    "scenarioCards": {
+      "title": "시나리오 카드",
+      "description": "작업 생성 페이지에 표시되는 기본 시나리오 카드를 관리합니다. 사용자는 카드를 클릭해 즉시 소싱 작업을 시작할 수 있습니다.",
+      "refresh": "새로고침",
+      "loading": "불러오는 중...",
+      "noItems": "시나리오 카드가 없습니다",
+      "addCard": "카드 추가",
+      "editCard": "카드 수정",
+      "deleteCard": "삭제",
+      "deleteConfirm": "이 카드를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      "saveSuccess": "저장되었습니다",
+      "saveFailed": "저장에 실패했습니다. 다시 시도해 주세요",
+      "deleteSuccess": "삭제되었습니다",
+      "deleteFailed": "삭제에 실패했습니다. 다시 시도해 주세요",
+      "createSuccess": "생성되었습니다",
+      "createFailed": "생성에 실패했습니다. 다시 시도해 주세요",
+      "table": {
+        "caseId": "케이스 ID",
+        "contentZh": "중국어 콘텐츠",
+        "contentEn": "영어 콘텐츠",
+        "sortOrder": "순서",
+        "isActive": "상태",
+        "actions": "작업"
+      },
+      "status": {
+        "active": "활성",
+        "inactive": "비활성"
+      },
+      "form": {
+        "caseId": "케이스 ID",
+        "caseIdPlaceholder": "예: case_fullstack (생성 후 변경할 수 없음)",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
+        "contentEnPlaceholder": "Enter English scenario description...",
+        "sortOrder": "정렬 순서 (낮을수록 먼저 표시)",
+        "isActive": "이 카드 사용",
+        "cancel": "취소",
+        "save": "저장",
+        "create": "생성"
+      }
+    }
+  },
+  "auth": {
+    "signIn": "로그인",
+    "signUp": "회원가입",
+    "signOut": "로그아웃",
+    "signInDescription": "이메일과 비밀번호를 입력해 로그인해 주세요",
+    "signUpDescription": "새 계정을 만드세요",
+    "email": "이메일",
+    "password": "비밀번호",
+    "confirmPassword": "비밀번호 확인",
+    "name": "이름",
+    "signInSuccess": "로그인되었습니다",
+    "signUpSuccess": "회원가입이 완료되었습니다! 계정 인증을 위해 이메일을 확인해 주세요",
+    "emailVerificationRequired": "이메일 인증이 필요합니다",
+    "emailVerificationSent": "인증 이메일이 전송되었습니다",
+    "emailVerificationMessage": "받은편지함으로 인증 이메일을 보냈습니다. 로그인하기 전에 이메일의 링크를 클릭해 계정을 인증해 주세요.",
+    "emailVerificationResend": "인증 이메일 다시 보내기",
+    "checkYourEmail": "이메일 확인",
+    "emailNotVerified": "이메일이 인증되지 않았습니다. 먼저 이메일을 인증해 주세요",
+    "orContinueWith": "또는",
+    "continueWithGitHub": "GitHub로 계속하기",
+    "continueWithGoogle": "Google로 계속하기",
+    "continueWithMicrosoft": "Microsoft로 계속하기",
+    "continueWithApple": "Apple로 계속하기",
+    "forgotPassword": "비밀번호를 잊으셨나요",
+    "forgotPasswordTitle": "비밀번호 찾기",
+    "forgotPasswordDescription": "이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다",
+    "forgotPasswordConfirmDescription": "\"계속\"을 클릭하면 <emailLink>{email}</emailLink>(으)로 비밀번호 재설정 링크가 전송됩니다",
+    "continueButton": "계속",
+    "returnToLogin": "로그인으로 돌아가기",
+    "resetPasswordTitle": "비밀번호 재설정",
+    "resetPasswordDescription": "새 비밀번호를 입력해 주세요",
+    "sendResetLink": "재설정 링크 보내기",
+    "resetPassword": "비밀번호 재설정",
+    "resetPasswordSuccess": "비밀번호가 재설정되었습니다! 로그인 페이지로 이동합니다...",
+    "resetPasswordError": "비밀번호 재설정에 실패했습니다. 다시 시도해 주세요",
+    "resetPasswordEmailSent": "비밀번호 재설정 이메일이 전송되었습니다",
+    "resetPasswordEmailError": "비밀번호 재설정 이메일 전송에 실패했습니다",
+    "resetPasswordEmailMessage": "이메일로 비밀번호 재설정 링크를 보냈습니다. 받은편지함을 확인하고 링크를 클릭해 비밀번호를 재설정해 주세요.",
+    "invalidResetToken": "유효하지 않은 재설정 토큰입니다",
+    "invalidResetLink": "재설정 링크가 유효하지 않거나 만료되었습니다",
+    "invalidResetLinkMessage": "이 비밀번호 재설정 링크는 유효하지 않거나 만료되었습니다. 새 비밀번호 재설정을 요청해 주세요.",
+    "requestNewLink": "새 링크 요청",
+    "backToSignIn": "로그인으로 돌아가기",
+    "rememberPassword": "비밀번호가 기억나시나요?",
+    "newPassword": "새 비밀번호",
+    "confirmNewPassword": "새 비밀번호 확인",
+    "noAccount": "계정이 없으신가요?",
+    "hasAccount": "이미 계정이 있으신가요?",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다",
+    "agreeToTerms": "다음 내용에 동의합니다:",
+    "termsOfService": "서비스 이용약관",
+    "and": "및",
+    "privacyPolicy": "개인정보처리방침",
+    "settings": "설정",
+    "validation": {
+      "emailInvalid": "올바른 이메일 주소를 입력해 주세요",
+      "passwordMinLength": "비밀번호는 최소 8자 이상이어야 합니다",
+      "passwordStrength": "비밀번호는 최소 8자 이상이어야 하며 문자, 숫자, 특수문자를 포함해야 합니다",
+      "nameMinLength": "이름은 최소 2자 이상이어야 합니다",
+      "termsRequired": "서비스 이용약관 및 개인정보처리방침에 동의해야 합니다",
+      "fieldRequired": "필수 입력 항목입니다"
+    },
+    "checkSpamFolder": "이메일을 받지 못하셨나요? 스팸함을 확인해 주세요",
+    "backToLogin": "로그인으로 돌아가기",
+    "unifiedTitle": "로그인 또는 회원가입",
+    "unifiedSubtitle": "당신의 Mira를 깨워보세요",
+    "continueTitle": "계속",
+    "emailPlaceholder": "이메일 주소를 입력해 주세요",
+    "emailLabel": "이메일",
+    "editLink": "수정",
+    "enterPasswordTitle": "비밀번호 입력",
+    "createPasswordTitle": "비밀번호 만들기",
+    "createAccountTitle": "계정 만들기",
+    "createAccountDescription": "{email}의 비밀번호를 설정해 주세요",
+    "editEmail": "이메일 수정",
+    "passwordStrengthHint": "비밀번호는 최소 12자 이상이어야 하며 문자, 숫자, 특수문자를 포함해야 합니다",
+    "showPassword": "비밀번호 표시",
+    "hidePassword": "비밀번호 숨기기",
+    "verifyEmailTitle": "이메일을 인증해 주세요",
+    "verifyEmailDescription": "{email}(으)로 인증 코드를 보냈습니다",
+    "enterOtp": "인증 코드 입력",
+    "otpPlaceholder": "인증 코드를 입력해 주세요",
+    "resendCode": "인증 코드 다시 보내기",
+    "resendCodeCountdown": "다시 전송했습니다. {seconds}초 후에 다시 시도해 주세요",
+    "changeEmail": "이메일 주소 변경",
+    "otpError": "코드가 올바르지 않습니다. 다시 시도해 주세요",
+    "otpExpired": "코드가 만료되었습니다. 다시 전송해 주세요",
+    "otpResendSuccess": "인증 코드가 전송되었습니다",
+    "otpResendFailed": "전송에 실패했습니다. 나중에 다시 시도해 주세요",
+    "checkSpamFolderHint": "이메일을 받지 못하셨나요? 스팸함을 확인해 주세요",
+    "verifyEmail": {
+      "title": "이메일을 인증해 주세요",
+      "description": "다음 주소로 인증 코드를 보냈습니다",
+      "descriptionSuffix": "",
+      "goToEmail": "이메일 열기",
+      "otpLabel": "인증 코드",
+      "otpPlaceholder": "인증 코드를 입력해 주세요",
+      "otpInputLabel": "{index}번째 자리",
+      "verifying": "인증 중...",
+      "resend": "다시 보내기",
+      "resendCountdown": "{seconds}초",
+      "resendSuccess": "코드를 다시 보냈습니다",
+      "resendFailed": "다시 보내기에 실패했습니다. 다시 시도해 주세요",
+      "changeEmail": "이메일 변경",
+      "invalidOtp": "유효하지 않은 코드입니다. 다시 시도해 주세요",
+      "success": "이메일이 인증되었습니다"
+    },
+    "activateVerifyTitle": "초대 코드를 확인해 주세요",
+    "activateCurrentEmail": "현재 이메일 ",
+    "activateNoCode": "초대 코드가 없으신가요?",
+    "activateApplyNow": "지금 신청하기",
+    "signOutLink": "로그아웃",
+    "waitlistTitle": "대기자 명단 참여",
+    "waitlistDescription": "아래 정보를 입력해 주시면 검토 후 전용 초대 코드를 보내드립니다.",
+    "waitlistName": "이름",
+    "waitlistCompany": "회사",
+    "waitlistRole": "직무 / 직책",
+    "waitlistUseCase": "사용 목적",
+    "waitlistSubmit": "신청서 제출",
+    "waitlistSubmitting": "제출 중...",
+    "waitlistJoined": "{time}에 참여함",
+    "waitlistLearnMore": "자세히 보기",
+    "joinWaitlist": {
+      "title": "대기자 명단 참여",
+      "description": "신청이 승인되면 초대 코드를 보내드립니다.",
+      "descriptionHint": "정확하고 자세한 정보를 입력해 주시면 검토 속도를 높이는 데 도움이 됩니다.",
+      "workEmail": "업무용 이메일",
+      "emailPlaceholder": "name@company.com",
+      "sendOtp": "인증 코드 보내기",
+      "resendOtp": "다시 보내기",
+      "otpCountdown": "{seconds}초",
+      "otpLabel": "인증 코드",
+      "otpPlaceholder": "인증 코드를 입력해 주세요",
+      "verifyOtp": "인증",
+      "changeEmail": "이메일 변경",
+      "name": "이름",
+      "namePlaceholder": "이름을 입력해 주세요",
+      "company": "회사",
+      "companyPlaceholder": "회사명을 입력해 주세요",
+      "role": "직무 / 직책",
+      "rolePlaceholder": "직무를 입력해 주세요",
+      "useCase": "Mira를 어떻게 사용하실 계획인가요",
+      "useCasePlaceholder": "사용 목적을 설명해 주세요",
+      "submit": "신청서 제출",
+      "submitting": "제출 중...",
+      "cancel": "취소",
+      "successTitle": "신청이 접수되었습니다",
+      "successDescription": "승인되면 다음 주소로 초대 코드를 보내드립니다: ",
+      "backToHome": "홈페이지로 돌아가기",
+      "otpSent": "인증 코드가 전송되었습니다",
+      "emailVerified": "인증되었습니다!",
+      "errors": {
+        "otpExpired": "인증 코드가 만료되었습니다. 다시 보내 주세요",
+        "otpIncorrect": "코드가 올바르지 않습니다. 다시 시도해 주세요",
+        "otpLengthRequired": "6자리 인증 코드를 입력해 주세요",
+        "sendFailed": "전송에 실패했습니다. 다시 시도해 주세요",
+        "verifyFailed": "인증에 실패했습니다. 다시 시도해 주세요",
+        "submitFailed": "제출에 실패했습니다. 다시 시도해 주세요",
+        "nameRequired": "이름을 입력해 주세요",
+        "companyRequired": "회사명을 입력해 주세요",
+        "roleRequired": "직무를 입력해 주세요",
+        "useCaseRequired": "사용 목적을 입력해 주세요",
+        "accountAlreadyActivated": "이 계정은 이미 활성화되었습니다. 로그인해 주세요!",
+        "alreadySubmitted": "이 이메일은 이미 제출되었습니다. 잠시만 기다려 주세요!",
+        "emailInvalid": "올바른 이메일 주소를 입력해 주세요",
+        "emailNotVerified": "제출하기 전에 이메일을 인증해 주세요",
+        "otpNotVerified": "제출하기 전에 코드를 입력하고 인증해 주세요"
+      }
+    },
+    "activate": "활성화",
+    "activateAccount": "계정 활성화",
+    "activateTitle": "계정을 활성화해 주세요",
+    "activateDescription": "Mira를 계속 사용하려면 초대 코드를 입력해 주세요",
+    "yourActivationCode": "회원님의 초대 코드는 다음과 같습니다:",
+    "activationCode": "초대 코드",
+    "enterActivationCode": "초대 코드를 입력해 주세요",
+    "activationCodePlaceholder": "초대 코드를 입력해 주세요",
+    "activating": "활성화 중...",
+    "activationSuccess": "계정이 활성화되었습니다!",
+    "activationSuccessDescription": "홈으로 이동합니다...",
+    "activationCodeRequired": "초대 코드를 입력해 주세요",
+    "activationCodeTooShort": "초대 코드가 너무 짧습니다",
+    "activationCodeIncorrect": "유효하지 않은 초대 코드입니다. 다시 시도해 주세요",
+    "invalidInvitationCode": "유효하지 않은 초대 코드입니다",
+    "activationContactAdmin": "초대 코드를 받지 못하셨다면 관리자에게 문의해 주세요",
+    "accountActivated": "계정이 활성화되었습니다",
+    "accountNotActivated": "계정이 활성화되지 않았습니다. 먼저 계정을 활성화해 주세요",
+    "errors": {
+      "emailAlreadyRegistered": "이미 등록된 이메일입니다. 다른 이메일을 사용하거나 바로 로그인해 주세요",
+      "invalidEmailOrPassword": "이메일 또는 비밀번호가 올바르지 않습니다. 확인 후 다시 시도해 주세요",
+      "emailNotVerified": "이메일이 인증되지 않았습니다. 먼저 이메일을 인증해 주세요",
+      "passwordTooShort": "비밀번호가 너무 짧습니다. 더 긴 비밀번호를 사용해 주세요",
+      "passwordTooLong": "비밀번호가 너무 깁니다. 더 짧은 비밀번호를 사용해 주세요",
+      "passwordAlreadySet": "이 계정에는 이미 비밀번호가 설정되어 있습니다",
+      "invalidEmail": "이메일 형식이 올바르지 않습니다",
+      "emailAlreadyVerified": "이메일은 이미 인증되었습니다",
+      "emailMismatch": "이메일이 일치하지 않습니다",
+      "sessionExpired": "세션이 만료되었습니다. 다시 로그인해 주세요",
+      "sessionNotFresh": "세션이 만료되었습니다. 다시 인증해 주세요",
+      "invalidOrExpiredToken": "토큰이 유효하지 않거나 만료되었습니다",
+      "accountAlreadyLinked": "이 계정은 이미 연결되어 있습니다",
+      "cannotUnlinkLastAccount": "마지막 계정 연결은 해제할 수 없습니다",
+      "accountNotFound": "계정을 찾을 수 없습니다",
+      "rateLimitExceeded": "시도가 너무 많습니다. 나중에 다시 시도해 주세요",
+      "securityError": "보안 검증에 실패했습니다. 다시 시도해 주세요",
+      "validationError": "입력값 검증에 실패했습니다. 입력 정보를 확인해 주세요",
+      "serverError": "서버 오류가 발생했습니다. 나중에 다시 시도해 주세요",
+      "providerError": "외부 로그인 서비스 오류입니다",
+      "invalidInput": "입력값이 올바르지 않습니다. 확인 후 다시 시도해 주세요",
+      "unauthorized": "권한이 없습니다. 먼저 로그인해 주세요",
+      "forbidden": "권한이 부족합니다",
+      "notFound": "리소스를 찾을 수 없습니다",
+      "unprocessableEntity": "요청을 처리할 수 없습니다",
+      "unknown": "알 수 없는 오류가 발생했습니다. 나중에 다시 시도해 주세요"
+    }
+  },
+  "workspace": {
+    "title": "Mira의 워크스페이스",
+    "backToLiveView": "실시간 보기로 돌아가기",
+    "selectTool": "상세 정보를 보려면 도구를 선택해 주세요",
+    "noToolsEnabled": "활성화된 도구가 없습니다",
+    "usingTool": "Mira가 사용 중인 도구",
+    "processing": "처리 중",
+    "completed": "완료됨",
+    "failed": "실패함",
+    "realTime": "실시간",
+    "goToStart": "처음으로 이동",
+    "previous": "이전",
+    "next": "다음"
+  },
+  "search": {
+    "aiSummary": "AI 요약",
+    "noResults": "검색 결과가 없습니다"
+  },
+  "toolStatus": {
+    "processing": "처리 중...",
+    "searching": "검색 중...",
+    "crawling": "크롤링 중...",
+    "mapping": "매핑 중...",
+    "extracting": "추출 중...",
+    "items": "항목",
+    "suggestions": "추천",
+    "screenshotComplete": "스크린샷 완료",
+    "operationFailed": "작업 실패",
+    "crawlFailed": "크롤링 실패",
+    "extractFailed": "추출 실패",
+    "mapFailed": "매핑 실패",
+    "searchFailed": "검색 실패",
+    "pages": "페이지",
+    "links": "링크",
+    "results": "결과",
+    "fullPage": "전체 페이지",
+    "visibleArea": "보이는 영역",
+    "clickToView": "클릭하여 보기",
+    "unknownQuery": "알 수 없는 쿼리",
+    "processingUrls": "URL {count}개 처리 중...",
+    "websiteCrawl": "웹사이트 크롤링",
+    "contentExtract": "콘텐츠 추출",
+    "websiteMap": "웹사이트 맵"
+  },
+  "tools": {
+    "askForConfirmation": {
+      "name": "확인 요청",
+      "description": "작업에 대해 사용자 확인을 요청합니다"
+    },
+    "clarifyQuestion": {
+      "name": "추가 질문",
+      "description": "사용자에게 추가 정보를 요청합니다"
+    },
+    "maps_weather": {
+      "name": "날씨 조회",
+      "description": "도시 날씨를 조회합니다"
+    },
+    "exa_search": {
+      "name": "웹 검색",
+      "description": "Exa AI를 사용해 고품질의 관련 결과를 반환하는 신경망 기반 의미 검색을 수행합니다"
+    },
+    "exa_company_search": {
+      "name": "회사 검색",
+      "description": "시장 조사와 비즈니스 개발에 최적화된 회사, 조직 및 비즈니스를 검색합니다",
+      "action": "회사 검색 중"
+    },
+    "exa_people_search": {
+      "name": "인물 검색",
+      "description": "채용과 인재 소싱에 최적화된 전문가, 후보자 및 LinkedIn 프로필을 검색합니다",
+      "action": "인물 검색 중"
+    },
+    "generate_people_data": {
+      "name": "인물 데이터 생성",
+      "description": "인물 검색 결과를 다운로드 가능한 데이터 파일로 정리합니다",
+      "action": "인물 데이터 생성 중"
+    },
+    "export_data": {
+      "name": "데이터 내보내기",
+      "description": "데이터가 내보내졌습니다",
+      "action": "데이터 내보내는 중"
+    },
+    "sb_file_create": {
+      "name": "파일 생성",
+      "description": "샌드박스에 새 파일을 생성합니다",
+      "action": "파일 생성 중"
+    },
+    "sb_file_rewrite": {
+      "name": "파일 다시 쓰기",
+      "description": "파일 내용을 완전히 다시 작성합니다",
+      "action": "파일 다시 쓰는 중"
+    },
+    "sb_file_delete": {
+      "name": "파일 삭제",
+      "description": "지정한 파일을 삭제합니다",
+      "action": "파일 삭제 중"
+    },
+    "sb_file_edit": {
+      "name": "파일 편집",
+      "description": "AI 도움을 받아 파일을 편집합니다",
+      "action": "파일 편집 중"
+    },
+    "sb_docx_create": {
+      "name": "Word 문서 만들기",
+      "description": "샌드박스에서 Word 문서(.docx 형식)를 생성합니다",
+      "action": "Word 문서 생성 중"
+    },
+    "sb_pptx_create": {
+      "name": "PowerPoint 프레젠테이션 만들기",
+      "description": "샌드박스에서 PowerPoint 프레젠테이션(.pptx 형식)을 생성합니다",
+      "action": "PowerPoint 프레젠테이션 생성 중"
+    },
+    "sb_xlsx_create": {
+      "name": "Excel 스프레드시트 만들기",
+      "description": "샌드박스에서 Excel 스프레드시트(.xlsx 형식)를 생성합니다",
+      "action": "Excel 스프레드시트 생성 중"
+    },
+    "sb_pdf_create": {
+      "name": "PDF 문서 만들기",
+      "description": "샌드박스에서 PDF 문서(.pdf 형식)를 생성합니다",
+      "action": "PDF 문서 생성 중"
+    },
+    "sb_image_create": {
+      "name": "이미지 만들기",
+      "description": "샌드박스에서 이미지(PNG, JPG, SVG 등)를 생성합니다",
+      "action": "이미지 생성 중"
+    },
+    "sb_command_execute": {
+      "name": "명령 실행",
+      "description": "샌드박스에서 셸 명령을 실행합니다",
+      "action": "명령 실행 중"
+    },
+    "sb_command_logs_get": {
+      "name": "출력 확인",
+      "description": "명령 실행 출력을 확인합니다"
+    },
+    "sb_command_terminate": {
+      "name": "명령 종료",
+      "description": "실행 중인 명령을 종료합니다",
+      "action": "명령 종료 중"
+    },
+    "sb_command_running_list": {
+      "name": "세션 목록",
+      "description": "활성 tmux 세션을 모두 표시합니다"
+    },
+    "reflect_tool": {
+      "name": "리플렉트",
+      "description": "연구 계획과 전략을 되짚어봅니다"
+    },
+    "browserNavigate": {
+      "name": "브라우저 이동",
+      "description": "지정한 웹 페이지로 이동합니다"
+    },
+    "browserAct": {
+      "name": "페이지 작업",
+      "description": "페이지 상호작용을 실행합니다"
+    },
+    "browserExtract": {
+      "name": "데이터 추출",
+      "description": "페이지에서 구조화된 데이터를 추출합니다"
+    },
+    "browserObserve": {
+      "name": "작업 미리보기",
+      "description": "실행 없이 작업을 미리 확인합니다"
+    },
+    "browserScreenshot": {
+      "name": "페이지 스크린샷",
+      "description": "현재 페이지를 캡처합니다"
+    },
+    "browserGetContent": {
+      "name": "콘텐츠 가져오기",
+      "description": "페이지 콘텐츠를 가져옵니다"
+    },
+    "browserWait": {
+      "name": "대기",
+      "description": "지정한 조건이 충족될 때까지 기다립니다"
+    },
+    "browserAgentTask": {
+      "name": "스마트 작업",
+      "description": "복잡한 다단계 작업을 실행합니다"
+    },
+    "browserClose": {
+      "name": "브라우저 닫기",
+      "description": "브라우저 세션을 닫습니다"
+    },
+    "browserStatus": {
+      "name": "브라우저 상태",
+      "description": "브라우저 상태를 확인합니다"
+    },
+    "complete": {
+      "name": "파일 전달",
+      "description": "사용자에게 파일을 전달합니다",
+      "createdTime": "생성일: ",
+      "downloadFile": "파일 다운로드",
+      "deliveryFailed": "전달에 실패했습니다",
+      "previewNotImplemented": "파일 미리보기가 구현되지 않았습니다",
+      "download": "다운로드",
+      "preview": "미리보기",
+      "previewMetadataLoading": "파일 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요",
+      "completed": "작업이 완료되었습니다",
+      "downloadSuccess": "파일이 다운로드되었습니다",
+      "downloadFailed": "파일 다운로드에 실패했습니다. 다시 시도해 주세요",
+      "fileType": "파일",
+      "text": "텍스트",
+      "wordDocument": "Word",
+      "excelSpreadsheet": "Excel",
+      "csvSpreadsheet": "CSV",
+      "ppt": "PPT",
+      "image": "이미지",
+      "peopleData": "인물 데이터"
+    },
+    "code_interpreter": {
+      "name": "코드 실행",
+      "description": "샌드박스 환경에서 Python 코드를 실행합니다",
+      "action": "코드 실행 중",
+      "pre_action": "코드 작성 중"
+    }
+  },
+  "toolForms": {
+    "clarifyQuestion": {
+      "generating": "추가 질문을 생성하는 중...",
+      "defaultTitle": "추가 정보가 필요합니다",
+      "submit": "제출",
+      "skip": "건너뛰기 (기본값 사용)",
+      "skipHint": "건너뛰면 권장 기본 옵션으로 계속 진행됩니다",
+      "submitted": "제출됨",
+      "loadFailed": "양식을 불러오지 못했습니다",
+      "loadFailedDescription": "죄송합니다. 질문 양식을 생성하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "skipped": "건너뜀",
+      "aborted": "추가 질문 생성을 중지했습니다"
+    },
+    "askForConfirmation": {
+      "loading": "확인 요청을 불러오는 중...",
+      "needConfirmation": "확인이 필요합니다",
+      "confirm": "예",
+      "deny": "아니요",
+      "confirmed": "확인됨",
+      "denied": "거부됨",
+      "failed": "확인 요청에 실패했습니다",
+      "skipped": "건너뜀",
+      "aborted": "확인 요청 생성을 중지했습니다"
+    }
+  },
+  "toolButtons": {
+    "files": {
+      "createFile": "파일 생성",
+      "rewriteFile": "파일 다시 쓰기",
+      "deleteFile": "파일 삭제",
+      "editFile": "파일 편집",
+      "fileOperation": "파일 작업",
+      "executing": "실행 중...",
+      "executionError": "실행 오류",
+      "success": "성공",
+      "failed": "실패"
+    },
+    "shell": {
+      "executeCommand": "명령 실행",
+      "checkOutput": "출력 확인",
+      "terminateCommand": "명령 종료",
+      "listSessions": "세션 목록",
+      "shellCommand": "셸 명령",
+      "executionError": "실행 오류",
+      "executing": "실행 중...",
+      "sending": "전송 중...",
+      "completed": "완료됨",
+      "sent": "전송됨",
+      "failed": "실패",
+      "sessions": "세션"
+    },
+    "parallelResearch": {
+      "deepResearch": "심층 리서치",
+      "researchReport": "리서치 보고서",
+      "researchFailed": "리서치 실패",
+      "researching": "리서치 중...",
+      "completed": "완료됨",
+      "executeResearch": "리서치 실행",
+      "characters": "자",
+      "citations": "인용"
+    },
+    "reflect": {
+      "reflecting": "리플렉트",
+      "reflectingText": "되짚어보는 중...",
+      "completed": "완료됨"
+    }
+  },
+  "toolPanels": {
+    "common": {
+      "success": "성공",
+      "failed": "실패",
+      "inputParams": "입력 파라미터",
+      "executionResult": "실행 결과",
+      "error": "오류",
+      "waiting": "실행을 기다리는 중...",
+      "noOutput": "출력 데이터가 없습니다",
+      "noResults": "결과가 없습니다",
+      "noCrawlResults": "크롤링 결과가 없습니다",
+      "noExtractResults": "추출 결과가 없습니다",
+      "noMapResults": "맵 결과가 없습니다",
+      "noReflection": "리플렉션 내용이 없습니다",
+      "waitingTask": "작업 시작을 기다리는 중...",
+      "title": "제목",
+      "url": "URL",
+      "session": "세션",
+      "activeSessions": "활성 세션",
+      "output": "출력",
+      "parameters": "파라미터",
+      "executeCommand": "명령 실행",
+      "updatedContent": "업데이트된 내용",
+      "editInstructions": "수정 지침:",
+      "extractedData": "추출된 데이터:",
+      "suggestions": "추천:",
+      "screenshot": "스크린샷",
+      "fullPage": "전체 페이지",
+      "visibleArea": "보이는 영역",
+      "pageContent": "페이지 콘텐츠",
+      "characters": "자",
+      "taskResult": "작업 결과:",
+      "initializationStatus": "초기화 상태:",
+      "initialized": "초기화됨",
+      "notInitialized": "초기화되지 않음",
+      "viewBrowserSession": "브라우저 세션 보기",
+      "clickToViewFullImage": "전체 이미지를 보려면 클릭해 주세요",
+      "screenshotFullSize": "스크린샷 (전체 페이지)",
+      "screenshotVisible": "스크린샷 (보이는 영역)",
+      "pageCount": "페이지 수:",
+      "timeTaken": "소요 시간:",
+      "linkCount": "링크 수:",
+      "extractFailed": "추출 실패:",
+      "charactersCount": "자"
+    },
+    "browser": {
+      "browserNavigation": "브라우저 이동",
+      "pageAction": "페이지 작업",
+      "dataExtract": "데이터 추출",
+      "observeAction": "작업 미리보기",
+      "pageScreenshot": "페이지 스크린샷",
+      "getContent": "콘텐츠 가져오기",
+      "wait": "대기",
+      "smartTask": "스마트 작업",
+      "closeBrowser": "브라우저 닫기",
+      "browserStatus": "브라우저 상태",
+      "browserOperation": "브라우저 작업",
+      "executingBrowserOperation": "브라우저 작업 실행 중..."
+    },
+    "files": {
+      "createFile": "파일 생성",
+      "rewriteFile": "파일 다시 쓰기",
+      "deleteFile": "파일 삭제",
+      "editFile": "파일 편집",
+      "fileOperation": "파일 작업",
+      "createDocx": "Word 문서 만들기",
+      "createPptx": "PowerPoint 프레젠테이션 만들기",
+      "createXlsx": "Excel 스프레드시트 만들기",
+      "createPdf": "PDF 문서 만들기",
+      "createImage": "이미지 만들기",
+      "generatePeopleData": "인물 데이터 생성",
+      "documentContent": "문서 내용"
+    },
+    "shell": {
+      "executeCommand": "명령 실행",
+      "checkOutput": "출력 확인",
+      "terminateCommand": "명령 종료",
+      "listSessions": "세션 목록",
+      "shellCommand": "셸 명령"
+    },
+    "codeInterpreter": {
+      "description": "설명",
+      "pythonCode": "Python 코드",
+      "envVariables": "환경 변수",
+      "timeout": "제한 시간",
+      "seconds": "초",
+      "stdout": "표준 출력",
+      "stderr": "표준 오류",
+      "executing": "코드 실행 중..."
+    },
+    "parallelResearch": {
+      "researchQuery": "리서치 쿼리",
+      "reportGuidance": "보고서 가이드:",
+      "executingDeepResearch": "심층 리서치 실행 중...",
+      "mayTakeMinutes": "리서치 복잡도에 따라 5~45분 정도 걸릴 수 있습니다",
+      "researchExecutionFailed": "리서치 실행에 실패했습니다",
+      "citations": "인용",
+      "characters": "문자 수",
+      "completionTime": "완료 시간",
+      "structuredDataOutput": "구조화된 데이터 출력",
+      "noResearchData": "리서치 데이터가 없습니다"
+    },
+    "reflect": {
+      "reflection": "리플렉션",
+      "researchPlanning": "AI 리서치 계획 및 리플렉션",
+      "reflectionNotes": "리플렉션 메모",
+      "noReflection": "리플렉션 내용이 없습니다"
+    },
+    "generateReport": {
+      "reportConfig": "보고서 설정",
+      "viewDetailedConfig": "상세 설정 보기",
+      "topic": "주제",
+      "focusAreas": "중점 영역",
+      "researchData": "리서치 데이터",
+      "generatingReport": "보고서 생성 중",
+      "reportGenerated": "보고서 생성됨",
+      "analyzingData": "데이터를 분석하고 보고서를 생성하는 중...",
+      "reportContent": "보고서 내용",
+      "generating": "생성 중...",
+      "reportGenerationComplete": "보고서 생성 완료",
+      "generationFailed": "생성 실패",
+      "reportGenerationError": "보고서 생성 중 오류가 발생했습니다",
+      "comparisonAnalysis": "비교 분석",
+      "listDirectory": "디렉터리 목록",
+      "topicOverview": "주제 개요",
+      "directAnswer": "직접 답변"
+    },
+    "peopleData": {
+      "organizing": "인물 데이터 생성 중...",
+      "exportSuccess": "인물 데이터 생성이 완료되었습니다",
+      "exportFailed": "인물 데이터 생성에 실패했습니다",
+      "totalCount": "총 {count}명",
+      "noData": "사용 가능한 인물 데이터가 없습니다"
+    }
+  },
+  "canvas": {
+    "selectFile": "미리볼 파일을 선택해 주세요",
+    "loading": "파일을 불러오는 중...",
+    "loadingDefault": "불러오는 중...",
+    "unsupportedFormat": "지원하지 않는 파일 형식입니다",
+    "downloadFile": "파일 다운로드",
+    "maximize": "최대화",
+    "restore": "복원",
+    "close": "닫기",
+    "fileTypes": {
+      "text": "텍스트 파일",
+      "markdown": "Markdown",
+      "html": "HTML",
+      "json": "JSON",
+      "image": "이미지",
+      "pdf": "PDF 문서",
+      "word": "Word 문서",
+      "excel": "Excel 스프레드시트",
+      "ppt": "프레젠테이션",
+      "people-data": "인물 데이터",
+      "unsupported": "지원하지 않는 형식"
+    },
+    "renderers": {
+      "unsupported": {
+        "unknown": "알 수 없음",
+        "notSupported": "이 형식은 미리보기를 지원하지 않습니다. 다운로드해서 확인해 주세요.",
+        "downloadButton": "파일 다운로드",
+        "tip": "안내: 다운로드한 뒤 해당 애플리케이션으로 열어 주세요"
+      },
+      "word": {
+        "converting": "문서를 변환하는 중...",
+        "convertingDoc": ".doc 파일을 변환하는 중...",
+        "loading": "불러오는 중...",
+        "convertFailed": "파일을 불러오지 못했습니다. 파일이 손상되었는지 확인한 뒤 다시 열어 주세요."
+      },
+      "excel": {
+        "converting": "이전 형식을 변환하는 중...",
+        "parsing": "스프레드시트를 분석하는 중...",
+        "loading": "불러오는 중...",
+        "parseFailed": "스프레드시트 분석에 실패했습니다. 다운로드해서 확인해 주세요",
+        "emptyTable": "표가 비어 있습니다"
+      },
+      "ppt": {
+        "notSupported": "{format} 프레젠테이션은 온라인 미리보기를 지원하지 않습니다",
+        "downloadButton": "파일 다운로드",
+        "tip": "안내: 전체 내용을 보려면 다운로드한 뒤 {format} 또는 호환 소프트웨어로 열어 주세요"
+      },
+      "peopleData": {
+        "parsing": "인물 데이터를 분석하는 중...",
+        "loading": "불러오는 중...",
+        "parseFailed": "인물 데이터 분석에 실패했습니다. 데이터 형식을 확인해 주세요",
+        "noData": "사용 가능한 인물 데이터가 없습니다",
+        "csvHeaders": [
+          "이름",
+          "위치",
+          "현재 회사",
+          "현재 직책",
+          "경력 연수",
+          "최근 경력",
+          "학력",
+          "AI 요약",
+          "이메일",
+          "전화번호",
+          "데이터 업데이트 일시",
+          "상세 URL"
+        ],
+        "workExperience": "경력",
+        "recentWorkExperience": "최근 경력",
+        "noWorkExperience": "경력 없음",
+        "present": "현재",
+        "more": "더 보기",
+        "linkedinProfile": "LinkedIn 프로필",
+        "viewDetails": "상세 보기"
+      },
+      "html": {
+        "loading": "불러오는 중...",
+        "securityWarning": "이 HTML 콘텐츠는 보안을 위해 샌드박스 환경에서 실행됩니다",
+        "emptyHtml": "HTML 콘텐츠가 비어 있습니다"
+      },
+      "json": {
+        "loading": "불러오는 중...",
+        "parseFailed": "JSON 분석에 실패했습니다. 데이터 형식을 확인해 주세요",
+        "emptyJson": "JSON 콘텐츠가 비어 있습니다",
+        "validJson": "유효한 JSON",
+        "characters": "자",
+        "copy": "복사",
+        "copied": "복사됨",
+        "rawContent": "원본 내용:"
+      },
+      "image": {
+        "loading": "불러오는 중...",
+        "reset": "초기화"
+      }
+    }
+  },
+  "plan": {
+    "status": {
+      "idle": "대기 중",
+      "running": "실행 중",
+      "paused": "일시 중지됨",
+      "completed": "완료됨",
+      "failed": "실패함",
+      "cancelled": "Cancelled",
+      "waiting_for_user": "사용자 대기 중"
+    },
+    "maximize": "최대화",
+    "expandWorkspace": "워크스페이스 펼치기",
+    "restore": "복원",
+    "durationRunning": "실행 시간",
+    "durationCompleted": "소요 시간",
+    "taskProgress": "작업 진행 상황",
+    "expandTaskList": "작업 목록 펼치기",
+    "collapseTaskList": "작업 목록 접기"
+  }
+}
