@@ -200,7 +200,7 @@
         "type": "visible",
         "selector": "text",
         "expected": null,
-        "i18nKey": "task.tryScenarios",
+        "i18nKey": "dashboard.tryScenarios",
         "description": "场景区域标签文字（试试以下场景）可见"
       },
       {

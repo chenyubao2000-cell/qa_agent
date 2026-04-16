@@ -163,21 +163,25 @@ test.describe('US-PDD-ERROR · People Data 下载异常处理', () => {
       const downloadBtn = fragment.getPeopleDataPanelDownloadButton();
       await expect(downloadBtn).toBeVisible();
 
-      // Monkey-patch URL.createObjectURL to throw an error, simulating download failure.
-      // The People Data download flow: cached blob → XLSX conversion → URL.createObjectURL → <a>.click().
-      // By making createObjectURL throw, the error propagates to useDownloadWithFormat's catch block → toast.error().
-      await page.evaluate(() => {
-        const original = URL.createObjectURL;
-        URL.createObjectURL = () => { throw new Error('Simulated download failure'); };
-        // Restore after 5 seconds to avoid breaking other functionality
-        setTimeout(() => { URL.createObjectURL = original; }, 5000);
-      });
+      // The people-data download flow is:
+      //   handleDownload → fetchR2FileAsBlob → getR2Verify (cached after panel open) → fetch(R2 URL) → blob
+      // getR2Verify is populated when the panel opens (useFileContent hook), so /api/files/verify
+      // is NOT re-called during download — aborting that endpoint has no effect.
+      // Instead, intercept the actual R2 file fetch (files.mira.day) AFTER the panel content
+      // has already loaded, so the preview is unaffected but the download fetch fails.
+      // fetchR2FileAsBlob throws on non-OK response → catch block → toast.error().
+      await page.route('**files.mira.day/**', (route) =>
+        route.fulfill({ status: 500, body: 'Internal Server Error' }),
+      );
 
       await fragment.clickPeopleDataDownloadButton();
 
       // A Sonner error toast should appear
       const toastError = page.locator('[data-sonner-toast][data-type="error"]');
       await expect(toastError).toBeVisible({ timeout: 10000 });
+
+      // Unroute so subsequent requests are not blocked
+      await page.unroute('**files.mira.day/**');
 
       // Download button should recover from error state and re-enable
       await expect(downloadBtn).toBeEnabled({ timeout: 8000 });

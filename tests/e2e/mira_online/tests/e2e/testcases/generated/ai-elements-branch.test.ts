@@ -165,10 +165,10 @@ test.describe('US-AIE-WORKSPACE · 工作区面板', () => {
 
 test.describe('US-AIE-SCENARIO · 端到端场景', () => {
 
-  test('TC-BR-AIE-006 完整的任务对话浏览场景——查看消息、代码块、工具卡片、完成状态', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n, taskWithCodeUrl }) => {
+  test('TC-BR-AIE-006 完整的任务对话浏览场景——查看消息、代码块、工具卡片、完成状态', { tag: ['@P1', '@regression', '@full'] }, async ({ page, i18n, taskWithFilesUrl }) => {
     test.setTimeout(180_000);
     const aiPage = new AiElementsPage(page, i18n);
-    await aiPage.gotoTaskWithAI(taskWithCodeUrl);
+    await aiPage.gotoTaskWithAI(taskWithFilesUrl);
 
     // 1. Conversation log visible
     await expect(aiPage.getConversationLog()).toBeVisible();
@@ -180,13 +180,13 @@ test.describe('US-AIE-SCENARIO · 端到端场景', () => {
     // 3. Assistant message with Mira label
     await expect(aiPage.getMiraLabel()).toBeVisible();
 
-    // 4. Tool card visible (if code execution was triggered)
+    // 4. Tool card visible (file creation task should have tool execution cards)
     const toolCardCount = await aiPage.getToolCards().count();
-    // Tool cards are expected but not guaranteed — soft assert
+    // Tool cards are expected for file-creation tasks — soft assert
     expect.soft(toolCardCount).toBeGreaterThan(0);
 
-    // 5. Completed indicator
-    await expect(aiPage.getCompletedIndicator()).toBeVisible();
+    // 5. Completed indicator — needs extra time for API metadata to load after navigation
+    await expect(aiPage.getCompletedIndicator()).toBeVisible({ timeout: 30_000 });
 
     // 6. If tool cards exist, open workspace panel
     if (toolCardCount > 0) {

@@ -1,82 +1,120 @@
-import { type Page } from '@playwright/test';
-import type { I18n } from '../fixtures';
+import { type Page } from "@playwright/test";
+import type { I18n } from "../fixtures";
+import { i18nRegex } from "../i18n-helpers";
 
 export class ForgotPasswordPage {
-  constructor(private readonly page: Page, private readonly i18n?: I18n) {}
+  constructor(
+    private readonly page: Page,
+    private readonly i18n?: I18n,
+  ) {}
 
   // ── Navigation ──
 
   async goto() {
-    await this.page.goto('/forgot-password');
+    await this.page.goto("/forgot-password");
   }
 
   // ── Locators (private) ──
 
   private get emailInput() {
-    return this.page.getByRole('textbox', {
-      name: /Email|邮箱/i,
+    return this.page.getByRole("textbox", {
+      name: /Email|邮箱|E-mail/i,
     });
   }
 
   private get sendResetLinkButton() {
-    return this.page.getByRole('button', {
-      name: /Send Reset Link|发送重置链接/i,
+    return this.page.getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("auth.sendResetLink")
+        : i18nRegex("auth.sendResetLink"),
     });
   }
 
   private get backToLoginLink() {
-    return this.page.getByRole('link', {
-      name: /Back to Sign In|返回登录/i,
+    return this.page.getByRole("link", {
+      name: this.i18n
+        ? this.i18n.t("auth.backToSignIn")
+        : i18nRegex("auth.backToSignIn"),
     });
   }
 
   private get backToLoginButton() {
-    return this.page.getByRole('button', {
-      name: /Return to Sign In|返回登录/i,
+    return this.page.getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("auth.returnToLogin")
+        : i18nRegex("auth.returnToLogin"),
     });
   }
 
   private get continueButton() {
-    return this.page.getByRole('button', {
-      name: /Continue|继续/i,
+    return this.page.getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("auth.continueButton")
+        : i18nRegex("auth.continueButton"),
     });
   }
 
   private get pageTitle() {
-    return this.page.getByRole('heading', {
-      name: /Forgot Password|忘记密码/i,
+    return this.page.getByRole("heading", {
+      name: this.i18n
+        ? this.i18n.t("auth.forgotPasswordTitle")
+        : i18nRegex("auth.forgotPasswordTitle"),
     });
   }
 
   private get pageDescription() {
-    return this.page.locator('p').filter({
-      hasText: /Enter your email|输入您的邮箱/i,
+    return this.page.locator("p").filter({
+      hasText: this.i18n
+        ? this.i18n.t("auth.forgotPasswordDescription")
+        : i18nRegex("auth.forgotPasswordDescription"),
     });
   }
 
   private get confirmationText() {
-    return this.page.locator('p').filter({
-      hasText: /Continue.*send a password reset link|继续.*发送重置密码链接/i,
+    // The confirm step paragraph contains interpolated email — match on static prefix only
+    // en: 'Click "Continue" to send a password reset link to <email>'
+    return this.page.locator("p").filter({
+      hasText: /send a password reset link/i,
     });
   }
 
   private get validationError() {
     return this.page.getByText(
-      /Please enter a valid email|请输入有效的邮箱/i,
+      this.i18n
+        ? this.i18n.t("auth.validation.emailInvalid")
+        : i18nRegex("auth.validation.emailInvalid"),
     );
   }
 
   // ── Public getters ──
 
-  getEmailInput() { return this.emailInput; }
-  getSendResetLinkButton() { return this.sendResetLinkButton; }
-  getBackToLoginLink() { return this.backToLoginLink; }
-  getBackToLoginButton() { return this.backToLoginButton; }
-  getContinueButton() { return this.continueButton; }
-  getPageTitle() { return this.pageTitle; }
-  getPageDescription() { return this.pageDescription; }
-  getConfirmationText() { return this.confirmationText; }
-  getValidationError() { return this.validationError; }
+  getEmailInput() {
+    return this.emailInput;
+  }
+  getSendResetLinkButton() {
+    return this.sendResetLinkButton;
+  }
+  getBackToLoginLink() {
+    return this.backToLoginLink;
+  }
+  getBackToLoginButton() {
+    return this.backToLoginButton;
+  }
+  getContinueButton() {
+    return this.continueButton;
+  }
+  getPageTitle() {
+    return this.pageTitle;
+  }
+  getPageDescription() {
+    return this.pageDescription;
+  }
+  getConfirmationText() {
+    return this.confirmationText;
+  }
+  getValidationError() {
+    return this.validationError;
+  }
 
   // ── Actions ──
 

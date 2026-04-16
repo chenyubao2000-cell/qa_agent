@@ -4,7 +4,7 @@
     "logout": "退出登录",
     "settings": "设置",
     "home": "首页",
-    "dashboard": "Dashboard",
+    "dashboard": "仪表盘",
     "language": "语言"
   },
   "email": {
@@ -67,7 +67,7 @@
     }
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "仪表盘",
     "overview": "概览",
     "statistics": "统计数据",
     "welcome": "我能为你做什么？",
@@ -76,7 +76,7 @@
   "chatbot": {
     "sendMessage": "发送消息",
     "placeholder": "请输入...",
-    "addAttachments": "添加照片或文件",
+    "addAttachments": "上传文件",
     "uploadLocalFile": "上传本地文件",
     "uploadError": "文件上传失败",
     "uploadErrorMaxFiles": "文件数量超出限制",
@@ -434,7 +434,7 @@
       "createSuccess": "创建成功",
       "createFailed": "创建失败，请重试",
       "table": {
-        "caseId": "Case ID",
+        "caseId": "场景 ID",
         "contentZh": "中文内容",
         "contentEn": "英文内容",
         "sortOrder": "排序",
@@ -446,11 +446,11 @@
         "inactive": "已禁用"
       },
       "form": {
-        "caseId": "Case ID",
+        "caseId": "场景 ID",
         "caseIdPlaceholder": "如 case_fullstack（创建后不可修改）",
-        "contentZh": "中文内容",
-        "contentZhPlaceholder": "输入中文场景描述...",
-        "contentEn": "英文内容",
+        "contentZh": "Chinese Content",
+        "contentZhPlaceholder": "Enter Chinese scenario description...",
+        "contentEn": "English Content",
         "contentEnPlaceholder": "Enter English scenario description...",
         "sortOrder": "排序（数字越小越靠前）",
         "isActive": "启用此卡片",
@@ -516,8 +516,8 @@
     "settings": "设置",
     "validation": {
       "emailInvalid": "请输入有效的邮箱地址",
-      "passwordMinLength": "密码至少需要 12 个字符",
-      "passwordStrength": "密码需至少12个字符，并包含字母、数字和符号",
+      "passwordMinLength": "密码至少需要 8 个字符",
+      "passwordStrength": "密码需至少8个字符，并包含字母、数字和符号",
       "nameMinLength": "姓名至少需要 2 个字符",
       "termsRequired": "您必须同意服务条款和隐私政策",
       "fieldRequired": "此字段不能为空"
@@ -525,7 +525,7 @@
     "checkSpamFolder": "没有收到邮件？请检查垃圾邮件文件夹",
     "backToLogin": "返回登录",
     "unifiedTitle": "登录或注册",
-    "unifiedSubtitle": "唤醒你的Mira",
+    "unifiedSubtitle": "开始你的下一次寻访",
     "continueTitle": "继续",
     "emailPlaceholder": "请输入您的电子邮件地址",
     "emailLabel": "电子邮件",
@@ -807,6 +807,19 @@
       "description": "在沙箱中执行 Shell 命令",
       "action": "正在执行命令"
     },
+    "sb_command_logs_get": {
+      "name": "查看输出",
+      "description": "查看命令执行输出"
+    },
+    "sb_command_terminate": {
+      "name": "终止命令",
+      "description": "终止正在运行的命令",
+      "action": "正在终止命令"
+    },
+    "sb_command_running_list": {
+      "name": "会话列表",
+      "description": "列出所有活动的 tmux 会话"
+    },
     "reflect_tool": {
       "name": "反思",
       "description": "研究规划与策略反思"
@@ -1029,6 +1042,7 @@
     },
     "codeInterpreter": {
       "description": "功能描述",
+      "pythonCode": "Python 代码",
       "envVariables": "环境变量",
       "timeout": "超时时间",
       "seconds": "秒",
@@ -1087,6 +1101,9 @@
     "loadingDefault": "加载中...",
     "unsupportedFormat": "不支持的文件格式",
     "downloadFile": "下载文件",
+    "downloadSuccess": "下载成功",
+    "downloadGenerating": "正在生成文件",
+    "downloadDownloading": "下载中",
     "maximize": "最大化",
     "restore": "还原",
     "close": "关闭",
@@ -1106,7 +1123,7 @@
     "renderers": {
       "unsupported": {
         "unknown": "未知",
-        "notSupported": ".{ext} 格式暂不支持在线预览",
+        "notSupported": "此格式暂不支持预览，请下载后处理。",
         "downloadButton": "下载文件",
         "tip": "提示：下载后可使用对应的应用程序打开查看"
       },
@@ -1114,7 +1131,7 @@
         "converting": "正在转换文档...",
         "convertingDoc": "正在转换 .doc 文件...",
         "loading": "加载中...",
-        "convertFailed": "文档转换失败，请尝试下载后查看"
+        "convertFailed": "文件加载失败，请检查文件是否受损后重新打开"
       },
       "excel": {
         "converting": "正在转换旧版格式...",
@@ -1133,7 +1150,20 @@
         "loading": "加载中...",
         "parseFailed": "人员数据解析失败，请检查数据格式",
         "noData": "暂无人员数据",
-        "csvHeaders": ["姓名", "地点", "当前公司", "当前职位", "最近工作经历", "详情链接"],
+        "csvHeaders": [
+          "姓名",
+          "地点",
+          "当前公司",
+          "当前职位",
+          "工作年限",
+          "最近工作经历",
+          "学历",
+          "AI 摘要",
+          "邮箱",
+          "电话",
+          "数据更新",
+          "详情链接"
+        ],
         "workExperience": "工作经历",
         "recentWorkExperience": "最近工作经历",
         "noWorkExperience": "暂无工作经历",
@@ -1170,7 +1200,7 @@
       "paused": "任务已停止",
       "completed": "任务已完成",
       "failed": "任务失败",
-      "cancelled": "已取消",
+      "cancelled": "Cancelled",
       "waiting_for_user": "等待用户"
     },
     "maximize": "最大化",

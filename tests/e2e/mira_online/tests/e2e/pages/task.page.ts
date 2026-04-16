@@ -1,5 +1,6 @@
-import { type Page, type Locator } from '@playwright/test';
-import type { I18n } from '../fixtures';
+import { type Page, type Locator } from "@playwright/test";
+import type { I18n } from "../fixtures";
+import { i18nRegex } from "../i18n-helpers";
 
 export class TaskPage {
   private readonly page: Page;
@@ -24,17 +25,37 @@ export class TaskPage {
     this.page = page;
     this.i18n = i18n;
 
-    // Sidebar (all bilingual regex — NEXT_LOCALE cookie may not control app language)
-    this.toggleSidebarBtn = page.getByRole('button', { name: 'Toggle Sidebar' }).first();
-    this.newTaskBtn = page.getByRole('button', { name: /新建任务|New Task/ });
-    this.tasksSectionBtn = page.getByRole('button', { name: /^任务$|^Tasks$/ });
-    this.userMenuBtn = page.locator('[data-sidebar="footer"] [data-sidebar="menu-button"]');
+    // Sidebar
+    this.toggleSidebarBtn = page
+      .getByRole("button", { name: "Toggle Sidebar" })
+      .first();
+    this.newTaskBtn = page.getByRole("button", {
+      name: i18n ? i18n.t("chatbot.newChat") : i18nRegex("chatbot.newChat"),
+    });
+    this.tasksSectionBtn = page.getByRole("button", {
+      name: i18n
+        ? new RegExp(`^${i18n.t("chatbot.tasks")}$`)
+        : i18nRegex("chatbot.tasks", { exact: true }),
+    });
+    this.userMenuBtn = page.locator(
+      '[data-sidebar="footer"] [data-sidebar="menu-button"]',
+    );
 
     // Main area
-    this.welcomeHeading = page.getByRole('heading', { name: /我能为你做什么|What can I do for you/ });
-    this.chatInput = page.locator('textarea');
-    this.submitBtn = page.getByRole('button', { name: 'Submit' });
-    this.fileUploadBtn = page.getByRole('button', { name: /添加照片或文件|Add photos or files/ });
+    this.welcomeHeading = page.getByRole("heading", {
+      name: i18n ? i18n.t("dashboard.welcome") : i18nRegex("dashboard.welcome"),
+    });
+    this.chatInput = page.locator("textarea");
+    this.submitBtn = page.getByRole("button", { name: "Submit" });
+    // The visible attachment button in task-input.tsx uses aria-label={tChatbot("addAttachments")}.
+    // Production en.json → "Add photos or files"
+    // QA test env en.json → "Upload file" (singular)
+    // zh.json → "上传文件" / "添加照片或文件"
+    // The hidden <input type="file" aria-label="Upload files"> in prompt-input.tsx
+    // is className="hidden" and is never visible — do NOT target it.
+    this.fileUploadBtn = page.getByRole("button", {
+      name: /Upload files?|Add photos or files|上传文件|添加照片或文件/i,
+    });
 
     // Task detail
     this.chatLog = page.locator('div[role="log"]');
@@ -45,8 +66,8 @@ export class TaskPage {
   async goto() {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        await this.page.goto('/task', { timeout: 30_000 });
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.page.goto("/task", { timeout: 30_000 });
+        await this.page.waitForLoadState("domcontentloaded");
         await this.page.waitForTimeout(1000);
         return;
       } catch (e) {
@@ -57,22 +78,47 @@ export class TaskPage {
   }
 
   async ensureSidebarExpanded() {
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForLoadState('networkidle').catch(() => {});
-    const tasksVisible = await this.tasksSectionBtn.isVisible({ timeout: 5000 }).catch(() => false);
-    if (!tasksVisible) {
-      await this.page.locator('[data-sidebar="trigger"]').click({ timeout: 5_000 });
-      await this.tasksSectionBtn.waitFor({ state: 'visible', timeout: 10_000 });
+    await this.page.waitForLoadState("domcontentloaded");
+    await this.page.waitForLoadState("networkidle").catch(() => {});
+    // Detect sidebar collapsed state via data-state attribute (reliable, not dependent on task list loading)
+    const sidebarWrapper = this.page.locator(".peer[data-state]").first();
+    const state = await sidebarWrapper.getAttribute("data-state", { timeout: 5000 }).catch(() => null);
+    if (state === "collapsed") {
+      await this.page
+        .locator('[data-sidebar="trigger"]')
+        .click({ timeout: 5_000 });
+      await sidebarWrapper.waitFor({ state: "visible" });
+      await this.page.waitForFunction(
+        () => document.querySelector(".peer[data-state]")?.getAttribute("data-state") === "expanded",
+        undefined,
+        { timeout: 10_000 },
+      );
     }
   }
 
   // ── Sidebar actions ──
 
   async toggleSidebar() {
+    // Read current state before toggling so we can wait for the opposite
+    const currentState = await this.page
+      .locator(".peer[data-state]")
+      .first()
+      .getAttribute("data-state")
+      .catch(() => null);
+    const targetState = currentState === "expanded" ? "collapsed" : "expanded";
+
     await this.page.evaluate(() => {
-      (document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement)?.click();
+      (
+        document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement
+      )?.click();
     });
-    await this.page.waitForTimeout(400);
+
+    // Wait for the data-state to flip (200ms CSS transition + React re-render)
+    await this.page.waitForFunction(
+      (expected) => document.querySelector(".peer[data-state]")?.getAttribute("data-state") === expected,
+      targetState,
+      { timeout: 5_000 },
+    );
   }
 
   async clickNewTask() {
@@ -89,14 +135,20 @@ export class TaskPage {
 
   async clickFirstTask() {
     await this.ensureSidebarExpanded();
-    const collapsible = this.page.locator('[data-slot="collapsible"][data-state="open"]');
-    const taskItems = collapsible.locator('[data-sidebar="menu-item"] [data-sidebar="menu-button"]');
+    const collapsible = this.page.locator(
+      '[data-slot="collapsible"][data-state="open"]',
+    );
+    const taskItems = collapsible.locator(
+      '[data-sidebar="menu-item"] [data-sidebar="menu-button"]',
+    );
     await taskItems.first().click();
   }
 
   async openTaskContextMenu() {
     await this.ensureSidebarExpanded();
-    const collapsible = this.page.locator('[data-slot="collapsible"][data-state="open"]');
+    const collapsible = this.page.locator(
+      '[data-slot="collapsible"][data-state="open"]',
+    );
     const firstItem = collapsible.locator('[data-sidebar="menu-item"]').first();
     await firstItem.hover();
     const moreBtn = firstItem.locator('[data-sidebar="menu-action"]');
@@ -106,17 +158,27 @@ export class TaskPage {
   // ── User menu sub-actions ──
 
   async clickLanguageMenuItem() {
-    const menuItem = this.page.getByRole('menuitem', { name: /语言|Language/ });
+    const menuItem = this.page.getByRole("menuitem", {
+      name: this.i18n
+        ? this.i18n.t("Layout.language")
+        : i18nRegex("Layout.language"),
+    });
     await menuItem.click();
   }
 
   async clickThemeMenuItem() {
-    const menuItem = this.page.getByRole('menuitem', { name: /主题|Theme/ });
+    const menuItem = this.page.getByRole("menuitem", {
+      name: this.i18n ? this.i18n.t("Layout.theme") : i18nRegex("Layout.theme"),
+    });
     await menuItem.click();
   }
 
   async clickSignOut() {
-    const menuItem = this.page.getByRole('menuitem', { name: /退出登录|Sign Out/ });
+    const menuItem = this.page.getByRole("menuitem", {
+      name: this.i18n
+        ? this.i18n.t("Layout.signOut")
+        : i18nRegex("Layout.signOut"),
+    });
     await menuItem.click();
   }
 
@@ -127,19 +189,22 @@ export class TaskPage {
   }
 
   async clickSubmit() {
-    // Playwright click() auto-waits for the button to be enabled
     await this.submitBtn.click({ timeout: 10_000 });
   }
 
   async clickScenarioSuggestion(index = 0) {
     const suggestions = this.getScenarioSuggestions();
-    await suggestions.nth(index).waitFor({ state: 'visible', timeout: 15_000 });
+    await suggestions.nth(index).waitFor({ state: "visible", timeout: 15_000 });
     await suggestions.nth(index).click();
-    // Some scenario buttons only fill the input without auto-submitting; click Submit if needed
-    const navigated = await this.page.waitForURL(/\/task\/.+/, { timeout: 3000 }).then(() => true).catch(() => false);
+    const navigated = await this.page
+      .waitForURL(/\/task\/.+/, { timeout: 3000 })
+      .then(() => true)
+      .catch(() => false);
     if (!navigated) {
-      const submitBtn = this.page.getByRole('button', { name: 'Submit' });
-      const isEnabled = await submitBtn.isEnabled({ timeout: 3000 }).catch(() => false);
+      const submitBtn = this.page.getByRole("button", { name: "Submit" });
+      const isEnabled = await submitBtn
+        .isEnabled({ timeout: 3000 })
+        .catch(() => false);
       if (isEnabled) await submitBtn.click();
     }
   }
@@ -183,32 +248,36 @@ export class TaskPage {
   }
 
   getScenarioSuggestions(): Locator {
-    // CDP-confirmed: desktop grid uses Tailwind `sm:grid sm:grid-cols-2` (not bare `.grid`)
     return this.page.locator('main [class*="grid-cols"] button');
   }
 
   getScenarioLabel(): Locator {
     return this.page.getByText(
-      this.i18n ? this.i18n.t('dashboard.tryScenarios') : /试试以下场景|Try these scenarios/
+      this.i18n
+        ? this.i18n.t("dashboard.tryScenarios")
+        : i18nRegex("dashboard.tryScenarios"),
     );
   }
 
   async getScenarioCardText(index = 0): Promise<string> {
     const card = this.getScenarioSuggestions().nth(index);
-    await card.waitFor({ state: 'visible', timeout: 15_000 });
-    return (await card.textContent()) ?? '';
+    await card.waitFor({ state: "visible", timeout: 15_000 });
+    return (await card.textContent()) ?? "";
   }
 
-  /** Click scenario card at index. Does NOT wait for navigation — caller controls post-click assertions. */
   async clickScenarioCard(index = 0): Promise<void> {
     const card = this.getScenarioSuggestions().nth(index);
-    await card.waitFor({ state: 'visible', timeout: 15_000 });
+    await card.waitFor({ state: "visible", timeout: 15_000 });
     await card.click();
   }
 
   getTaskItems(): Locator {
-    const collapsible = this.page.locator('[data-slot="collapsible"][data-state="open"]');
-    return collapsible.locator('[data-sidebar="menu-item"] [data-sidebar="menu-button"]');
+    const collapsible = this.page.locator(
+      '[data-slot="collapsible"][data-state="open"]',
+    );
+    return collapsible.locator(
+      '[data-sidebar="menu-item"] [data-sidebar="menu-button"]',
+    );
   }
 
   getContextMenu(): Locator {
@@ -216,15 +285,27 @@ export class TaskPage {
   }
 
   getContextMenuItemShare(): Locator {
-    return this.page.getByRole('menuitem', { name: /分享|Share/ });
+    return this.page.getByRole("menuitem", {
+      name: this.i18n
+        ? this.i18n.t("chatbot.share")
+        : i18nRegex("chatbot.share"),
+    });
   }
 
   getContextMenuItemRename(): Locator {
-    return this.page.getByRole('menuitem', { name: /重命名|Rename/ });
+    return this.page.getByRole("menuitem", {
+      name: this.i18n
+        ? this.i18n.t("chatbot.rename")
+        : i18nRegex("chatbot.rename"),
+    });
   }
 
   getContextMenuItemDelete(): Locator {
-    return this.page.getByRole('menuitem', { name: /删除|Delete/ });
+    return this.page.getByRole("menuitem", {
+      name: this.i18n
+        ? this.i18n.t("chatbot.delete")
+        : i18nRegex("chatbot.delete"),
+    });
   }
 
   // ── Share Dialog (S8) ──
@@ -234,11 +315,17 @@ export class TaskPage {
   }
 
   getCreateShareLinkBtn(): Locator {
-    return this.page.locator('[role="dialog"]').getByRole('button', { name: /创建分享链接|Create Share Link/ });
+    return this.page.locator('[role="dialog"]').getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("chatbot.createShareLink")
+        : i18nRegex("chatbot.createShareLink"),
+    });
   }
 
   getDialogCloseBtn(): Locator {
-    return this.page.locator('[role="dialog"]').getByRole('button', { name: /Close|关闭/ });
+    return this.page.locator('[role="dialog"]').getByRole("button", {
+      name: this.i18n ? this.i18n.t("canvas.close") : i18nRegex("canvas.close"),
+    });
   }
 
   // ── Rename Dialog (S9) ──
@@ -252,11 +339,17 @@ export class TaskPage {
   }
 
   getRenameSaveBtn(): Locator {
-    return this.page.locator('[role="dialog"]').getByRole('button', { name: /Save|保存/ });
+    return this.page.locator('[role="dialog"]').getByRole("button", {
+      name: this.i18n ? this.i18n.t("chatbot.save") : i18nRegex("chatbot.save"),
+    });
   }
 
   getRenameCancelBtn(): Locator {
-    return this.page.locator('[role="dialog"]').getByRole('button', { name: /Cancel|取消/ });
+    return this.page.locator('[role="dialog"]').getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("chatbot.cancel")
+        : i18nRegex("chatbot.cancel"),
+    });
   }
 
   // ── Delete Dialog (S10) ──
@@ -270,11 +363,19 @@ export class TaskPage {
   }
 
   getDeleteConfirmBtn(): Locator {
-    return this.page.locator("[role='alertdialog']").getByRole('button', { name: /^Delete$|^删除$/ });
+    return this.page.locator("[role='alertdialog']").getByRole("button", {
+      name: this.i18n
+        ? new RegExp(`^${this.i18n.t("chatbot.delete")}$`)
+        : i18nRegex("chatbot.delete", { exact: true }),
+    });
   }
 
   getDeleteCancelBtn(): Locator {
-    return this.page.locator("[role='alertdialog']").getByRole('button', { name: /Cancel|取消/ });
+    return this.page.locator("[role='alertdialog']").getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("chatbot.cancel")
+        : i18nRegex("chatbot.cancel"),
+    });
   }
 
   // ── Composite sidebar actions ──
@@ -302,6 +403,8 @@ export class TaskPage {
   async saveRename(newName: string): Promise<void> {
     await this.getRenameInput().fill(newName);
     await this.getRenameSaveBtn().click();
+    // Wait for the dialog to close after the API call completes
+    await this.getRenameDialog().waitFor({ state: "hidden", timeout: 15_000 });
   }
 
   async cancelDelete(): Promise<void> {
@@ -310,10 +413,12 @@ export class TaskPage {
 
   async confirmDelete(): Promise<void> {
     await this.getDeleteConfirmBtn().click();
+    // Wait for the alertdialog to close after action
+    await this.getDeleteDialog().waitFor({ state: "hidden", timeout: 15_000 });
   }
 
   async pressEscape(): Promise<void> {
-    await this.page.keyboard.press('Escape');
+    await this.page.keyboard.press("Escape");
   }
 
   async createTask(taskName: string): Promise<void> {
@@ -336,12 +441,20 @@ export class TaskPage {
     await this.saveRename(newName);
   }
 
-  async openTaskContextMenuForItem(taskName: string, timeout = 10_000): Promise<void> {
+  async openTaskContextMenuForItem(
+    taskName: string,
+    timeout = 10_000,
+  ): Promise<void> {
     await this.ensureSidebarExpanded();
-    const collapsible = this.page.locator('[data-slot="collapsible"][data-state="open"]');
-    const taskItem = collapsible.locator('[data-sidebar="menu-item"]').filter({
-      has: this.page.getByText(taskName, { exact: true }),
-    }).first();
+    const collapsible = this.page.locator(
+      '[data-slot="collapsible"][data-state="open"]',
+    );
+    const taskItem = collapsible
+      .locator('[data-sidebar="menu-item"]')
+      .filter({
+        has: this.page.getByText(taskName, { exact: true }),
+      })
+      .first();
     await taskItem.hover({ timeout });
     const moreBtn = taskItem.locator('[data-sidebar="menu-action"]');
     await moreBtn.click({ timeout: 5000 });
@@ -350,15 +463,56 @@ export class TaskPage {
   async getFirstTaskName(): Promise<string> {
     await this.ensureSidebarExpanded();
     const firstTask = this.getTaskItems().first();
-    await firstTask.waitFor({ state: 'visible', timeout: 10_000 });
+    await firstTask.waitFor({ state: "visible", timeout: 10_000 });
+    // Wait for AI-generated title to be populated (non-empty)
+    await this.page.waitForFunction(
+      () => {
+        const btn = document.querySelector(
+          '[data-slot="collapsible"][data-state="open"] [data-sidebar="menu-item"] [data-sidebar="menu-button"]',
+        );
+        return btn ? (btn.textContent ?? "").trim().length > 0 : false;
+      },
+      undefined,
+      { timeout: 45_000 },
+    );
     return (await firstTask.innerText()).trim();
   }
 
+  /**
+   * Wait for the currently-active sidebar task (the one highlighted after
+   * creating/navigating to a task) to receive its AI-generated title, then
+   * return that title.  Call this while already on a /task/:id page so that
+   * [data-active="true"] reliably points to the right item.
+   */
+  async getActiveTaskName(): Promise<string> {
+    await this.ensureSidebarExpanded();
+    // Wait up to 45s for the active sidebar button to have non-empty text
+    await this.page.waitForFunction(
+      () => {
+        const btn = document.querySelector(
+          '[data-sidebar="menu-button"][data-active="true"]',
+        );
+        return btn ? (btn.textContent ?? "").trim().length > 0 : false;
+      },
+      undefined,
+      { timeout: 45_000 },
+    );
+    const activeBtn = this.page.locator(
+      '[data-sidebar="menu-button"][data-active="true"]',
+    );
+    return (await activeBtn.innerText()).trim();
+  }
+
   getTaskItemByName(taskName: string): Locator {
-    const collapsible = this.page.locator('[data-slot="collapsible"][data-state="open"]');
-    return collapsible.locator('[data-sidebar="menu-item"]').filter({
-      has: this.page.getByText(taskName, { exact: true }),
-    }).first();
+    const collapsible = this.page.locator(
+      '[data-slot="collapsible"][data-state="open"]',
+    );
+    return collapsible
+      .locator('[data-sidebar="menu-item"]')
+      .filter({
+        has: this.page.getByText(taskName, { exact: true }),
+      })
+      .first();
   }
 
   getTaskListContent(): Locator {
@@ -374,47 +528,77 @@ export class TaskPage {
   }
 
   getUserMenuLanguageItem(): Locator {
-    return this.page.getByRole('menuitem', { name: /语言|Language/ });
+    return this.page.getByRole("menuitem", {
+      name: this.i18n
+        ? this.i18n.t("Layout.language")
+        : i18nRegex("Layout.language"),
+    });
   }
 
   getUserMenuThemeItem(): Locator {
-    return this.page.getByRole('menuitem', { name: /主题|Theme/ });
+    return this.page.getByRole("menuitem", {
+      name: this.i18n ? this.i18n.t("Layout.theme") : i18nRegex("Layout.theme"),
+    });
   }
 
   getUserMenuSignOutItem(): Locator {
-    return this.page.getByRole('menuitem', { name: /退出登录|Sign Out/ });
+    return this.page.getByRole("menuitem", {
+      name: this.i18n
+        ? this.i18n.t("Layout.signOut")
+        : i18nRegex("Layout.signOut"),
+    });
   }
 
   getLanguageOption(name: string): Locator {
-    return this.page.getByRole('menuitemcheckbox', { name });
+    return this.page.getByRole("menuitemcheckbox", { name });
   }
 
   getThemeOptionLight(): Locator {
-    return this.page.getByRole('menuitemcheckbox', { name: /浅色|Light/ });
+    return this.page.getByRole("menuitemcheckbox", {
+      name: this.i18n ? this.i18n.t("Layout.light") : i18nRegex("Layout.light"),
+    });
   }
 
   getThemeOptionDark(): Locator {
-    return this.page.getByRole('menuitemcheckbox', { name: /深色|Dark/ });
+    return this.page.getByRole("menuitemcheckbox", {
+      name: this.i18n ? this.i18n.t("Layout.dark") : i18nRegex("Layout.dark"),
+    });
   }
 
   getThemeOptionSystem(): Locator {
-    return this.page.getByRole('menuitemcheckbox', { name: /系统|System/ });
+    return this.page.getByRole("menuitemcheckbox", {
+      name: this.i18n
+        ? this.i18n.t("Layout.system")
+        : i18nRegex("Layout.system"),
+    });
   }
 
   getAiLabel(): Locator {
-    return this.page.locator('span').filter({ hasText: 'Mira' }).first();
+    return this.page.locator("span").filter({ hasText: "Mira" }).first();
   }
 
   getDownloadFileButton(): Locator {
-    return this.page.getByRole('button', { name: /下载文件|Download file/ });
+    return this.page.getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("tools.complete.downloadFile")
+        : i18nRegex("tools.complete.downloadFile"),
+    });
   }
 
   getCopyButton(): Locator {
-    return this.page.getByRole('button', { name: /复制|Copy/ });
+    return this.page.getByRole("button", {
+      name: this.i18n ? this.i18n.t("chatbot.copy") : i18nRegex("chatbot.copy"),
+    });
   }
 
   getTaskCompletedLabel(): Locator {
-    return this.page.getByText(/^任务已完成$|^Task completed$/).first();
+    return this.page
+      .getByText(
+        this.i18n
+          ? new RegExp(`^${this.i18n.t("chatbot.completed")}$`)
+          : i18nRegex("chatbot.completed", { exact: true }),
+      )
+      .first();
   }
 
   // ── Conversation: File Upload (S0 → S1) ──
@@ -422,15 +606,16 @@ export class TaskPage {
   private readonly hiddenFileInput: Locator;
   private readonly attachmentRemoveBtn: Locator;
 
-  // NOTE: hiddenFileInput and attachmentRemoveBtn are initialized in a secondary
-  // init block appended here; callers use getHiddenFileInput() / getAttachmentRemoveBtn().
-
   getHiddenFileInput(): Locator {
     return this.page.locator("input[type='file']");
   }
 
   getAttachmentRemoveBtn(): Locator {
-    return this.page.getByRole('button', { name: 'Remove attachment' });
+    return this.page.getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("chatbot.removeAttachment")
+        : i18nRegex("chatbot.removeAttachment"),
+    });
   }
 
   getAttachmentFilenameText(partialName: string): Locator {
@@ -452,15 +637,24 @@ export class TaskPage {
   // ── Conversation: Chat Response (S2 / S3) ──
 
   getThinkingIndicator(): Locator {
-    return this.page.getByText(/思考中\.\.\.|Thinking\.\.\./);
+    return this.page.getByText(
+      this.i18n
+        ? this.i18n.t("chatbot.thinking")
+        : i18nRegex("chatbot.thinking"),
+    );
   }
 
   getAiMiraLabel(): Locator {
-    return this.page.locator('span').filter({ hasText: /^Mira$/ }).first();
+    return this.page
+      .locator("span")
+      .filter({ hasText: /^Mira$/ })
+      .first();
   }
 
   getToolCards(): Locator {
-    return this.page.locator("div[role='button'].rounded-xl.border.cursor-pointer");
+    return this.page.locator(
+      "div[role='button'].rounded-xl.border.cursor-pointer",
+    );
   }
 
   getFirstToolCard(): Locator {
@@ -469,30 +663,36 @@ export class TaskPage {
 
   async clickFirstToolCard(): Promise<void> {
     const card = this.getFirstToolCard();
-    await card.waitFor({ state: 'visible', timeout: 30_000 });
-    // Wait for React hydration so click handlers are attached
-    await this.page.waitForLoadState('networkidle');
-    // Click on the left side (file name area) to avoid nested "下载文件" button
+    await card.waitFor({ state: "visible", timeout: 30_000 });
+    await this.page.waitForLoadState("networkidle");
     await card.click({ position: { x: 50, y: 20 } });
   }
 
   // ── Conversation: Workspace Panel (S5) ──
 
   getWorkspacePanel(): Locator {
-    // Identify the workspace panel by the presence of the "关闭/Close" button
-    // Works for both desktop (side panel) and mobile (full-screen overlay)
-    return this.page.locator('div.border-l, div.fixed.inset-0.z-50')
-      .filter({ has: this.page.getByRole('button', { name: /^关闭$|^Close$/ }) })
+    return this.page
+      .locator("div.border-l, div.fixed.inset-0.z-50")
+      .filter({
+        has: this.page.getByRole("button", {
+          name: this.i18n
+            ? new RegExp(`^${this.i18n.t("canvas.close")}$`)
+            : i18nRegex("canvas.close", { exact: true }),
+        }),
+      })
       .first();
   }
 
   getWorkspacePanelTitle(): Locator {
-    // Title is the first <p> in the panel (filename shown in header, above article content)
-    return this.getWorkspacePanel().locator('p').first();
+    return this.getWorkspacePanel().locator("p").first();
   }
 
   getWorkspacePanelCloseBtn(): Locator {
-    return this.getWorkspacePanel().getByRole('button', { name: /^关闭$|^Close$/ });
+    return this.getWorkspacePanel().getByRole("button", {
+      name: this.i18n
+        ? new RegExp(`^${this.i18n.t("canvas.close")}$`)
+        : i18nRegex("canvas.close", { exact: true }),
+    });
   }
 
   async closeWorkspacePanel(): Promise<void> {
@@ -500,11 +700,25 @@ export class TaskPage {
   }
 
   async waitForWorkspacePanelOpen(): Promise<void> {
-    await this.getWorkspacePanel().waitFor({ state: 'visible', timeout: 15_000 });
+    await this.getWorkspacePanel().waitFor({
+      state: "visible",
+      timeout: 15_000,
+    });
   }
 
   async waitForWorkspacePanelClosed(): Promise<void> {
-    await this.getWorkspacePanel().waitFor({ state: 'hidden', timeout: 10_000 });
+    await this.getWorkspacePanel().waitFor({
+      state: "hidden",
+      timeout: 10_000,
+    });
+  }
+
+  // ── Conversation: User message hover (reveals copy button at md+ breakpoints) ──
+
+  async hoverUserMessage(): Promise<void> {
+    const userMsg = this.page.locator('[role="log"] .is-user').first();
+    await userMsg.waitFor({ state: "visible", timeout: 15_000 });
+    await userMsg.hover();
   }
 
   // ── Conversation: Combined actions ──
@@ -527,7 +741,6 @@ export class TaskPage {
   // ── File Preview Panel (click file card → right panel) ──
 
   getFileCards(): Locator {
-    // File grid cards are div[role="button"] with rounded-xl inside the chat log
     return this.page.locator('[role="log"] div[role="button"].rounded-xl');
   }
 
@@ -536,67 +749,79 @@ export class TaskPage {
   }
 
   getFileCardDownloadBtn(filename: string): Locator {
-    // Download button is a clickable div/svg area inside the file card
-    return this.getFileCardByName(filename).locator('svg').last();
+    return this.getFileCardByName(filename).locator("svg").last();
   }
 
   async clickFileCard(filename: string): Promise<void> {
     await this.getFileCardByName(filename).click();
   }
 
-  // Preview panel (right side, opens when clicking a file card)
   getPreviewPanelTitle(): Locator {
-    // The panel header shows the filename — it's outside the log, after main content
-    // Structure: icon + filename text + download btn + close btn
-    return this.page.locator('main').locator('~ div').getByRole('heading').first();
+    return this.page
+      .locator("main")
+      .locator("~ div")
+      .getByRole("heading")
+      .first();
   }
 
   getPreviewPanelFilename(): Locator {
-    // The filename appears as static text next to the file icon in the panel header
-    return this.page.locator('[class*="flex"][class*="items-center"] > span, [class*="flex"][class*="items-center"] > h2').last();
+    return this.page
+      .locator(
+        '[class*="flex"][class*="items-center"] > span, [class*="flex"][class*="items-center"] > h2',
+      )
+      .last();
   }
 
   getPreviewPanelCloseBtn(): Locator {
-    // Close button (X) in the preview panel header — rightmost button
-    return this.page.locator('button').filter({ has: this.page.locator('svg') }).last();
+    return this.page
+      .locator("button")
+      .filter({ has: this.page.locator("svg") })
+      .last();
   }
 
   getPreviewPanelDownloadBtn(): Locator {
-    // Download button (↓) in the preview panel header
-    return this.page.locator('main').locator('~ div').locator('button').first();
+    return this.page.locator("main").locator("~ div").locator("button").first();
   }
 
-  // Preview content type detectors
   getPreviewSpreadsheet(): Locator {
-    // Excel/CSV renders as a table grid with row numbers
     return this.page.locator('table, [class*="spreadsheet"], [role="grid"]');
   }
 
   getPreviewPdfViewer(): Locator {
-    // PDF renders with page navigation (< 1/1 >)
     return this.page.locator('canvas, [class*="pdf"], [data-page-number]');
   }
 
   getPreviewImageViewer(): Locator {
-    // Image preview has zoom controls (100%, reset)
-    return this.page.getByText('100%');
+    return this.page.getByText("100%");
   }
 
   getPreviewImageResetBtn(): Locator {
-    return this.page.getByText(/重置|Reset/);
+    return this.page.getByText(
+      this.i18n ? this.i18n.t("canvas.reset") : i18nRegex("canvas.reset"),
+    );
   }
 
   getPreviewUnsupportedMessage(): Locator {
-    // PPTX shows "暂不支持在线预览"
-    return this.page.getByText(/暂不支持在线预览|not supported/);
+    return this.page.getByText(
+      this.i18n
+        ? this.i18n.t("canvas.renderers.unsupported.message")
+        : i18nRegex("canvas.renderers.unsupported.message"),
+    );
   }
 
   getPreviewDownloadFallbackBtn(): Locator {
-    // "下载文件" button shown for unsupported preview types
-    return this.page.getByRole('button', { name: /下载文件|Download/ });
+    return this.page.getByRole("button", {
+      name: this.i18n
+        ? this.i18n.t("canvas.renderers.unsupported.downloadButton")
+        : i18nRegex("canvas.renderers.unsupported.downloadButton"),
+    });
   }
 
   getTaskCompletedStatus(): Locator {
-    return this.page.getByText(/任务已完成|Task completed/);
+    return this.page.getByText(
+      this.i18n
+        ? this.i18n.t("chatbot.completed")
+        : i18nRegex("chatbot.completed"),
+    );
   }
 }

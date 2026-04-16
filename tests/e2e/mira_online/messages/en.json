@@ -76,7 +76,7 @@
   "chatbot": {
     "sendMessage": "Send Message",
     "placeholder": "Please enter...",
-    "addAttachments": "Add photos or files",
+    "addAttachments": "Upload file",
     "uploadLocalFile": "Upload local file",
     "uploadError": "File upload failed",
     "uploadErrorMaxFiles": "Maximum number of files exceeded",
@@ -516,8 +516,8 @@
     "settings": "Settings",
     "validation": {
       "emailInvalid": "Please enter a valid email address",
-      "passwordMinLength": "Password must be at least 12 characters",
-      "passwordStrength": "Password must be at least 12 characters and include letters, numbers, and symbols",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "passwordStrength": "Password must be at least 8 characters and include letters, numbers, and symbols",
       "nameMinLength": "Name must be at least 2 characters",
       "termsRequired": "You must agree to the Terms of Service and Privacy Policy",
       "fieldRequired": "This field is required"
@@ -525,7 +525,7 @@
     "checkSpamFolder": "Didn't receive the email? Check your spam folder",
     "backToLogin": "Back to Login",
     "unifiedTitle": "Sign in or Sign up",
-    "unifiedSubtitle": "Awaken your Mira",
+    "unifiedSubtitle": "Start your next sourcing",
     "continueTitle": "Continue",
     "emailPlaceholder": "Enter your email address",
     "emailLabel": "Email",
@@ -1101,6 +1101,9 @@
     "loadingDefault": "Loading...",
     "unsupportedFormat": "Unsupported file format",
     "downloadFile": "Download file",
+    "downloadSuccess": "Download successful",
+    "downloadGenerating": "Generating file...",
+    "downloadDownloading": "Downloading...",
     "maximize": "Maximize",
     "restore": "Restore",
     "close": "Close",
@@ -1120,7 +1123,7 @@
     "renderers": {
       "unsupported": {
         "unknown": "Unknown",
-        "notSupported": ".{ext} format is not supported for online preview",
+        "notSupported": "This format is not supported for preview. Please download to view it.",
         "downloadButton": "Download file",
         "tip": "Tip: Download and open with the corresponding application"
       },
@@ -1128,7 +1131,7 @@
         "converting": "Converting document...",
         "convertingDoc": "Converting .doc file...",
         "loading": "Loading...",
-        "convertFailed": "Document conversion failed, please download and view"
+        "convertFailed": "The file loading failed. Please check if the file is damaged and try opening it again."
       },
       "excel": {
         "converting": "Converting legacy format...",
@@ -1147,7 +1150,20 @@
         "loading": "Loading...",
         "parseFailed": "Failed to parse people data, please check the data format",
         "noData": "No people data available",
-        "csvHeaders": ["Name", "Location", "Current Company", "Current Position", "Recent Work History", "Details Url"],
+        "csvHeaders": [
+          "Name",
+          "Location",
+          "Current Company",
+          "Current Position",
+          "Years of Exp",
+          "Recent Work History",
+          "Education",
+          "AI Summary",
+          "Email",
+          "Phone",
+          "Data Updated",
+          "Details Url"
+        ],
         "workExperience": "Work Experience",
         "recentWorkExperience": "Recent Work Experience",
         "noWorkExperience": "No work experience",

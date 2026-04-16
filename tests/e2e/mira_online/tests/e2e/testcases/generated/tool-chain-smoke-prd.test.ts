@@ -2,8 +2,9 @@
 // handoff: test-cases/generated/playwright-handoff-tool-chain-smoke.json
 // generated: 2026-04-13T00:00:00Z
 
-import { test, expect } from '../../fixtures';
-import { TaskPage } from '../../pages/task.page';
+import { test, expect } from "../../fixtures";
+import { TaskPage } from "../../pages/task.page";
+import { i18nRegex } from "../../i18n-helpers";
 
 // ════════════════════════════════════════════════════════════════════════════
 // US-TOOL-SMOKE -- Multi-tool chain smoke tests
@@ -11,29 +12,41 @@ import { TaskPage } from '../../pages/task.page';
 // Preview/download/view-all-files covered by canvas-preview-prd, canvas-download-prd, view-all-files-prd
 // ════════════════════════════════════════════════════════════════════════════
 
-test.describe('US-TOOL-SMOKE -- Multi-tool chain smoke', () => {
+test.describe("US-TOOL-SMOKE -- Multi-tool chain smoke", () => {
   test(
-    'TC-PRD-TCS-001 多工具链任务正常完成并显示任务已完成',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    "TC-PRD-TCS-001 多工具链任务正常完成并显示任务已完成",
+    { tag: ["@P0", "@smoke", "@regression", "@full"] },
     async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(120_000);
       const taskPage = new TaskPage(page, i18n);
-      await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
-      await taskPage.getChatLog().waitFor({ state: 'visible', timeout: 30_000 });
+      await page.goto(taskWithToolChainUrl, {
+        timeout: 60_000,
+        waitUntil: "domcontentloaded",
+      });
+      await taskPage
+        .getChatLog()
+        .waitFor({ state: "visible", timeout: 30_000 });
 
       // Verify "任务已完成" / "Task completed" indicator is visible
-      await expect(taskPage.getTaskCompletedLabel()).toBeVisible({ timeout: 30_000 });
-    }
+      await expect(taskPage.getTaskCompletedLabel()).toBeVisible({
+        timeout: 30_000,
+      });
+    },
   );
 
   test(
-    'TC-PRD-TCS-002 多工具链任务生成的文件卡片可见（至少3种格式）',
-    { tag: ['@P0', '@smoke', '@regression', '@full'] },
+    "TC-PRD-TCS-002 多工具链任务生成的文件卡片可见（至少3种格式）",
+    { tag: ["@P0", "@smoke", "@regression", "@full"] },
     async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(120_000);
       const taskPage = new TaskPage(page, i18n);
-      await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
-      await taskPage.getChatLog().waitFor({ state: 'visible', timeout: 30_000 });
+      await page.goto(taskWithToolChainUrl, {
+        timeout: 60_000,
+        waitUntil: "domcontentloaded",
+      });
+      await taskPage
+        .getChatLog()
+        .waitFor({ state: "visible", timeout: 30_000 });
 
       // Verify file cards are visible and at least 3 exist
       const fileCards = taskPage.getFileCards();
@@ -53,50 +66,83 @@ test.describe('US-TOOL-SMOKE -- Multi-tool chain smoke', () => {
         if (match) extensions.add(match[1].toLowerCase());
       }
       expect(extensions.size).toBeGreaterThanOrEqual(3);
-    }
+    },
   );
 
   test(
-    'TC-PRD-TCS-003 多工具链任务生成的文件卡片包含预期文件类型标签',
-    { tag: ['@P1', '@regression', '@full'] },
+    "TC-PRD-TCS-003 多工具链任务生成的文件卡片包含预期文件类型标签",
+    { tag: ["@P1", "@regression", "@full"] },
     async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(120_000);
       const taskPage = new TaskPage(page, i18n);
-      await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
-      await taskPage.getChatLog().waitFor({ state: 'visible', timeout: 30_000 });
+      await page.goto(taskWithToolChainUrl, {
+        timeout: 60_000,
+        waitUntil: "domcontentloaded",
+      });
+      await taskPage
+        .getChatLog()
+        .waitFor({ state: "visible", timeout: 30_000 });
 
       // Verify file cards show file type info
-      // ArtifactEntry renders fileTypeDisplay via getFileTypeLabel(): "表格", "演示文稿", "文档", etc.
+      // ArtifactEntry renders fileTypeDisplay via getFileTypeLabel() using files.types.* i18n keys
       const fileCards = taskPage.getFileCards();
       await expect(fileCards.first()).toBeVisible({ timeout: 30_000 });
       const count = await fileCards.count();
       expect(count).toBeGreaterThan(0);
 
+      // File type labels come from files.types.* i18n keys (Text, Word, Excel, CSV, PPT, Image, People Data)
+      // or hardcoded uppercase extensions (PDF, DOCX, XLSX, etc.) from getFileTypeLabel fallback
+      const fileTypeLabelRegex = new RegExp(
+        [
+          i18nRegex(
+            "files.types.text",
+            "files.types.wordDocument",
+            "files.types.excelSpreadsheet",
+            "files.types.csvSpreadsheet",
+            "files.types.ppt",
+            "files.types.image",
+            "files.types.peopleData",
+          ).source,
+          "PDF",
+          "DOCX",
+          "XLSX",
+          "PPTX",
+          "PNG",
+          "JPG",
+          "CSV",
+        ].join("|"),
+        "i",
+      );
       let cardsWithTypeInfo = 0;
       for (let i = 0; i < count; i++) {
         const text = await fileCards.nth(i).textContent();
-        if (text && /表格|文档|演示文稿|图片|文本|文件|Excel|PPT|PDF|Image|Text|Document/i.test(text)) {
+        if (text && fileTypeLabelRegex.test(text)) {
           cardsWithTypeInfo++;
         }
       }
       expect(cardsWithTypeInfo).toBeGreaterThan(0);
-    }
+    },
   );
 
   test(
-    'TC-PRD-TCS-004 多工具链任务中工具调用卡片可见',
-    { tag: ['@P1', '@regression', '@full'] },
+    "TC-PRD-TCS-004 多工具链任务中工具调用卡片可见",
+    { tag: ["@P1", "@regression", "@full"] },
     async ({ page, i18n, taskWithToolChainUrl }) => {
       test.setTimeout(120_000);
       const taskPage = new TaskPage(page, i18n);
-      await page.goto(taskWithToolChainUrl, { timeout: 60_000, waitUntil: 'domcontentloaded' });
-      await taskPage.getChatLog().waitFor({ state: 'visible', timeout: 30_000 });
+      await page.goto(taskWithToolChainUrl, {
+        timeout: 60_000,
+        waitUntil: "domcontentloaded",
+      });
+      await taskPage
+        .getChatLog()
+        .waitFor({ state: "visible", timeout: 30_000 });
 
       // Verify tool invocation cards are visible in the chat log
       const toolCards = taskPage.getToolCards();
       await expect(toolCards.first()).toBeVisible({ timeout: 30_000 });
       const count = await toolCards.count();
       expect(count).toBeGreaterThanOrEqual(1);
-    }
+    },
   );
 });
