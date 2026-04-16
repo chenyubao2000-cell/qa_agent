@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案七：声明式测试平台（TestSpec）</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --bg3: #1e2030;
+  --card: #1e2030;
+  --card-hover: #252840;
+  --border: #2e3148;
+  --border-light: #3a3f5c;
+  --text: #c8cad8;
+  --text-dim: #8b8ea3;
+  --text-bright: #e8eaf4;
+  --accent: #7c6aef;
+  --accent-dim: rgba(124,106,239,.12);
+  --blue: #58a6ff;
+  --green: #3fb950;
+  --orange: #d29922;
+  --red: #f85149;
+  --cyan: #39d2e0;
+  --pink: #f778ba;
+  --yellow: #e3b341;
+  --purple: #bc8cff;
+  --code-bg: #12141f;
+  --code-border: #2a2d42;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* --- Nav --- */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,17,23,.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+nav .inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 52px;
+}
+nav .logo {
+  font-size: 15px; font-weight: 700; color: var(--accent);
+  letter-spacing: .3px;
+  display: flex; align-items: center; gap: 8px;
+}
+nav .logo span { font-size: 18px; }
+nav .links { display: flex; gap: 4px; }
+nav .links a {
+  color: var(--text-dim); text-decoration: none; font-size: 13px; font-weight: 500;
+  padding: 6px 12px; border-radius: 6px; transition: all .15s;
+}
+nav .links a:hover { color: var(--text-bright); background: var(--bg3); }
+@media (max-width: 640px) {
+  nav .links { gap: 0; }
+  nav .links a { font-size: 12px; padding: 6px 8px; }
+}
+
+/* --- Hero --- */
+.hero {
+  text-align: center;
+  padding: 64px 24px 48px;
+  background: linear-gradient(180deg, rgba(124,106,239,.06) 0%, transparent 100%);
+}
+.hero .badge {
+  display: inline-block;
+  font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  color: var(--accent); background: var(--accent-dim);
+  padding: 4px 14px; border-radius: 20px; margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 36px; font-weight: 800; color: var(--text-bright);
+  line-height: 1.25; margin-bottom: 12px;
+}
+.hero .tagline {
+  font-size: 18px; color: var(--text-dim); max-width: 620px; margin: 0 auto 28px;
+}
+.hero .stats {
+  display: inline-flex; gap: 32px; padding: 16px 32px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+}
+.hero .stat-item { text-align: center; }
+.hero .stat-val { font-size: 28px; font-weight: 800; color: var(--accent); }
+.hero .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; }
+@media (max-width: 640px) {
+  .hero h1 { font-size: 26px; }
+  .hero .tagline { font-size: 15px; }
+  .hero .stats { gap: 20px; padding: 12px 20px; }
+  .hero .stat-val { font-size: 22px; }
+}
+
+/* --- Container --- */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* --- Section --- */
+.section { margin-top: 56px; }
+.section-title {
+  font-size: 22px; font-weight: 700; color: var(--text-bright);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+}
+.section-title .icon { font-size: 20px; }
+.section-sub { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; }
+
+/* --- Pipeline --- */
+.pipeline {
+  display: flex; align-items: center; gap: 0;
+  overflow-x: auto; padding: 8px 0 16px;
+}
+.pipe-step {
+  flex-shrink: 0;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; min-width: 160px; text-align: center;
+  transition: border-color .2s, box-shadow .2s;
+}
+.pipe-step:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(124,106,239,.1); }
+.pipe-step .step-icon { font-size: 24px; margin-bottom: 6px; }
+.pipe-step .step-name { font-size: 13px; font-weight: 700; color: var(--text-bright); }
+.pipe-step .step-who { font-size: 10px; color: var(--text-dim); margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+.pipe-arrow {
+  flex-shrink: 0; color: var(--border-light); font-size: 20px; padding: 0 4px;
+  display: flex; align-items: center;
+}
+@media (max-width: 768px) {
+  .pipe-step { min-width: 130px; padding: 12px 14px; }
+}
+
+/* --- Matrix Table --- */
+.matrix-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table.matrix {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+table.matrix thead th {
+  background: var(--bg3); color: var(--text-bright); font-weight: 700;
+  padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
+  position: sticky; top: 52px; z-index: 10;
+  white-space: nowrap;
+}
+table.matrix thead th:first-child { border-radius: 9px 0 0 0; }
+table.matrix thead th:last-child { border-radius: 0 9px 0 0; }
+table.matrix tbody td {
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+table.matrix tbody tr:last-child td { border-bottom: none; }
+table.matrix tbody tr:hover td { background: rgba(124,106,239,.04); }
+table.matrix .role-human { color: var(--cyan); font-weight: 600; }
+table.matrix .role-agent { color: var(--purple); font-weight: 600; }
+table.matrix .role-auto { color: var(--green); font-weight: 600; }
+table.matrix .cell-empty { color: var(--border-light); text-align: center; }
+table.matrix .env-badge {
+  display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 4px; margin: 1px 2px;
+}
+table.matrix .env-human { background: rgba(57,210,224,.1); color: var(--cyan); }
+table.matrix .env-agent { background: rgba(188,140,255,.1); color: var(--purple); }
+table.matrix .env-auto { background: rgba(63,185,80,.1); color: var(--green); }
+
+/* --- Code Block --- */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(46,49,72,.4);
+  border-bottom: 1px solid var(--code-border);
+}
+.code-header .lang {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  color: var(--yellow); letter-spacing: .8px;
+}
+.code-header .filename {
+  font-size: 11px; color: var(--text-dim);
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+pre.code {
+  padding: 20px; margin: 0;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 13px; line-height: 1.65;
+  color: var(--text); overflow-x: auto;
+  tab-size: 2;
+}
+pre.code .ck { color: #7c7f93; }         /* comment / key dim */
+pre.code .cs { color: var(--cyan); }      /* string */
+pre.code .cn { color: var(--orange); }    /* number */
+pre.code .cb { color: var(--purple); }    /* boolean / keyword */
+pre.code .ct { color: var(--yellow); }    /* tag / type */
+pre.code .cv { color: var(--blue); }      /* value / var */
+pre.code .cp { color: var(--pink); }      /* punctuation */
+pre.code .cm { color: var(--green); }     /* method / function */
+
+/* --- Cards Grid --- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 16px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px; transition: border-color .2s, box-shadow .2s;
+}
+.card:hover { border-color: var(--accent); box-shadow: 0 4px 24px rgba(124,106,239,.08); }
+.card .card-icon { font-size: 28px; margin-bottom: 10px; }
+.card h3 { font-size: 15px; font-weight: 700; color: var(--text-bright); margin-bottom: 6px; }
+.card p { font-size: 13px; color: var(--text-dim); }
+.card.pro { border-left: 3px solid var(--green); }
+.card.con { border-left: 3px solid var(--red); }
+.card.use { border-left: 3px solid var(--blue); }
+
+/* --- Gauge --- */
+.gauge-wrap { display: flex; align-items: center; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+.gauge-bar {
+  flex: 1; min-width: 240px; height: 28px;
+  background: var(--bg3); border-radius: 14px; overflow: hidden; position: relative;
+}
+.gauge-fill {
+  height: 100%; border-radius: 14px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 12px;
+  font-size: 12px; font-weight: 700; color: #fff;
+  transition: width .8s ease;
+}
+.gauge-labels { display: flex; gap: 20px; }
+.gauge-label { font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+.gauge-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* --- Footer --- */
+footer {
+  text-align: center; padding: 32px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text-dim);
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="inner">
+    <div class="logo"><span>&#9783;</span> TestSpec</div>
+    <div class="links">
+      <a href="#concept">核心理念</a>
+      <a href="#pipeline">流水线</a>
+      <a href="#matrix">职责矩阵</a>
+      <a href="#dsl">YAML DSL</a>
+      <a href="#eval">评估</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">Proposal 07</div>
+  <h1>声明式测试平台（TestSpec）</h1>
+  <p class="tagline">人用 YAML 声明"要测什么"，Agent 翻译为"怎么测"，自动化执行"跑测试"</p>
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-val">45%</div>
+      <div class="stat-label">Agent 占比</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">YAML</div>
+      <div class="stat-label">声明式 DSL</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">3</div>
+      <div class="stat-label">角色协作</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Concept -->
+  <div class="section" id="concept">
+    <div class="section-title"><span class="icon">&#9670;</span> 核心理念</div>
+    <p class="section-sub">将测试从"编写代码"转变为"声明意图"，三个阶段、三种角色各司其职</p>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="step-icon">&#9997;</div>
+        <div class="step-name">声明意图</div>
+        <div class="step-who">&#9673; 人</div>
+      </div>
+      <div class="pipe-arrow">&#10140;</div>
+      <div class="pipe-step">
+        <div class="step-icon">&#9881;</div>
+        <div class="step-name">Spec 编译</div>
+        <div class="step-who">&#9673; Agent</div>
+      </div>
+      <div class="pipe-arrow">&#10140;</div>
+      <div class="pipe-step">
+        <div class="step-icon">&#9881;</div>
+        <div class="step-name">Mock 生成</div>
+        <div class="step-who">&#9673; Agent + Auto</div>
+      </div>
+      <div class="pipe-arrow">&#10140;</div>
+      <div class="pipe-step">
+        <div class="step-icon">&#9654;</div>
+        <div class="step-name">测试执行</div>
+        <div class="step-who">&#9673; 自动化</div>
+      </div>
+      <div class="pipe-arrow">&#10140;</div>
+      <div class="pipe-step">
+        <div class="step-icon">&#9745;</div>
+        <div class="step-name">结果映射</div>
+        <div class="step-who">&#9673; Agent + Auto</div>
+      </div>
+      <div class="pipe-arrow">&#10140;</div>
+      <div class="pipe-step">
+        <div class="step-icon">&#8634;</div>
+        <div class="step-name">Spec 维护</div>
+        <div class="step-who">&#9673; 人 + Agent</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline Detail -->
+  <div class="section" id="pipeline">
+    <div class="section-title"><span class="icon">&#9656;</span> 流水线概览</div>
+    <p class="section-sub">从 YAML 声明到测试报告的完整闭环</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">&#128221;</div>
+        <h3>1. 编写测试意图</h3>
+        <p>人用 YAML DSL 描述测试场景、期望结果和 Mock 需求。Agent 提供 Spec 模板建议并补全缺失字段。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#9881;</div>
+        <h3>2. Spec 编译</h3>
+        <p>Agent 将 YAML intent 翻译为具体测试代码（Playwright / Jest / k6）。DSL Validator 自动校验语法和语义。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#128268;</div>
+        <h3>3. Mock 声明与生成</h3>
+        <p>人在 YAML 中声明 Mock 需求，Agent 自动生成 Mock 配置，自动化负责 Mock Server 的启停。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#9654;</div>
+        <h3>4. 测试执行</h3>
+        <p>编译后的测试代码由 CI 自动执行，无需人工或 Agent 介入。全自动化完成。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#128202;</div>
+        <h3>5. 结果映射</h3>
+        <p>Agent 将原始测试结果映射回 YAML Spec 层级，自动化生成可读报告。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#8634;</div>
+        <h3>6. Spec 维护</h3>
+        <p>人根据需求变化更新 YAML。Agent 检测代码变更并建议 Spec 更新，由 git diff 触发。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Matrix -->
+  <div class="section" id="matrix">
+    <div class="section-title"><span class="icon">&#9638;</span> 职责矩阵</div>
+    <p class="section-sub">人 / Agent / 自动化 三方在每个环节的具体分工</p>
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>环节</th>
+            <th><span class="env-badge env-human">&#9673;</span> 人</th>
+            <th><span class="env-badge env-agent">&#9673;</span> Agent</th>
+            <th><span class="env-badge env-auto">&#9673;</span> 自动化</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>编写测试意图</strong></td>
+            <td class="role-human">用 YAML 描述测试意图（核心输入）</td>
+            <td class="role-agent">建议 Spec 模板、补全缺失字段</td>
+            <td class="cell-empty">&mdash;</td>
+          </tr>
+          <tr>
+            <td><strong>Spec 编译</strong></td>
+            <td class="cell-empty">&mdash;</td>
+            <td class="role-agent">将 intent &rarr; 具体测试代码</td>
+            <td class="role-auto">DSL Validator 校验</td>
+          </tr>
+          <tr>
+            <td><strong>Mock 声明</strong></td>
+            <td class="role-human">在 YAML 中声明 Mock 需求</td>
+            <td class="role-agent">自动生成 Mock 配置</td>
+            <td class="role-auto">Mock Server 启停</td>
+          </tr>
+          <tr>
+            <td><strong>测试执行</strong></td>
+            <td class="cell-empty">&mdash;</td>
+            <td class="cell-empty">&mdash;</td>
+            <td class="role-auto">编译后的测试由 CI 执行</td>
+          </tr>
+          <tr>
+            <td><strong>结果映射</strong></td>
+            <td class="cell-empty">&mdash;</td>
+            <td class="role-agent">将测试结果映射回 YAML Spec</td>
+            <td class="role-auto">报告自动生成</td>
+          </tr>
+          <tr>
+            <td><strong>Spec 维护</strong></td>
+            <td class="role-human">更新 YAML 反映需求变化</td>
+            <td class="role-agent">检测代码变更 &rarr; 建议 Spec 更新</td>
+            <td class="role-auto">git diff 触发</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- YAML DSL -->
+  <div class="section" id="dsl">
+    <div class="section-title"><span class="icon">&#60;/&#62;</span> YAML DSL 示例</div>
+    <p class="section-sub">一个完整的 TestSpec YAML 声明，覆盖 Unit / Integration / E2E / Performance 四类测试</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="lang">YAML</span>
+        <span class="filename">testspecs/mira-chat-core.testspec.yaml</span>
+      </div>
+<pre class="code"><span class="ck"># ============================================</span>
+<span class="ck"># TestSpec - Mira Chat Core</span>
+<span class="ck"># ============================================</span>
+
+<span class="ct">suite</span><span class="cp">:</span> <span class="cs">Mira Chat Core</span>
+<span class="ct">target</span><span class="cp">:</span> <span class="cs">apps/mira-work</span>
+
+<span class="ck"># --- Mock 声明 ---</span>
+<span class="ct">mocks</span><span class="cp">:</span>
+  <span class="ct">llm</span><span class="cp">:</span>
+    <span class="ct">strategy</span><span class="cp">:</span> <span class="cs">recorded_replay</span>      <span class="ck"># 录制回放，保证确定性</span>
+    <span class="ct">fixtures</span><span class="cp">:</span> <span class="cs">fixtures/llm/*.json</span>
+  <span class="ct">database</span><span class="cp">:</span>
+    <span class="ct">strategy</span><span class="cp">:</span> <span class="cs">schema+seed</span>           <span class="ck"># 基于 schema 自动建库 + seed 数据</span>
+    <span class="ct">schema</span><span class="cp">:</span>   <span class="cs">prisma/schema.prisma</span>
+    <span class="ct">seed</span><span class="cp">:</span>     <span class="cs">fixtures/db-seed.sql</span>
+
+<span class="ck"># --- 测试声明 ---</span>
+<span class="ct">tests</span><span class="cp">:</span>
+
+  <span class="ck"># Unit 测试 - Tier 分级</span>
+  <span class="ct">unit</span><span class="cp">:</span>
+    <span class="cp">-</span> <span class="ct">name</span><span class="cp">:</span> <span class="cs">消息解析器正确处理 Markdown</span>
+      <span class="ct">tier</span><span class="cp">:</span> <span class="cn">1</span>                          <span class="ck"># Tier 1: 核心路径</span>
+      <span class="ct">target</span><span class="cp">:</span> <span class="cs">src/utils/message-parser.ts</span>
+      <span class="ct">intent</span><span class="cp">:</span> <span class="cs">输入各种 Markdown 格式，验证解析输出结构正确</span>
+      <span class="ct">cases</span><span class="cp">:</span>
+        <span class="cp">-</span> <span class="ct">input</span><span class="cp">:</span> <span class="cs">"**bold** and *italic*"</span>
+          <span class="ct">expect</span><span class="cp">:</span> <span class="cs">contains [bold_node, italic_node]</span>
+        <span class="cp">-</span> <span class="ct">input</span><span class="cp">:</span> <span class="cs">"```code block```"</span>
+          <span class="ct">expect</span><span class="cp">:</span> <span class="cs">contains [code_block_node]</span>
+
+    <span class="cp">-</span> <span class="ct">name</span><span class="cp">:</span> <span class="cs">Token 计数器准确计算</span>
+      <span class="ct">tier</span><span class="cp">:</span> <span class="cn">2</span>                          <span class="ck"># Tier 2: 重要但非关键</span>
+      <span class="ct">target</span><span class="cp">:</span> <span class="cs">src/utils/token-counter.ts</span>
+      <span class="ct">intent</span><span class="cp">:</span> <span class="cs">验证不同编码下的 token 计数准确性</span>
+
+  <span class="ck"># Integration 测试</span>
+  <span class="ct">integration</span><span class="cp">:</span>
+    <span class="cp">-</span> <span class="ct">name</span><span class="cp">:</span> <span class="cs">发送消息 &rarr; 收到 LLM 回复</span>
+      <span class="ct">intent</span><span class="cp">:</span> <span class="cs">模拟用户发送消息，验证经过 API 层后能收到 LLM 回复</span>
+      <span class="ct">requires_mock</span><span class="cp">:</span> <span class="cp">[</span><span class="cs">llm</span><span class="cp">,</span> <span class="cs">database</span><span class="cp">]</span>
+      <span class="ct">setup</span><span class="cp">:</span> <span class="cs">创建测试用户和对话</span>
+      <span class="ct">steps</span><span class="cp">:</span>
+        <span class="cp">-</span> <span class="cs">POST /api/chat/send { message: "Hello" }</span>
+        <span class="cp">-</span> <span class="cs">等待 SSE stream 完成</span>
+        <span class="cp">-</span> <span class="cs">验证回复内容匹配 recorded fixture</span>
+
+  <span class="ck"># E2E 测试 - 委托 qa_agent</span>
+  <span class="ct">e2e</span><span class="cp">:</span>
+    <span class="ct">delegate</span><span class="cp">:</span> <span class="cs">qa_agent</span>                 <span class="ck"># 由 QA Agent 平台接管</span>
+    <span class="ct">scenarios</span><span class="cp">:</span>
+      <span class="cp">-</span> <span class="ct">name</span><span class="cp">:</span> <span class="cs">新用户首次对话完整流程</span>
+        <span class="ct">intent</span><span class="cp">:</span> <span class="cs">注册 &rarr; 创建对话 &rarr; 发送消息 &rarr; 收到回复 &rarr; 查看历史</span>
+      <span class="cp">-</span> <span class="ct">name</span><span class="cp">:</span> <span class="cs">对话上下文保持</span>
+        <span class="ct">intent</span><span class="cp">:</span> <span class="cs">多轮对话中 LLM 能引用之前的内容</span>
+
+  <span class="ck"># Performance 测试</span>
+  <span class="ct">performance</span><span class="cp">:</span>
+    <span class="ct">tool</span><span class="cp">:</span> <span class="cs">k6</span>
+    <span class="ct">scenarios</span><span class="cp">:</span>
+      <span class="cp">-</span> <span class="ct">name</span><span class="cp">:</span> <span class="cs">并发消息发送</span>
+        <span class="ct">vus</span><span class="cp">:</span> <span class="cn">50</span>
+        <span class="ct">duration</span><span class="cp">:</span> <span class="cs">30s</span>
+        <span class="ct">thresholds</span><span class="cp">:</span>
+          <span class="ct">p95_response_time</span><span class="cp">:</span> <span class="cs">&lt; 500ms</span>
+          <span class="ct">error_rate</span><span class="cp">:</span> <span class="cs">&lt; 1%</span></pre>
+    </div>
+  </div>
+
+  <!-- Evaluation -->
+  <div class="section" id="eval">
+    <div class="section-title"><span class="icon">&#9878;</span> 方案评估</div>
+    <p class="section-sub">优势、劣势与适用场景分析</p>
+
+    <div class="cards" style="margin-bottom: 24px;">
+      <div class="card pro">
+        <h3>&#10003; 优势</h3>
+        <p><strong>意图聚焦</strong> &mdash; 人只需关注"测什么"，不需要了解测试框架细节</p>
+      </div>
+      <div class="card pro">
+        <h3>&#10003; 优势</h3>
+        <p><strong>可读性高</strong> &mdash; YAML 格式直观易懂，PM / QA / 开发都能参与审阅和编写</p>
+      </div>
+      <div class="card pro">
+        <h3>&#10003; 优势</h3>
+        <p><strong>可追溯</strong> &mdash; YAML Spec 纳入 Git 版本控制，每次变更有迹可循</p>
+      </div>
+      <div class="card con">
+        <h3>&#10007; 劣势</h3>
+        <p><strong>DSL 设计难度</strong> &mdash; DSL 的表达能力是核心难点，设计不当会限制整个平台</p>
+      </div>
+      <div class="card con">
+        <h3>&#10007; 劣势</h3>
+        <p><strong>复杂场景受限</strong> &mdash; 高度定制化的测试场景可能无法用声明式 YAML 完整表达</p>
+      </div>
+      <div class="card use">
+        <h3>&#9733; 适用场景</h3>
+        <p><strong>注重文档化、需求可追溯性的团队</strong> &mdash; 尤其适合有合规要求或需要测试审计的项目</p>
+      </div>
+    </div>
+
+    <!-- Agent gauge -->
+    <h3 style="font-size: 15px; color: var(--text-bright); margin-bottom: 12px;">Agent 自动化占比</h3>
+    <div class="gauge-wrap">
+      <div class="gauge-bar">
+        <div class="gauge-fill" style="width: 45%;">45%</div>
+      </div>
+      <div class="gauge-labels">
+        <div class="gauge-label"><span class="gauge-dot" style="background:var(--cyan)"></span> 人 ~30%</div>
+        <div class="gauge-label"><span class="gauge-dot" style="background:var(--accent)"></span> Agent 45%</div>
+        <div class="gauge-label"><span class="gauge-dot" style="background:var(--green)"></span> 自动化 ~25%</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  QA Agent &middot; Proposal 07 &middot; 声明式测试平台（TestSpec）
+</footer>
+
+</body>
+</html>

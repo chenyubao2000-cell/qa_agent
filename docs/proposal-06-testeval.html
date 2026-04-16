@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案六：LLM Eval + 质量守门人（TestEval）</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --bg3: #1e2030;
+  --card: #1e2030;
+  --card-hover: #252840;
+  --border: #2e3148;
+  --border-accent: #3d4166;
+  --text: #c8cad8;
+  --text-dim: #7c7f96;
+  --text-bright: #e8eaf4;
+  --accent: #6c5ce7;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --green-dim: #065f46;
+  --blue: #60a5fa;
+  --blue-dim: #1e3a5f;
+  --orange: #fbbf24;
+  --orange-dim: #78350f;
+  --red: #f87171;
+  --red-dim: #7f1d1d;
+  --cyan: #22d3ee;
+  --cyan-dim: #164e63;
+  --pink: #f472b6;
+  --pink-dim: #831843;
+  --purple: #a78bfa;
+  --purple-dim: #4c1d95;
+  --gradient-hero: linear-gradient(135deg, #6c5ce7 0%, #a78bfa 50%, #22d3ee 100%);
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: var(--accent2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Navigation */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,17,23,.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+nav .inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+nav .logo {
+  font-size: 15px; font-weight: 700; color: var(--text-bright);
+  display: flex; align-items: center; gap: 8px;
+}
+nav .logo .icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--gradient-hero);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff;
+}
+nav .links {
+  display: flex; gap: 4px; list-style: none;
+}
+nav .links a {
+  font-size: 13px; color: var(--text-dim); padding: 6px 12px;
+  border-radius: 6px; transition: all .15s;
+}
+nav .links a:hover, nav .links a.active {
+  color: var(--text-bright); background: var(--bg3);
+  text-decoration: none;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 72px 24px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(108,92,231,.15), transparent);
+  pointer-events: none;
+}
+.hero .badge {
+  display: inline-block;
+  font-size: 11px; font-weight: 600;
+  padding: 4px 14px; border-radius: 20px;
+  background: rgba(108,92,231,.15); color: var(--accent2);
+  border: 1px solid rgba(108,92,231,.3);
+  margin-bottom: 16px; letter-spacing: .5px;
+}
+.hero h1 {
+  font-size: 36px; font-weight: 800;
+  background: var(--gradient-hero);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+.hero .subtitle {
+  font-size: 16px; color: var(--text-dim);
+  max-width: 640px; margin: 0 auto 24px;
+}
+.hero .stats {
+  display: flex; gap: 32px; justify-content: center; flex-wrap: wrap;
+}
+.hero .stat {
+  text-align: center;
+}
+.hero .stat .num {
+  font-size: 32px; font-weight: 800; color: var(--accent2);
+}
+.hero .stat .label {
+  font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* Container */
+.container {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px 80px;
+}
+
+/* Section */
+section {
+  margin-bottom: 56px;
+}
+section > .section-title {
+  font-size: 22px; font-weight: 700; color: var(--text-bright);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+section > .section-title .icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+section > .section-desc {
+  font-size: 14px; color: var(--text-dim); margin-bottom: 24px;
+  max-width: 720px;
+}
+
+/* Core Idea */
+.core-idea {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.idea-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px;
+  transition: all .2s;
+}
+.idea-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.idea-card .ic-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 12px;
+}
+.idea-card h3 {
+  font-size: 15px; font-weight: 700; color: var(--text-bright);
+  margin-bottom: 6px;
+}
+.idea-card p {
+  font-size: 13px; color: var(--text-dim); line-height: 1.6;
+}
+
+/* Architecture Pipeline */
+.pipeline {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+.pipeline-stage {
+  flex: 1; min-width: 220px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 16px;
+  position: relative;
+  transition: all .2s;
+}
+.pipeline-stage:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px rgba(108,92,231,.15);
+}
+.pipeline-stage + .pipeline-stage {
+  margin-left: -1px;
+}
+.pipeline-arrow {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; flex-shrink: 0;
+  color: var(--accent2); font-size: 20px;
+}
+.pipeline-stage .stage-num {
+  font-size: 10px; font-weight: 700; color: var(--accent2);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.pipeline-stage .stage-title {
+  font-size: 14px; font-weight: 700; color: var(--text-bright);
+  margin-bottom: 10px;
+}
+.pipeline-stage .stage-items {
+  list-style: none;
+}
+.pipeline-stage .stage-items li {
+  font-size: 12px; color: var(--text-dim);
+  padding: 4px 0; display: flex; align-items: baseline; gap: 6px;
+}
+.pipeline-stage .stage-items li::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.pipeline-stage:nth-child(1) .stage-items li::before { background: var(--cyan); }
+.pipeline-stage:nth-child(3) .stage-items li::before { background: var(--green); }
+.pipeline-stage:nth-child(5) .stage-items li::before { background: var(--orange); }
+.pipeline-stage:nth-child(7) .stage-items li::before { background: var(--pink); }
+
+/* RACI Table */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  background: var(--bg3);
+  color: var(--text-bright);
+  font-weight: 700;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky; top: 0;
+}
+thead th:first-child {
+  border-radius: 11px 0 0 0;
+}
+thead th:last-child {
+  border-radius: 0 11px 0 0;
+}
+tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tbody tr:last-child td {
+  border-bottom: none;
+}
+tbody tr:hover {
+  background: rgba(108,92,231,.04);
+}
+tbody td:first-child {
+  font-weight: 600; color: var(--text-bright);
+  white-space: nowrap;
+}
+.role-human {
+  color: var(--blue);
+}
+.role-agent {
+  color: var(--accent2);
+}
+.role-auto {
+  color: var(--green);
+}
+td .tag {
+  display: inline-block;
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 4px;
+  margin: 1px 2px;
+}
+td .tag.human { background: rgba(96,165,250,.12); color: var(--blue); }
+td .tag.agent { background: rgba(167,139,250,.12); color: var(--accent2); }
+td .tag.auto  { background: rgba(52,211,153,.12); color: var(--green); }
+
+/* Skills */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.skill-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 16px;
+  display: flex; align-items: flex-start; gap: 12px;
+  transition: all .2s;
+}
+.skill-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(108,92,231,.1);
+}
+.skill-card .sk-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.skill-card .sk-name {
+  font-size: 13px; font-weight: 700; color: var(--text-bright);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  margin-bottom: 4px;
+}
+.skill-card .sk-desc {
+  font-size: 12px; color: var(--text-dim); line-height: 1.5;
+}
+
+/* Gauge / Score Visual */
+.gauge-row {
+  display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+}
+.gauge-card {
+  flex: 1; min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all .2s;
+}
+.gauge-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-sm);
+}
+.gauge-circle {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.gauge-circle svg {
+  position: absolute; inset: 0;
+  transform: rotate(-90deg);
+}
+.gauge-circle .gauge-val {
+  font-size: 20px; font-weight: 800; z-index: 1;
+}
+.gauge-card .gauge-label {
+  font-size: 12px; color: var(--text-dim); font-weight: 500;
+}
+
+/* Pros/Cons */
+.eval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.eval-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.eval-box h3 {
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.eval-box ul {
+  list-style: none;
+}
+.eval-box ul li {
+  font-size: 13px; color: var(--text-dim);
+  padding: 6px 0; display: flex; align-items: baseline; gap: 8px;
+  line-height: 1.5;
+}
+.eval-box ul li .dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  margin-top: 5px;
+}
+.eval-box.pros h3 { color: var(--green); }
+.eval-box.pros .dot { background: var(--green); }
+.eval-box.cons h3 { color: var(--red); }
+.eval-box.cons .dot { background: var(--red); }
+.eval-box.use h3 { color: var(--cyan); }
+.eval-box.use .dot { background: var(--cyan); }
+
+/* Agent ratio bar */
+.ratio-bar-wrap {
+  margin-top: 24px;
+}
+.ratio-bar-label {
+  font-size: 13px; color: var(--text-dim); margin-bottom: 8px;
+  display: flex; justify-content: space-between;
+}
+.ratio-bar {
+  height: 12px; border-radius: 6px; overflow: hidden;
+  background: var(--bg3); display: flex;
+}
+.ratio-bar .seg {
+  height: 100%; transition: width .6s ease;
+}
+
+/* Footer */
+footer {
+  text-align: center; padding: 24px;
+  font-size: 11px; color: var(--text-dim);
+  border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 26px; }
+  .pipeline { flex-direction: column; }
+  .pipeline-arrow { transform: rotate(90deg); width: auto; height: 32px; }
+  nav .links { display: none; }
+  table { font-size: 12px; }
+  thead th, tbody td { padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="inner">
+    <div class="logo">
+      <span class="icon">E</span>
+      <span>TestEval</span>
+    </div>
+    <div class="links">
+      <a href="#core" class="active">核心理念</a>
+      <a href="#arch">架构</a>
+      <a href="#raci">职责矩阵</a>
+      <a href="#skills">Agent Skills</a>
+      <a href="#eval">评估</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <span class="badge">PROPOSAL 06</span>
+  <h1>LLM Eval + 质量守门人</h1>
+  <p class="subtitle">专为 AI/LLM 应用设计的评估框架 -- 用 LLM-as-Judge 做评估，用 Golden Dataset 做基准，让不确定的 LLM 输出变得可衡量、可回归。</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="num">60%</div>
+      <div class="label">Agent 占比</div>
+    </div>
+    <div class="stat">
+      <div class="num">4</div>
+      <div class="label">Agent Eval Skills</div>
+    </div>
+    <div class="stat">
+      <div class="num">8</div>
+      <div class="label">职责环节</div>
+    </div>
+    <div class="stat">
+      <div class="num">4</div>
+      <div class="label">架构阶段</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- Core Idea -->
+<section id="core">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(108,92,231,.15); color:var(--accent2);">&#x1F3AF;</span>
+    核心理念
+  </div>
+  <p class="section-desc">LLM 输出天然不确定，传统断言（assertEqual / regex match）在 AI 应用中完全失效。TestEval 采用全新范式来解决这一根本矛盾。</p>
+  <div class="core-idea">
+    <div class="idea-card">
+      <div class="ic-icon" style="background:rgba(108,92,231,.12); color:var(--accent2);">&#x1F916;</div>
+      <h3>LLM-as-Judge</h3>
+      <p>用 Claude 等大模型作为评判者，对 LLM 输出进行多维度打分。支持自定义 Rubric，覆盖质量、安全、准确性、格式等维度。</p>
+    </div>
+    <div class="idea-card">
+      <div class="ic-icon" style="background:rgba(52,211,153,.12); color:var(--green);">&#x1F4CA;</div>
+      <h3>Golden Dataset 基准</h3>
+      <p>人工标注初始数据集，结合 Langfuse trace 自动扩充。版本化管理，确保评估结果可复现、可对比。</p>
+    </div>
+    <div class="idea-card">
+      <div class="ic-icon" style="background:rgba(34,211,238,.12); color:var(--cyan);">&#x1F504;</div>
+      <h3>回归检测</h3>
+      <p>每次 Prompt 变更或模型切换，自动触发 Eval 对比。分数趋势可视化，退化即告警，保护 AI 行为质量。</p>
+    </div>
+    <div class="idea-card">
+      <div class="ic-icon" style="background:rgba(244,114,182,.12); color:var(--pink);">&#x1F517;</div>
+      <h3>Langfuse 天然集成</h3>
+      <p>从 Langfuse trace 自动导出数据构建评估集，成本追踪、Token 分析一体化，形成可观测的 AI 质量闭环。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section id="arch">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(34,211,238,.15); color:var(--cyan);">&#x1F3D7;</span>
+    架构流水线
+  </div>
+  <p class="section-desc">四阶段流水线：从数据集管理到最终仪表盘，全链路覆盖 LLM 评估生命周期。</p>
+
+  <div class="pipeline">
+    <!-- Stage 1 -->
+    <div class="pipeline-stage">
+      <div class="stage-num">Stage 1</div>
+      <div class="stage-title">Eval Dataset Manager</div>
+      <ul class="stage-items">
+        <li>Golden Pairs (Input/Output 对)</li>
+        <li>Rubric 评分标准定义</li>
+        <li>Version Control 版本管理</li>
+        <li>Auto-generate from Langfuse</li>
+      </ul>
+    </div>
+    <div class="pipeline-arrow">&#x279C;</div>
+
+    <!-- Stage 2 -->
+    <div class="pipeline-stage">
+      <div class="stage-num">Stage 2</div>
+      <div class="stage-title">Eval Runner</div>
+      <ul class="stage-items">
+        <li>Batch Inference 批量推理</li>
+        <li>Multi-model Comparison</li>
+        <li>A/B Test 实验</li>
+        <li>Cost / Latency 监控</li>
+      </ul>
+    </div>
+    <div class="pipeline-arrow">&#x279C;</div>
+
+    <!-- Stage 3 -->
+    <div class="pipeline-stage">
+      <div class="stage-num">Stage 3</div>
+      <div class="stage-title">Judge Framework</div>
+      <ul class="stage-items">
+        <li>LLM-as-Judge (Claude)</li>
+        <li>Regex / Keyword 匹配</li>
+        <li>Semantic Similarity 语义</li>
+        <li>Tool Call Validation</li>
+        <li>Custom Rubric 自定义</li>
+      </ul>
+    </div>
+    <div class="pipeline-arrow">&#x279C;</div>
+
+    <!-- Stage 4 -->
+    <div class="pipeline-stage">
+      <div class="stage-num">Stage 4</div>
+      <div class="stage-title">Regression Dashboard</div>
+      <ul class="stage-items">
+        <li>Score Trends 分数趋势</li>
+        <li>Model Comparison 对比</li>
+        <li>Cost Optimization 优化</li>
+        <li>Alert 退化告警</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Score Gauges -->
+<section>
+  <div class="section-title">
+    <span class="icon" style="background:rgba(251,191,36,.15); color:var(--orange);">&#x1F4C8;</span>
+    评分仪表盘（示例）
+  </div>
+  <p class="section-desc">多维度评分可视化，直观呈现 LLM 输出的质量状况。</p>
+
+  <div class="gauge-row">
+    <div class="gauge-card">
+      <div class="gauge-circle">
+        <svg viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--green)" stroke-width="6"
+            stroke-dasharray="192.4" stroke-dashoffset="19.2" stroke-linecap="round"/>
+        </svg>
+        <span class="gauge-val" style="color:var(--green)">91</span>
+      </div>
+      <div class="gauge-label">准确性</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-circle">
+        <svg viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--blue)" stroke-width="6"
+            stroke-dasharray="175.6" stroke-dashoffset="19.2" stroke-linecap="round"/>
+        </svg>
+        <span class="gauge-val" style="color:var(--blue)">85</span>
+      </div>
+      <div class="gauge-label">格式合规</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-circle">
+        <svg viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent2)" stroke-width="6"
+            stroke-dasharray="185.4" stroke-dashoffset="19.2" stroke-linecap="round"/>
+        </svg>
+        <span class="gauge-val" style="color:var(--accent2)">88</span>
+      </div>
+      <div class="gauge-label">安全性</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-circle">
+        <svg viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--orange)" stroke-width="6"
+            stroke-dasharray="160.8" stroke-dashoffset="19.2" stroke-linecap="round"/>
+        </svg>
+        <span class="gauge-val" style="color:var(--orange)">78</span>
+      </div>
+      <div class="gauge-label">Tool 调用</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-circle">
+        <svg viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--cyan)" stroke-width="6"
+            stroke-dasharray="196.8" stroke-dashoffset="19.2" stroke-linecap="round"/>
+        </svg>
+        <span class="gauge-val" style="color:var(--cyan)">94</span>
+      </div>
+      <div class="gauge-label">综合质量</div>
+    </div>
+  </div>
+</section>
+
+<!-- RACI Matrix -->
+<section id="raci">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(167,139,250,.15); color:var(--accent2);">&#x1F465;</span>
+    人 / Agent / 自动化 职责矩阵
+  </div>
+  <p class="section-desc">明确划分每个环节的人工、Agent 和自动化职责边界，最大化 Agent 智能，同时保留人的决策权。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>环节</th>
+          <th><span class="role-human">&#x1F464; 人</span></th>
+          <th><span class="role-agent">&#x1F916; Agent</span></th>
+          <th><span class="role-auto">&#x2699; 自动化</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>定义评估维度</td>
+          <td>编写 rubric（质量 / 安全 / 准确性 / 格式）</td>
+          <td>建议 rubric 模板</td>
+          <td><span style="color:var(--text-dim)">--</span></td>
+        </tr>
+        <tr>
+          <td>构建 Golden Dataset</td>
+          <td>标注初始 20-50 条</td>
+          <td>从 Langfuse trace 自动扩充 dataset</td>
+          <td>Langfuse API 导出</td>
+        </tr>
+        <tr>
+          <td>Eval 执行</td>
+          <td><span style="color:var(--text-dim)">--</span></td>
+          <td>LLM-as-Judge 评分 + 多维度评估</td>
+          <td>Batch API 批量推理</td>
+        </tr>
+        <tr>
+          <td>分数分析</td>
+          <td>审核异常分数</td>
+          <td>趋势分析、退化检测、根因定位</td>
+          <td>分数入库、趋势图</td>
+        </tr>
+        <tr>
+          <td>Prompt 回归</td>
+          <td>审核 prompt 变更</td>
+          <td>变更前后 eval 对比 &#x2192; 影响评估</td>
+          <td>CI 中自动触发 eval</td>
+        </tr>
+        <tr>
+          <td>模型切换评估</td>
+          <td>最终决策</td>
+          <td>多模型对比评估 &#x2192; 推荐</td>
+          <td>并行推理 + 评分</td>
+        </tr>
+        <tr>
+          <td>Tool Use 验证</td>
+          <td>定义 tool 调用规范</td>
+          <td>验证 tool 调用参数正确性、顺序合理性</td>
+          <td><span style="color:var(--text-dim)">--</span></td>
+        </tr>
+        <tr>
+          <td>成本监控</td>
+          <td>设定预算</td>
+          <td>分析 token 使用模式，建议优化</td>
+          <td>Langfuse cost tracking</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Agent Ratio -->
+  <div class="ratio-bar-wrap">
+    <div class="ratio-bar-label">
+      <span><span class="role-human">&#x1F464; 人 ~20%</span></span>
+      <span><span class="role-agent">&#x1F916; Agent ~60%</span></span>
+      <span><span class="role-auto">&#x2699; 自动化 ~20%</span></span>
+    </div>
+    <div class="ratio-bar">
+      <div class="seg" style="width:20%; background:var(--blue);"></div>
+      <div class="seg" style="width:60%; background:var(--accent2);"></div>
+      <div class="seg" style="width:20%; background:var(--green);"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Agent Skills -->
+<section id="skills">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(244,114,182,.15); color:var(--pink);">&#x26A1;</span>
+    Agent 专用 Eval Skills
+  </div>
+  <p class="section-desc">四个专用 Skill 构成 Agent 的评估能力核心。</p>
+
+  <div class="skills-grid">
+    <div class="skill-card">
+      <div class="sk-icon" style="background:rgba(34,211,238,.12); color:var(--cyan);">&#x1F4E6;</div>
+      <div>
+        <div class="sk-name">eval-dataset-builder</div>
+        <div class="sk-desc">从 Langfuse trace 自动提取高质量样本，构建和扩充 Golden Dataset。支持版本化管理与去重。</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon" style="background:rgba(108,92,231,.12); color:var(--accent2);">&#x2696;</div>
+      <div>
+        <div class="sk-name">llm-judge</div>
+        <div class="sk-desc">基于 Claude 的多维度评分引擎。支持 Custom Rubric、Semantic Similarity、Regex/Keyword 等多种评判策略。</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon" style="background:rgba(251,191,36,.12); color:var(--orange);">&#x1F527;</div>
+      <div>
+        <div class="sk-name">tool-use-validator</div>
+        <div class="sk-desc">验证 LLM Tool 调用的参数正确性、调用顺序合理性。确保 Agent 的工具使用行为符合预期规范。</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon" style="background:rgba(52,211,153,.12); color:var(--green);">&#x1F4B0;</div>
+      <div>
+        <div class="sk-name">cost-analyzer</div>
+        <div class="sk-desc">分析 Token 使用模式、推理成本趋势，结合 Langfuse cost tracking 给出优化建议。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Evaluation -->
+<section id="eval">
+  <div class="section-title">
+    <span class="icon" style="background:rgba(52,211,153,.15); color:var(--green);">&#x2705;</span>
+    方案评估
+  </div>
+  <div class="eval-grid">
+    <div class="eval-box pros">
+      <h3>&#x2705; 优势</h3>
+      <ul>
+        <li><span class="dot"></span>唯一能真正测试 LLM 行为的方案，解决不确定性输出的质量保障难题</li>
+        <li><span class="dot"></span>与 Langfuse 天然集成，数据采集-评估-监控形成闭环</li>
+        <li><span class="dot"></span>多维度评分体系，覆盖质量、安全、准确性、格式等方面</li>
+        <li><span class="dot"></span>支持 Prompt 回归和模型切换评估，保护 AI 迭代质量</li>
+      </ul>
+    </div>
+    <div class="eval-box cons">
+      <h3>&#x26A0; 劣势</h3>
+      <ul>
+        <li><span class="dot"></span>只覆盖 AI 行为，不覆盖常规代码逻辑的测试</li>
+        <li><span class="dot"></span>LLM-as-Judge 本身存在不确定性，评分可能有波动</li>
+        <li><span class="dot"></span>需要人工标注初始 Golden Dataset，冷启动成本较高</li>
+      </ul>
+    </div>
+    <div class="eval-box use">
+      <h3>&#x1F3AF; 适用场景</h3>
+      <ul>
+        <li><span class="dot"></span>AI/LLM 应用的质量保障 -- <strong style="color:var(--text-bright)">必备方案</strong></li>
+        <li><span class="dot"></span>与传统单元测试、E2E 测试等方案互补，共同构成完整质量体系</li>
+        <li><span class="dot"></span>Prompt 工程迭代频繁的团队尤其受益</li>
+        <li><span class="dot"></span>多模型切换 / A/B 实验场景</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  TestEval -- LLM Eval + 质量守门人方案 &middot; QA Agent Proposal 06
+</footer>
+
+</body>
+</html>

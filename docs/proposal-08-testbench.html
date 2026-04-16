@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal 08 - TestBench 性能工程一体化</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --bg3: #1c1f2e;
+  --card: #1e2132;
+  --card-hover: #242840;
+  --border: #2a2e45;
+  --border-bright: #3d4268;
+  --text: #c8cdd8;
+  --text-dim: #6b7394;
+  --text-bright: #eef0f6;
+  --accent: #6c5ce7;
+  --accent2: #a29bfe;
+  --green: #00cec9;
+  --green-dim: #0d4e4c;
+  --orange: #fdcb6e;
+  --orange-dim: #4a3c14;
+  --red: #ff7675;
+  --red-dim: #4a1a1a;
+  --blue: #74b9ff;
+  --blue-dim: #1a3a5c;
+  --pink: #fd79a8;
+  --cyan: #81ecec;
+  --yellow: #ffeaa7;
+  --gradient1: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+  --gradient2: linear-gradient(135deg, #00cec9 0%, #81ecec 100%);
+  --gradient3: linear-gradient(135deg, #fdcb6e 0%, #ffeaa7 100%);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* === NAV === */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15, 17, 23, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.nav-brand {
+  font-size: 15px; font-weight: 700; color: var(--text-bright);
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-brand .icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--gradient1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff;
+}
+.nav-links { display: flex; gap: 4px; }
+.nav-links a {
+  font-size: 13px; color: var(--text-dim); text-decoration: none;
+  padding: 6px 12px; border-radius: 6px; transition: all .2s;
+}
+.nav-links a:hover, .nav-links a.active {
+  color: var(--text-bright); background: var(--bg3);
+}
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+}
+
+/* === HERO === */
+.hero {
+  padding: 64px 24px 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(108,92,231,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-tag {
+  display: inline-block;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--accent2); background: rgba(108,92,231,.12);
+  padding: 4px 14px; border-radius: 20px; border: 1px solid rgba(108,92,231,.25);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 44px); font-weight: 800;
+  color: var(--text-bright); margin-bottom: 12px;
+  background: linear-gradient(135deg, #fff 30%, var(--accent2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero p {
+  font-size: 16px; color: var(--text-dim); max-width: 640px; margin: 0 auto;
+}
+
+/* === SECTION === */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+section { padding: 48px 0; }
+.section-title {
+  font-size: 22px; font-weight: 700; color: var(--text-bright);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+}
+.section-title .dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.section-sub {
+  font-size: 14px; color: var(--text-dim); margin-bottom: 32px;
+}
+
+/* === CORE CONCEPT === */
+.concept-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px; position: relative; overflow: hidden;
+}
+.concept-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--gradient1);
+}
+.concept-card blockquote {
+  font-size: 18px; font-weight: 600; color: var(--accent2);
+  border-left: 3px solid var(--accent); padding-left: 16px;
+  margin-bottom: 16px;
+}
+.concept-card p { font-size: 14px; color: var(--text); }
+
+/* === ARCHITECTURE === */
+.arch-flow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) {
+  .arch-flow { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+@media (max-width: 560px) {
+  .arch-flow { grid-template-columns: 1fr; }
+}
+.arch-stage {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px 16px; position: relative; margin: 0 6px;
+  transition: border-color .3s, box-shadow .3s;
+}
+.arch-stage:hover {
+  border-color: var(--accent); box-shadow: 0 0 24px rgba(108,92,231,.12);
+}
+.arch-stage .stage-num {
+  font-size: 10px; font-weight: 800; color: var(--accent);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+}
+.arch-stage h3 {
+  font-size: 14px; font-weight: 700; color: var(--text-bright); margin-bottom: 10px;
+}
+.arch-stage .sub-items { list-style: none; }
+.arch-stage .sub-items li {
+  font-size: 12px; color: var(--text-dim); padding: 3px 0;
+  display: flex; align-items: center; gap: 6px;
+}
+.arch-stage .sub-items li::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent2); flex-shrink: 0;
+}
+/* arrow connectors */
+.arch-arrow {
+  display: flex; align-items: center; justify-content: center;
+  position: absolute; top: 50%; transform: translateY(-50%);
+  right: -18px; z-index: 2;
+  width: 30px; height: 30px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 50%;
+  font-size: 12px; color: var(--accent2);
+}
+@media (max-width: 900px) { .arch-arrow { display: none; } }
+
+/* === GAUGE CHARTS (CSS-only) === */
+.gauges {
+  display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+  margin: 32px 0;
+}
+.gauge {
+  width: 130px; text-align: center;
+}
+.gauge-ring {
+  width: 100px; height: 100px; margin: 0 auto 8px;
+  border-radius: 50%;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.gauge-ring::before {
+  content: ''; position: absolute; inset: 6px;
+  background: var(--card); border-radius: 50%;
+}
+.gauge-val {
+  position: relative; z-index: 1;
+  font-size: 20px; font-weight: 800; color: var(--text-bright);
+}
+.gauge-label {
+  font-size: 11px; color: var(--text-dim); font-weight: 600;
+}
+.g-p50 .gauge-ring { background: conic-gradient(var(--green) 0% 50%, var(--border) 50% 100%); }
+.g-p95 .gauge-ring { background: conic-gradient(var(--orange) 0% 75%, var(--border) 75% 100%); }
+.g-p99 .gauge-ring { background: conic-gradient(var(--red) 0% 90%, var(--border) 90% 100%); }
+.g-thr .gauge-ring { background: conic-gradient(var(--blue) 0% 65%, var(--border) 65% 100%); }
+
+/* === TABLE === */
+.table-wrap {
+  overflow-x: auto; border-radius: 12px;
+  border: 1px solid var(--border);
+}
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; min-width: 700px;
+}
+thead { background: var(--bg3); }
+th {
+  padding: 12px 14px; text-align: left;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tbody tr { background: var(--card); transition: background .15s; }
+tbody tr:hover { background: var(--card-hover); }
+td:first-child {
+  font-weight: 600; color: var(--text-bright); white-space: nowrap;
+}
+.role-human { color: var(--pink); font-weight: 600; font-size: 12px; }
+.role-agent { color: var(--accent2); font-weight: 600; font-size: 12px; }
+.role-auto { color: var(--green); font-weight: 600; font-size: 12px; }
+.cell-dash { color: var(--text-dim); }
+
+/* === SCENARIO CARDS === */
+.scenario-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.scenario-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px; transition: border-color .3s, transform .2s;
+}
+.scenario-card:hover {
+  border-color: var(--green); transform: translateY(-2px);
+}
+.scenario-card .sc-icon {
+  font-size: 22px; margin-bottom: 8px;
+}
+.scenario-card h4 {
+  font-size: 13px; font-weight: 700; color: var(--text-bright); margin-bottom: 6px;
+}
+.scenario-card p {
+  font-size: 12px; color: var(--text-dim); line-height: 1.5;
+}
+
+/* === PROS/CONS === */
+.eval-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.eval-card {
+  background: var(--card); border-radius: 14px; padding: 24px;
+  border: 1px solid var(--border);
+}
+.eval-card h3 {
+  font-size: 14px; font-weight: 700; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.eval-card ul { list-style: none; }
+.eval-card li {
+  font-size: 13px; padding: 6px 0; display: flex; align-items: flex-start; gap: 8px;
+}
+.eval-card li::before { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+.eval-pros h3 { color: var(--green); }
+.eval-pros li::before { content: '+'; color: var(--green); font-weight: 700; }
+.eval-cons h3 { color: var(--red); }
+.eval-cons li::before { content: '-'; color: var(--red); font-weight: 700; }
+.eval-scope h3 { color: var(--blue); }
+.eval-scope li::before { content: '>'; color: var(--blue); font-weight: 700; }
+
+/* === AGENT RATIO === */
+.ratio-bar-wrap {
+  margin: 32px 0; text-align: center;
+}
+.ratio-label {
+  font-size: 13px; color: var(--text-dim); margin-bottom: 10px;
+}
+.ratio-bar {
+  height: 32px; border-radius: 16px; overflow: hidden;
+  background: var(--bg3); max-width: 500px; margin: 0 auto;
+  display: flex;
+}
+.ratio-fill {
+  height: 100%; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+}
+.ratio-agent { background: var(--gradient1); width: 25%; }
+.ratio-other { background: var(--border); width: 75%; color: var(--text-dim); }
+.ratio-val {
+  font-size: 40px; font-weight: 800; margin: 16px 0 4px;
+  background: var(--gradient1);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* === FOOTER === */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 24px; text-align: center;
+  font-size: 12px; color: var(--text-dim);
+}
+footer a { color: var(--accent2); text-decoration: none; }
+
+/* === BAR CHART (CSS) === */
+.bar-chart {
+  display: flex; align-items: flex-end; gap: 16px;
+  justify-content: center; height: 140px; margin: 24px 0;
+}
+.bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar {
+  width: 48px; border-radius: 6px 6px 0 0;
+  position: relative; transition: height .6s ease;
+}
+.bar-label {
+  font-size: 10px; color: var(--text-dim); font-weight: 600;
+  white-space: nowrap;
+}
+.bar-val {
+  font-size: 11px; font-weight: 700; color: var(--text-bright);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="icon">TB</div>
+      Proposal 08 - TestBench
+    </div>
+    <div class="nav-links">
+      <a href="#concept" class="active">理念</a>
+      <a href="#arch">架构</a>
+      <a href="#matrix">职责矩阵</a>
+      <a href="#scenarios">Mira 场景</a>
+      <a href="#dashboard">仪表盘</a>
+      <a href="#eval">评估</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Proposal 08</div>
+  <h1>性能工程一体化 TestBench</h1>
+  <p>性能测试不是事后补充，而是开发流程的一等公民。<br>Agent 负责从需求提取性能指标并自动生成测试。</p>
+</div>
+
+<div class="container">
+
+  <!-- CONCEPT -->
+  <section id="concept">
+    <div class="section-title">
+      <span class="dot" style="background:var(--accent)"></span>
+      核心理念
+    </div>
+    <div class="concept-card">
+      <blockquote>"Performance is a feature, not an afterthought."</blockquote>
+      <p>传统性能测试往往在开发末期才被引入，导致性能问题发现晚、修复成本高。TestBench 将性能测试左移（shift-left），让 Agent 在需求阶段就提取 SLA 指标，自动生成 k6/Locust/Gatling 脚本，并在每次 PR 中进行基准对比。对于 AI Streaming 应用而言，延迟是核心体验指标，这种前置策略尤为关键。</p>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="arch">
+    <div class="section-title">
+      <span class="dot" style="background:var(--green)"></span>
+      四阶段架构
+    </div>
+    <p class="section-sub">从 SLA 提取到性能仪表盘的完整管线</p>
+
+    <div class="arch-flow">
+      <div class="arch-stage">
+        <div class="stage-num">Stage 1</div>
+        <h3>Performance Profile Builder</h3>
+        <ul class="sub-items">
+          <li>SLA Extractor</li>
+          <li>Load Model Generator</li>
+          <li>Resource Budget</li>
+        </ul>
+        <div class="arch-arrow">&#8594;</div>
+      </div>
+      <div class="arch-stage">
+        <div class="stage-num">Stage 2</div>
+        <h3>Load Generation Engine</h3>
+        <ul class="sub-items">
+          <li>k6</li>
+          <li>Locust</li>
+          <li>Gatling</li>
+          <li>Custom Go</li>
+        </ul>
+        <div class="arch-arrow">&#8594;</div>
+      </div>
+      <div class="arch-stage">
+        <div class="stage-num">Stage 3</div>
+        <h3>Continuous Benchmarking</h3>
+        <ul class="sub-items">
+          <li>Git baselines</li>
+          <li>PR comparison</li>
+          <li>Profiling</li>
+          <li>Flame graph</li>
+        </ul>
+        <div class="arch-arrow">&#8594;</div>
+      </div>
+      <div class="arch-stage">
+        <div class="stage-num">Stage 4</div>
+        <h3>Performance Dashboard</h3>
+        <ul class="sub-items">
+          <li>P50 / P95 / P99</li>
+          <li>Throughput</li>
+          <li>Resource utilization</li>
+          <li>Regression alerts</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD PREVIEW -->
+  <section id="dashboard">
+    <div class="section-title">
+      <span class="dot" style="background:var(--orange)"></span>
+      性能仪表盘概览
+    </div>
+    <p class="section-sub">实时监控关键延迟百分位与吞吐量</p>
+
+    <div class="gauges">
+      <div class="gauge g-p50">
+        <div class="gauge-ring"><span class="gauge-val">P50</span></div>
+        <div class="gauge-label">120ms</div>
+      </div>
+      <div class="gauge g-p95">
+        <div class="gauge-ring"><span class="gauge-val">P95</span></div>
+        <div class="gauge-label">340ms</div>
+      </div>
+      <div class="gauge g-p99">
+        <div class="gauge-ring"><span class="gauge-val">P99</span></div>
+        <div class="gauge-label">780ms</div>
+      </div>
+      <div class="gauge g-thr">
+        <div class="gauge-ring"><span class="gauge-val">TPS</span></div>
+        <div class="gauge-label">2.4k req/s</div>
+      </div>
+    </div>
+
+    <div class="bar-chart">
+      <div class="bar-col">
+        <div class="bar-val">45ms</div>
+        <div class="bar" style="height:36px;background:var(--green);"></div>
+        <div class="bar-label">TTFT</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar-val">32 tok/s</div>
+        <div class="bar" style="height:80px;background:var(--blue);"></div>
+        <div class="bar-label">Stream</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar-val">120ms</div>
+        <div class="bar" style="height:56px;background:var(--accent);"></div>
+        <div class="bar-label">WS Reconnect</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar-val">8ms</div>
+        <div class="bar" style="height:24px;background:var(--orange);"></div>
+        <div class="bar-label">Redis Queue</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar-val">stable</div>
+        <div class="bar" style="height:100px;background:var(--pink);"></div>
+        <div class="bar-label">SSE 5min+</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESPONSIBILITY MATRIX -->
+  <section id="matrix">
+    <div class="section-title">
+      <span class="dot" style="background:var(--pink)"></span>
+      人 / Agent / 自动化 职责矩阵
+    </div>
+    <p class="section-sub">明确每个环节的责任归属，避免职责真空</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>环节</th>
+            <th>人</th>
+            <th>Agent</th>
+            <th>自动化</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>定义 SLA</td>
+            <td><span class="role-human">在 PRD 中标注性能要求</span></td>
+            <td><span class="role-agent">从 PRD 提取 SLA, 生成 k6 脚本</span></td>
+            <td class="cell-dash">&mdash;</td>
+          </tr>
+          <tr>
+            <td>基准建立</td>
+            <td class="cell-dash">&mdash;</td>
+            <td class="cell-dash">&mdash;</td>
+            <td><span class="role-auto">首次运行记录基线到 Git</span></td>
+          </tr>
+          <tr>
+            <td>PR 基准对比</td>
+            <td><span class="role-human">审核性能退化</span></td>
+            <td><span class="role-agent">分析退化原因，建议优化方向</span></td>
+            <td><span class="role-auto">CI 中运行 benchmark</span></td>
+          </tr>
+          <tr>
+            <td>负载测试</td>
+            <td><span class="role-human">设计负载模型</span></td>
+            <td><span class="role-agent">建议负载模式 (ramp-up / spike / soak)</span></td>
+            <td><span class="role-auto">k6 cloud / CI 执行</span></td>
+          </tr>
+          <tr>
+            <td>Profiling</td>
+            <td class="cell-dash">&mdash;</td>
+            <td><span class="role-agent">分析 flame graph，定位瓶颈</span></td>
+            <td><span class="role-auto">Clinic.js 自动 profiling</span></td>
+          </tr>
+          <tr>
+            <td>部署后 Smoke</td>
+            <td class="cell-dash">&mdash;</td>
+            <td class="cell-dash">&mdash;</td>
+            <td><span class="role-auto">Railway webhook &rarr; smoke test</span></td>
+          </tr>
+          <tr>
+            <td>报告</td>
+            <td><span class="role-human">决策是否优化</span></td>
+            <td><span class="role-agent">性能影响分析 + 优化建议</span></td>
+            <td><span class="role-auto">Grafana dashboard</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MIRA SCENARIOS -->
+  <section id="scenarios">
+    <div class="section-title">
+      <span class="dot" style="background:var(--cyan)"></span>
+      Mira 特有性能场景
+    </div>
+    <p class="section-sub">AI Streaming 应用独有的性能测试维度</p>
+
+    <div class="scenario-grid">
+      <div class="scenario-card">
+        <div class="sc-icon" style="color:var(--green)">&#9201;</div>
+        <h4>TTFT 首 Token 延迟</h4>
+        <p>从请求发出到接收第一个 token 的时间，直接影响用户感知的响应速度。目标 &lt; 200ms。</p>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-icon" style="color:var(--blue)">&#9889;</div>
+        <h4>Stream Throughput</h4>
+        <p>Streaming 吞吐量 (tokens/s)，衡量 AI 响应的流畅度。低于 20 tok/s 用户可感知卡顿。</p>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-icon" style="color:var(--accent2)">&#8644;</div>
+        <h4>WebSocket 重连延迟</h4>
+        <p>网络抖动后 WebSocket 自动重连的耗时。影响实时协作场景的连续性体验。</p>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-icon" style="color:var(--orange)">&#9776;</div>
+        <h4>Redis / BullMQ 入队延迟</h4>
+        <p>任务从提交到入队的延迟。高并发下队列背压可能导致任务丢失或超时。</p>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-icon" style="color:var(--pink)">&#8734;</div>
+        <h4>SSE Keep-alive 稳定性</h4>
+        <p>长程任务（&gt;5min）的 SSE 连接保活。中间件超时、CDN 断连是常见故障点。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVALUATION -->
+  <section id="eval">
+    <div class="section-title">
+      <span class="dot" style="background:var(--yellow)"></span>
+      方案评估
+    </div>
+    <p class="section-sub">优势、劣势与适用定位</p>
+
+    <div class="eval-grid">
+      <div class="eval-card eval-pros">
+        <h3>&#9650; 优势</h3>
+        <ul>
+          <li>性能 shift-left，问题在 PR 阶段即暴露</li>
+          <li>AI streaming 延迟作为核心体验指标被系统性追踪</li>
+          <li>Git baseline + PR comparison 实现持续性能守护</li>
+          <li>Flame graph 自动分析降低 profiling 门槛</li>
+        </ul>
+      </div>
+      <div class="eval-card eval-cons">
+        <h3>&#9660; 劣势</h3>
+        <ul>
+          <li>功能测试覆盖弱，不能替代 E2E 测试</li>
+          <li>基础设施成本高（负载生成集群、监控存储）</li>
+          <li>负载模型设计仍依赖人类经验</li>
+          <li>初始基线建立需要稳定环境</li>
+        </ul>
+      </div>
+      <div class="eval-card eval-scope">
+        <h3>&#9654; 适用场景</h3>
+        <ul>
+          <li>作为其他方案的性能补充模块</li>
+          <li>对延迟敏感的 AI Streaming 应用</li>
+          <li>需要持续性能回归守护的成熟项目</li>
+          <li>已有功能测试基础，需补齐性能维度</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- AGENT RATIO -->
+    <div class="ratio-bar-wrap">
+      <div class="ratio-label">Agent 占比</div>
+      <div class="ratio-val">25%</div>
+      <div class="ratio-bar">
+        <div class="ratio-fill ratio-agent">Agent 25%</div>
+        <div class="ratio-fill ratio-other">人 + 自动化 75%</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>Proposal 08 &mdash; TestBench 性能工程一体化 &nbsp;|&nbsp; QA Agent 方案系列</p>
+</footer>
+
+</body>
+</html>

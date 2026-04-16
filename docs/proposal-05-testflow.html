@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案五：CI增量+Agent审核（TestFlow）</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --bg3: #1c1f2e;
+  --card: #1e2134;
+  --card-hover: #252840;
+  --border: #2a2e45;
+  --border-hi: #3d4268;
+  --text: #c8cce0;
+  --dim: #6b7094;
+  --bright: #e8ecf8;
+  --white: #f4f5fb;
+  --blue: #5b8def;
+  --blue-bg: rgba(91,141,239,.08);
+  --green: #3dd68c;
+  --green-bg: rgba(61,214,140,.08);
+  --orange: #f0a944;
+  --orange-bg: rgba(240,169,68,.08);
+  --red: #f06060;
+  --red-bg: rgba(240,96,96,.08);
+  --purple: #a78bfa;
+  --purple-bg: rgba(167,139,250,.08);
+  --cyan: #22d3ee;
+  --cyan-bg: rgba(34,211,238,.08);
+  --pink: #f472b6;
+  --pink-bg: rgba(244,114,182,.08);
+  --yellow: #fbbf24;
+  --yellow-bg: rgba(251,191,36,.08);
+  --pipe-glow: rgba(91,141,239,.25);
+  --pipe-color: #3d5abe;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ---- NAV ---- */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,17,23,.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 52px;
+}
+nav .logo {
+  font-size: 15px; font-weight: 700; color: var(--bright);
+  display: flex; align-items: center; gap: 8px;
+}
+nav .logo .icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff;
+}
+nav .links { display: flex; gap: 6px; }
+nav .links a {
+  font-size: 12px; color: var(--dim); text-decoration: none;
+  padding: 6px 12px; border-radius: 6px; transition: all .15s;
+}
+nav .links a:hover, nav .links a.active {
+  color: var(--bright); background: var(--bg3);
+}
+nav .badge {
+  font-size: 11px; font-weight: 600; padding: 4px 10px;
+  border-radius: 12px; background: var(--blue-bg); color: var(--blue);
+  border: 1px solid rgba(91,141,239,.2);
+}
+
+/* ---- HERO ---- */
+.hero {
+  text-align: center; padding: 56px 24px 40px;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(91,141,239,.08) 0%, transparent 100%);
+}
+.hero h1 {
+  font-size: 32px; font-weight: 800; color: var(--white);
+  letter-spacing: -.5px; margin-bottom: 8px;
+}
+.hero .subtitle {
+  font-size: 15px; color: var(--dim); max-width: 560px; margin: 0 auto 24px;
+}
+.hero .pill-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.pill {
+  font-size: 11px; font-weight: 600; padding: 5px 14px;
+  border-radius: 20px; display: inline-flex; align-items: center; gap: 5px;
+}
+.pill.ci { background: var(--green-bg); color: var(--green); border: 1px solid rgba(61,214,140,.2); }
+.pill.agent { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(167,139,250,.2); }
+.pill.human { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(240,169,68,.2); }
+
+/* ---- PHILOSOPHY ---- */
+.philosophy {
+  max-width: 900px; margin: 0 auto; padding: 0 24px 48px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.phil-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; text-align: center; transition: border-color .2s, transform .2s;
+}
+.phil-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+.phil-card .icon { font-size: 28px; margin-bottom: 12px; }
+.phil-card h3 { font-size: 15px; color: var(--bright); margin-bottom: 6px; }
+.phil-card p { font-size: 12px; color: var(--dim); }
+.phil-card .role-tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px; margin-top: 10px;
+}
+.phil-card .role-tag.ci-tag { background: var(--green-bg); color: var(--green); }
+.phil-card .role-tag.agent-tag { background: var(--purple-bg); color: var(--purple); }
+.phil-card .role-tag.human-tag { background: var(--orange-bg); color: var(--orange); }
+
+/* ---- SECTION ---- */
+.section {
+  max-width: 960px; margin: 0 auto; padding: 0 24px 56px;
+}
+.section-title {
+  font-size: 20px; font-weight: 700; color: var(--bright);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+}
+.section-title .num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: #fff; font-size: 13px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.section-desc {
+  font-size: 13px; color: var(--dim); margin-bottom: 24px; max-width: 700px;
+}
+
+/* ---- PIPELINE ---- */
+.pipeline {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0;
+}
+.pipe-line {
+  width: 3px; height: 32px;
+  background: linear-gradient(180deg, var(--pipe-color), var(--pipe-color));
+  box-shadow: 0 0 8px var(--pipe-glow);
+  position: relative;
+}
+.pipe-line::after {
+  content: ''; position: absolute; bottom: -3px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 5px solid transparent; border-right: 5px solid transparent;
+  border-top: 6px solid var(--pipe-color);
+}
+.pipe-node {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 20px;
+  width: 100%; max-width: 640px;
+  transition: border-color .2s, box-shadow .2s;
+  position: relative;
+}
+.pipe-node:hover {
+  border-color: var(--border-hi);
+  box-shadow: 0 0 20px rgba(91,141,239,.06);
+}
+.pipe-node .node-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.pipe-node .node-head h4 {
+  font-size: 14px; font-weight: 700; color: var(--bright);
+}
+.pipe-node .node-body {
+  font-size: 12px; color: var(--dim); line-height: 1.7;
+}
+.pipe-node .node-body code {
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--cyan);
+  background: rgba(34,211,238,.06); padding: 1px 5px; border-radius: 3px;
+}
+.tag {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; padding: 2px 8px; border-radius: 4px;
+  display: inline-block;
+}
+.tag.auto { background: var(--green-bg); color: var(--green); border: 1px solid rgba(61,214,140,.15); }
+.tag.ai { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(167,139,250,.15); }
+.tag.mix { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(91,141,239,.15); }
+
+/* pipe split / merge */
+.pipe-split {
+  display: flex; width: 100%; max-width: 640px;
+  position: relative; gap: 12px;
+}
+.pipe-split::before {
+  content: ''; position: absolute; top: 0; left: 15%; right: 15%;
+  height: 3px; background: var(--pipe-color); box-shadow: 0 0 8px var(--pipe-glow);
+}
+.pipe-branch {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  position: relative; padding-top: 16px;
+}
+.pipe-branch::before {
+  content: ''; position: absolute; top: 0; width: 3px; height: 16px;
+  background: var(--pipe-color);
+}
+
+/* ---- MATRIX TABLE ---- */
+.matrix-wrap {
+  overflow-x: auto; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--card);
+}
+table.matrix {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+table.matrix th {
+  background: var(--bg3); color: var(--bright); font-weight: 700;
+  padding: 12px 14px; text-align: left; white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+table.matrix th:first-child { border-radius: 11px 0 0 0; }
+table.matrix th:last-child { border-radius: 0 11px 0 0; }
+table.matrix td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+table.matrix tr:last-child td { border-bottom: none; }
+table.matrix tr:hover td { background: rgba(91,141,239,.03); }
+table.matrix td:first-child {
+  font-weight: 600; color: var(--bright); white-space: nowrap;
+}
+table.matrix .cell-human { color: var(--orange); }
+table.matrix .cell-agent { color: var(--purple); }
+table.matrix .cell-auto { color: var(--green); }
+table.matrix .cell-none { color: var(--dim); font-style: italic; }
+
+/* ---- COLLAB SECTION ---- */
+.collab-diagram {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; flex-wrap: wrap; padding: 24px 0;
+}
+.collab-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 24px; text-align: center;
+  min-width: 180px; transition: border-color .2s;
+}
+.collab-box:hover { border-color: var(--border-hi); }
+.collab-box h4 { font-size: 14px; color: var(--bright); margin-bottom: 4px; }
+.collab-box p { font-size: 11px; color: var(--dim); }
+.collab-box.tf { border-color: var(--green); border-width: 2px; }
+.collab-box.qa { border-color: var(--purple); border-width: 2px; }
+.collab-arrow {
+  font-size: 20px; color: var(--dim);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.collab-arrow span { font-size: 10px; color: var(--dim); }
+
+/* ---- PROS / CONS ---- */
+.eval-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.eval-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+}
+.eval-card h4 {
+  font-size: 14px; font-weight: 700; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.eval-card h4.pros { color: var(--green); }
+.eval-card h4.cons { color: var(--red); }
+.eval-card ul { list-style: none; }
+.eval-card li {
+  font-size: 12px; color: var(--dim); padding: 4px 0;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.eval-card li::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%; margin-top: 6px; flex-shrink: 0;
+}
+.eval-card.pro li::before { background: var(--green); }
+.eval-card.con li::before { background: var(--red); }
+
+/* ---- GAUGE ---- */
+.gauge-row {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 24px;
+}
+.gauge-bar {
+  flex: 1; height: 12px; background: var(--bg2);
+  border-radius: 6px; overflow: hidden; position: relative;
+}
+.gauge-fill {
+  height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  box-shadow: 0 0 10px rgba(167,139,250,.3);
+  transition: width .6s ease;
+}
+.gauge-label { font-size: 13px; color: var(--dim); white-space: nowrap; }
+.gauge-value { font-size: 22px; font-weight: 800; color: var(--purple); min-width: 60px; text-align: right; }
+
+/* ---- SCENARIO ---- */
+.scenario-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 24px; margin-top: 16px;
+}
+.scenario-card h4 { font-size: 14px; color: var(--bright); margin-bottom: 8px; }
+.scenario-card p { font-size: 12px; color: var(--dim); }
+
+/* ---- FOOTER ---- */
+footer {
+  text-align: center; padding: 32px 24px;
+  font-size: 11px; color: var(--dim);
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 680px) {
+  .philosophy { grid-template-columns: 1fr; }
+  .eval-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 24px; }
+  .collab-diagram { flex-direction: column; }
+  .collab-arrow { transform: rotate(90deg); }
+  nav .links { display: none; }
+  .pipe-split { flex-direction: column; }
+  .pipe-split::before { display: none; }
+  .pipe-branch::before { display: none; }
+  .pipe-branch { padding-top: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="icon">TF</div>
+    TestFlow 方案
+  </div>
+  <div class="links">
+    <a href="#philosophy">核心理念</a>
+    <a href="#pipeline">架构流水线</a>
+    <a href="#matrix">职责矩阵</a>
+    <a href="#collab">协同关系</a>
+    <a href="#eval">评估</a>
+  </div>
+  <span class="badge">方案五 / Agent 35%</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>CI 增量 + Agent 审核（TestFlow）</h1>
+  <p class="subtitle">CI 做重活（检测、执行、报告），Agent 做智慧活（生成、分析、决策），人做判断活（审核、验收）</p>
+  <div class="pill-row">
+    <span class="pill ci">CI 自动化 &mdash; 检测 / 执行 / 报告</span>
+    <span class="pill agent">Agent 智能 &mdash; 生成 / 分析 / 决策</span>
+    <span class="pill human">人工判断 &mdash; 审核 / 验收</span>
+  </div>
+</div>
+
+<!-- PHILOSOPHY -->
+<section id="philosophy" class="section">
+  <div class="section-title"><span class="num">1</span> 核心理念</div>
+  <p class="section-desc">三层分工：自动化承担繁重的检测与执行，Agent 提供智能洞察与建议，人保留最终决策权。</p>
+  <div class="philosophy">
+    <div class="phil-card">
+      <div class="icon">&#9881;</div>
+      <h3>CI 做重活</h3>
+      <p>变更影响分析、选择性测试执行、覆盖率报告生成、质量门禁拦截</p>
+      <span class="role-tag ci-tag">AUTOMATION</span>
+    </div>
+    <div class="phil-card">
+      <div class="icon">&#129302;</div>
+      <h3>Agent 做智慧活</h3>
+      <p>分析 diff + 缺口生成测试建议、失败根因分析、修复方案推荐</p>
+      <span class="role-tag agent-tag">AGENT 35%</span>
+    </div>
+    <div class="phil-card">
+      <div class="icon">&#128100;</div>
+      <h3>人做判断活</h3>
+      <p>审核 PR comment 中的建议、一键采纳或编辑、设定质量规则、决定修复方案</p>
+      <span class="role-tag human-tag">HUMAN-IN-LOOP</span>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline" class="section">
+  <div class="section-title"><span class="num">2</span> 架构流水线</div>
+  <p class="section-desc">从 GitHub PR Event 出发，经过增量分析、智能生成、选择性执行，到最终覆盖报告。</p>
+
+  <div class="pipeline">
+
+    <!-- Stage 1: PR Event -->
+    <div class="pipe-node">
+      <div class="node-head">
+        <span class="tag auto">TRIGGER</span>
+        <h4>GitHub PR Event</h4>
+      </div>
+      <div class="node-body">开发者提交 PR，触发 CI 流水线。所有后续步骤围绕此 PR 展开。</div>
+    </div>
+
+    <div class="pipe-line"></div>
+
+    <!-- Stage 2: Analysis (4 parallel) -->
+    <div class="pipe-node">
+      <div class="node-head">
+        <span class="tag auto">AUTO</span>
+        <h4>增量分析引擎</h4>
+      </div>
+      <div class="node-body" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+        <div style="background:var(--bg2);border-radius:8px;padding:10px;">
+          <div style="font-weight:700;color:var(--cyan);font-size:11px;margin-bottom:4px;">Diff Analyzer</div>
+          <div style="font-size:11px;">解析 PR 中每个文件的变更行与变更类型</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:10px;">
+          <div style="font-weight:700;color:var(--cyan);font-size:11px;margin-bottom:4px;">Dependency Graph</div>
+          <div style="font-size:11px;">构建模块间 import 依赖图谱</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:10px;">
+          <div style="font-weight:700;color:var(--cyan);font-size:11px;margin-bottom:4px;">Test Impact Analyzer</div>
+          <div style="font-size:11px;">基于依赖图确定受影响的测试集</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:10px;">
+          <div style="font-weight:700;color:var(--cyan);font-size:11px;margin-bottom:4px;">Coverage Gap Finder</div>
+          <div style="font-size:11px;">对比 coverage diff 识别未覆盖的新增/修改代码</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-line"></div>
+
+    <!-- Stage 3: Test Generation -->
+    <div class="pipe-node">
+      <div class="node-head">
+        <span class="tag ai">AGENT</span>
+        <span class="tag" style="background:var(--orange-bg);color:var(--orange);border:1px solid rgba(240,169,68,.15);">HUMAN</span>
+        <h4>Incremental Test Generator</h4>
+      </div>
+      <div class="node-body">
+        Agent 分析 diff + 覆盖缺口，按现有测试风格生成测试建议，以 <code>PR Comment</code> 形式推送。<br>
+        支持三种生成策略：<strong style="color:var(--bright);">AI 生成</strong> / <strong style="color:var(--bright);">Template 匹配</strong> / <strong style="color:var(--bright);">PR Comment 建议</strong><br>
+        <div style="margin-top:8px;padding:8px 12px;background:var(--bg2);border-radius:6px;font-size:11px;">
+          <span style="color:var(--orange);">&#9654; 人工审核：</span>查看 PR comment 中的建议 &rarr; 一键 approve 或编辑后 approve &rarr; 自动 commit 到 PR
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-line"></div>
+
+    <!-- Stage 4: Selective Runner -->
+    <div class="pipe-node">
+      <div class="node-head">
+        <span class="tag auto">AUTO</span>
+        <h4>Selective Test Runner</h4>
+      </div>
+      <div class="node-body">
+        仅运行受影响的测试包（<code>Affected packages only</code>），基于 <code>Turborepo affected</code> + import graph 确定范围。<br>
+        大幅减少 CI 执行时间，同时保证变更区域的测试覆盖。
+      </div>
+    </div>
+
+    <div class="pipe-line"></div>
+
+    <!-- Stage 5: Coverage Report -->
+    <div class="pipe-node">
+      <div class="node-head">
+        <span class="tag auto">AUTO</span>
+        <h4>覆盖报告 + 质量门禁</h4>
+      </div>
+      <div class="node-body">
+        <code>PR comment</code> 自动更新覆盖率变化。当 <code>coverage delta &lt; 阈值</code> 时自动 block PR。<br>
+        <div style="margin-top:6px;font-size:11px;color:var(--orange);">人工设定质量门禁规则（覆盖率阈值、必须通过的测试集等）</div>
+      </div>
+    </div>
+
+    <div class="pipe-line"></div>
+
+    <!-- Stage 6: Failure Analysis -->
+    <div class="pipe-node">
+      <div class="node-head">
+        <span class="tag ai">AGENT</span>
+        <h4>失败分析 + 修复建议</h4>
+      </div>
+      <div class="node-body">
+        Agent 分析失败原因，区分 <strong style="color:var(--yellow);">Flaky</strong> / <strong style="color:var(--red);">真失败</strong> / <strong style="color:var(--dim);">环境问题</strong>。<br>
+        提供修复方案，人决定是否采纳。
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MATRIX -->
+<section id="matrix" class="section">
+  <div class="section-title"><span class="num">3</span> 人 / Agent / 自动化 职责矩阵</div>
+  <p class="section-desc">清晰定义每个环节中三方的分工，确保人始终在 loop 中拥有决策权。</p>
+
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>环节</th>
+          <th style="color:var(--orange);">&#128100; 人</th>
+          <th style="color:var(--purple);">&#129302; Agent</th>
+          <th style="color:var(--green);">&#9881; 自动化</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>提交代码</td>
+          <td class="cell-human">PR 正常开发</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-none">&mdash;</td>
+        </tr>
+        <tr>
+          <td>变更影响分析</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-auto">Turborepo affected + import graph</td>
+        </tr>
+        <tr>
+          <td>覆盖缺口识别</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-auto">coverage diff 脚本</td>
+        </tr>
+        <tr>
+          <td>测试生成建议</td>
+          <td class="cell-human">审核 PR comment 中的建议</td>
+          <td class="cell-agent">分析 diff + 缺口，按现有风格生成建议</td>
+          <td class="cell-none">&mdash;</td>
+        </tr>
+        <tr>
+          <td>采纳建议</td>
+          <td class="cell-human">一键 approve 或编辑后 approve</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-auto">approve 后自动 commit 到 PR</td>
+        </tr>
+        <tr>
+          <td>选择性执行</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-auto">只运行受影响的测试</td>
+        </tr>
+        <tr>
+          <td>覆盖报告</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-auto">PR comment 自动更新</td>
+        </tr>
+        <tr>
+          <td>质量门禁</td>
+          <td class="cell-human">设定规则</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-auto">coverage delta &lt; 阈值 block</td>
+        </tr>
+        <tr>
+          <td>失败分析</td>
+          <td class="cell-none">&mdash;</td>
+          <td class="cell-agent">分析失败原因，区分 flaky / 真失败 / 环境问题</td>
+          <td class="cell-none">&mdash;</td>
+        </tr>
+        <tr>
+          <td>修复建议</td>
+          <td class="cell-human">决定是否采纳</td>
+          <td class="cell-agent">提供修复方案</td>
+          <td class="cell-none">&mdash;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- COLLAB -->
+<section id="collab" class="section">
+  <div class="section-title"><span class="num">4</span> 与 qa_agent 的协同</div>
+  <p class="section-desc">TestFlow 在 CI 层负责单元测试的增量覆盖，qa_agent 在 Agent 层负责 E2E 测试，两者通过 GitHub PR 为纽带协同。</p>
+
+  <div class="collab-diagram">
+    <div class="collab-box tf">
+      <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">CI 层</div>
+      <h4>TestFlow</h4>
+      <p>单元测试 / 增量覆盖<br>变更影响分析 / 质量门禁</p>
+    </div>
+    <div class="collab-arrow">
+      &#8596;
+      <span>GitHub PR</span>
+    </div>
+    <div class="collab-box qa">
+      <div style="font-size:10px;font-weight:700;color:var(--purple);margin-bottom:4px;">Agent 层</div>
+      <h4>qa_agent</h4>
+      <p>E2E 测试 / 页面探查<br>CDP 驱动 / Linear 汇报</p>
+    </div>
+  </div>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;font-size:12px;color:var(--dim);margin-top:12px;">
+    <strong style="color:var(--bright);">协同方式：</strong>
+    TestFlow 检测到 PR 中的变更后，在 CI 流水线中完成单元测试增量覆盖。qa_agent 通过 <code>/qa-from-branch</code> 从同一 PR 驱动 E2E 测试。两者结果均以 PR comment 形式呈现，人在同一个 PR 页面完成审核。
+  </div>
+</section>
+
+<!-- EVAL -->
+<section id="eval" class="section">
+  <div class="section-title"><span class="num">5</span> 方案评估</div>
+
+  <!-- Agent Ratio -->
+  <div class="gauge-row" style="margin-bottom:20px;">
+    <div class="gauge-label">Agent 占比</div>
+    <div class="gauge-bar">
+      <div class="gauge-fill" style="width:35%"></div>
+    </div>
+    <div class="gauge-value">35%</div>
+  </div>
+
+  <!-- Pros & Cons -->
+  <div class="eval-grid" style="margin-bottom:20px;">
+    <div class="eval-card pro">
+      <h4 class="pros">&#10003; 优势</h4>
+      <ul>
+        <li>最低引入成本，可快速落地到现有 CI 流程</li>
+        <li>人始终在 loop 中，保持对测试质量的掌控</li>
+        <li>与 qa_agent 天然互补，CI 层 + Agent 层分工明确</li>
+        <li>增量分析大幅减少无关测试的执行时间</li>
+      </ul>
+    </div>
+    <div class="eval-card con">
+      <h4 class="cons">&#10007; 劣势</h4>
+      <ul>
+        <li>人工审核是瓶颈，高频 PR 场景下可能积压</li>
+        <li>增量分析可能遗漏间接依赖导致的回归</li>
+        <li>Agent 生成的测试建议质量依赖上下文完整度</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Scenario -->
+  <div class="scenario-card">
+    <h4>&#127919; 适用场景</h4>
+    <p>快速落地、人力有限但希望保持控制的团队。适合中小规模项目，PR 频率适中，团队希望逐步引入 AI 辅助测试而非一步到位的全自动化。</p>
+  </div>
+</section>
+
+<footer>
+  TestFlow 方案文档 &mdash; qa_agent 项目 &mdash; 2026-04-16
+</footer>
+
+</body>
+</html>

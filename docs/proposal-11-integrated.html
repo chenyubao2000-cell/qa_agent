@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal-11: 整合最优方案 - TestLadder+TestEval+TestSentinel 三合一</title>
+<style>
+:root {
+  --bg: #0a0c13;
+  --bg2: #10131e;
+  --bg3: #161929;
+  --card: #1a1e30;
+  --card-hover: #212640;
+  --border: #262b42;
+  --border-light: #363a54;
+  --text: #c9cdd8;
+  --text-dim: #7b8098;
+  --text-bright: #eaecf3;
+  --accent: #6c8aff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,.12);
+  --orange: #fbbf24;
+  --orange-dim: rgba(251,191,36,.10);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.10);
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,.10);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,.10);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,.10);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,.10);
+  --gold: #f59e0b;
+  --gold-dim: rgba(245,158,11,.10);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,.5);
+  --glow-accent: 0 0 30px rgba(108,138,255,.15);
+  --glow-green: 0 0 30px rgba(52,211,153,.12);
+  --glow-purple: 0 0 30px rgba(167,139,250,.12);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  min-height: 100vh;
+}
+
+/* ===== Top Nav ===== */
+.top-nav {
+  background: rgba(16,19,30,.92);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow-x: auto;
+}
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.nav-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.nav-inner a {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.nav-inner a:hover { background: var(--card); color: var(--text); }
+.nav-inner a.active {
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ===== Layout with Sidebar ===== */
+.page-layout {
+  display: flex;
+  max-width: 1500px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Sidebar TOC */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  padding: 24px 16px;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.sidebar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  padding-left: 8px;
+}
+.sidebar a {
+  display: block;
+  padding: 6px 12px;
+  margin: 2px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  transition: all .2s;
+  line-height: 1.5;
+}
+.sidebar a:hover { color: var(--text); background: var(--card); }
+.sidebar a.active-toc {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgba(108,138,255,.08);
+}
+.sidebar .toc-group {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.sidebar .toc-group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  padding-left: 12px;
+  margin-bottom: 4px;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 40px 48px 80px;
+}
+
+/* ===== Hero ===== */
+.hero {
+  text-align: center;
+  padding: 60px 0 48px;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(108,138,255,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  background: linear-gradient(135deg, rgba(108,138,255,.15), rgba(167,139,250,.15));
+  border: 1px solid rgba(108,138,255,.3);
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+.hero-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,211,153,.4); }
+  50% { opacity: .8; box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+}
+.hero h1 {
+  font-size: 42px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+.hero .subtitle {
+  font-size: 20px;
+  color: var(--text-dim);
+  max-width: 700px;
+  margin: 0 auto 24px;
+}
+.hero .principle-box {
+  display: inline-flex;
+  gap: 12px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--card), var(--bg3));
+  border: 1px solid var(--border-light);
+  box-shadow: var(--glow-accent);
+}
+.principle-box .p-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.principle-box .p-item .p-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.principle-box .p-sep {
+  width: 1px;
+  background: var(--border-light);
+  margin: -6px 4px;
+}
+
+/* ===== Section ===== */
+section { margin-top: 56px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.section-num {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.section-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+/* ===== Architecture Diagram ===== */
+.arch-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.arch-layer {
+  border-radius: var(--radius);
+  padding: 28px;
+  position: relative;
+  border: 1px solid;
+}
+.arch-layer-decision {
+  background: linear-gradient(135deg, rgba(251,191,36,.06), rgba(245,158,11,.03));
+  border-color: rgba(251,191,36,.2);
+}
+.arch-layer-agent {
+  background: linear-gradient(135deg, rgba(108,138,255,.06), rgba(167,139,250,.03));
+  border-color: rgba(108,138,255,.2);
+  margin-top: -1px;
+}
+.arch-layer-auto {
+  background: linear-gradient(135deg, rgba(52,211,153,.06), rgba(34,211,238,.03));
+  border-color: rgba(52,211,153,.2);
+  margin-top: -1px;
+}
+.arch-layer-tag {
+  position: absolute;
+  top: -12px;
+  left: 24px;
+  padding: 2px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.arch-layer-decision .arch-layer-tag { background: var(--orange); color: #000; }
+.arch-layer-agent .arch-layer-tag { background: var(--accent); color: #fff; }
+.arch-layer-auto .arch-layer-tag { background: var(--green); color: #000; }
+.arch-layer h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  padding-top: 6px;
+}
+.arch-layer-decision h3 { color: var(--orange); }
+.arch-layer-agent h3 { color: var(--accent); }
+.arch-layer-auto h3 { color: var(--green); }
+
+.arch-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.arch-item {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.2);
+}
+.arch-sub {
+  margin-top: 16px;
+}
+.arch-sub-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+/* Agent nodes */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.agent-node {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.25);
+  text-align: center;
+}
+.agent-node .agent-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.agent-node .agent-model {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+.model-opus { background: rgba(244,114,182,.15); color: var(--pink); }
+.model-sonnet { background: rgba(108,138,255,.15); color: var(--accent); }
+.model-haiku { background: rgba(52,211,153,.15); color: var(--green); }
+.agent-node.existing { border-color: rgba(108,138,255,.3); }
+.agent-node.new-agent { border-color: rgba(52,211,153,.4); border-style: dashed; }
+.agent-node .agent-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-top: 4px;
+  display: inline-block;
+}
+.badge-existing { background: rgba(108,138,255,.12); color: var(--accent); }
+.badge-new { background: rgba(52,211,153,.12); color: var(--green); }
+
+/* Shared capabilities */
+.shared-caps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(167,139,250,.06);
+  border: 1px dashed rgba(167,139,250,.2);
+}
+.shared-cap-tag {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: rgba(167,139,250,.1);
+  color: var(--purple);
+  border: 1px solid rgba(167,139,250,.15);
+}
+
+/* ===== Arrows between layers ===== */
+.arch-arrow {
+  text-align: center;
+  padding: 6px 0;
+  color: var(--text-dim);
+  font-size: 18px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ===== Tables ===== */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin: 20px 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  background: var(--bg3);
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-bright);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(108,138,255,.03); }
+tbody tr:nth-child(even) { background: rgba(0,0,0,.1); }
+tbody tr:nth-child(even):hover { background: rgba(108,138,255,.05); }
+.cell-person { color: var(--orange); }
+.cell-agent { color: var(--accent); }
+.cell-auto { color: var(--green); }
+.td-label {
+  font-weight: 600;
+  color: var(--text-bright);
+  white-space: nowrap;
+}
+.td-empty { color: var(--text-dim); text-align: center; }
+
+/* Model badges in table */
+.model-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ===== Cards ===== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 16px 0;
+  box-shadow: var(--shadow);
+  transition: border-color .2s, box-shadow .2s;
+}
+.card:hover {
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-lg);
+}
+.card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+}
+
+/* Grid cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+.card-grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* ===== Timeline / Roadmap ===== */
+.timeline {
+  position: relative;
+  padding-left: 40px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--red), var(--orange), var(--green));
+  border-radius: 1px;
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 32px;
+  padding: 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -33px;
+  top: 28px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid;
+}
+.timeline-p0::before { border-color: var(--red); background: var(--bg); }
+.timeline-p1::before { border-color: var(--orange); background: var(--bg); }
+.timeline-p2::before { border-color: var(--green); background: var(--bg); }
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.timeline-tag {
+  padding: 4px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.tag-p0 { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,.2); }
+.tag-p1 { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,191,36,.2); }
+.tag-p2 { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+.timeline-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+.timeline-meta {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.timeline-tasks {
+  list-style: none;
+  padding: 0;
+}
+.timeline-tasks li {
+  padding: 8px 0 8px 24px;
+  position: relative;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.timeline-tasks li:last-child { border-bottom: none; }
+.timeline-tasks li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 15px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--border-light);
+}
+.timeline-tasks .task-metric {
+  color: var(--cyan);
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+/* ===== ROI Bars ===== */
+.roi-section { margin-top: 24px; }
+.roi-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 0;
+}
+.roi-label {
+  width: 140px;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: right;
+  flex-shrink: 0;
+}
+.roi-bar-track {
+  flex: 1;
+  height: 28px;
+  background: rgba(0,0,0,.3);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.roi-bar {
+  height: 100%;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  transition: width .8s ease;
+}
+.roi-bar-cost { background: linear-gradient(90deg, rgba(248,113,113,.7), rgba(248,113,113,.4)); }
+.roi-bar-time { background: linear-gradient(90deg, rgba(108,138,255,.7), rgba(108,138,255,.4)); }
+.roi-bar-coverage { background: linear-gradient(90deg, rgba(52,211,153,.7), rgba(52,211,153,.4)); }
+.roi-bar-escape { background: linear-gradient(90deg, rgba(167,139,250,.7), rgba(167,139,250,.4)); }
+
+/* ROI evolution */
+.roi-phases {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+.roi-phase {
+  text-align: center;
+  padding: 16px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+.roi-phase-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.roi-phase-value {
+  font-size: 24px;
+  font-weight: 800;
+}
+.roi-phase-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ===== Blind Spot Cards ===== */
+.blind-spot {
+  border-left: 3px solid;
+  padding-left: 20px;
+}
+.blind-spot.stream { border-left-color: var(--cyan); }
+.blind-spot.flaky { border-left-color: var(--orange); }
+.blind-spot.mock { border-left-color: var(--pink); }
+
+/* Flow steps */
+.flow-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: center;
+  margin: 12px 0;
+}
+.flow-step {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--card);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.flow-arrow {
+  padding: 0 4px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* ===== Decision Summary ===== */
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.decision-card {
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.decision-card .d-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.decision-card .d-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.decision-card .d-detail {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ===== Tags / Pills ===== */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.tag {
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tag-unit { background: var(--cyan-dim); color: var(--cyan); }
+.tag-integ { background: var(--blue-dim); color: var(--blue); }
+.tag-stress { background: var(--red-dim); color: var(--red); }
+
+/* ===== Cost Control Chips ===== */
+.cost-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cost-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+.cost-chip-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .sidebar { display: none; }
+  .main-content { padding: 24px 20px 60px; }
+  .hero h1 { font-size: 30px; }
+  .roi-phases { grid-template-columns: repeat(2, 1fr); }
+  .hero .principle-box { flex-direction: column; gap: 8px; }
+  .hero .principle-box .p-sep { width: 60%; height: 1px; margin: 0 auto; }
+}
+@media (max-width: 640px) {
+  .agent-grid { grid-template-columns: 1fr 1fr; }
+  .decision-grid { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+}
+
+/* Scroll behavior */
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* Print */
+@media print {
+  .top-nav, .sidebar { display: none !important; }
+  .main-content { padding: 20px; }
+  body { background: #fff; color: #222; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-label">PROPOSALS</span>
+    <a href="proposal-01-testpilot.html">01 TestPilot</a>
+    <a href="proposal-02-testladder.html">02 TestLadder</a>
+    <a href="proposal-03-testmirror.html">03 TestMirror</a>
+    <a href="proposal-04-testguard.html">04 TestGuard</a>
+    <a href="#">05</a>
+    <a href="#">06</a>
+    <a href="#">07</a>
+    <a href="#">08</a>
+    <a href="#">09</a>
+    <a href="#">10</a>
+    <a href="proposal-11-integrated.html" class="active">11 Integrated</a>
+  </div>
+</nav>
+
+<div class="page-layout">
+
+<!-- Sidebar TOC -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-title">Table of Contents</div>
+  <a href="#hero">Overview</a>
+  <a href="#architecture">Complete Architecture</a>
+
+  <div class="toc-group">
+    <div class="toc-group-title">Core</div>
+    <a href="#layer-decision">Decision Layer (Human)</a>
+    <a href="#layer-agent">Intelligence Layer (Agent)</a>
+    <a href="#layer-auto">Execution Layer (Automation)</a>
+  </div>
+
+  <div class="toc-group">
+    <div class="toc-group-title">Details</div>
+    <a href="#matrix">8-Stage Responsibility Matrix</a>
+    <a href="#model-selection">Model Selection &amp; Cost</a>
+    <a href="#cost-control">Cost Control Strategies</a>
+  </div>
+
+  <div class="toc-group">
+    <div class="toc-group-title">Blind Spots</div>
+    <a href="#blind-spots">3 Critical Gaps</a>
+    <a href="#stream-bridge">StreamBridge Testing</a>
+    <a href="#flaky">Flaky Test Governance</a>
+    <a href="#mock-lifecycle">Mock Data Lifecycle</a>
+  </div>
+
+  <div class="toc-group">
+    <div class="toc-group-title">Roadmap</div>
+    <a href="#roadmap">Phased Roadmap</a>
+    <a href="#p0">P0: Weeks 1-2</a>
+    <a href="#p1">P1: Weeks 3-6</a>
+    <a href="#p2">P2: Weeks 7-14</a>
+  </div>
+
+  <div class="toc-group">
+    <div class="toc-group-title">Results</div>
+    <a href="#roi">ROI Analysis</a>
+    <a href="#decisions">Key Decisions Summary</a>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+
+<!-- Hero -->
+<header class="hero" id="hero">
+  <div class="hero-badge"><span class="dot"></span> PROPOSAL #11 - FINAL INTEGRATED PLAN</div>
+  <h1>TestLadder + TestEval + TestSentinel</h1>
+  <p class="subtitle">三合一整合最优方案 -- 将测试分层、AI评估、全链路监控统一为一个完整体系</p>
+  <div class="principle-box">
+    <div class="p-item">
+      <div class="p-icon" style="background:var(--orange-dim);">
+        <span style="color:var(--orange)">&#9881;</span>
+      </div>
+      <span style="color:var(--orange)">Human Makes Decisions</span>
+    </div>
+    <div class="p-sep"></div>
+    <div class="p-item">
+      <div class="p-icon" style="background:var(--blue-dim);">
+        <span style="color:var(--accent)">&#9733;</span>
+      </div>
+      <span style="color:var(--accent)">Agent Provides Intelligence</span>
+    </div>
+    <div class="p-sep"></div>
+    <div class="p-item">
+      <div class="p-icon" style="background:var(--green-dim);">
+        <span style="color:var(--green)">&#9889;</span>
+      </div>
+      <span style="color:var(--green)">Automation Executes</span>
+    </div>
+  </div>
+</header>
+
+<!-- Section 1: Architecture -->
+<section id="architecture">
+  <div class="section-header">
+    <div class="section-num" style="background:linear-gradient(135deg,var(--accent),var(--purple));">1</div>
+    <h2>Complete Three-Layer Architecture</h2>
+  </div>
+
+  <div class="arch-container">
+
+    <!-- Decision Layer -->
+    <div class="arch-layer arch-layer-decision" id="layer-decision">
+      <div class="arch-layer-tag">DECISION LAYER</div>
+      <h3>Human -- Decide &amp; Govern</h3>
+      <div class="arch-sub">
+        <div class="arch-sub-title">Core Responsibilities</div>
+        <div class="arch-items">
+          <div class="arch-item" style="border-color:rgba(251,191,36,.2);">Compose PRD / Submit Issues</div>
+          <div class="arch-item" style="border-color:rgba(251,191,36,.2);">Define SLA Targets</div>
+          <div class="arch-item" style="border-color:rgba(251,191,36,.2);">Maintain Eval Rubric</div>
+          <div class="arch-item" style="border-color:rgba(251,191,36,.2);">Set Quality Thresholds</div>
+        </div>
+      </div>
+      <div class="arch-sub">
+        <div class="arch-sub-title">Review & Approve</div>
+        <div class="arch-items">
+          <div class="arch-item" style="border-color:rgba(251,191,36,.15);">Review Agent Test Suggestions</div>
+          <div class="arch-item" style="border-color:rgba(251,191,36,.15);">Confirm Bug Classifications</div>
+          <div class="arch-item" style="border-color:rgba(251,191,36,.15);">Decide Rollback / Continue</div>
+          <div class="arch-item" style="border-color:rgba(251,191,36,.15);">Accept Key Business Scenarios</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">&#11015;</div>
+
+    <!-- Agent Layer -->
+    <div class="arch-layer arch-layer-agent" id="layer-agent">
+      <div class="arch-layer-tag">INTELLIGENCE LAYER</div>
+      <h3>Agent (Claude Code) -- Analyze &amp; Generate</h3>
+
+      <div class="arch-sub">
+        <div class="arch-sub-title">Existing qa_agent (Reuse)</div>
+        <div class="agent-grid">
+          <div class="agent-node existing">
+            <div class="agent-name">e2e-orchestrator</div>
+            <div class="agent-model model-opus">opus</div><br>
+            <span class="agent-badge badge-existing">EXISTING</span>
+          </div>
+          <div class="agent-node existing">
+            <div class="agent-name">test-executor</div>
+            <div class="agent-model model-sonnet">sonnet</div><br>
+            <span class="agent-badge badge-existing">EXISTING</span>
+          </div>
+          <div class="agent-node existing">
+            <div class="agent-name">report-analyzer</div>
+            <div class="agent-model model-sonnet">sonnet</div><br>
+            <span class="agent-badge badge-existing">EXISTING</span>
+          </div>
+          <div class="agent-node existing">
+            <div class="agent-name">bug-reporter</div>
+            <div class="agent-model model-sonnet">sonnet</div><br>
+            <span class="agent-badge badge-existing">EXISTING</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-sub">
+        <div class="arch-sub-title">New Agents</div>
+        <div class="agent-grid">
+          <div class="agent-node new-agent">
+            <div class="agent-name">unit-test-agent</div>
+            <div class="agent-model model-opus">opus</div><br>
+            <span class="agent-badge badge-new">NEW</span>
+          </div>
+          <div class="agent-node new-agent">
+            <div class="agent-name">eval-agent</div>
+            <div class="agent-model model-sonnet">sonnet</div><br>
+            <span class="agent-badge badge-new">NEW</span>
+          </div>
+          <div class="agent-node new-agent">
+            <div class="agent-name">sentinel-agent</div>
+            <div class="agent-model model-haiku">haiku</div><br>
+            <span class="agent-badge badge-new">NEW</span>
+          </div>
+          <div class="agent-node new-agent">
+            <div class="agent-name">mock-advisor</div>
+            <div class="agent-model model-haiku">haiku</div><br>
+            <span class="agent-badge badge-new">NEW</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shared-caps">
+        <span style="font-size:12px;color:var(--text-dim);margin-right:8px;font-weight:600;">Shared Capabilities:</span>
+        <span class="shared-cap-tag">Requirement Understanding</span>
+        <span class="shared-cap-tag">Code Analysis</span>
+        <span class="shared-cap-tag">Failure Attribution (TEST_ISSUE / POSSIBLE_BUG / FLAKY)</span>
+        <span class="shared-cap-tag">Cost Optimization (opus &rarr; sonnet &rarr; haiku)</span>
+      </div>
+    </div>
+
+    <div class="arch-arrow">&#11015;</div>
+
+    <!-- Automation Layer -->
+    <div class="arch-layer arch-layer-auto" id="layer-auto">
+      <div class="arch-layer-tag">EXECUTION LAYER</div>
+      <h3>Automation (CI / Scripts) -- Execute &amp; Report</h3>
+
+      <div class="arch-sub">
+        <div class="arch-sub-title">GitHub Actions (Existing + Enhanced)</div>
+        <div class="arch-items">
+          <div class="arch-item" style="border-color:rgba(52,211,153,.2);">test / build / lint / security</div>
+          <div class="arch-item" style="border-color:rgba(52,211,153,.3);border-style:dashed;">+ test-flow.yml</div>
+          <div class="arch-item" style="border-color:rgba(52,211,153,.3);border-style:dashed;">+ eval.yml</div>
+        </div>
+      </div>
+      <div class="arch-sub">
+        <div class="arch-sub-title">qa_agent Automation</div>
+        <div class="arch-items">
+          <div class="arch-item" style="border-color:rgba(52,211,153,.2);">git-watcher</div>
+          <div class="arch-item" style="border-color:rgba(52,211,153,.2);">Playwright Runner</div>
+          <div class="arch-item" style="border-color:rgba(52,211,153,.2);">Linear API</div>
+        </div>
+      </div>
+      <div class="arch-sub">
+        <div class="arch-sub-title">Monitoring</div>
+        <div class="arch-items">
+          <div class="arch-item" style="border-color:rgba(34,211,238,.2);">Sentry Webhook</div>
+          <div class="arch-item" style="border-color:rgba(34,211,238,.2);">Langfuse Cron</div>
+          <div class="arch-item" style="border-color:rgba(34,211,238,.2);">Railway Webhook</div>
+          <div class="arch-item" style="border-color:rgba(34,211,238,.2);">Drizzle Diff</div>
+        </div>
+      </div>
+      <div class="arch-sub">
+        <div class="arch-sub-title">Infrastructure</div>
+        <div class="arch-items">
+          <div class="arch-item" style="border-color:rgba(96,165,250,.2);">mock-server (Hono)</div>
+          <div class="arch-item" style="border-color:rgba(96,165,250,.2);">k6 Load Testing</div>
+          <div class="arch-item" style="border-color:rgba(96,165,250,.2);">Docker Sandbox</div>
+          <div class="arch-item" style="border-color:rgba(96,165,250,.2);">Turborepo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Responsibility Matrix -->
+<section id="matrix">
+  <div class="section-header">
+    <div class="section-num" style="background:linear-gradient(135deg,var(--orange),var(--red));">2</div>
+    <h2>Unified 8-Stage Responsibility Matrix</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:120px;">Stage</th>
+          <th style="color:var(--orange);">Human (Decision)</th>
+          <th style="color:var(--accent);">Agent (Intelligence)</th>
+          <th style="color:var(--green);">Automation (Execution)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-label">1. Requirement Analysis</td>
+          <td class="cell-person">Compose PRD, submit Issues, define SLA</td>
+          <td class="cell-agent">Parse PRD/Issue to extract test intent; identify uncovered scenarios from Langfuse traces</td>
+          <td class="cell-auto">git-watcher monitors PR and auto-triggers</td>
+        </tr>
+        <tr>
+          <td class="td-label">2. Test Case Design</td>
+          <td class="cell-person">Review key business cases (first time + spot checks)</td>
+          <td class="cell-agent">Generate cases using 6 design methods; classify by Tier 1-4; suggest eval rubrics</td>
+          <td class="td-empty">&mdash;</td>
+        </tr>
+        <tr>
+          <td class="td-label">3. Test Writing</td>
+          <td class="cell-person">Review test suggestions in PR comments (one-click approve)</td>
+          <td class="cell-agent">unit-test-agent generates Vitest; e2e-orchestrator generates Playwright; eval-agent generates eval datasets</td>
+          <td class="td-empty">&mdash;</td>
+        </tr>
+        <tr>
+          <td class="td-label">4. Mock / Instrumentation</td>
+          <td class="cell-person">Review mock accuracy (first-time config)</td>
+          <td class="cell-agent">mock-advisor analyzes external deps &rarr; generates config; LLM mock record/replay; StreamBridge specialized mock</td>
+          <td class="cell-auto">mock-server start/stop; MSW handler injection; MockLanguageModelV2</td>
+        </tr>
+        <tr>
+          <td class="td-label">5. Test Execution</td>
+          <td class="td-empty">&mdash;</td>
+          <td class="td-empty">&mdash;</td>
+          <td class="cell-auto">Vitest/Playwright/k6 run in CI; Turborepo affected selective execution; sandbox isolation</td>
+        </tr>
+        <tr>
+          <td class="td-label">6. Result Analysis</td>
+          <td class="cell-person">Confirm bug classifications; review anomalous eval scores</td>
+          <td class="cell-agent">report-analyzer 3-class attribution; eval-agent trend analysis + regression detection; Flaky governance: stats &rarr; isolate &rarr; root cause</td>
+          <td class="cell-auto">Coverage report; eval scores to DB; flaky auto-isolation</td>
+        </tr>
+        <tr>
+          <td class="td-label">7. Defect Location</td>
+          <td class="cell-person">Determine fix priority</td>
+          <td class="cell-agent">Sentry stack trace &rarr; AST locate &rarr; correlate tests; failing test &rarr; code diff &rarr; suggest fix</td>
+          <td class="cell-auto">Sentry webhook trigger; source map parsing</td>
+        </tr>
+        <tr>
+          <td class="td-label">8. Monitoring &amp; Alerting</td>
+          <td class="cell-person">Set thresholds and alert rules; decide rollback/continue</td>
+          <td class="cell-agent">sentinel-agent monitors all platforms; low eval score &rarr; root cause &rarr; suggest action; smoke fail &rarr; suggest rollback</td>
+          <td class="cell-auto">Sentry/Langfuse/Railway/DB webhooks and crons</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Section 3: Model Selection -->
+<section id="model-selection">
+  <div class="section-header">
+    <div class="section-num" style="background:linear-gradient(135deg,var(--pink),var(--purple));">3</div>
+    <h2>Agent Model Selection &amp; Cost Control</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Task Type</th>
+          <th>Default Model</th>
+          <th>Downgrade Condition</th>
+          <th>Downgrade To</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-label">Complex business logic test generation</td>
+          <td><span class="model-tag model-opus">opus</span></td>
+          <td class="td-empty">&mdash;</td>
+          <td class="td-empty">&mdash;</td>
+        </tr>
+        <tr>
+          <td class="td-label">Simple pure function test</td>
+          <td><span class="model-tag model-sonnet">sonnet</span></td>
+          <td>Function &lt;20 lines, no external deps</td>
+          <td><span class="model-tag model-haiku">haiku</span></td>
+        </tr>
+        <tr>
+          <td class="td-label">E2E test case design</td>
+          <td><span class="model-tag model-opus">opus</span></td>
+          <td class="td-empty">&mdash;</td>
+          <td class="td-empty">&mdash;</td>
+        </tr>
+        <tr>
+          <td class="td-label">Execution + result collection</td>
+          <td><span class="model-tag model-sonnet">sonnet</span></td>
+          <td class="td-empty">&mdash;</td>
+          <td><span class="model-tag model-haiku">haiku</span></td>
+        </tr>
+        <tr>
+          <td class="td-label">Report analysis</td>
+          <td><span class="model-tag model-sonnet">sonnet</span></td>
+          <td class="td-empty">&mdash;</td>
+          <td class="td-empty">&mdash;</td>
+        </tr>
+        <tr>
+          <td class="td-label">Monitoring polling + trigger decisions</td>
+          <td><span class="model-tag model-haiku">haiku</span></td>
+          <td class="td-empty">&mdash;</td>
+          <td class="td-empty">&mdash;</td>
+        </tr>
+        <tr>
+          <td class="td-label">LLM-as-Judge eval</td>
+          <td><span class="model-tag model-sonnet">sonnet</span></td>
+          <td>Simple rubric</td>
+          <td><span class="model-tag model-haiku">haiku</span></td>
+        </tr>
+        <tr>
+          <td class="td-label">Mock configuration generation</td>
+          <td><span class="model-tag model-haiku">haiku</span></td>
+          <td class="td-empty">&mdash;</td>
+          <td class="td-empty">&mdash;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cost Control Strategies -->
+  <div id="cost-control" style="margin-top:32px;">
+    <h3 style="font-size:18px;color:var(--text-bright);margin-bottom:16px;">Cost Control Strategies</h3>
+    <div class="cost-chips">
+      <div class="cost-chip">
+        <div class="cost-chip-icon" style="background:var(--cyan-dim);color:var(--cyan);">&#128190;</div>
+        <div>
+          <div style="font-weight:600;color:var(--text-bright);">Cache First</div>
+          <div style="font-size:11px;color:var(--text-dim);">Content hash dedup, skip unchanged</div>
+        </div>
+      </div>
+      <div class="cost-chip">
+        <div class="cost-chip-icon" style="background:var(--green-dim);color:var(--green);">&#916;</div>
+        <div>
+          <div style="font-weight:600;color:var(--text-bright);">Incremental Generation</div>
+          <div style="font-size:11px;color:var(--text-dim);">Only generate tests for diff</div>
+        </div>
+      </div>
+      <div class="cost-chip">
+        <div class="cost-chip-icon" style="background:var(--purple-dim);color:var(--purple);">&#9733;</div>
+        <div>
+          <div style="font-weight:600;color:var(--text-bright);">Batch API</div>
+          <div style="font-size:11px;color:var(--text-dim);">50% discount on batch requests</div>
+        </div>
+      </div>
+      <div class="cost-chip">
+        <div class="cost-chip-icon" style="background:var(--orange-dim);color:var(--orange);">&#128736;</div>
+        <div>
+          <div style="font-weight:600;color:var(--text-bright);">Template Fallback</div>
+          <div style="font-size:11px;color:var(--text-dim);">Pure functions use AST templates</div>
+        </div>
+      </div>
+      <div class="cost-chip">
+        <div class="cost-chip-icon" style="background:var(--red-dim);color:var(--red);">&#128176;</div>
+        <div>
+          <div style="font-weight:600;color:var(--text-bright);">Budget Gate</div>
+          <div style="font-size:11px;color:var(--text-dim);">Over budget &rarr; switch to execution mode</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Blind Spots -->
+<section id="blind-spots">
+  <div class="section-header">
+    <div class="section-num" style="background:linear-gradient(135deg,var(--cyan),var(--green));">4</div>
+    <h2>3 Critical Gap Supplements</h2>
+  </div>
+
+  <div class="card-grid" style="grid-template-columns: 1fr;">
+
+    <!-- StreamBridge -->
+    <div class="card blind-spot stream" id="stream-bridge">
+      <h4 style="color:var(--cyan);">Gap 1: StreamBridge Specialized Testing</h4>
+      <p style="color:var(--text-dim);margin-bottom:16px;">StreamBridge is a core infrastructure component that requires dedicated test coverage across three dimensions.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
+        <div style="padding:14px;border-radius:var(--radius-sm);background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.15);">
+          <div class="tag tag-unit" style="margin-bottom:8px;">UNIT</div>
+          <ul style="list-style:none;padding:0;font-size:13px;">
+            <li style="padding:4px 0;">waitForStream timing correctness</li>
+            <li style="padding:4px 0;">TaskContext identity consistency</li>
+            <li style="padding:4px 0;">HMR survival across reloads</li>
+            <li style="padding:4px 0;">Race condition handling</li>
+          </ul>
+        </div>
+        <div style="padding:14px;border-radius:var(--radius-sm);background:rgba(96,165,250,.04);border:1px solid rgba(96,165,250,.15);">
+          <div class="tag tag-integ" style="margin-bottom:8px;">INTEGRATION</div>
+          <ul style="list-style:none;padding:0;font-size:13px;">
+            <li style="padding:4px 0;">route &rarr; Worker &rarr; stream chain</li>
+            <li style="padding:4px 0;">usageContext propagation</li>
+            <li style="padding:4px 0;">AbortSignal propagation</li>
+          </ul>
+        </div>
+        <div style="padding:14px;border-radius:var(--radius-sm);background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);">
+          <div class="tag tag-stress" style="margin-bottom:8px;">STRESS</div>
+          <ul style="list-style:none;padding:0;font-size:13px;">
+            <li style="padding:4px 0;">Concurrent stream isolation</li>
+            <li style="padding:4px 0;">Race condition under load</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flaky -->
+    <div class="card blind-spot flaky" id="flaky">
+      <h4 style="color:var(--orange);">Gap 2: Flaky Test Governance Pipeline</h4>
+      <p style="color:var(--text-dim);margin-bottom:16px;">A complete 6-stage lifecycle for managing flaky tests, from detection to recovery.</p>
+
+      <div class="flow-steps">
+        <div class="flow-step" style="background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,.3);">
+          <strong>Detect</strong><br><span style="font-size:11px;">Record last 20 runs</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--orange-dim);color:var(--orange);border-color:rgba(251,191,36,.3);">
+          <strong>Mark</strong><br><span style="font-size:11px;">flaky_rate &gt; 10%</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(245,158,11,.3);">
+          <strong>Isolate</strong><br><span style="font-size:11px;">Separate CI job</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--blue-dim);color:var(--blue);border-color:rgba(96,165,250,.3);">
+          <strong>Analyze</strong><br><span style="font-size:11px;">Agent root cause</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);">
+          <strong>Fix</strong><br><span style="font-size:11px;">Suggest solution</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--green-dim);color:var(--green);border-color:rgba(52,211,153,.3);">
+          <strong>Verify</strong><br><span style="font-size:11px;">20x stable &rarr; restore</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mock Lifecycle -->
+    <div class="card blind-spot mock" id="mock-lifecycle">
+      <h4 style="color:var(--pink);">Gap 3: Mock Data Lifecycle Management</h4>
+      <p style="color:var(--text-dim);margin-bottom:16px;">End-to-end mock data lifecycle from creation to cleanup, with special handling for LLM mocks.</p>
+
+      <div class="flow-steps">
+        <div class="flow-step" style="background:var(--cyan-dim);color:var(--cyan);border-color:rgba(34,211,238,.3);">
+          <strong>Create</strong><br><span style="font-size:11px;">Agent analyze &rarr; fixtures</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--blue-dim);color:var(--blue);border-color:rgba(96,165,250,.3);">
+          <strong>Version</strong><br><span style="font-size:11px;">Git-controlled</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--orange-dim);color:var(--orange);border-color:rgba(251,191,36,.3);">
+          <strong>Expire Detect</strong><br><span style="font-size:11px;">Schema drift check</span>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step" style="background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,.3);">
+          <strong>Cleanup</strong><br><span style="font-size:11px;">Unreferenced &rarr; mark</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:12px;border-radius:var(--radius-sm);background:rgba(244,114,182,.05);border:1px dashed rgba(244,114,182,.2);font-size:13px;">
+        <strong style="color:var(--pink);">LLM Mock Special:</strong>
+        <span style="color:var(--text-dim);">Tagged by prompt version -- when prompt changes, mock fixtures auto-marked for regeneration.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 5: Roadmap -->
+<section id="roadmap">
+  <div class="section-header">
+    <div class="section-num" style="background:linear-gradient(135deg,var(--red),var(--orange));">5</div>
+    <h2>Phased Roadmap (P0 / P1 / P2)</h2>
+  </div>
+
+  <div class="timeline">
+
+    <!-- P0 -->
+    <div class="timeline-item timeline-p0" id="p0">
+      <div class="timeline-header">
+        <div>
+          <span class="timeline-tag tag-p0">P0 -- IMMEDIATE</span>
+          <div class="timeline-title" style="margin-top:8px;">Weeks 1-2: Quick Wins</div>
+        </div>
+        <div class="timeline-meta">~$50/mo + 0.5 person-weeks</div>
+      </div>
+      <ul class="timeline-tasks">
+        <li>
+          <strong>test-flow.yml</strong> -- Turborepo affected + coverage gap detection
+          <span class="task-metric">CI time -40%+</span>
+        </li>
+        <li>
+          <strong>AI Test Suggestions</strong> -- Claude API &rarr; PR comment, human one-click approve
+          <span class="task-metric">Adoption rate &gt;50%</span>
+        </li>
+        <li>
+          <strong>Selective Execution</strong> -- Only run tests affected by code changes
+          <span class="task-metric">CI time -40%+</span>
+        </li>
+        <li>
+          <strong>StreamBridge Dedicated Tests</strong> -- Unit + integration test suite
+          <span class="task-metric">Branch coverage &gt;80%</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- P1 -->
+    <div class="timeline-item timeline-p1" id="p1">
+      <div class="timeline-header">
+        <div>
+          <span class="timeline-tag tag-p1">P1 -- MID-TERM</span>
+          <div class="timeline-title" style="margin-top:8px;">Weeks 3-6: Core Infrastructure</div>
+        </div>
+        <div class="timeline-meta">~$170/mo + 2 person-weeks</div>
+      </div>
+      <ul class="timeline-tasks">
+        <li>
+          <strong>qa_agent integrates Mira</strong> -- E2E spec covers core user paths
+        </li>
+        <li>
+          <strong>LLM Mock Record/Replay</strong> -- AI tests with zero external API calls
+        </li>
+        <li>
+          <strong>Mock Data Lifecycle</strong> -- Expired &gt;7 days auto-alert
+        </li>
+        <li>
+          <strong>Flaky Test Governance</strong> -- Complete detection &rarr; isolation &rarr; fix pipeline
+          <span class="task-metric">Flaky rate &lt;5%</span>
+        </li>
+        <li>
+          <strong>mock-server Enhancement</strong> -- CI start/stop in &lt;3s
+        </li>
+      </ul>
+    </div>
+
+    <!-- P2 -->
+    <div class="timeline-item timeline-p2" id="p2">
+      <div class="timeline-header">
+        <div>
+          <span class="timeline-tag tag-p2">P2 -- LONG-TERM</span>
+          <div class="timeline-title" style="margin-top:8px;">Weeks 7-14: Full Capability</div>
+        </div>
+        <div class="timeline-meta">~$380/mo + 3 person-weeks &rarr; steady $280/mo + 2h/wk</div>
+      </div>
+      <ul class="timeline-tasks">
+        <li>
+          <strong>Langfuse Eval Pipeline</strong> -- Eval score trend visualization dashboard
+        </li>
+        <li>
+          <strong>Prompt Regression CI</strong> -- Prompt changes with zero silent degradation
+        </li>
+        <li>
+          <strong>Sentry Regression Tests</strong> -- New issues get regression test within 48h
+        </li>
+        <li>
+          <strong>Railway Smoke Test</strong> -- Post-deploy verification within 5 min
+        </li>
+        <li>
+          <strong>Performance Benchmarks</strong> -- k6 TTFT + throughput, degradation &gt;10% auto-alert
+        </li>
+        <li>
+          <strong>DB Migration Verification</strong> -- Data consistency validation
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Section 6: ROI -->
+<section id="roi">
+  <div class="section-header">
+    <div class="section-num" style="background:linear-gradient(135deg,var(--green),var(--cyan));">6</div>
+    <h2>ROI Analysis</h2>
+  </div>
+
+  <!-- Cost Evolution -->
+  <div class="card">
+    <h4>Monthly Cost Evolution</h4>
+    <div class="roi-phases">
+      <div class="roi-phase">
+        <div class="roi-phase-label" style="color:var(--red);">P0</div>
+        <div class="roi-phase-value" style="color:var(--red);">$50</div>
+        <div class="roi-phase-desc">Weeks 1-2</div>
+      </div>
+      <div class="roi-phase">
+        <div class="roi-phase-label" style="color:var(--orange);">P1</div>
+        <div class="roi-phase-value" style="color:var(--orange);">$170</div>
+        <div class="roi-phase-desc">Weeks 3-6</div>
+      </div>
+      <div class="roi-phase">
+        <div class="roi-phase-label" style="color:var(--blue);">P2</div>
+        <div class="roi-phase-value" style="color:var(--blue);">$380</div>
+        <div class="roi-phase-desc">Weeks 7-14</div>
+      </div>
+      <div class="roi-phase">
+        <div class="roi-phase-label" style="color:var(--green);">STEADY</div>
+        <div class="roi-phase-value" style="color:var(--green);">$280</div>
+        <div class="roi-phase-desc">Ongoing /mo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benefit Metrics -->
+  <div class="card" style="margin-top:16px;">
+    <h4>Benefit Metrics Over Time</h4>
+
+    <div class="roi-section">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Manual Test Time per PR</p>
+      <div class="roi-row">
+        <div class="roi-label">Baseline</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-time" style="width:100%;">30 min</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P0</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-time" style="width:33%;">10 min</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P1</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-time" style="width:17%;">5 min</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P2</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-time" style="width:7%;">2 min</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="roi-section">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Test Coverage</p>
+      <div class="roi-row">
+        <div class="roi-label">Baseline</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-coverage" style="width:40%;">40%</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P0</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-coverage" style="width:55%;">55%</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P1</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-coverage" style="width:65%;">65%</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P2</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-coverage" style="width:75%;">75%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="roi-section">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Bug Escape Reduction</p>
+      <div class="roi-row">
+        <div class="roi-label">Baseline</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-escape" style="width:5%;min-width:40px;">0%</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P0</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-escape" style="width:20%;">20%</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P1</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-escape" style="width:50%;">50%</div>
+        </div>
+      </div>
+      <div class="roi-row">
+        <div class="roi-label">After P2</div>
+        <div class="roi-bar-track">
+          <div class="roi-bar roi-bar-escape" style="width:70%;">70%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payback Period -->
+  <div class="card" style="margin-top:16px;">
+    <h4>Payback Period</h4>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">
+      <div style="text-align:center;padding:20px;border-radius:var(--radius-sm);background:var(--red-dim);border:1px solid rgba(248,113,113,.15);">
+        <div style="font-size:32px;font-weight:800;color:var(--red);">2 wk</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">P0 Payback</div>
+      </div>
+      <div style="text-align:center;padding:20px;border-radius:var(--radius-sm);background:var(--orange-dim);border:1px solid rgba(251,191,36,.15);">
+        <div style="font-size:32px;font-weight:800;color:var(--orange);">1.5 mo</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">P1 Payback</div>
+      </div>
+      <div style="text-align:center;padding:20px;border-radius:var(--radius-sm);background:var(--green-dim);border:1px solid rgba(52,211,153,.15);">
+        <div style="font-size:32px;font-weight:800;color:var(--green);">3 mo</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">P2 Payback</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 7: Key Decisions Summary -->
+<section id="decisions">
+  <div class="section-header">
+    <div class="section-num" style="background:linear-gradient(135deg,var(--gold),var(--orange));">7</div>
+    <h2>Key Decisions Summary</h2>
+  </div>
+
+  <div class="decision-grid">
+    <div class="decision-card">
+      <div class="d-label">Test Framework</div>
+      <div class="d-value">Vitest + Playwright + k6</div>
+      <div class="d-detail">Unit / E2E / Performance</div>
+    </div>
+    <div class="decision-card">
+      <div class="d-label">Agent Architecture</div>
+      <div class="d-value">Reuse qa_agent</div>
+      <div class="d-detail">4 existing + 4 new agents</div>
+    </div>
+    <div class="decision-card">
+      <div class="d-label">LLM Mock</div>
+      <div class="d-value">MockLanguageModelV2</div>
+      <div class="d-detail">+ Langfuse Record/Replay</div>
+    </div>
+    <div class="decision-card">
+      <div class="d-label">Eval System</div>
+      <div class="d-value">Custom on Langfuse</div>
+      <div class="d-detail">LLM-as-Judge + Trend Analysis</div>
+    </div>
+    <div class="decision-card">
+      <div class="d-label">CI/CD</div>
+      <div class="d-value">GitHub Actions Extended</div>
+      <div class="d-detail">test-flow.yml + eval.yml</div>
+    </div>
+    <div class="decision-card">
+      <div class="d-label">Monitoring</div>
+      <div class="d-value">Webhook + Cron Hybrid</div>
+      <div class="d-detail">Sentry / Langfuse / Railway / DB</div>
+    </div>
+    <div class="decision-card">
+      <div class="d-label">Sandbox</div>
+      <div class="d-value">Docker Network per Job</div>
+      <div class="d-detail">Isolated test environments</div>
+    </div>
+    <div class="decision-card">
+      <div class="d-label">Cost Control</div>
+      <div class="d-value">Model Downgrade + Cache + Batch</div>
+      <div class="d-detail">Steady state &lt; $300/mo</div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="margin-top:80px;padding:32px 0;border-top:1px solid var(--border);text-align:center;">
+  <p style="font-size:13px;color:var(--text-dim);">
+    Proposal #11 -- Integrated Optimal Plan: TestLadder + TestEval + TestSentinel
+  </p>
+  <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">
+    Generated 2026-04-16 &middot; qa_agent documentation
+  </p>
+</footer>
+
+</main>
+</div>
+
+<!-- Sidebar scroll spy -->
+<script>
+(function() {
+  const links = document.querySelectorAll('.sidebar a[href^="#"]');
+  const sections = [];
+  links.forEach(link => {
+    const id = link.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ el, link });
+  });
+
+  function update() {
+    let current = sections[0];
+    const scrollY = window.scrollY + 100;
+    for (const s of sections) {
+      if (s.el.offsetTop <= scrollY) current = s;
+    }
+    links.forEach(l => l.classList.remove('active-toc'));
+    if (current) current.link.classList.add('active-toc');
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
+</body>
+</html>

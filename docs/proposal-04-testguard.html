@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TestGuard - Contract+Mutation 确定性平台</title>
+<style>
+  :root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-card: #1c2333;
+    --bg-card-hover: #222d3f;
+    --border: #30363d;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --accent: #58a6ff;
+    --accent-glow: rgba(88,166,255,0.15);
+    --green: #3fb950;
+    --green-dim: rgba(63,185,80,0.12);
+    --orange: #d29922;
+    --orange-dim: rgba(210,153,34,0.12);
+    --red: #f85149;
+    --red-dim: rgba(248,81,73,0.12);
+    --purple: #bc8cff;
+    --purple-dim: rgba(188,140,255,0.12);
+    --shield-gold: #e8b931;
+    --shield-silver: #8899aa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", Helvetica, Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
+  }
+
+  /* Nav */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13,17,23,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  nav .logo {
+    display: flex; align-items: center; gap: .6rem;
+    font-weight: 700; font-size: 1.1rem; color: var(--text-primary);
+    text-decoration: none;
+  }
+  nav .logo .shield-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--shield-gold), #c4952a);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.83-3.4 9.36-7 10.54-3.6-1.18-7-5.71-7-10.54V6.3l7-3.12zm-1 5.82v2h2v-2h-2zm0 4v4h2v-4h-2z'/%3E%3C/svg%3E") center/contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.83-3.4 9.36-7 10.54-3.6-1.18-7-5.71-7-10.54V6.3l7-3.12zm-1 5.82v2h2v-2h-2zm0 4v4h2v-4h-2z'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  nav ul {
+    list-style: none; display: flex; gap: 1.5rem;
+  }
+  nav ul li a {
+    color: var(--text-secondary); text-decoration: none; font-size: .875rem;
+    transition: color .2s;
+  }
+  nav ul li a:hover { color: var(--text-primary); }
+
+  /* Sections */
+  .container {
+    max-width: 1100px; margin: 0 auto; padding: 0 1.5rem;
+  }
+  section { padding: 5rem 0 3rem; }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 50% 40%, rgba(232,185,49,0.08), transparent),
+      radial-gradient(ellipse 400px 300px at 30% 60%, rgba(88,166,255,0.06), transparent);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 1; }
+  .hero .big-shield {
+    width: 120px; height: 120px; margin: 0 auto 2rem;
+    background: linear-gradient(135deg, var(--shield-gold), #c4952a);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    animation: shieldPulse 3s ease-in-out infinite;
+  }
+  @keyframes shieldPulse {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(232,185,49,0.3)); }
+    50% { filter: drop-shadow(0 0 40px rgba(232,185,49,0.6)); }
+  }
+  .hero h1 {
+    font-size: 3rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--shield-gold) 0%, #f0d060 50%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: .75rem;
+  }
+  .hero .subtitle {
+    font-size: 1.25rem; color: var(--text-secondary);
+    max-width: 640px; margin: 0 auto 2rem;
+  }
+  .hero .tagline {
+    display: inline-block;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .5rem 1.5rem;
+    font-size: .9rem; color: var(--text-secondary);
+  }
+  .hero .tagline strong { color: var(--shield-gold); }
+  .hero .stats-row {
+    display: flex; justify-content: center; gap: 3rem;
+    margin-top: 2.5rem;
+  }
+  .hero .stat-item {
+    text-align: center;
+  }
+  .hero .stat-item .num {
+    font-size: 2.2rem; font-weight: 800; color: var(--shield-gold);
+  }
+  .hero .stat-item .label {
+    font-size: .8rem; color: var(--text-muted); margin-top: .2rem;
+  }
+
+  /* Section heading */
+  .section-title {
+    font-size: 1.8rem; font-weight: 700; margin-bottom: .5rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .section-title .icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .section-desc { color: var(--text-secondary); margin-bottom: 2rem; max-width: 720px; }
+
+  /* Core Idea */
+  .core-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;
+  }
+  .core-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color .25s, background .25s;
+  }
+  .core-card:hover { border-color: var(--shield-gold); background: var(--bg-card-hover); }
+  .core-card h3 {
+    font-size: 1.05rem; margin-bottom: .5rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .core-card h3 .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .core-card p { font-size: .9rem; color: var(--text-secondary); }
+
+  /* Architecture */
+  .arch-flow {
+    display: flex; align-items: stretch; gap: 0;
+    overflow-x: auto; padding: 1rem 0;
+  }
+  .arch-stage {
+    flex: 1; min-width: 220px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem; text-align: center;
+    position: relative;
+  }
+  .arch-stage h4 {
+    font-size: .95rem; color: var(--accent); margin-bottom: .75rem;
+    font-weight: 700;
+  }
+  .arch-stage .tags {
+    display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center;
+  }
+  .arch-stage .tag {
+    font-size: .75rem; padding: .2rem .6rem; border-radius: 6px;
+    background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(88,166,255,.2);
+  }
+  .arch-arrow {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 48px; color: var(--shield-gold); font-size: 1.5rem; font-weight: 700;
+  }
+
+  /* Responsibility Matrix */
+  .matrix-wrapper {
+    overflow-x: auto; border-radius: 12px; border: 1px solid var(--border);
+  }
+  .matrix-table {
+    width: 100%; border-collapse: collapse; font-size: .875rem;
+  }
+  .matrix-table th {
+    background: var(--bg-card);
+    padding: .75rem 1rem; text-align: left;
+    border-bottom: 2px solid var(--border);
+    font-weight: 700; white-space: nowrap;
+    position: sticky; top: 0;
+  }
+  .matrix-table th:first-child { border-radius: 12px 0 0 0; }
+  .matrix-table th:last-child { border-radius: 0 12px 0 0; }
+  .matrix-table td {
+    padding: .65rem 1rem; border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .matrix-table tr:last-child td { border-bottom: none; }
+  .matrix-table tr:hover td { background: var(--bg-card-hover); }
+  .matrix-table td:first-child { font-weight: 600; white-space: nowrap; }
+  .badge-human {
+    display: inline-block; font-size: .75rem; padding: .15rem .5rem; border-radius: 4px;
+    background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(188,140,255,.2);
+  }
+  .badge-agent {
+    display: inline-block; font-size: .75rem; padding: .15rem .5rem; border-radius: 4px;
+    background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(210,153,34,.2);
+  }
+  .badge-auto {
+    display: inline-block; font-size: .75rem; padding: .15rem .5rem; border-radius: 4px;
+    background: var(--green-dim); color: var(--green); border: 1px solid rgba(63,185,80,.2);
+  }
+  .cell-empty { color: var(--text-muted); }
+
+  /* Agent Minimal */
+  .agent-minimal {
+    display: flex; gap: 1.5rem; align-items: stretch; flex-wrap: wrap;
+  }
+  .agent-point {
+    flex: 1; min-width: 280px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.5rem; position: relative; overflow: hidden;
+  }
+  .agent-point::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--orange), transparent);
+  }
+  .agent-point h4 { color: var(--orange); margin-bottom: .5rem; font-size: 1rem; }
+  .agent-point p { font-size: .9rem; color: var(--text-secondary); }
+
+  .agent-bar-wrap {
+    margin-top: 2rem;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .agent-bar-label {
+    display: flex; justify-content: space-between; margin-bottom: .5rem;
+    font-size: .85rem;
+  }
+  .agent-bar {
+    height: 12px; border-radius: 6px; background: var(--bg-secondary);
+    overflow: hidden; position: relative;
+  }
+  .agent-bar .fill-auto {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 90%;
+    background: linear-gradient(90deg, var(--green), #2ea043);
+    border-radius: 6px 0 0 6px;
+  }
+  .agent-bar .fill-agent {
+    position: absolute; left: 90%; top: 0; bottom: 0; width: 10%;
+    background: linear-gradient(90deg, var(--orange), #b87d14);
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Tech Stack */
+  .stack-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;
+  }
+  .stack-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem;
+    transition: border-color .2s;
+  }
+  .stack-card:hover { border-color: var(--accent); }
+  .stack-card h4 { font-size: .95rem; color: var(--accent); margin-bottom: .5rem; }
+  .stack-card .tools {
+    display: flex; flex-wrap: wrap; gap: .4rem;
+  }
+  .stack-card .tool {
+    font-size: .8rem; padding: .2rem .65rem; border-radius: 6px;
+    background: var(--accent-glow); color: var(--accent);
+    border: 1px solid rgba(88,166,255,.15);
+  }
+
+  /* Pros/Cons */
+  .eval-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;
+  }
+  .eval-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .eval-card h4 { margin-bottom: .75rem; font-size: 1rem; }
+  .eval-card ul { list-style: none; }
+  .eval-card ul li {
+    font-size: .9rem; color: var(--text-secondary);
+    padding: .3rem 0; padding-left: 1.2rem; position: relative;
+  }
+  .eval-card ul li::before {
+    position: absolute; left: 0; font-weight: 700;
+  }
+  .eval-card.pros { border-top: 3px solid var(--green); }
+  .eval-card.pros h4 { color: var(--green); }
+  .eval-card.pros ul li::before { content: '+'; color: var(--green); }
+  .eval-card.cons { border-top: 3px solid var(--red); }
+  .eval-card.cons h4 { color: var(--red); }
+  .eval-card.cons ul li::before { content: '-'; color: var(--red); }
+  .eval-card.fit { border-top: 3px solid var(--accent); }
+  .eval-card.fit h4 { color: var(--accent); }
+  .eval-card.fit ul li::before { content: '\25B8'; color: var(--accent); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 0; text-align: center;
+    color: var(--text-muted); font-size: .8rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav ul { display: none; }
+    .hero h1 { font-size: 2rem; }
+    .hero .stats-row { gap: 1.5rem; }
+    .arch-flow { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); min-height: 32px; min-width: auto; }
+    section { padding: 3rem 0 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <a class="logo" href="#top">
+    <span class="shield-icon"></span>
+    TestGuard
+  </a>
+  <ul>
+    <li><a href="#core">核心理念</a></li>
+    <li><a href="#arch">架构</a></li>
+    <li><a href="#matrix">职责矩阵</a></li>
+    <li><a href="#agent">Agent 介入</a></li>
+    <li><a href="#stack">技术栈</a></li>
+    <li><a href="#eval">评估</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="top">
+  <div class="hero-content container">
+    <div class="big-shield"></div>
+    <h1>TestGuard</h1>
+    <p class="subtitle">Contract + Mutation 确定性质量保障平台 -- 以契约为盾，以变异为矛，守护每一行代码的确定性。</p>
+    <span class="tagline">Agent 占比 <strong>10%</strong> &mdash; 极简介入，极致确定性</span>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="num">100%</div>
+        <div class="label">确定性保障</div>
+      </div>
+      <div class="stat-item">
+        <div class="num">10%</div>
+        <div class="label">Agent 占比</div>
+      </div>
+      <div class="stat-item">
+        <div class="num">3</div>
+        <div class="label">核心引擎</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Core Idea -->
+<section id="core">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--green-dim);">&#x1f6e1;</span>
+      核心理念
+    </h2>
+    <p class="section-desc">最小化 Agent 依赖，用契约和变异测试实现确定性质量保障。Agent 仅辅助契约提取和结果解读。</p>
+    <div class="core-cards">
+      <div class="core-card">
+        <h3><span class="dot" style="background:var(--shield-gold);"></span>契约即防线</h3>
+        <p>从 OpenAPI / TypeScript Type / Drizzle Schema / gRPC Proto / GraphQL 中提取契约，形成不可逾越的质量防线。契约是自动化测试的唯一真理来源。</p>
+      </div>
+      <div class="core-card">
+        <h3><span class="dot" style="background:var(--green);"></span>变异即验证</h3>
+        <p>通过 Mutation Testing 验证测试套件的有效性。如果测试无法杀死变异体，则测试本身存在缺陷。这是测试质量的终极度量。</p>
+      </div>
+      <div class="core-card">
+        <h3><span class="dot" style="background:var(--accent);"></span>确定性优先</h3>
+        <p>所有核心环节（契约测试生成、变异测试执行、质量门禁）均为确定性自动化流程。Agent 不参与决策，仅在边缘提供辅助。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section id="arch" style="background:var(--bg-secondary);">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--accent-glow);">&#x2699;</span>
+      架构流水线
+    </h2>
+    <p class="section-desc">三阶段流水线：契约提取 &rarr; 测试生成 &rarr; 变异验证。每一阶段都有明确的输入、输出和确定性保证。</p>
+    <div class="arch-flow">
+      <div class="arch-stage">
+        <h4>Contract Extractor</h4>
+        <p style="font-size:.8rem;color:var(--text-secondary);margin-bottom:.75rem;">从多种 Schema 源提取契约</p>
+        <div class="tags">
+          <span class="tag">OpenAPI</span>
+          <span class="tag">TS Type</span>
+          <span class="tag">Drizzle Schema</span>
+          <span class="tag">gRPC Proto</span>
+          <span class="tag">GraphQL</span>
+        </div>
+      </div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-stage">
+        <h4>Test Generator</h4>
+        <p style="font-size:.8rem;color:var(--text-secondary);margin-bottom:.75rem;">基于契约自动生成测试</p>
+        <div class="tags">
+          <span class="tag">Property-Based</span>
+          <span class="tag">Contract Compliance</span>
+          <span class="tag">Boundary Value</span>
+        </div>
+      </div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-stage">
+        <h4>Mutation Engine</h4>
+        <p style="font-size:.8rem;color:var(--text-secondary);margin-bottom:.75rem;">变异测试验证测试有效性</p>
+        <div class="tags">
+          <span class="tag">Stryker (TS)</span>
+          <span class="tag">mutmut (Python)</span>
+          <span class="tag">PITest (Java)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Responsibility Matrix -->
+<section id="matrix">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--purple-dim);">&#x1f465;</span>
+      人 / Agent / 自动化 职责矩阵
+    </h2>
+    <p class="section-desc">清晰划分三方职责，Agent 仅在契约提取和存活变异体分析两个点极简介入。</p>
+    <div class="matrix-wrapper">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>环节</th>
+            <th><span class="badge-human">人</span></th>
+            <th><span class="badge-agent">Agent</span></th>
+            <th><span class="badge-auto">自动化</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>API Schema 维护</td>
+            <td>维护 OpenAPI spec</td>
+            <td>从代码提取 TS 类型 &rarr; OpenAPI</td>
+            <td>drizzle-kit introspect</td>
+          </tr>
+          <tr>
+            <td>契约测试生成</td>
+            <td class="cell-empty">&mdash;</td>
+            <td class="cell-empty">&mdash;</td>
+            <td>Pact / Specmatic 自动从 schema 生成</td>
+          </tr>
+          <tr>
+            <td>属性测试生成</td>
+            <td>定义业务不变量</td>
+            <td>从业务规则推导 fast-check properties</td>
+            <td class="cell-empty">&mdash;</td>
+          </tr>
+          <tr>
+            <td>变异测试执行</td>
+            <td class="cell-empty">&mdash;</td>
+            <td class="cell-empty">&mdash;</td>
+            <td>Stryker 自动执行</td>
+          </tr>
+          <tr>
+            <td>变异结果分析</td>
+            <td>审核存活变异体</td>
+            <td>解释存活变异体含义，建议补充测试</td>
+            <td>mutation score 报告</td>
+          </tr>
+          <tr>
+            <td>DB Schema 同步</td>
+            <td>审核 migration</td>
+            <td>检测 Drizzle schema diff &rarr; 更新 contract</td>
+            <td>migration CI 触发</td>
+          </tr>
+          <tr>
+            <td>质量门禁</td>
+            <td>设定阈值</td>
+            <td class="cell-empty">&mdash;</td>
+            <td>mutation score &lt; 阈值 block merge</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Agent Minimal -->
+<section id="agent" style="background:var(--bg-secondary);">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--orange-dim);">&#x1f916;</span>
+      Agent 极简介入
+    </h2>
+    <p class="section-desc">Agent 只在两个精确切入点介入，其余全部为确定性自动化流程。</p>
+    <div class="agent-minimal">
+      <div class="agent-point">
+        <h4>切入点 1: 契约提取</h4>
+        <p>Agent 从 TypeScript 代码中提取类型信息，转化为 OpenAPI 契约；检测 Drizzle schema diff 并更新 contract 定义。此过程为结构化转换，Agent 仅做格式映射。</p>
+      </div>
+      <div class="agent-point">
+        <h4>切入点 2: 存活变异体分析</h4>
+        <p>Mutation Testing 完成后，Agent 解释存活变异体的含义，分析测试盲区原因，并建议需要补充的测试用例。人类审核最终决策。</p>
+      </div>
+    </div>
+    <div class="agent-bar-wrap">
+      <div class="agent-bar-label">
+        <span><span class="badge-auto">自动化 90%</span></span>
+        <span><span class="badge-agent">Agent 10%</span></span>
+      </div>
+      <div class="agent-bar">
+        <div class="fill-auto"></div>
+        <div class="fill-agent"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section id="stack">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--green-dim);">&#x1f9f0;</span>
+      技术栈
+    </h2>
+    <p class="section-desc">经过验证的开源工具链，覆盖契约测试、属性测试和变异测试三大领域。</p>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <h4>契约测试</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:.75rem;">多语言消费者驱动的契约验证</p>
+        <div class="tools">
+          <span class="tool">Pact</span>
+          <span class="tool">Specmatic</span>
+          <span class="tool">OpenAPI</span>
+          <span class="tool">drizzle-kit</span>
+        </div>
+      </div>
+      <div class="stack-card">
+        <h4>属性测试</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:.75rem;">基于不变量的随机化测试生成</p>
+        <div class="tools">
+          <span class="tool">fast-check (TS/JS)</span>
+          <span class="tool">Hypothesis (Python)</span>
+        </div>
+      </div>
+      <div class="stack-card">
+        <h4>变异测试</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:.75rem;">通过代码变异验证测试套件质量</p>
+        <div class="tools">
+          <span class="tool">Stryker (TypeScript)</span>
+          <span class="tool">mutmut (Python)</span>
+          <span class="tool">PITest (Java)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Evaluation -->
+<section id="eval" style="background:var(--bg-secondary);">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--accent-glow);">&#x2696;</span>
+      方案评估
+    </h2>
+    <p class="section-desc">TestGuard 方案的优势、劣势和适用场景评估。</p>
+    <div class="eval-grid">
+      <div class="eval-card pros">
+        <h4>优势</h4>
+        <ul>
+          <li>测试质量最高 -- 变异测试是测试有效性的终极度量</li>
+          <li>Agent 成本极低 -- 仅占 10%，无需大量 LLM 调用</li>
+          <li>100% 确定性 -- 核心流程无随机性，结果完全可复现</li>
+          <li>多语言支持 -- Pact 和变异工具覆盖主流语言</li>
+        </ul>
+      </div>
+      <div class="eval-card cons">
+        <h4>劣势</h4>
+        <ul>
+          <li>需要完善的类型定义 -- 契约提取依赖良好的类型系统</li>
+          <li>Mutation Testing 运行时间长 -- 大项目可能需数小时</li>
+          <li>无法从需求直接生成测试 -- 需先有契约再有测试</li>
+          <li>初始配置成本较高 -- 需设置多个工具链</li>
+        </ul>
+      </div>
+      <div class="eval-card fit">
+        <h4>适用场景</h4>
+        <ul>
+          <li>对测试质量有极高要求的项目</li>
+          <li>代码类型化程度高（TypeScript / Java / 有完善 Schema）</li>
+          <li>微服务架构，需要强契约保证</li>
+          <li>希望最小化 AI 依赖，追求确定性保障的团队</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <p>TestGuard - Contract + Mutation 确定性质量保障平台 &bull; 方案 04</p>
+  </div>
+</footer>
+
+</body>
+</html>

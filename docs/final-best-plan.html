@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能化测试平台 — 最终可落地方案</title>
+<style>
+:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e4e4e7;--muted:#9ca3af;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--orange:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--blue:#3b82f6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7;display:flex}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Sidebar */
+.sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;background:#13151f;border-right:1px solid var(--border);overflow-y:auto;padding:20px 0;z-index:100}
+.sidebar h2{padding:0 20px;font-size:14px;color:var(--accent);margin-bottom:16px;letter-spacing:1px}
+.sidebar a{display:block;padding:8px 20px;font-size:13px;color:var(--muted);border-left:3px solid transparent;transition:.2s}
+.sidebar a:hover,.sidebar a.active{color:var(--text);background:rgba(99,102,241,.08);border-left-color:var(--accent);text-decoration:none}
+.sidebar .nav-proposals{margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+.sidebar .nav-proposals a{font-size:12px;padding:5px 20px;color:#6b7280}
+
+/* Main */
+.main{margin-left:260px;max-width:1100px;padding:40px 48px 80px}
+
+/* Hero */
+.hero{text-align:center;padding:60px 0 40px;border-bottom:1px solid var(--border);margin-bottom:48px}
+.hero .badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:16px}
+.hero h1{font-size:36px;background:linear-gradient(to right,#fff,#a5b4fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
+.hero p{color:var(--muted);font-size:16px;max-width:700px;margin:0 auto}
+.hero .principles{display:flex;gap:24px;justify-content:center;margin-top:32px;flex-wrap:wrap}
+.hero .principle{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 24px;min-width:180px}
+.hero .principle .icon{font-size:28px;margin-bottom:8px}
+.hero .principle .label{font-size:12px;color:var(--muted)}
+.hero .principle .role{font-size:15px;font-weight:600}
+
+/* Section */
+section{margin-bottom:56px}
+section h2{font-size:24px;font-weight:700;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid var(--accent);display:inline-block}
+section h3{font-size:18px;font-weight:600;margin:24px 0 12px;color:#c4b5fd}
+section h4{font-size:15px;font-weight:600;margin:16px 0 8px;color:var(--cyan)}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card-sm .title{font-weight:600;margin-bottom:6px;font-size:14px}
+.card-sm .desc{color:var(--muted);font-size:13px}
+.tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;margin:2px}
+.tag-green{background:rgba(34,197,94,.15);color:var(--green)}
+.tag-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.tag-purple{background:rgba(139,92,246,.15);color:var(--accent2)}
+.tag-orange{background:rgba(245,158,11,.15);color:var(--orange)}
+.tag-red{background:rgba(239,68,68,.15);color:var(--red)}
+.tag-cyan{background:rgba(6,182,212,.15);color:var(--cyan)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th{background:#1e2030;text-align:left;padding:12px 14px;font-weight:600;border-bottom:2px solid var(--accent);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:rgba(99,102,241,.04)}
+.col-human{color:var(--green)}
+.col-agent{color:var(--accent)}
+.col-auto{color:var(--orange)}
+
+/* Code */
+pre{background:#0d0f16;border:1px solid var(--border);border-radius:8px;padding:20px;overflow-x:auto;font-size:13px;line-height:1.6;margin:12px 0}
+code{font-family:'SF Mono',Consolas,'Liberation Mono',monospace}
+.code-label{display:inline-block;background:var(--accent);color:#fff;font-size:11px;padding:2px 10px;border-radius:4px 4px 0 0;margin-bottom:-1px;font-weight:600}
+
+/* Architecture */
+.arch{display:flex;flex-direction:column;gap:0;margin:24px 0}
+.arch-layer{border:2px solid;border-radius:14px;padding:20px 24px;position:relative}
+.arch-layer.decision{border-color:var(--green);background:rgba(34,197,94,.05)}
+.arch-layer.intelligence{border-color:var(--accent);background:rgba(99,102,241,.05)}
+.arch-layer.execution{border-color:var(--orange);background:rgba(245,158,11,.05)}
+.arch-label{position:absolute;top:-12px;left:20px;padding:2px 14px;border-radius:8px;font-size:12px;font-weight:700}
+.arch-label.lbl-green{background:var(--green);color:#000}
+.arch-label.lbl-blue{background:var(--accent);color:#fff}
+.arch-label.lbl-orange{background:var(--orange);color:#000}
+.arch-arrow{text-align:center;font-size:20px;color:var(--muted);padding:4px 0}
+.agent-chip{display:inline-block;background:#252838;border:1px solid var(--border);border-radius:8px;padding:6px 12px;margin:4px;font-size:12px}
+.agent-chip .model{font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px;font-weight:700}
+.model-opus{background:rgba(239,68,68,.2);color:var(--red)}
+.model-sonnet{background:rgba(99,102,241,.2);color:var(--accent)}
+.model-haiku{background:rgba(6,182,212,.2);color:var(--cyan)}
+.chip-new{border-color:var(--accent);border-style:dashed}
+
+/* Timeline */
+.timeline{position:relative;padding-left:32px;margin:24px 0}
+.timeline::before{content:'';position:absolute;left:14px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--green),var(--blue),var(--accent2),var(--red))}
+.timeline-item{position:relative;margin-bottom:32px}
+.timeline-dot{position:absolute;left:-25px;top:4px;width:16px;height:16px;border-radius:50%;border:3px solid}
+.timeline-dot.p0{border-color:var(--green);background:rgba(34,197,94,.3)}
+.timeline-dot.p1{border-color:var(--blue);background:rgba(59,130,246,.3)}
+.timeline-dot.p2{border-color:var(--accent2);background:rgba(139,92,246,.3)}
+.timeline-dot.p3{border-color:var(--red);background:rgba(239,68,68,.3)}
+.timeline-header{font-weight:700;font-size:16px;margin-bottom:8px}
+.timeline-meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+
+/* Progress */
+.progress-bar{background:#1e2030;border-radius:6px;height:24px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.fill-green{background:linear-gradient(90deg,#16a34a,#22c55e)}
+.fill-blue{background:linear-gradient(90deg,#2563eb,#3b82f6)}
+.fill-purple{background:linear-gradient(90deg,#7c3aed,#8b5cf6)}
+
+/* Directory Tree */
+.tree{font-family:'SF Mono',Consolas,monospace;font-size:13px;line-height:1.8;background:#0d0f16;border:1px solid var(--border);border-radius:8px;padding:20px;overflow-x:auto}
+.tree .new{color:var(--green)}
+.tree .existing{color:var(--muted)}
+.tree .comment{color:#6b7280;font-style:italic}
+
+/* Watcher */
+.watcher-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.watcher-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;transition:.2s}
+.watcher-card:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.watcher-card .freq{font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(6,182,212,.15);color:var(--cyan);margin-top:8px;display:inline-block}
+
+/* Responsive */
+@media(max-width:900px){
+.sidebar{display:none}
+.main{margin-left:0;padding:20px}
+.hero h1{font-size:24px}
+.card-grid{grid-template-columns:1fr}
+.hero .principles{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>目录导航</h2>
+  <a href="#overview">方案概述</a>
+  <a href="#architecture">整体架构</a>
+  <a href="#directory">项目目录结构</a>
+  <a href="#matrix">职责矩阵</a>
+  <a href="#test-types">测试类型全覆盖</a>
+  <a href="#mock">黑盒Mock策略</a>
+  <a href="#watchers">多平台监控守卫</a>
+  <a href="#agent-examples">Agent定义示例</a>
+  <a href="#command-examples">Command定义示例</a>
+  <a href="#ci-workflow">CI Workflow示例</a>
+  <a href="#roadmap">分阶段路线图</a>
+  <a href="#budget">成本预算</a>
+  <a href="#roi">ROI分析</a>
+  <div class="nav-proposals">
+    <a href="proposal-01-testpilot.html">方案01 TestPilot</a>
+    <a href="proposal-02-testladder.html">方案02 TestLadder</a>
+    <a href="proposal-03-testmirror.html">方案03 TestMirror</a>
+    <a href="proposal-04-testguard.html">方案04 TestGuard</a>
+    <a href="proposal-05-testflow.html">方案05 TestFlow</a>
+    <a href="proposal-06-testeval.html">方案06 TestEval</a>
+    <a href="proposal-07-testspec.html">方案07 TestSpec</a>
+    <a href="proposal-08-testbench.html">方案08 TestBench</a>
+    <a href="proposal-09-testkit.html">方案09 TestKit</a>
+    <a href="proposal-10-testsentinel.html">方案10 TestSentinel</a>
+    <a href="proposal-11-integrated.html">方案11 整合方案</a>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- ============ HERO ============ -->
+<div class="hero" id="overview">
+  <div class="badge">最终可落地方案 v1.0</div>
+  <h1>智能化测试平台 — QA Team</h1>
+  <p>基于 Claude Code + AI Agent 能力，在 qa_agent E2E 基础上扩展为全测试类型覆盖的智能化质量保障体系。经4位专家审核、11份方案筛选整合。</p>
+  <div class="principles">
+    <div class="principle"><div class="icon">👤</div><div class="label">决策层</div><div class="role" style="color:var(--green)">人做决策</div></div>
+    <div class="principle"><div class="icon">🤖</div><div class="label">智能层</div><div class="role" style="color:var(--accent)">Agent做智能</div></div>
+    <div class="principle"><div class="icon">⚙️</div><div class="label">执行层</div><div class="role" style="color:var(--orange)">自动化做执行</div></div>
+  </div>
+</div>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section id="architecture">
+<h2>一、整体架构</h2>
+
+<div class="arch">
+  <div class="arch-layer decision">
+    <div class="arch-label lbl-green">决策层 — 人</div>
+    <div style="margin-top:8px">
+      <div class="card-grid" style="margin:8px 0">
+        <div class="card-sm"><div class="title">输入端</div><div class="desc">编写PRD / 提交Linear Issue / 定义SLA / 维护eval rubric / 设定质量阈值</div></div>
+        <div class="card-sm"><div class="title">审核端</div><div class="desc">审核Agent测试建议(PR comment一键approve) / 确认Bug分类 / 决定上报回滚 / 验收关键业务</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="arch-arrow">▼</div>
+  <div class="arch-layer intelligence">
+    <div class="arch-label lbl-blue">智能层 — Agent (Claude Code)</div>
+    <div style="margin-top:8px">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:8px">已有 Agent（复用 qa_agent）</p>
+      <span class="agent-chip">e2e-orchestrator <span class="model model-opus">opus</span></span>
+      <span class="agent-chip">test-executor <span class="model model-haiku">haiku</span></span>
+      <span class="agent-chip">report-analyzer <span class="model model-sonnet">sonnet</span></span>
+      <span class="agent-chip">bug-reporter <span class="model model-sonnet">sonnet</span></span>
+      <span class="agent-chip">cdp-test-executor <span class="model model-sonnet">sonnet</span></span>
+      <p style="font-size:13px;color:var(--green);margin:12px 0 8px">新增 Agent</p>
+      <span class="agent-chip chip-new">unit-test-agent <span class="model model-opus">opus</span></span>
+      <span class="agent-chip chip-new">eval-agent <span class="model model-sonnet">sonnet</span></span>
+      <span class="agent-chip chip-new">sentinel-agent <span class="model model-haiku">haiku</span></span>
+      <span class="agent-chip chip-new">api-orchestrator <span class="model model-sonnet">sonnet</span></span>
+    </div>
+  </div>
+  <div class="arch-arrow">▼</div>
+  <div class="arch-layer execution">
+    <div class="arch-label lbl-orange">执行层 — 自动化 (CI / 脚本 / 基础设施)</div>
+    <div style="margin-top:8px">
+      <div class="card-grid" style="margin:8px 0">
+        <div class="card-sm"><div class="title">GitHub Actions</div><div class="desc">test.yml / build.yml / lint.yml + <span style="color:var(--green)">test-flow.yml(新)</span> + <span style="color:var(--green)">eval.yml(新)</span> + <span style="color:var(--green)">smoke.yml(新)</span></div></div>
+        <div class="card-sm"><div class="title">qa_agent 自动化</div><div class="desc">git-watcher(PR监控) / Playwright(E2E) / Linear API(Bug上报) / CDP(页面探查)</div></div>
+        <div class="card-sm"><div class="title">监控Webhook</div><div class="desc">Sentry webhook / Langfuse eval cron / Railway deploy hook / Drizzle migration CI</div></div>
+        <div class="card-sm"><div class="title">基础设施</div><div class="desc">mock-server(Hono) / MSW / k6(性能) / Docker sandbox / Turborepo affected</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ DIRECTORY ============ -->
+<section id="directory">
+<h2>二、项目目录结构</h2>
+<p style="color:var(--muted);margin-bottom:12px"><span class="tag tag-green">[新增]</span> 标记的是需要新建的文件/目录，其余为已有</p>
+<div class="tree">
+<pre style="background:transparent;border:none;padding:0;margin:0"><code>qa_team/
+├── CLAUDE.md                                <span class="comment"># 顶层架构说明（更新）</span>
+├── package.json                             <span class="existing"># 已有</span>
+├── .env                                     <span class="existing"># 已有（4项必填）</span>
+├── .mcp.json                                <span class="existing"># 已有（7个MCP服务）</span>
+│
+├── skills/                                  <span class="comment"># ── 能力层 ──</span>
+│   ├── cdp-explorer/                        <span class="existing"># [已有] CDP页面探查</span>
+│   ├── test-case-generator/                 <span class="existing"># [已有] 6种方法生成用例</span>
+│   ├── playwright-script-generator/         <span class="existing"># [已有] E2E脚本生成</span>
+│   ├── excel-case-export/                   <span class="existing"># [已有] Excel导出</span>
+│   ├── test-data-setup/                     <span class="existing"># [已有] 前置数据管理</span>
+│   ├── <span class="new">unit-test-generator/</span>                 <span class="comment"># [新增] 单元测试生成（Vitest/pytest）</span>
+│   ├── <span class="new">api-test-generator/</span>                  <span class="comment"># [新增] API/集成测试生成</span>
+│   ├── <span class="new">perf-test-generator/</span>                 <span class="comment"># [新增] 性能测试场景生成（k6）</span>
+│   ├── <span class="new">llm-eval-builder/</span>                    <span class="comment"># [新增] Langfuse eval dataset构建</span>
+│   └── <span class="new">mock-config-generator/</span>               <span class="comment"># [新增] Mock配置自动生成</span>
+│
+├── .claude/
+│   ├── agents/                              <span class="comment"># ── Agent层 ──</span>
+│   │   ├── e2e-orchestrator.md              <span class="existing"># [已有] E2E生成引擎 (opus)</span>
+│   │   ├── test-executor.md                 <span class="existing"># [已有] 测试执行器 (haiku)</span>
+│   │   ├── cdp-test-executor.md             <span class="existing"># [已有] CDP执行器 (sonnet)</span>
+│   │   ├── report-analyzer.md               <span class="existing"># [已有] 报告分析 (sonnet)</span>
+│   │   ├── bug-reporter.md                  <span class="existing"># [已有] Bug上报 (sonnet)</span>
+│   │   ├── <span class="new">unit-test-agent.md</span>               <span class="comment"># [新增] 单元测试增量生成 (opus)</span>
+│   │   ├── <span class="new">api-orchestrator.md</span>              <span class="comment"># [新增] API测试编排 (sonnet)</span>
+│   │   ├── <span class="new">eval-agent.md</span>                    <span class="comment"># [新增] LLM Eval评估 (sonnet)</span>
+│   │   └── <span class="new">sentinel-agent.md</span>                <span class="comment"># [新增] 多平台质量守卫 (haiku)</span>
+│   │
+│   ├── commands/                            <span class="comment"># ── 命令层（用户入口） ──</span>
+│   │   ├── qa-explore.md                    <span class="existing"># [已有] CDP探查</span>
+│   │   ├── qa-from-issue.md                 <span class="existing"># [已有] Issue驱动</span>
+│   │   ├── qa-from-branch.md                <span class="existing"># [已有] Branch驱动</span>
+│   │   ├── qa-verify-fix.md                 <span class="existing"># [已有] 修复验证</span>
+│   │   ├── qa-run-prd.md                    <span class="existing"># [已有] PRD驱动</span>
+│   │   ├── qa-gen-cases.md                  <span class="existing"># [已有] 仅生成用例</span>
+│   │   ├── qa-fix-tests.md                  <span class="existing"># [已有] 修复失败测试</span>
+│   │   ├── qa-run.md                        <span class="existing"># [已有] 执行已有测试</span>
+│   │   ├── <span class="new">qa-unit-test.md</span>                  <span class="comment"># [新增] 单元测试流水线</span>
+│   │   ├── <span class="new">qa-api-test.md</span>                   <span class="comment"># [新增] API测试流水线</span>
+│   │   ├── <span class="new">qa-perf-test.md</span>                  <span class="comment"># [新增] 性能测试流水线</span>
+│   │   ├── <span class="new">qa-eval.md</span>                       <span class="comment"># [新增] LLM Eval评估</span>
+│   │   └── <span class="new">qa-sentinel.md</span>                   <span class="comment"># [新增] 启动质量守卫</span>
+│   │
+│   ├── references/                          <span class="existing"># [已有] 11个共享文档 + 新增</span>
+│   └── templates/                           <span class="existing"># [已有] prompt模板</span>
+│
+├── scripts/
+│   ├── git-watcher.ts                       <span class="existing"># [已有] PR监控守护进程</span>
+│   ├── proxy-bootstrap.mjs                  <span class="existing"># [已有] 代理引导</span>
+│   ├── stop-watcher.sh                      <span class="existing"># [已有] 停止git-watcher</span>
+│   ├── generate-excel.js                    <span class="existing"># [已有] Excel生成</span>
+│   ├── <span class="new">sentinel-watcher.ts</span>                  <span class="comment"># [新增] 多平台监控守护进程</span>
+│   └── <span class="new">eval-cron.ts</span>                         <span class="comment"># [新增] Langfuse eval定时任务</span>
+│
+├── hooks/
+│   ├── session-start.sh                     <span class="existing"># [已有] .env校验</span>
+│   └── post-notify.sh                       <span class="existing"># [已有] Slack通知</span>
+│
+└── docs/                                    <span class="comment"># 设计文档 + 方案HTML</span>
+    ├── proposal-01 ~ 11.html                <span class="existing"># [已有] 11份方案</span>
+    └── final-best-plan.html                 <span class="comment"># [本文档]</span></code></pre>
+</div>
+</section>
+
+<!-- ============ MATRIX ============ -->
+<section id="matrix">
+<h2>三、人 / Agent / 自动化 统一职责矩阵</h2>
+
+<table>
+<thead>
+<tr><th>测试环节</th><th class="col-human">👤 人</th><th class="col-agent">🤖 Agent (Claude Code)</th><th class="col-auto">⚙️ 自动化 (CI/脚本)</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>需求输入</strong></td><td class="col-human">编写PRD、提交Linear Issue、定义SLA</td><td class="col-agent">解析PRD/Issue提取测试意图；从Langfuse trace识别未覆盖场景</td><td class="col-auto">git-watcher监听PR自动触发</td></tr>
+<tr><td><strong>用例设计</strong></td><td class="col-human">审核关键业务用例（首次+抽检）</td><td class="col-agent">6种设计方法生成用例(qa_agent)；按Tier 1-4分级；eval rubric建议</td><td class="col-auto">—</td></tr>
+<tr><td><strong>测试编写</strong></td><td class="col-human">审核PR comment建议（一键approve）</td><td class="col-agent">unit-test-agent生成Vitest；e2e-orchestrator生成Playwright；api-orchestrator生成API测试；eval-agent生成eval dataset</td><td class="col-auto">—</td></tr>
+<tr><td><strong>Mock/插桩</strong></td><td class="col-human">审核mock准确性（首次配置）</td><td class="col-agent">分析外部依赖→生成mock config；LLM mock录制回放</td><td class="col-auto">mock-server(Hono)启停；MSW handler注入；MockLanguageModelV2</td></tr>
+<tr><td><strong>测试执行</strong></td><td class="col-human">—</td><td class="col-agent">—</td><td class="col-auto">Vitest/Playwright/k6由CI执行；Turborepo affected选择性运行</td></tr>
+<tr><td><strong>结果分析</strong></td><td class="col-human">确认Bug分类；审核异常eval分数</td><td class="col-agent">report-analyzer三分类(TEST_ISSUE/POSSIBLE_BUG/FLAKY)；eval趋势分析+退化检测；Flaky根因分析</td><td class="col-auto">coverage report；eval score入库；flaky标记隔离</td></tr>
+<tr><td><strong>缺陷定位</strong></td><td class="col-human">决定修复优先级</td><td class="col-agent">从Sentry stack trace→AST定位→关联测试；建议修复方案</td><td class="col-auto">Sentry webhook触发；source map解析</td></tr>
+<tr><td><strong>监控告警</strong></td><td class="col-human">设定阈值；决策回滚/继续</td><td class="col-agent">sentinel-agent监控全平台；eval分数低→分析根因→建议行动</td><td class="col-auto">Sentry/Langfuse/Railway/DB webhook和cron</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============ TEST TYPES ============ -->
+<section id="test-types">
+<h2>四、测试类型全覆盖</h2>
+
+<div class="card-grid">
+  <div class="card-sm" style="border-top:3px solid var(--green)">
+    <div class="title">E2E测试 <span class="tag tag-green">已有</span></div>
+    <div class="desc">
+      <strong>复用qa_agent全流程</strong><br>
+      CDP探查 → 6种方法用例生成 → Playwright脚本 → 执行 → 报告分析 → Linear上报<br>
+      <strong>Agent:</strong> e2e-orchestrator(opus) + test-executor(haiku)<br>
+      <strong>命令:</strong> /qa-explore, /qa-from-issue, /qa-from-branch, /qa-run
+    </div>
+  </div>
+
+  <div class="card-sm" style="border-top:3px solid var(--accent)">
+    <div class="title">单元测试 <span class="tag tag-blue">新增P0</span></div>
+    <div class="desc">
+      <strong>增量生成：只为PR diff新增/修改代码生成</strong><br>
+      Turborepo affected分析 → coverage gap检测 → Claude API按现有规范生成 → PR comment建议<br>
+      <strong>Agent:</strong> unit-test-agent(opus)<br>
+      <strong>命令:</strong> /qa-unit-test<br>
+      <strong>框架:</strong> Vitest(TS) / pytest(Python)
+    </div>
+  </div>
+
+  <div class="card-sm" style="border-top:3px solid var(--cyan)">
+    <div class="title">API/集成测试 <span class="tag tag-cyan">新增P1</span></div>
+    <div class="desc">
+      <strong>基于API Schema + 调用链自动生成</strong><br>
+      分析OpenAPI/TS类型/Drizzle Schema → 生成HTTP请求+断言 → MSW mock外部依赖<br>
+      <strong>Agent:</strong> api-orchestrator(sonnet)<br>
+      <strong>命令:</strong> /qa-api-test
+    </div>
+  </div>
+
+  <div class="card-sm" style="border-top:3px solid var(--orange)">
+    <div class="title">性能测试 <span class="tag tag-orange">新增P2</span></div>
+    <div class="desc">
+      <strong>AI Streaming专属指标</strong><br>
+      TTFT(首Token延迟) / Stream Throughput / WebSocket重连 / SSE Keep-alive<br>
+      <strong>Agent:</strong> perf-test-generator skill<br>
+      <strong>命令:</strong> /qa-perf-test<br>
+      <strong>框架:</strong> k6 + PR级基线对比
+    </div>
+  </div>
+
+  <div class="card-sm" style="border-top:3px solid var(--accent2)">
+    <div class="title">LLM Eval <span class="tag tag-purple">新增P1</span></div>
+    <div class="desc">
+      <strong>解决AI输出不确定性问题</strong><br>
+      Langfuse trace → eval dataset → LLM-as-Judge评分 → 趋势分析 → 退化告警<br>
+      <strong>Agent:</strong> eval-agent(sonnet)<br>
+      <strong>命令:</strong> /qa-eval<br>
+      <strong>集成:</strong> Langfuse天然集成
+    </div>
+  </div>
+
+  <div class="card-sm" style="border-top:3px solid var(--red)">
+    <div class="title">监控守卫 <span class="tag tag-red">新增P2</span></div>
+    <div class="desc">
+      <strong>7×24全时在线质量守卫</strong><br>
+      Sentry/Langfuse/Railway/DB/GitHub五平台信号监控 → 异常自动触发测试/告警<br>
+      <strong>Agent:</strong> sentinel-agent(haiku)<br>
+      <strong>命令:</strong> /qa-sentinel
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ MOCK ============ -->
+<section id="mock">
+<h2>五、黑盒Mock策略（三层）</h2>
+
+<div class="card-grid">
+  <div class="card">
+    <h4>L1 — 网络层 Mock（覆盖80%场景）</h4>
+    <p><strong>工具：</strong>MSW (Mock Service Worker) + 现有 mock-server (Hono+Bun)</p>
+    <p><strong>方式：</strong>Agent分析代码中的fetch/axios调用点 → 自动生成MSW handler → CI中自动注入</p>
+    <p><strong>零侵入：</strong>不修改业务代码，在网络层拦截</p>
+  </div>
+  <div class="card">
+    <h4>L2 — LLM层 Mock（AI应用专用）</h4>
+    <p><strong>工具：</strong>Vercel AI SDK <code>MockLanguageModelV2</code> + Langfuse录制回放</p>
+    <p><strong>单元/集成测试：</strong>MockLanguageModelV2 提供确定性LLM响应（零成本）</p>
+    <p><strong>E2E测试：</strong>从Langfuse trace导出真实LLM响应 → 序列化为fixture JSONL → 回放时零API调用</p>
+    <p><strong>Eval：</strong>必须调用真实LLM（这是eval的价值所在）</p>
+  </div>
+  <div class="card">
+    <h4>L3 — 数据层 Mock</h4>
+    <p><strong>工具：</strong>Drizzle Schema → seed脚本 + fixture管理</p>
+    <p><strong>方式：</strong>从Drizzle Schema自动生成seed数据 → worker-scope fixture隔离 → 测试前seed/测试后清理</p>
+    <p><strong>复用：</strong>qa_agent的test-data-setup skill已实现3级回退（env→缓存→UI创建）</p>
+  </div>
+</div>
+</section>
+
+<!-- ============ WATCHERS ============ -->
+<section id="watchers">
+<h2>六、多平台监控守卫（Watcher模式）</h2>
+<p style="color:var(--muted);margin-bottom:16px">sentinel-agent (haiku) 作为全时在线守卫，监控五大平台质量信号，异常时升级到sonnet深入分析</p>
+
+<div class="watcher-grid">
+  <div class="watcher-card">
+    <div style="font-size:24px">🔴</div>
+    <div class="title" style="margin-top:8px">Sentry Watcher</div>
+    <div class="desc" style="font-size:12px;color:var(--muted)">新issue → 分析stack trace → 定位代码 → 自动生成回归测试PR</div>
+    <div class="freq">每5分钟轮询</div>
+  </div>
+  <div class="watcher-card">
+    <div style="font-size:24px">📊</div>
+    <div class="title" style="margin-top:8px">Langfuse Watcher</div>
+    <div class="desc" style="font-size:12px;color:var(--muted)">LLM质量趋势监控 → 分数异常时触发eval → Slack通知团队</div>
+    <div class="freq">每小时检查</div>
+  </div>
+  <div class="watcher-card">
+    <div style="font-size:24px">🚂</div>
+    <div class="title" style="margin-top:8px">Railway Watcher</div>
+    <div class="desc" style="font-size:12px;color:var(--muted)">部署事件 → warmup等待 → smoke test → 通过/建议回滚</div>
+    <div class="freq">部署事件触发</div>
+  </div>
+  <div class="watcher-card">
+    <div style="font-size:24px">🗄️</div>
+    <div class="title" style="margin-top:8px">DB Watcher</div>
+    <div class="desc" style="font-size:12px;color:var(--muted)">Drizzle migration → schema diff → 兼容性测试 → 数据一致性验证</div>
+    <div class="freq">migration CI触发</div>
+  </div>
+  <div class="watcher-card">
+    <div style="font-size:24px">🔀</div>
+    <div class="title" style="margin-top:8px">PR Watcher</div>
+    <div class="desc" style="font-size:12px;color:var(--muted)">git-watcher增强 → 检测变更类型 → 路由到对应测试Agent</div>
+    <div class="freq">PR事件触发</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ AGENT EXAMPLES ============ -->
+<section id="agent-examples">
+<h2>七、Agent定义示例</h2>
+
+<div class="code-label">unit-test-agent.md</div>
+<pre><code>---
+name: unit-test-agent
+description: 单元测试增量生成Agent。分析PR diff中的新增/修改代码，按项目已有测试规范生成Vitest/pytest单元测试建议。
+tools:
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  - Bash
+model: opus
+---
+
+# Unit Test Agent
+
+你是单元测试增量生成专家。
+
+## 输入
+- PR diff（由test-flow.yml提供）
+- 项目的测试规范文件（unit-testing.md）
+- 现有测试文件（作为风格参考）
+
+## 工作流程
+
+### Phase 1: 分析
+1. 读取PR diff，提取新增/修改的函数列表
+2. 读取项目测试规范（如果存在unit-testing.md则严格遵循）
+3. 扫描已有测试文件，学习命名规范、断言风格、mock模式
+
+### Phase 2: 生成
+对每个需要测试的函数：
+1. 分析函数签名、参数类型、返回类型、分支路径
+2. 按等价类划分设计测试用例
+3. 生成测试代码，遵循已有风格
+
+### Phase 3: 输出
+- 将测试建议格式化为PR comment（markdown代码块）
+- 标注每个测试的覆盖目标（哪个函数、哪个分支）
+- 如果函数<20行且无外部依赖，降级为sonnet模型生成
+
+## 约束
+- 不修改业务代码，只生成测试文件
+- 不生成已有测试覆盖的函数的测试
+- Mock外部依赖，不mock内部函数
+- 遵循项目已有的断言库（expect/assert）</code></pre>
+
+<div class="code-label">sentinel-agent.md</div>
+<pre><code>---
+name: sentinel-agent
+description: 多平台质量守卫。7x24监控Sentry/Langfuse/Railway/DB质量信号，异常时自动触发回归测试或告警。
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebFetch
+model: haiku
+---
+
+# Sentinel Agent
+
+你是全时在线的质量守卫。
+
+## 监控清单
+
+### Sentry（每5分钟）
+1. 调用Sentry API查询最近5分钟的新issue
+2. 对每个新issue：分析stack trace → 定位源码函数 → 检查是否有对应测试
+3. 如果无测试覆盖：生成回归测试建议 → 创建GitHub Issue或PR
+
+### Langfuse（每小时）
+1. 查询最近1小时的LLM trace统计
+2. 计算关键指标：平均评分、错误率、延迟P95、token成本
+3. 与历史基线对比，退化>10%时告警
+
+### Railway（部署事件）
+1. 收到部署webhook后等待30秒warmup
+2. 执行smoke test suite（核心路径健康检查）
+3. 通过→通知；失败→建议回滚+详细诊断
+
+### DB（migration触发）
+1. 检测Drizzle schema变更
+2. 生成schema前后兼容性测试
+3. 执行数据一致性验证
+
+## 成本控制
+- 日常轮询用haiku（低成本）
+- 发现异常后升级到sonnet深入分析
+- 每日API调用预算上限：$5</code></pre>
+
+<div class="code-label">eval-agent.md</div>
+<pre><code>---
+name: eval-agent
+description: LLM Eval评估Agent。从Langfuse trace构建eval dataset，执行LLM-as-Judge评分，监控质量趋势。
+tools:
+  - Read
+  - Write
+  - Bash
+  - WebFetch
+model: sonnet
+---
+
+# Eval Agent
+
+你是LLM质量评估专家。
+
+## 工作模式
+
+### 模式1: 构建eval dataset
+1. 从Langfuse API导出最近N条trace
+2. 提取input/output/tool_calls三元组
+3. 按rubric维度标注（质量/安全/准确性/格式/tool调用正确性）
+4. 输出为JSONL格式，存入eval-datasets/目录
+
+### 模式2: 执行eval
+1. 加载eval dataset
+2. 对每条case执行LLM-as-Judge评分（使用Claude Batch API降低成本50%）
+3. 生成评分报告：分维度得分+趋势对比+退化检测
+4. 分数低于阈值时触发告警
+
+### 模式3: Prompt回归
+1. 检测prompt文件变更（git diff）
+2. 自动触发eval对比：变更前baseline vs 变更后
+3. 输出影响评估报告
+
+## 评分维度
+- accuracy: 回答准确性（0-5）
+- safety: 安全合规（0-5）
+- format: 格式符合要求（0-5）
+- tool_use: tool调用正确性（0-5）
+- latency: 响应延迟是否达标（pass/fail）</code></pre>
+</section>
+
+<!-- ============ COMMAND EXAMPLES ============ -->
+<section id="command-examples">
+<h2>八、Command定义示例</h2>
+
+<div class="code-label">qa-unit-test.md</div>
+<pre><code>---
+description: "单元测试流水线：分析代码变更 → 生成增量单元测试 → 执行 → 报告"
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  - Bash
+  - Agent
+---
+
+# /qa-unit-test
+
+## 用法
+```
+/qa-unit-test [--target &lt;file-or-dir&gt;] [--style &lt;vitest|pytest&gt;]
+```
+
+## 流程
+
+### Step 1: 变更分析
+- 如果指定 --target：分析指定文件/目录
+- 否则：分析当前分支 vs main 的 diff
+- 输出：需要测试的函数清单 + 已有覆盖情况
+
+### Step 2: 调度 unit-test-agent
+使用 Agent 工具启动 unit-test-agent：
+- 输入：函数清单 + 项目测试规范 + 现有测试参考
+- 输出：生成的测试文件
+
+### Step 3: 执行测试
+```bash
+npx vitest run --reporter=json &lt;generated-test-files&gt;
+```
+
+### Step 4: 报告
+- 输出测试结果摘要
+- 新增覆盖率统计
+- 如果有失败：分析失败原因（测试写错 vs 代码Bug）</code></pre>
+
+<div class="code-label">qa-sentinel.md</div>
+<pre><code>---
+description: "启动质量守卫：监控Sentry/Langfuse/Railway/DB，异常时自动触发测试和告警"
+allowed-tools:
+  - Read
+  - Bash
+  - WebFetch
+  - Agent
+---
+
+# /qa-sentinel
+
+## 用法
+```
+/qa-sentinel [--platforms sentry,langfuse,railway,db] [--interval 5m]
+```
+
+## 流程
+
+### Step 1: 初始化
+- 读取 .env 中的 API Key（SENTRY_DSN, LANGFUSE_API_KEY 等）
+- 建立各平台 API 连接
+- 加载历史基线数据
+
+### Step 2: 启动 sentinel-agent
+使用 Agent 工具启动 sentinel-agent，传入：
+- 监控平台列表
+- 轮询间隔
+- 告警阈值
+
+### Step 3: 持续监控
+sentinel-agent 进入监控循环：
+- Sentry: 每5分钟查询新issue
+- Langfuse: 每小时检查eval score趋势
+- Railway: 监听部署webhook
+- DB: 监听migration事件
+
+### Step 4: 异常响应
+发现异常时：
+- 升级模型（haiku→sonnet）深入分析
+- 自动生成回归测试 / 触发smoke test
+- Slack通知 + Linear Issue创建</code></pre>
+</section>
+
+<!-- ============ CI WORKFLOW ============ -->
+<section id="ci-workflow">
+<h2>九、CI Workflow示例</h2>
+
+<div class="code-label">test-flow.yml — PR级增量测试</div>
+<pre><code>name: TestFlow - Incremental Test Analysis
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  analyze:
+    name: Diff Impact Analysis
+    runs-on: ubuntu-latest
+    outputs:
+      affected_packages: ${{ steps.affected.outputs.packages }}
+      has_coverage_gaps: ${{ steps.gaps.outputs.has_gaps }}
+      gap_files: ${{ steps.gaps.outputs.files }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Affected Package Analysis
+        id: affected
+        run: |
+          AFFECTED=$(bunx turbo run test --filter='...[origin/main...HEAD]' --dry-run=json | jq -r '.packages | join(",")')
+          echo "packages=$AFFECTED" >> $GITHUB_OUTPUT
+
+      - name: Coverage Gap Detection
+        id: gaps
+        run: |
+          # 对比diff文件和coverage，找出缺测试的新代码
+          bun run scripts/coverage-gap-detector.ts \
+            --base origin/main \
+            --head HEAD \
+            --threshold 80 \
+            --output gaps.json
+          HAS_GAPS=$(jq '.gaps | length > 0' gaps.json)
+          echo "has_gaps=$HAS_GAPS" >> $GITHUB_OUTPUT
+          echo "files=$(jq -c '.gaps' gaps.json)" >> $GITHUB_OUTPUT
+
+  suggest:
+    name: AI Test Suggestions
+    needs: analyze
+    if: needs.analyze.outputs.has_coverage_gaps == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Test Suggestions
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # Claude API 分析diff + coverage gaps → 生成测试建议
+          bun run scripts/ai-test-suggest.ts \
+            --gaps '${{ needs.analyze.outputs.gap_files }}' \
+            --style "$(cat unit-testing.md 2>/dev/null || echo 'default')" \
+            --output suggestions.md
+
+      - name: Post PR Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const suggestions = fs.readFileSync('suggestions.md', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 AI Test Suggestions\n\n${suggestions}\n\n> 审核后回复 \`/approve-tests\` 自动提交`
+            });
+
+  selective-test:
+    name: Run Affected Tests
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Run Affected Tests
+        run: |
+          bunx turbo run test \
+            --filter='...[origin/main...HEAD]' \
+            --concurrency=4
+
+      - name: Coverage Report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // 读取coverage并发PR comment
+            const report = '...coverage delta report...';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: report
+            });</code></pre>
+</section>
+
+<!-- ============ ROADMAP ============ -->
+<section id="roadmap">
+<h2>十、分阶段路线图</h2>
+
+<div class="timeline">
+  <div class="timeline-item">
+    <div class="timeline-dot p0"></div>
+    <div class="timeline-header" style="color:var(--green)">P0 — 立即落地（第1-2周）</div>
+    <div class="timeline-meta">成本：~$50/月 + 0.5人周 | 目标：PR级增量测试闭环</div>
+    <div class="card" style="border-left:3px solid var(--green)">
+      <table>
+      <tr><th>交付项</th><th>实现方式</th><th>成功标准</th></tr>
+      <tr><td>test-flow.yml</td><td>GitHub Action: Turborepo affected + coverage gap</td><td>每个PR自动识别缺测试代码</td></tr>
+      <tr><td>AI测试建议</td><td>Claude API分析diff → PR comment</td><td>建议采纳率 > 50%</td></tr>
+      <tr><td>选择性执行</td><td>turbo run test --filter='...[origin/main]'</td><td>CI时间减少40%+</td></tr>
+      </table>
+      <p style="margin-top:12px;font-size:13px"><strong>新增文件：</strong> test-flow.yml, scripts/coverage-gap-detector.ts, scripts/ai-test-suggest.ts</p>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-dot p1"></div>
+    <div class="timeline-header" style="color:var(--blue)">P1 — 中期建设（第3-6周）</div>
+    <div class="timeline-meta">成本：~$170/月 + 2人周 | 目标：E2E + Mock + Eval</div>
+    <div class="card" style="border-left:3px solid var(--blue)">
+      <table>
+      <tr><th>交付项</th><th>实现方式</th><th>成功标准</th></tr>
+      <tr><td>qa_agent接入</td><td>配置.env + git-watcher指向项目</td><td>E2E覆盖核心用户路径</td></tr>
+      <tr><td>LLM Mock录制回放</td><td>Langfuse trace → fixture JSONL → MockLanguageModelV2</td><td>AI测试零外部API调用</td></tr>
+      <tr><td>Langfuse Eval</td><td>eval-agent从trace构建dataset + LLM-as-Judge</td><td>eval score趋势可视化</td></tr>
+      <tr><td>Flaky治理</td><td>历史记录+@flaky标记+隔离job</td><td>flaky率 &lt; 5%</td></tr>
+      </table>
+      <p style="margin-top:12px;font-size:13px"><strong>新增Agent：</strong> unit-test-agent.md, eval-agent.md</p>
+      <p style="font-size:13px"><strong>新增Skill：</strong> unit-test-generator/, llm-eval-builder/</p>
+      <p style="font-size:13px"><strong>新增Command：</strong> /qa-unit-test, /qa-eval</p>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-dot p2"></div>
+    <div class="timeline-header" style="color:var(--accent2)">P2 — 长期能力（第7-14周）</div>
+    <div class="timeline-meta">成本：~$380/月 + 3人周 → 稳态$280/月 | 目标：全平台监控 + 性能</div>
+    <div class="card" style="border-left:3px solid var(--accent2)">
+      <table>
+      <tr><th>交付项</th><th>实现方式</th><th>成功标准</th></tr>
+      <tr><td>Sentry回归测试</td><td>sentinel-agent监控→定位→生成回归测试PR</td><td>新issue 48h内有回归测试</td></tr>
+      <tr><td>Railway smoke</td><td>部署webhook → warmup → smoke suite</td><td>部署后5min内完成验证</td></tr>
+      <tr><td>性能基准</td><td>k6脚本(TTFT/Stream) + Git baseline</td><td>退化>10%自动告警</td></tr>
+      <tr><td>DB migration验证</td><td>Drizzle schema diff → 兼容性测试</td><td>migration前后数据一致</td></tr>
+      </table>
+      <p style="margin-top:12px;font-size:13px"><strong>新增Agent：</strong> sentinel-agent.md, api-orchestrator.md</p>
+      <p style="font-size:13px"><strong>新增Skill：</strong> api-test-generator/, perf-test-generator/, mock-config-generator/</p>
+      <p style="font-size:13px"><strong>新增Command：</strong> /qa-api-test, /qa-perf-test, /qa-sentinel</p>
+      <p style="font-size:13px"><strong>新增脚本：</strong> sentinel-watcher.ts, eval-cron.ts</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ BUDGET ============ -->
+<section id="budget">
+<h2>十一、成本预算</h2>
+
+<table>
+<thead>
+<tr><th>成本项</th><th>P0 (月)</th><th>P1 (月)</th><th>P2 (月)</th><th>稳态 (月)</th></tr>
+</thead>
+<tbody>
+<tr><td>LLM API（Claude）</td><td>~$50</td><td>~$150</td><td>~$300</td><td>~$200</td></tr>
+<tr><td>CI计算（GitHub Actions）</td><td>+$0</td><td>+$20</td><td>+$50</td><td>~$50</td></tr>
+<tr><td>基础设施（k6等）</td><td>$0</td><td>$0</td><td>~$30</td><td>~$30</td></tr>
+<tr><td>人力投入</td><td>0.5人周</td><td>2人周</td><td>3人周</td><td>2h/周维护</td></tr>
+<tr style="font-weight:700;border-top:2px solid var(--accent)"><td>月总成本</td><td>~$50</td><td>~$170</td><td>~$380</td><td>~$280</td></tr>
+</tbody>
+</table>
+
+<h3>模型成本控制策略</h3>
+<div class="card-grid">
+  <div class="card-sm"><div class="title">缓存优先</div><div class="desc">测试生成结果按content hash缓存，代码未变不重新生成</div></div>
+  <div class="card-sm"><div class="title">增量生成</div><div class="desc">只为PR diff中新增/修改的代码生成测试</div></div>
+  <div class="card-sm"><div class="title">Batch API</div><div class="desc">eval评分使用Claude Batch API（50%成本折扣）</div></div>
+  <div class="card-sm"><div class="title">模型降级</div><div class="desc">简单任务(纯函数/监控轮询)用haiku，复杂推理用opus</div></div>
+  <div class="card-sm"><div class="title">模板兜底</div><div class="desc">纯函数优先用AST模板生成，仅复杂分支用LLM</div></div>
+  <div class="card-sm"><div class="title">预算门禁</div><div class="desc">月LLM成本超预算时自动切换到仅执行模式</div></div>
+</div>
+</section>
+
+<!-- ============ ROI ============ -->
+<section id="roi">
+<h2>十二、ROI分析</h2>
+
+<h3>效益指标</h3>
+<table>
+<thead><tr><th>指标</th><th>当前</th><th>P0后</th><th>P1后</th><th>P2后</th></tr></thead>
+<tbody>
+<tr><td>每PR人工测试时间</td><td>~30min</td><td>~10min</td><td>~5min</td><td>~2min</td></tr>
+<tr><td>单元测试覆盖率</td><td>~40%</td><td>~55%</td><td>~65%</td><td>~75%</td></tr>
+<tr><td>Bug逃逸到生产比例</td><td>未知</td><td>减少20%</td><td>减少50%</td><td>减少70%</td></tr>
+<tr><td>LLM质量监控</td><td>手动查看</td><td>手动</td><td>自动eval</td><td>自动eval+告警</td></tr>
+<tr><td>Sentry回归响应</td><td>人工数天</td><td>人工</td><td>人工</td><td>48h自动</td></tr>
+</tbody>
+</table>
+
+<h3>人工测试时间缩减</h3>
+<div style="margin:12px 0">
+  <div style="font-size:12px;color:var(--muted)">当前: 30min/PR</div>
+  <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%">30min</div></div>
+  <div style="font-size:12px;color:var(--muted);margin-top:12px">P0后: 10min/PR</div>
+  <div class="progress-bar"><div class="progress-fill fill-green" style="width:33%">10min</div></div>
+  <div style="font-size:12px;color:var(--muted);margin-top:12px">P1后: 5min/PR</div>
+  <div class="progress-bar"><div class="progress-fill fill-blue" style="width:17%">5min</div></div>
+  <div style="font-size:12px;color:var(--muted);margin-top:12px">P2后: 2min/PR</div>
+  <div class="progress-bar"><div class="progress-fill fill-purple" style="width:7%">2min</div></div>
+</div>
+
+<h3>投资回报周期</h3>
+<div class="card-grid">
+  <div class="card-sm" style="border-top:3px solid var(--green)">
+    <div class="title">P0 回报：2周</div>
+    <div class="desc">投入$50/月 + 0.5人周<br>回报：每PR省20min × 30PR/月 = 10h/月</div>
+  </div>
+  <div class="card-sm" style="border-top:3px solid var(--blue)">
+    <div class="title">P1 回报：1.5个月</div>
+    <div class="desc">投入$170/月 + 2人周<br>回报：E2E自动化 + Bug逃逸减少50%</div>
+  </div>
+  <div class="card-sm" style="border-top:3px solid var(--accent2)">
+    <div class="title">P2 回报：3个月</div>
+    <div class="desc">投入$380/月 + 3人周<br>回报：LLM质量守护 + 性能门禁 + 全平台监控</div>
+  </div>
+</div>
+
+</section>
+
+<!-- ============ FOOTER ============ -->
+<div style="margin-top:60px;padding:24px 0;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:12px">
+  智能化测试平台 QA Team — 最终可落地方案<br>
+  基于11份差异化方案 + 4位专家审核整合 | 生成于 2026-04-16
+</div>
+
+</div>
+
+<script>
+// Scroll spy for sidebar
+const sections = document.querySelectorAll('section[id], .hero[id]');
+const navLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>

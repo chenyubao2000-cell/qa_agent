@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal-10: TestSentinel - 多平台质量守卫</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --card: #1c1f2e;
+  --card-hover: #232640;
+  --border: #2a2d42;
+  --border-light: #363a54;
+  --text: #c9cdd8;
+  --text-dim: #7b8098;
+  --text-bright: #eaecf3;
+  --accent: #6c8aff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,.12);
+  --orange: #fbbf24;
+  --orange-dim: rgba(251,191,36,.10);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.10);
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,.10);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,.10);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,.10);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,.10);
+  --sentinel: #22d3ee;
+  --sentinel-dim: rgba(34,211,238,.08);
+  --sentinel-glow: rgba(34,211,238,.25);
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* Nav */
+.top-nav {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow-x: auto;
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.nav-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.nav-inner a {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.nav-inner a:hover { background: var(--card); color: var(--text); }
+.nav-inner a.active { background: var(--sentinel-dim); color: var(--sentinel); border: 1px solid rgba(34,211,238,.25); }
+
+/* Container */
+.container { max-width: 1200px; margin: 0 auto; padding: 30px 20px 80px; }
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 60px 20px 50px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--sentinel-glow) 0%, transparent 70%);
+  pointer-events: none;
+  animation: pulse-radar 4s ease-in-out infinite;
+}
+@keyframes pulse-radar {
+  0%, 100% { opacity: .3; transform: translateX(-50%) scale(1); }
+  50% { opacity: .6; transform: translateX(-50%) scale(1.15); }
+}
+.hero-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  position: relative;
+  display: inline-block;
+}
+.hero-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid var(--sentinel);
+  opacity: 0;
+  animation: radar-ring 3s ease-out infinite;
+}
+@keyframes radar-ring {
+  0% { width: 60px; height: 60px; opacity: .6; }
+  100% { width: 180px; height: 180px; opacity: 0; }
+}
+.hero h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  position: relative;
+}
+.hero h1 span { color: var(--sentinel); }
+.hero .subtitle {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  position: relative;
+}
+.hero-badges {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: relative;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.badge-sentinel { background: var(--sentinel-dim); color: var(--sentinel); border: 1px solid rgba(34,211,238,.2); }
+.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,191,36,.2); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.2); }
+.badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,.2); }
+
+/* Section */
+.section { margin-bottom: 48px; }
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title .icon { font-size: 24px; }
+
+/* Core Philosophy */
+.philosophy-card {
+  background: linear-gradient(135deg, rgba(34,211,238,.06) 0%, rgba(34,211,238,.02) 100%);
+  border: 1px solid rgba(34,211,238,.2);
+  border-radius: var(--radius);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.philosophy-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle at top right, rgba(34,211,238,.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.philosophy-card h3 {
+  font-size: 18px;
+  color: var(--sentinel);
+  margin-bottom: 12px;
+}
+.philosophy-card p {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.8;
+}
+.philosophy-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+.compare-box {
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.compare-box.old { background: var(--red-dim); border-color: rgba(248,113,113,.2); }
+.compare-box.new { background: var(--green-dim); border-color: rgba(52,211,153,.2); }
+.compare-box .label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+.compare-box.old .label { color: var(--red); }
+.compare-box.new .label { color: var(--green); }
+.compare-box p { font-size: 14px; }
+
+/* Responsibility Matrix */
+.matrix-wrap { overflow-x: auto; }
+.matrix-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.matrix-table thead th {
+  background: var(--bg2);
+  color: var(--text-bright);
+  font-weight: 600;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.matrix-table thead th:first-child { border-radius: var(--radius) 0 0 0; }
+.matrix-table thead th:last-child { border-radius: 0 var(--radius) 0 0; }
+.matrix-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  background: var(--card);
+}
+.matrix-table tbody tr:last-child td { border-bottom: none; }
+.matrix-table tbody tr:last-child td:first-child { border-radius: 0 0 0 var(--radius); }
+.matrix-table tbody tr:last-child td:last-child { border-radius: 0 0 var(--radius) 0; }
+.matrix-table tbody tr:hover td { background: var(--card-hover); }
+.matrix-table .platform-cell {
+  font-weight: 600;
+  color: var(--sentinel);
+  white-space: nowrap;
+}
+.matrix-table .agent-cell { color: var(--green); }
+.matrix-table .human-cell { color: var(--blue); }
+.matrix-table .auto-cell { color: var(--text-dim); }
+.platform-icon { margin-right: 6px; }
+
+/* Watcher Cards */
+.watcher-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+.watcher-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: all .25s;
+  position: relative;
+  overflow: hidden;
+}
+.watcher-card:hover {
+  border-color: var(--sentinel);
+  background: var(--card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+.watcher-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sentinel), var(--accent));
+  opacity: 0;
+  transition: opacity .25s;
+}
+.watcher-card:hover::before { opacity: 1; }
+.watcher-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.watcher-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.watcher-icon.sentry { background: var(--red-dim); }
+.watcher-icon.langfuse { background: var(--purple-dim); }
+.watcher-icon.railway { background: var(--blue-dim); }
+.watcher-icon.db { background: var(--orange-dim); }
+.watcher-icon.pr { background: var(--green-dim); }
+.watcher-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.watcher-freq {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.watcher-desc {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.7;
+}
+.watcher-flow {
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(0,0,0,.2);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--sentinel);
+  line-height: 1.8;
+}
+
+/* Radar Visualization */
+.radar-section {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0;
+}
+.radar-visual {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+.radar-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--sentinel-dim);
+  border: 2px solid var(--sentinel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  z-index: 2;
+  box-shadow: 0 0 40px var(--sentinel-glow);
+}
+.radar-ring-1, .radar-ring-2, .radar-ring-3 {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(34,211,238,.12);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.radar-ring-1 { width: 180px; height: 180px; }
+.radar-ring-2 { width: 280px; height: 280px; }
+.radar-ring-3 { width: 380px; height: 380px; }
+.radar-node {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 2;
+  transition: all .3s;
+  text-align: center;
+  gap: 2px;
+}
+.radar-node:hover { transform: scale(1.1); }
+.radar-node .node-icon { font-size: 20px; margin-bottom: 2px; }
+.radar-node.n1 { top: 20px; left: 50%; transform: translateX(-50%); background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,.3); }
+.radar-node.n2 { top: 50%; right: 10px; transform: translateY(-50%); background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.3); }
+.radar-node.n3 { bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,.3); }
+.radar-node.n4 { top: 50%; left: 10px; transform: translateY(-50%); background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,191,36,.3); }
+.radar-node.n5 { top: 60px; right: 40px; background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.3); }
+.radar-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--sentinel), transparent);
+  transform-origin: left center;
+  z-index: 1;
+  opacity: .3;
+}
+
+/* Agent Ratio */
+.ratio-bar-wrap {
+  margin: 30px 0;
+}
+.ratio-bar {
+  height: 40px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.ratio-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all .3s;
+  white-space: nowrap;
+}
+.ratio-segment:hover { filter: brightness(1.2); }
+.ratio-agent { width: 55%; background: linear-gradient(90deg, rgba(34,211,238,.25), rgba(34,211,238,.15)); color: var(--sentinel); }
+.ratio-human { width: 25%; background: rgba(96,165,250,.15); color: var(--blue); }
+.ratio-auto { width: 20%; background: rgba(167,139,250,.12); color: var(--purple); }
+.ratio-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Pros Cons */
+.pros-cons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.pros-card, .cons-card {
+  border-radius: var(--radius);
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+.pros-card { background: var(--green-dim); border-color: rgba(52,211,153,.2); }
+.cons-card { background: var(--red-dim); border-color: rgba(248,113,113,.2); }
+.pros-card h4 { color: var(--green); margin-bottom: 12px; font-size: 15px; }
+.cons-card h4 { color: var(--red); margin-bottom: 12px; font-size: 15px; }
+.pros-card li, .cons-card li {
+  font-size: 14px;
+  margin-bottom: 8px;
+  list-style: none;
+  padding-left: 20px;
+  position: relative;
+}
+.pros-card li::before { content: '+'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+.cons-card li::before { content: '-'; position: absolute; left: 0; color: var(--red); font-weight: 700; }
+
+/* Scenario */
+.scenario-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-top: 16px;
+}
+.scenario-card p { font-size: 14px; line-height: 1.8; }
+.scenario-highlight {
+  color: var(--sentinel);
+  font-weight: 600;
+}
+
+/* Sweep animation */
+.sweep-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sentinel), transparent);
+  transform-origin: left center;
+  animation: sweep 4s linear infinite;
+  z-index: 1;
+  opacity: .4;
+}
+@keyframes sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Status dots */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: blink 2s ease-in-out infinite;
+}
+.status-dot.active { background: var(--green); }
+.status-dot.watching { background: var(--sentinel); }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+/* Architecture flow */
+.arch-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin: 30px 0;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.arch-node {
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 120px;
+}
+.arch-arrow {
+  font-size: 20px;
+  color: var(--sentinel);
+  padding: 0 8px;
+}
+.arch-node.platform { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.2); }
+.arch-node.agent { background: var(--sentinel-dim); color: var(--sentinel); border: 1px solid rgba(34,211,238,.2); }
+.arch-node.action { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 26px; }
+  .philosophy-compare { grid-template-columns: 1fr; }
+  .pros-cons { grid-template-columns: 1fr; }
+  .watcher-grid { grid-template-columns: 1fr; }
+  .radar-visual { width: 300px; height: 300px; }
+  .radar-ring-1 { width: 130px; height: 130px; }
+  .radar-ring-2 { width: 210px; height: 210px; }
+  .radar-ring-3 { width: 280px; height: 280px; }
+  .radar-node { width: 50px; height: 50px; font-size: 9px; }
+  .radar-center { width: 60px; height: 60px; font-size: 22px; }
+  .arch-flow { flex-direction: column; }
+  .arch-arrow { transform: rotate(90deg); }
+  .matrix-table { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-label">Proposals</span>
+    <a href="proposal-01-testpilot.html">01 TestPilot</a>
+    <a href="#">02</a>
+    <a href="#">03</a>
+    <a href="#">04</a>
+    <a href="#">05</a>
+    <a href="#">06</a>
+    <a href="#">07</a>
+    <a href="#">08</a>
+    <a href="#">09</a>
+    <a class="active" href="proposal-10-testsentinel.html">10 TestSentinel</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-icon">&#x1F6E1;</div>
+    <h1>Proposal-10: <span>TestSentinel</span></h1>
+    <p class="subtitle">多平台质量守卫 &mdash; 7&times;24 全时监控 &middot; 主动触发行动</p>
+    <div class="hero-badges">
+      <span class="badge badge-sentinel">&#x1F4E1; 质量守卫模式</span>
+      <span class="badge badge-green">&#x2705; 被动监控零负担</span>
+      <span class="badge badge-purple">&#x1F916; Agent 55%</span>
+      <span class="badge badge-orange">&#x26A0; 监控补充层</span>
+    </div>
+  </section>
+
+  <!-- Core Philosophy -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x1F3AF;</span> 核心理念</h2>
+    <div class="philosophy-card">
+      <h3>不聚焦"生成测试"，聚焦"监控质量"</h3>
+      <p>
+        TestSentinel 将 Agent 定位为<strong>全时在线的质量守卫</strong>，而非按需调用的测试生成器。
+        它持续监控所有平台的质量信号&mdash;&mdash;错误日志、LLM 评分趋势、部署状态、Schema 变更、PR 差异&mdash;&mdash;
+        一旦检测到异常，立即分析根因并主动触发行动：生成回归测试、通知团队、建议回滚。
+      </p>
+      <div class="philosophy-compare">
+        <div class="compare-box old">
+          <div class="label">&#x274C; 传统模式</div>
+          <p>开发者发现问题 &rarr; 手动触发 Agent &rarr; 生成测试 &rarr; 被动响应</p>
+        </div>
+        <div class="compare-box new">
+          <div class="label">&#x2705; TestSentinel 模式</div>
+          <p>Agent 持续监控 &rarr; 自动发现异常 &rarr; 分析根因 &rarr; 主动触发行动 &rarr; 通知团队</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Radar Visualization -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x1F4E1;</span> 守卫雷达 &mdash; 全平台监控视图</h2>
+    <div class="radar-section">
+      <div class="radar-visual">
+        <div class="radar-ring-1"></div>
+        <div class="radar-ring-2"></div>
+        <div class="radar-ring-3"></div>
+        <div class="sweep-line"></div>
+        <div class="radar-center">&#x1F6E1;</div>
+        <div class="radar-node n1">
+          <span class="node-icon">&#x1F41B;</span>
+          Sentry
+        </div>
+        <div class="radar-node n2">
+          <span class="node-icon">&#x1F9E0;</span>
+          Langfuse
+        </div>
+        <div class="radar-node n3">
+          <span class="node-icon">&#x1F682;</span>
+          Railway
+        </div>
+        <div class="radar-node n4">
+          <span class="node-icon">&#x1F5C4;</span>
+          Database
+        </div>
+        <div class="radar-node n5">
+          <span class="node-icon">&#x1F4BB;</span>
+          GitHub
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Flow -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x1F504;</span> 信号流转架构</h2>
+    <div class="arch-flow">
+      <div class="arch-node platform">&#x1F4E1; 监控平台<br><small>Sentry / Langfuse / Railway / DB / GitHub</small></div>
+      <span class="arch-arrow">&rarr;</span>
+      <div class="arch-node agent">&#x1F6E1; TestSentinel<br><small>接收信号 &rarr; 分析根因</small></div>
+      <span class="arch-arrow">&rarr;</span>
+      <div class="arch-node action">&#x26A1; 触发行动<br><small>回归测试 / 通知 / 回滚建议</small></div>
+    </div>
+  </section>
+
+  <!-- Responsibility Matrix -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x1F4CB;</span> 人 / Agent / 自动化 职责矩阵</h2>
+    <div class="matrix-wrap">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>监控平台</th>
+            <th>&#x1F464; 人</th>
+            <th>&#x1F6E1; Agent（质量守卫）</th>
+            <th>&#x2699; 自动化</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="platform-cell"><span class="platform-icon">&#x1F41B;</span>Sentry</td>
+            <td class="human-cell">设定告警规则</td>
+            <td class="agent-cell">新 issue &rarr; 分析 stack trace &rarr; 定位代码 &rarr; 生成回归测试</td>
+            <td class="auto-cell">webhook 接收、issue 创建</td>
+          </tr>
+          <tr>
+            <td class="platform-cell"><span class="platform-icon">&#x1F9E0;</span>Langfuse</td>
+            <td class="human-cell">定义评分 rubric</td>
+            <td class="agent-cell">监控 LLM 质量趋势 &rarr; 异常时触发 eval &rarr; 通知团队</td>
+            <td class="auto-cell">trace 导出、分数入库</td>
+          </tr>
+          <tr>
+            <td class="platform-cell"><span class="platform-icon">&#x1F682;</span>Railway</td>
+            <td class="human-cell">审核部署决策</td>
+            <td class="agent-cell">部署后自动运行 smoke &rarr; 分析结果 &rarr; 建议回滚/继续</td>
+            <td class="auto-cell">部署 webhook、smoke 执行</td>
+          </tr>
+          <tr>
+            <td class="platform-cell"><span class="platform-icon">&#x1F5C4;</span>数据库</td>
+            <td class="human-cell">审核 migration</td>
+            <td class="agent-cell">检测 schema 变更 &rarr; 生成兼容性测试 &rarr; 执行</td>
+            <td class="auto-cell">drizzle-kit diff 触发</td>
+          </tr>
+          <tr>
+            <td class="platform-cell"><span class="platform-icon">&#x1F4BB;</span>GitHub</td>
+            <td class="human-cell">代码审查</td>
+            <td class="agent-cell">PR 变更分析 &rarr; 测试建议 &rarr; 影响评估</td>
+            <td class="auto-cell">CI pipeline</td>
+          </tr>
+          <tr>
+            <td class="platform-cell"><span class="platform-icon">&#x1F4E6;</span>沙箱环境</td>
+            <td class="human-cell">&mdash;</td>
+            <td class="agent-cell">管理沙箱生命周期 &rarr; 分配给测试</td>
+            <td class="auto-cell">Docker API 创建/销毁</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Watcher Modes -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x1F440;</span> Agent 守卫模式 &mdash; 7&times;24 运行</h2>
+    <div class="watcher-grid">
+
+      <div class="watcher-card">
+        <div class="watcher-header">
+          <div class="watcher-icon sentry">&#x1F41B;</div>
+          <div>
+            <div class="watcher-name"><span class="status-dot watching"></span>Sentry Watcher</div>
+            <div class="watcher-freq">每 5 分钟轮询</div>
+          </div>
+        </div>
+        <div class="watcher-desc">
+          持续轮询 Sentry 新 issue，发现异常后自动分析 stack trace，定位源码中的问题代码，生成对应的回归测试用例。
+        </div>
+        <div class="watcher-flow">
+          poll sentry/issues?status=unresolved<br>
+          &rarr; parse stack_trace<br>
+          &rarr; locate source code<br>
+          &rarr; generate regression test<br>
+          &rarr; notify team
+        </div>
+      </div>
+
+      <div class="watcher-card">
+        <div class="watcher-header">
+          <div class="watcher-icon langfuse">&#x1F9E0;</div>
+          <div>
+            <div class="watcher-name"><span class="status-dot watching"></span>Langfuse Watcher</div>
+            <div class="watcher-freq">每小时 eval</div>
+          </div>
+        </div>
+        <div class="watcher-desc">
+          每小时拉取 Langfuse trace 数据，监控 LLM 输出质量趋势，当评分低于阈值时自动触发详细 eval 并通知团队。
+        </div>
+        <div class="watcher-flow">
+          fetch langfuse/traces?last=1h<br>
+          &rarr; compute quality score<br>
+          &rarr; compare with threshold<br>
+          &rarr; trigger deep eval if anomaly<br>
+          &rarr; alert team
+        </div>
+      </div>
+
+      <div class="watcher-card">
+        <div class="watcher-header">
+          <div class="watcher-icon railway">&#x1F682;</div>
+          <div>
+            <div class="watcher-name"><span class="status-dot watching"></span>Railway Watcher</div>
+            <div class="watcher-freq">部署事件驱动</div>
+          </div>
+        </div>
+        <div class="watcher-desc">
+          监听 Railway 部署事件 webhook，部署完成后立即运行 smoke 测试，分析结果并建议回滚或继续。
+        </div>
+        <div class="watcher-flow">
+          receive deploy webhook<br>
+          &rarr; wait for healthy status<br>
+          &rarr; run smoke tests<br>
+          &rarr; analyze results<br>
+          &rarr; recommend rollback / proceed
+        </div>
+      </div>
+
+      <div class="watcher-card">
+        <div class="watcher-header">
+          <div class="watcher-icon db">&#x1F5C4;</div>
+          <div>
+            <div class="watcher-name"><span class="status-dot watching"></span>DB Watcher</div>
+            <div class="watcher-freq">migration 监听</div>
+          </div>
+        </div>
+        <div class="watcher-desc">
+          监听 drizzle-kit diff 输出，检测 schema 变更后自动生成数据兼容性测试，确保迁移不破坏既有功能。
+        </div>
+        <div class="watcher-flow">
+          detect drizzle-kit diff<br>
+          &rarr; parse schema changes<br>
+          &rarr; generate compat tests<br>
+          &rarr; execute &amp; report
+        </div>
+      </div>
+
+      <div class="watcher-card">
+        <div class="watcher-header">
+          <div class="watcher-icon pr">&#x1F4BB;</div>
+          <div>
+            <div class="watcher-name"><span class="status-dot active"></span>PR Watcher</div>
+            <div class="watcher-freq">复用 qa_agent git-watcher</div>
+          </div>
+        </div>
+        <div class="watcher-desc">
+          复用已有的 git-watcher 脚本，监听 PR 变更事件，分析代码差异，给出测试建议与影响评估。
+        </div>
+        <div class="watcher-flow">
+          git-watcher detects PR event<br>
+          &rarr; analyze diff<br>
+          &rarr; suggest test coverage<br>
+          &rarr; impact assessment<br>
+          &rarr; comment on PR
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Agent Ratio -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x1F4CA;</span> 职责占比</h2>
+    <div class="ratio-bar-wrap">
+      <div class="ratio-bar">
+        <div class="ratio-segment ratio-agent">&#x1F6E1; Agent 55%</div>
+        <div class="ratio-segment ratio-human">&#x1F464; 人 25%</div>
+        <div class="ratio-segment ratio-auto">&#x2699; 自动化 20%</div>
+      </div>
+      <div class="ratio-labels">
+        <span>Agent 主导监控、分析、触发行动</span>
+        <span>人负责规则设定与决策审核</span>
+        <span>自动化处理数据管道</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pros & Cons -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x2696;</span> 优势与劣势</h2>
+    <div class="pros-cons">
+      <div class="pros-card">
+        <h4>&#x2705; 优势</h4>
+        <ul>
+          <li>被动监控不增加开发者负担，零打扰运行</li>
+          <li>覆盖所有监控平台，形成统一质量视图</li>
+          <li>Agent 主动发现问题，而非被动等待触发</li>
+          <li>可作为其他方案的监控补充层，兼容性强</li>
+          <li>7&times;24 全时运行，不遗漏任何质量信号</li>
+        </ul>
+      </div>
+      <div class="cons-card">
+        <h4>&#x26A0; 劣势</h4>
+        <ul>
+          <li>需长时间运行 Agent，产生持续的 API 调用成本</li>
+          <li>误报可能产生噪音，需要精心调校阈值</li>
+          <li>依赖各平台 API 稳定性与 webhook 可靠性</li>
+          <li>多 Watcher 并行运行时的资源协调</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Applicable Scenario -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">&#x1F3AF;</span> 适用场景</h2>
+    <div class="scenario-card">
+      <p>
+        TestSentinel 最适合作为<span class="scenario-highlight">其他方案的监控补充层</span>。它不替代主动的测试生成流程，
+        而是在所有测试方案之上增加一道<span class="scenario-highlight">全时在线的质量防护网</span>。
+        无论团队采用哪种测试生成策略（TestPilot、PRD 驱动、Issue 驱动等），
+        TestSentinel 都能在后台持续监控各平台的质量信号，确保任何异常都不会被遗漏。
+      </p>
+      <p style="margin-top: 14px; color: var(--text-dim); font-size: 13px;">
+        特别适合：已有测试体系但缺乏统一监控的团队 &middot; 多平台部署的复杂系统 &middot; 对 LLM 输出质量有持续监控需求的 AI 产品
+      </p>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal-01: TestPilot - 全栈 Agent 测试平台</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --card: #1c1f2e;
+  --card-hover: #232640;
+  --border: #2a2d42;
+  --border-light: #363a54;
+  --text: #c9cdd8;
+  --text-dim: #7b8098;
+  --text-bright: #eaecf3;
+  --accent: #6c8aff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,.12);
+  --orange: #fbbf24;
+  --orange-dim: rgba(251,191,36,.10);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.10);
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,.10);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,.10);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,.10);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,.10);
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* Nav */
+.top-nav {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow-x: auto;
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.nav-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.nav-inner a {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.nav-inner a:hover { background: var(--card); color: var(--text-bright); }
+.nav-inner a.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 60px 20px 40px;
+  background: linear-gradient(180deg, rgba(108,138,255,.08) 0%, transparent 100%);
+}
+.hero .badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(108,138,255,.12);
+  border: 1px solid rgba(108,138,255,.25);
+  padding: 4px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.hero .subtitle {
+  font-size: 16px;
+  color: var(--text-dim);
+  max-width: 640px;
+  margin: 0 auto 20px;
+}
+.hero .stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.hero .stat-item {
+  text-align: center;
+}
+.hero .stat-val {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.hero .stat-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* Section */
+.section {
+  margin-top: 48px;
+}
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.section-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  max-width: 720px;
+}
+
+/* Core Idea */
+.core-card {
+  background: linear-gradient(135deg, rgba(108,138,255,.08), rgba(167,139,250,.08));
+  border: 1px solid rgba(108,138,255,.2);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 32px;
+}
+.core-card p {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.9;
+}
+.core-card strong { color: var(--accent); }
+
+/* Agent Cards */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.agent-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.agent-card:hover {
+  border-color: var(--border-light);
+  background: var(--card-hover);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.agent-card .tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.tag.existing { background: var(--green-dim); color: var(--green); }
+.tag.new { background: var(--purple-dim); color: var(--purple); }
+.agent-card .model {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+.model.opus { background: var(--orange-dim); color: var(--orange); }
+.model.sonnet { background: var(--blue-dim); color: var(--blue); }
+.model.haiku { background: var(--cyan-dim); color: var(--cyan); }
+.agent-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.agent-card .desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 800px;
+}
+thead th {
+  background: var(--bg2);
+  color: var(--text-bright);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+thead th:first-child { border-radius: var(--radius) 0 0 0; }
+thead th:last-child { border-radius: 0 var(--radius) 0 0; }
+tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.6;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(108,138,255,.03); }
+tbody td:first-child {
+  font-weight: 600;
+  color: var(--text-bright);
+  white-space: nowrap;
+}
+.col-human { color: var(--pink); }
+.col-agent { color: var(--accent); }
+.col-auto { color: var(--green); }
+.cell-dim { color: var(--text-dim); font-style: italic; }
+
+/* Tech Stack */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.tech-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  transition: all .2s;
+}
+.tech-card:hover {
+  border-color: var(--border-light);
+  background: var(--card-hover);
+}
+.tech-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+}
+.tech-card ul {
+  list-style: none;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.tech-card li {
+  padding: 3px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tech-card li::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tech-card:nth-child(1) li::before { background: var(--accent); }
+.tech-card:nth-child(2) li::before { background: var(--green); }
+.tech-card:nth-child(3) li::before { background: var(--orange); }
+.tech-card:nth-child(4) li::before { background: var(--cyan); }
+
+/* Mock Strategy */
+.mock-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+}
+.mock-card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+}
+.mock-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.mock-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.mock-item .label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.mock-item .val {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Pros / Cons */
+.eval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.eval-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.eval-card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eval-card.pros h4 { color: var(--green); }
+.eval-card.cons h4 { color: var(--red); }
+.eval-card.fit h4 { color: var(--orange); }
+.eval-card ul {
+  list-style: none;
+  font-size: 13px;
+}
+.eval-card li {
+  padding: 6px 0;
+  padding-left: 18px;
+  position: relative;
+  color: var(--text);
+  line-height: 1.6;
+}
+.eval-card.pros li::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  color: var(--green);
+  font-weight: 700;
+}
+.eval-card.cons li::before {
+  content: '-';
+  position: absolute;
+  left: 2px;
+  color: var(--red);
+  font-weight: 700;
+}
+.eval-card.fit li::before {
+  content: '\25B8';
+  position: absolute;
+  left: 0;
+  color: var(--orange);
+  font-size: 12px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 32px 20px;
+  font-size: 12px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hero { padding: 40px 16px 28px; }
+  .hero .stats { gap: 20px; }
+  .hero .stat-val { font-size: 24px; }
+  .container { padding: 0 12px 40px; }
+  .section { margin-top: 32px; }
+  .agent-grid, .tech-grid, .mock-items, .eval-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-label">方案导航</span>
+    <a href="proposal-01-testpilot.html" class="active">01 TestPilot</a>
+    <a href="proposal-02.html">02</a>
+    <a href="proposal-03.html">03</a>
+    <a href="proposal-04.html">04</a>
+    <a href="proposal-05.html">05</a>
+    <a href="proposal-06.html">06</a>
+    <a href="proposal-07.html">07</a>
+    <a href="proposal-08.html">08</a>
+    <a href="proposal-09.html">09</a>
+    <a href="proposal-10.html">10</a>
+    <a href="proposal-11.html">11</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="badge">Proposal-01</div>
+  <h1>TestPilot</h1>
+  <p class="subtitle">全栈 Agent 测试平台 -- 将 qa_agent 的 E2E Agent 模式扩展为覆盖全测试类型的 Agent 集群</p>
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-val">9</div>
+      <div class="stat-label">Agent 总数</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">70%</div>
+      <div class="stat-label">Agent 占比</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">6</div>
+      <div class="stat-label">测试类型覆盖</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">11</div>
+      <div class="stat-label">职责环节</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Core Idea -->
+  <section class="section">
+    <div class="section-title">
+      <span class="icon" style="background:var(--purple-dim);">&#9670;</span>
+      核心理念
+    </div>
+    <div class="core-card">
+      <p>
+        将 <strong>qa_agent</strong> 现有的 E2E Agent 模式扩展为覆盖<strong>全测试类型</strong>的 Agent 集群。
+        每种测试类型配备一个<strong>专用 Agent</strong>，由 <strong>Orchestrator Agent</strong> 统一调度，
+        实现从单元测试到性能测试的全链路自动化覆盖。
+        充分复用已有的 Command / Agent / Skill 架构，在现有 4 个 Agent 基础上扩展 5 个新 Agent，
+        形成完整的测试 Agent 集群。
+      </p>
+    </div>
+  </section>
+
+  <!-- Agent Cluster -->
+  <section class="section">
+    <div class="section-title">
+      <span class="icon" style="background:var(--blue-dim);">&#9881;</span>
+      Agent 集群设计
+    </div>
+    <p class="section-desc">基于 qa_agent 现有架构扩展，复用 4 个现有 Agent，新增 5 个专用 Agent</p>
+
+    <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;">&#10004; 现有 Agent（复用）</div>
+    <div class="agent-grid" style="margin-bottom:24px;">
+      <div class="agent-card">
+        <span class="tag existing">复用</span>
+        <h3>e2e-orchestrator <span class="model opus">opus</span></h3>
+        <p class="desc">E2E 测试编排与调度，负责用例生成、Excel 导出、spec 文件生成的全流程协调</p>
+      </div>
+      <div class="agent-card">
+        <span class="tag existing">复用</span>
+        <h3>test-executor <span class="model sonnet">sonnet</span></h3>
+        <p class="desc">测试执行引擎，调用 Playwright 运行测试并收集结果报告</p>
+      </div>
+      <div class="agent-card">
+        <span class="tag existing">复用</span>
+        <h3>report-analyzer <span class="model sonnet">sonnet</span></h3>
+        <p class="desc">报告智能分析，分类失败原因：测试本身问题 vs 应用 Bug</p>
+      </div>
+      <div class="agent-card">
+        <span class="tag existing">复用</span>
+        <h3>bug-reporter <span class="model sonnet">sonnet</span></h3>
+        <p class="desc">Bug 自动上报，格式化 Issue 并通过 Linear API 创建工单</p>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:12px;">&#9733; 新增 Agent</div>
+    <div class="agent-grid">
+      <div class="agent-card">
+        <span class="tag new">新增</span>
+        <h3>unit-test-agent <span class="model opus">opus</span></h3>
+        <p class="desc">分析函数签名、分支逻辑与类型系统，按规范生成单元测试用例</p>
+      </div>
+      <div class="agent-card">
+        <span class="tag new">新增</span>
+        <h3>integration-test-agent <span class="model opus">opus</span></h3>
+        <p class="desc">分析 API schema 与服务调用链，生成服务间集成测试</p>
+      </div>
+      <div class="agent-card">
+        <span class="tag new">新增</span>
+        <h3>perf-test-agent <span class="model sonnet">sonnet</span></h3>
+        <p class="desc">从 PRD 提取性能要求，自动生成 k6 性能测试脚本</p>
+      </div>
+      <div class="agent-card">
+        <span class="tag new">新增</span>
+        <h3>mock-architect <span class="model sonnet">sonnet</span></h3>
+        <p class="desc">分析代码外部依赖，自动生成 mock 配置与测试替身</p>
+      </div>
+      <div class="agent-card">
+        <span class="tag new">新增</span>
+        <h3>monitor-agent <span class="model haiku">haiku</span></h3>
+        <p class="desc">监控 Sentry 错误与 Langfuse 指标，自动生成回归测试</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Responsibility Matrix -->
+  <section class="section">
+    <div class="section-title">
+      <span class="icon" style="background:var(--pink-dim);">&#9638;</span>
+      人 / Agent / 自动化 职责矩阵
+    </div>
+    <p class="section-desc">明确划分每个测试环节中人、Agent 和自动化各自承担的职责</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>测试环节</th>
+            <th class="col-human">&#9632; 人</th>
+            <th class="col-agent">&#9632; Agent (Claude Code)</th>
+            <th class="col-auto">&#9632; 自动化 (CI/脚本)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>需求输入</td>
+            <td>编写 PRD、提交 Issue、触发命令</td>
+            <td>解析 PRD / Issue 提取测试意图</td>
+            <td>git-watcher 监听 PR 自动触发</td>
+          </tr>
+          <tr>
+            <td>用例设计</td>
+            <td>审核关键业务用例</td>
+            <td>6 种设计方法生成用例</td>
+            <td class="cell-dim">--</td>
+          </tr>
+          <tr>
+            <td>单元测试生成</td>
+            <td>审核生成质量、补充边界</td>
+            <td>分析函数签名 + 分支 + 类型，按规范生成</td>
+            <td class="cell-dim">--</td>
+          </tr>
+          <tr>
+            <td>E2E 测试生成</td>
+            <td class="cell-dim">--</td>
+            <td>e2e-orchestrator 生成（已有能力）</td>
+            <td class="cell-dim">--</td>
+          </tr>
+          <tr>
+            <td>集成测试生成</td>
+            <td>定义服务间契约</td>
+            <td>分析 API schema + 调用链生成测试</td>
+            <td class="cell-dim">--</td>
+          </tr>
+          <tr>
+            <td>性能测试生成</td>
+            <td>定义 SLA 指标</td>
+            <td>从 PRD 提取性能要求，生成 k6 脚本</td>
+            <td class="cell-dim">--</td>
+          </tr>
+          <tr>
+            <td>Mock 构建</td>
+            <td class="cell-dim">--</td>
+            <td>分析外部依赖，生成 mock 配置</td>
+            <td>mock-server 自动启停</td>
+          </tr>
+          <tr>
+            <td>测试执行</td>
+            <td class="cell-dim">--</td>
+            <td class="cell-dim">--</td>
+            <td>Vitest / Playwright / k6 执行，CI pipeline</td>
+          </tr>
+          <tr>
+            <td>结果分析</td>
+            <td>审核 Bug 分类决策</td>
+            <td>report-analyzer 分类：测试问题 vs 应用 Bug</td>
+            <td>报告收集、覆盖率统计</td>
+          </tr>
+          <tr>
+            <td>Bug 上报</td>
+            <td>确认是否上报</td>
+            <td>bug-reporter 格式化 Issue</td>
+            <td>Linear API 自动创建</td>
+          </tr>
+          <tr>
+            <td>监控响应</td>
+            <td>设定告警阈值</td>
+            <td>分析 Sentry 错误 -> 生成回归测试</td>
+            <td>Sentry / Langfuse webhook 触发</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="section">
+    <div class="section-title">
+      <span class="icon" style="background:var(--cyan-dim);">&#9875;</span>
+      技术栈
+    </div>
+    <p class="section-desc">复用 qa_agent 的 Command / Agent / Skill 架构，集成主流测试工具链</p>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <h4>核心架构</h4>
+        <ul>
+          <li>qa_agent Command 层</li>
+          <li>Agent 调度框架</li>
+          <li>Skill 能力模块</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <h4>测试框架</h4>
+        <ul>
+          <li>Vitest -- 单元测试</li>
+          <li>Playwright -- E2E 测试</li>
+          <li>k6 -- 性能测试</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <h4>Mock 基础设施</h4>
+        <ul>
+          <li>MSW (Mock Service Worker)</li>
+          <li>Hono mock-server（现有）</li>
+        </ul>
+      </div>
+      <div class="tech-card">
+        <h4>外部集成</h4>
+        <ul>
+          <li>Sentry API -- 错误监控</li>
+          <li>Langfuse API -- LLM 可观测</li>
+          <li>Railway webhook -- 部署触发</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mock Strategy -->
+  <section class="section">
+    <div class="section-title">
+      <span class="icon" style="background:var(--orange-dim);">&#9879;</span>
+      黑盒 Mock 策略
+    </div>
+    <p class="section-desc">Agent 自动分析代码中的外部依赖，生成 mock 配置，实现测试环境的完全隔离</p>
+
+    <div class="mock-card">
+      <div class="mock-items">
+        <div class="mock-item">
+          <div class="label">依赖分析</div>
+          <div class="val">Agent 自动扫描代码，识别外部 API 调用、数据库连接、第三方服务等依赖</div>
+        </div>
+        <div class="mock-item">
+          <div class="label">流量拦截</div>
+          <div class="val">mitmproxy 拦截并记录真实流量，作为 mock 数据的基础</div>
+        </div>
+        <div class="mock-item">
+          <div class="label">HTTP Mock</div>
+          <div class="val">WireMock 提供 HTTP 级别的请求模拟与响应录制</div>
+        </div>
+        <div class="mock-item">
+          <div class="label">LLM 调用</div>
+          <div class="val">录制回放模式 -- 首次调用录制真实响应，后续测试直接回放</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Evaluation -->
+  <section class="section">
+    <div class="section-title">
+      <span class="icon" style="background:var(--green-dim);">&#9733;</span>
+      方案评估
+    </div>
+
+    <div class="eval-grid">
+      <div class="eval-card pros">
+        <h4>&#9650; 优势</h4>
+        <ul>
+          <li>最高程度自动化，覆盖从需求到监控的全测试链路</li>
+          <li>复用 Mira 已有 Agent 架构，降低开发成本</li>
+          <li>能理解自然语言需求，从 PRD / Issue 直接生成测试</li>
+        </ul>
+      </div>
+      <div class="eval-card cons">
+        <h4>&#9660; 劣势</h4>
+        <ul>
+          <li>LLM 调用成本高，大规模使用需考虑预算</li>
+          <li>生成质量不稳定，关键用例需人工审核</li>
+          <li>全栈覆盖但每个领域可能不够深入</li>
+        </ul>
+      </div>
+      <div class="eval-card fit">
+        <h4>&#9654; 适用场景</h4>
+        <ul>
+          <li>中小型团队，QA 人力有限</li>
+          <li>需求文档完善，PRD 质量较高</li>
+          <li>希望快速获得测试覆盖，接受迭代优化</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="footer">
+  Proposal-01: TestPilot -- 全栈 Agent 测试平台 &middot; qa_agent 扩展方案 &middot; Agent 占比 70%
+</footer>
+
+</body>
+</html>

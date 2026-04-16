@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案三：录制回放+智能断言（TestMirror）</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --bg3: #1c1f2e;
+  --card: #1e2132;
+  --card-hover: #252840;
+  --border: #2a2d42;
+  --border-accent: #3d4166;
+  --text: #c8cad8;
+  --text-dim: #7b7f9e;
+  --text-bright: #eaecf6;
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,.12);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,.12);
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,.12);
+  --orange: #fb923c;
+  --orange-dim: rgba(251,146,60,.12);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.12);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,.12);
+  --yellow: #facc15;
+  --yellow-dim: rgba(250,204,21,.1);
+  --mirror-grad: linear-gradient(135deg, #22d3ee 0%, #a78bfa 50%, #60a5fa 100%);
+  --glow-cyan: 0 0 20px rgba(34,211,238,.15);
+  --glow-purple: 0 0 20px rgba(167,139,250,.15);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* --- NAV --- */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,17,23,.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+nav .inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; gap: 8px;
+  height: 52px; overflow-x: auto;
+}
+nav a {
+  color: var(--text-dim); text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  padding: 6px 12px; border-radius: 6px;
+  white-space: nowrap; transition: all .2s;
+}
+nav a:hover, nav a.active { color: var(--cyan); background: var(--cyan-dim); }
+nav .logo {
+  font-weight: 700; font-size: 14px;
+  background: var(--mirror-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-right: 12px; letter-spacing: .5px;
+}
+
+/* --- HERO --- */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 72px 24px 56px;
+  text-align: center;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(34,211,238,.06) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 40% at 30% 20%, rgba(167,139,250,.05) 0%, transparent 60%),
+              var(--bg);
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 40px,
+    rgba(34,211,238,.02) 40px, rgba(34,211,238,.02) 41px
+  ), repeating-linear-gradient(
+    90deg, transparent, transparent 40px,
+    rgba(167,139,250,.02) 40px, rgba(167,139,250,.02) 41px
+  );
+  pointer-events: none;
+}
+.hero .badge {
+  display: inline-block;
+  background: var(--cyan-dim); color: var(--cyan);
+  font-size: 12px; font-weight: 600;
+  padding: 4px 14px; border-radius: 20px;
+  border: 1px solid rgba(34,211,238,.2);
+  margin-bottom: 20px; letter-spacing: .5px;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800; line-height: 1.2;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+}
+.hero h1 span {
+  background: var(--mirror-grad);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero .subtitle {
+  font-size: clamp(15px, 2.5vw, 18px);
+  color: var(--text-dim); max-width: 680px; margin: 0 auto 28px;
+}
+/* mirror animation */
+.mirror-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 80px; height: 80px; border-radius: 20px;
+  background: linear-gradient(135deg, var(--bg3), var(--card));
+  border: 1px solid var(--border-accent);
+  box-shadow: var(--glow-cyan), var(--glow-purple);
+  margin-bottom: 24px; position: relative;
+}
+.mirror-icon svg { width: 40px; height: 40px; }
+.mirror-icon::after {
+  content: '';
+  position: absolute; inset: -2px; border-radius: 22px;
+  background: var(--mirror-grad); opacity: .15;
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: .1; transform: scale(1); }
+  50% { opacity: .25; transform: scale(1.04); }
+}
+
+/* --- SECTIONS --- */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+section { padding: 56px 0; }
+section + section { border-top: 1px solid var(--border); }
+.section-label {
+  display: inline-block;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--cyan);
+  background: var(--cyan-dim); padding: 4px 12px;
+  border-radius: 4px; margin-bottom: 16px;
+}
+.section-title {
+  font-size: clamp(22px, 3.5vw, 30px);
+  font-weight: 700; color: var(--text-bright);
+  margin-bottom: 10px;
+}
+.section-desc {
+  font-size: 15px; color: var(--text-dim);
+  max-width: 700px; margin-bottom: 32px;
+}
+
+/* --- CORE IDEA --- */
+.idea-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 32px;
+  position: relative; overflow: hidden;
+}
+.idea-box::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--mirror-grad);
+}
+.idea-box blockquote {
+  font-size: 17px; color: var(--text-bright);
+  font-weight: 500; line-height: 1.8;
+  border-left: 3px solid var(--cyan);
+  padding-left: 20px; margin-bottom: 16px;
+}
+.idea-box p { font-size: 14px; color: var(--text-dim); }
+
+/* --- ARCH FLOW --- */
+.arch-flow {
+  display: flex; align-items: center; gap: 0;
+  flex-wrap: wrap; justify-content: center;
+  margin: 8px 0 24px;
+}
+.arch-node {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 20px;
+  min-width: 180px; max-width: 240px;
+  text-align: center; position: relative;
+  transition: all .25s;
+}
+.arch-node:hover { border-color: var(--border-accent); box-shadow: var(--glow-cyan); transform: translateY(-2px); }
+.arch-node .icon { font-size: 28px; margin-bottom: 8px; }
+.arch-node .name { font-size: 14px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
+.arch-node .detail { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+.arch-node .detail code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px; color: var(--cyan);
+  background: var(--cyan-dim); padding: 1px 5px; border-radius: 3px;
+}
+.arch-arrow {
+  color: var(--text-dim); font-size: 22px; padding: 0 6px;
+  flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .arch-arrow { transform: rotate(90deg); padding: 6px 0; }
+  .arch-flow { flex-direction: column; }
+}
+
+/* --- TABLE --- */
+.table-wrap {
+  overflow-x: auto; border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+thead { background: var(--bg3); }
+th {
+  padding: 12px 16px; text-align: left;
+  font-weight: 700; font-size: 12px;
+  text-transform: uppercase; letter-spacing: .5px;
+  color: var(--text-dim); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+th:first-child { border-radius: 12px 0 0 0; }
+th:last-child { border-radius: 0 12px 0 0; }
+td {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(34,211,238,.02); }
+td:first-child { font-weight: 600; color: var(--text-bright); white-space: nowrap; }
+.tag {
+  display: inline-block; font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 4px; white-space: nowrap;
+}
+.tag.human { background: var(--pink-dim); color: var(--pink); }
+.tag.agent { background: var(--purple-dim); color: var(--purple); }
+.tag.auto { background: var(--green-dim); color: var(--green); }
+.tag.na { background: rgba(123,127,158,.08); color: var(--text-dim); }
+
+/* --- MOCK & MIRA --- */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.info-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px 28px;
+  transition: all .25s;
+}
+.info-card:hover { border-color: var(--border-accent); box-shadow: var(--glow-purple); }
+.info-card .card-icon { font-size: 32px; margin-bottom: 12px; }
+.info-card h3 { font-size: 16px; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+.info-card p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+.info-card .highlight {
+  display: inline-block; margin-top: 10px;
+  font-size: 12px; font-weight: 600; color: var(--cyan);
+  background: var(--cyan-dim); padding: 4px 12px;
+  border-radius: 6px; border: 1px solid rgba(34,211,238,.15);
+}
+
+/* --- PROS/CONS --- */
+.eval-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.eval-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px;
+}
+.eval-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.eval-card.pro h3 { color: var(--green); }
+.eval-card.con h3 { color: var(--orange); }
+.eval-card.fit h3 { color: var(--blue); }
+.eval-card ul { list-style: none; }
+.eval-card li {
+  font-size: 13px; color: var(--text);
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.eval-card li:last-child { border-bottom: none; }
+.eval-card li::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  margin-top: 7px; flex-shrink: 0;
+}
+.eval-card.pro li::before { background: var(--green); }
+.eval-card.con li::before { background: var(--orange); }
+.eval-card.fit li::before { background: var(--blue); }
+
+/* --- AGENT RATIO --- */
+.ratio-bar-wrap {
+  margin: 32px 0 12px;
+  text-align: center;
+}
+.ratio-bar {
+  height: 36px; border-radius: 18px; overflow: hidden;
+  display: flex; max-width: 500px; margin: 0 auto 10px;
+  border: 1px solid var(--border-accent);
+}
+.ratio-bar .seg {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; letter-spacing: .3px;
+}
+.ratio-bar .seg.agent { background: linear-gradient(90deg, #a78bfa, #818cf8); color: #fff; flex: 40; }
+.ratio-bar .seg.human { background: linear-gradient(90deg, #f472b6, #e879a0); color: #fff; flex: 25; }
+.ratio-bar .seg.auto-seg { background: linear-gradient(90deg, #4ade80, #34d399); color: #0f1117; flex: 35; }
+.ratio-label {
+  font-size: 13px; color: var(--text-dim);
+  display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
+}
+.ratio-label span { display: flex; align-items: center; gap: 6px; }
+.ratio-label .dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* --- FOOTER --- */
+footer {
+  text-align: center; padding: 32px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text-dim);
+}
+
+/* --- REFLECTION EFFECT --- */
+.reflection {
+  position: relative;
+}
+.reflection::after {
+  content: attr(data-text);
+  position: absolute; bottom: -28px; left: 0; right: 0;
+  text-align: center;
+  font-size: inherit; font-weight: inherit;
+  background: var(--mirror-grad);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  opacity: .08;
+  transform: scaleY(-1);
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.4), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.4), transparent);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="inner">
+    <span class="logo">TestMirror</span>
+    <a href="#core">核心理念</a>
+    <a href="#arch">系统架构</a>
+    <a href="#matrix">职责矩阵</a>
+    <a href="#mock">Mock 策略</a>
+    <a href="#mira">Mira 价值</a>
+    <a href="#eval">评估</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="mirror-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="url(#cg)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs>
+      <path d="M12 3v18"/>
+      <path d="M5 8l3-3 3 3"/>
+      <path d="M5 16l3 3 3-3"/>
+      <rect x="14" y="4" width="6" height="7" rx="1"/>
+      <rect x="14" y="13" width="6" height="7" rx="1" opacity=".4"/>
+    </svg>
+  </div>
+  <div class="badge">Proposal 03</div>
+  <h1 class="reflection" data-text="TestMirror">录制回放 + 智能断言<br><span>TestMirror</span></h1>
+  <p class="subtitle">通过流量录制解决"测试数据从哪来"，Agent 将录制流量转化为有意义的测试用例与断言</p>
+</div>
+
+<!-- CORE IDEA -->
+<section id="core">
+  <div class="container">
+    <span class="section-label">Core Concept</span>
+    <h2 class="section-title">核心理念</h2>
+    <p class="section-desc">真实流量是最好的测试数据源。录制一次，回放多次，Agent 负责赋予语义。</p>
+    <div class="idea-box">
+      <blockquote>
+        流量录制解决"测试数据从哪来"的问题，<br>
+        Agent 负责将录制的流量转化为有意义的测试用例和断言。
+      </blockquote>
+      <p>传统测试需要手动构造请求和预期响应，TestMirror 直接从真实生产/预发环境捕获完整的 request/response 对，经脱敏后作为测试输入。Agent 分析流量语义，自动生成 schema 校验、语义比对、性能回归等多维度断言，让每一条真实交互都成为守护质量的哨兵。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="arch">
+  <div class="container">
+    <span class="section-label">Architecture</span>
+    <h2 class="section-title">系统架构</h2>
+    <p class="section-desc">从流量录制到智能断言的完整数据流</p>
+
+    <div class="arch-flow">
+      <div class="arch-node">
+        <div class="icon">&#128225;</div>
+        <div class="name">Traffic Recorder</div>
+        <div class="detail">
+          <code>mitmproxy</code> 代理拦截<br>
+          <code>DB Logger</code> 数据库写入<br>
+          <code>LLM Interceptor</code> 模型调用捕获
+        </div>
+      </div>
+      <div class="arch-arrow">&#10132;</div>
+      <div class="arch-node">
+        <div class="icon">&#128451;</div>
+        <div class="name">Session Storage</div>
+        <div class="detail">
+          <code>S3 / R2</code> 对象存储<br>
+          PII 自动脱敏引擎<br>
+          会话级归档索引
+        </div>
+      </div>
+      <div class="arch-arrow">&#10132;</div>
+      <div class="arch-node">
+        <div class="icon">&#9654;&#65039;</div>
+        <div class="name">Replay Engine</div>
+        <div class="detail">
+          确定性流量回放<br>
+          时序还原 &amp; 并发模拟<br>
+          CI Pipeline 集成
+        </div>
+      </div>
+      <div class="arch-arrow">&#10132;</div>
+      <div class="arch-node">
+        <div class="icon">&#129504;</div>
+        <div class="name">AI Assertion Generator</div>
+        <div class="detail">
+          <code>Schema Diff</code> 结构变更检测<br>
+          <code>Semantic Diff</code> 语义比对<br>
+          <code>Perf Regression</code> 性能退化识别
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MATRIX -->
+<section id="matrix">
+  <div class="container">
+    <span class="section-label">Responsibility Matrix</span>
+    <h2 class="section-title">人 / Agent / 自动化 职责矩阵</h2>
+    <p class="section-desc">明确各环节的人机协作分工，Agent 聚焦高价值语义分析</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>环节</th>
+            <th>人 <span class="tag human">Human</span></th>
+            <th>Agent <span class="tag agent">Agent</span></th>
+            <th>自动化 <span class="tag auto">Auto</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>选择录制场景</td>
+            <td>指定关键用户路径</td>
+            <td>建议高价值录制场景</td>
+            <td><span class="tag na">--</span></td>
+          </tr>
+          <tr>
+            <td>流量录制</td>
+            <td><span class="tag na">--</span></td>
+            <td><span class="tag na">--</span></td>
+            <td>mitmproxy / Langfuse trace 自动录制</td>
+          </tr>
+          <tr>
+            <td>数据脱敏</td>
+            <td>定义脱敏规则</td>
+            <td>识别 PII 字段建议脱敏</td>
+            <td>脱敏引擎自动执行</td>
+          </tr>
+          <tr>
+            <td>断言生成</td>
+            <td>审核关键断言</td>
+            <td>分析 request/response 生成语义化断言</td>
+            <td><span class="tag na">--</span></td>
+          </tr>
+          <tr>
+            <td>LLM 响应基线</td>
+            <td>定义评分 rubric</td>
+            <td>LLM-as-Judge 生成质量评分</td>
+            <td>Langfuse trace &rarr; eval dataset</td>
+          </tr>
+          <tr>
+            <td>回放执行</td>
+            <td><span class="tag na">--</span></td>
+            <td><span class="tag na">--</span></td>
+            <td>Replay Engine + CI Pipeline</td>
+          </tr>
+          <tr>
+            <td>差异分析</td>
+            <td>审核重大 diff</td>
+            <td>分类：schema 变更 vs 行为变更 vs 性能退化</td>
+            <td>JSON Schema diff 自动检测</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- MOCK -->
+<section id="mock">
+  <div class="container">
+    <span class="section-label">Mock Strategy</span>
+    <h2 class="section-title">黑盒 Mock 策略</h2>
+    <p class="section-desc">录制即 Mock -- 真实响应直接作为 Mock 数据源</p>
+
+    <div class="card-grid">
+      <div class="info-card">
+        <div class="card-icon">&#128220;</div>
+        <h3>录制一次，回放多次</h3>
+        <p>录制的真实响应直接作为 mock 数据源。无需手动编写 fixture，无需猜测 API 行为。真实流量自带完整的请求上下文和响应格式，是最可靠的 mock 来源。</p>
+        <span class="highlight">Record Once, Replay Forever</span>
+      </div>
+      <div class="info-card">
+        <div class="card-icon">&#129302;</div>
+        <h3>对 LLM 调用尤其有效</h3>
+        <p>LLM 响应非确定性，传统 mock 难以模拟。录制真实的 LLM 请求/响应对，在回放时提供稳定的基线，使 LLM 应用的回归测试成为可能。配合 LLM-as-Judge 评估语义一致性。</p>
+        <span class="highlight">LLM-Native Testing</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MIRA VALUE -->
+<section id="mira">
+  <div class="container">
+    <span class="section-label">Mira Special Value</span>
+    <h2 class="section-title">对 Mira 的特殊价值</h2>
+    <p class="section-desc">已有基础设施天然契合 TestMirror 架构</p>
+
+    <div class="card-grid">
+      <div class="info-card">
+        <div class="card-icon">&#128200;</div>
+        <h3>Langfuse LLM Trace</h3>
+        <p>Mira 已部署 Langfuse，拥有完整的 LLM 调用 trace 数据。这些 trace 可以直接作为录制数据源，无需额外部署录制基础设施。每一条 trace 都包含完整的 prompt、completion、token 用量和延迟信息。</p>
+        <span class="highlight">零成本冷启动</span>
+      </div>
+      <div class="info-card">
+        <div class="card-icon">&#127760;</div>
+        <h3>WebSocket Streaming 录制</h3>
+        <p>Mira 核心交互基于 WebSocket streaming。TestMirror 的流量录制可覆盖完整的 WebSocket 会话，包括 streaming token、中断重连、并发消息等场景，确保核心交互路径的测试覆盖。</p>
+        <span class="highlight">覆盖核心交互</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVAL -->
+<section id="eval">
+  <div class="container">
+    <span class="section-label">Evaluation</span>
+    <h2 class="section-title">方案评估</h2>
+    <p class="section-desc">适用于已有生产流量的成熟 AI 应用</p>
+
+    <div class="eval-grid">
+      <div class="eval-card pro">
+        <h3>&#9989; 优势</h3>
+        <ul>
+          <li>测试数据最真实，来自真实用户行为</li>
+          <li>对 LLM 应用特别友好，天然解决非确定性问题</li>
+          <li>Agent 只做高价值工作（语义分析、断言生成）</li>
+        </ul>
+      </div>
+      <div class="eval-card con">
+        <h3>&#9888;&#65039; 劣势</h3>
+        <ul>
+          <li>隐私合规风险，需严格的脱敏机制</li>
+          <li>无法覆盖未发生过的场景（新功能、边界条件）</li>
+          <li>录制基础设施部署和维护成本</li>
+        </ul>
+      </div>
+      <div class="eval-card fit">
+        <h3>&#127919; 适用场景</h3>
+        <ul>
+          <li>已有生产流量的成熟 AI 应用</li>
+          <li>LLM 密集型产品的回归测试</li>
+          <li>已部署可观测性平台（如 Langfuse）的团队</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Agent Ratio -->
+    <div class="ratio-bar-wrap">
+      <h3 style="color:var(--text-bright);font-size:16px;margin-bottom:16px;">Agent 占比</h3>
+      <div class="ratio-bar">
+        <div class="seg human">25%</div>
+        <div class="seg agent">40%</div>
+        <div class="seg auto-seg">35%</div>
+      </div>
+      <div class="ratio-label">
+        <span><span class="dot" style="background:linear-gradient(90deg,#f472b6,#e879a0)"></span>人工 25%</span>
+        <span><span class="dot" style="background:linear-gradient(90deg,#a78bfa,#818cf8)"></span>Agent 40%</span>
+        <span><span class="dot" style="background:linear-gradient(90deg,#4ade80,#34d399)"></span>自动化 35%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Proposal 03 &mdash; TestMirror &mdash; 录制回放 + 智能断言方案</p>
+</footer>
+
+</body>
+</html>

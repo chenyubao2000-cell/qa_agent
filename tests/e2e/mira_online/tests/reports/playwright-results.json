@@ -115,16 +115,16 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 183,
+                  "duration": 189,
                   "errors": [],
                   "stdout": [
                     {
-                      "text": "Auth state is fresh (13m old), reusing.\n"
+                      "text": "Auth state is fresh (1m old), reusing.\n"
                     }
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-04-15T17:10:38.538Z",
+                  "startTime": "2026-04-15T18:15:22.620Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -161,31 +161,40 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1,
+                  "duration": 26083,
                   "errors": [],
                   "stdout": [
                     {
-                      "text": "[data-setup] taskWithCodeUrl: using cached URL /task/QyLQ1rihwO7KnZm3\n"
+                      "text": "[data-setup] taskWithCodeUrl: using cached URL /task/lvRqI4Td5pRY49Nl\n"
                     },
                     {
-                      "text": "[data-setup] taskWithFilesUrl: using cached URL /task/oc6CT3XfUZZcII7E\n"
+                      "text": "[data-setup] taskWithFilesUrl: using cached URL /task/Y5Li5ICpJrTFWk3l\n"
                     },
                     {
-                      "text": "[data-setup] taskWithPeopleDataUrl: using cached URL /task/uX75WvhrOG15TICT\n"
+                      "text": "[data-setup] taskWithToolChainUrl: using cached URL /task/Ts93b6XyK9pPIJ1T\n"
                     },
                     {
-                      "text": "[data-setup] taskWithToolChainUrl: using cached URL /task/AgPyPZhaPDHv7HWW\n"
+                      "text": "[data-setup] Creating 2 resources in parallel...\n"
                     },
                     {
-                      "text": "[data-setup] shareUrl: using cached URL /share/bdkOHw0jpCaCoyHL?token=xh3s_ULa_pvgBiNZeWZDWc4Jggkdg9R0CScqiqlU2Xs\n"
+                      "text": "[data-setup] Creating shareUrl...\n"
                     },
                     {
-                      "text": "[data-setup] All data cached, nothing to create.\n"
+                      "text": "[data-setup] Creating taskWithPeopleDataUrl...\n"
+                    },
+                    {
+                      "text": "[data-setup] taskWithPeopleDataUrl: /task/kA9oisiWbx2eQHqz\n"
+                    },
+                    {
+                      "text": "[data-setup] shareUrl: /share/R6A0NTAYd1sJHTo6?token=91NZIrDfE1DZOXvhMzCuJ27n4itLszrgGTD-rJbgoxo\n"
+                    },
+                    {
+                      "text": "[data-setup] Done. Created 2/2, 5 total cached.\n"
                     }
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-04-15T17:10:39.544Z",
+                  "startTime": "2026-04-15T18:15:23.591Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -234,16 +243,16 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3542,
+                      "duration": 4940,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithCodeUrl] Using preset URL: /task/QyLQ1rihwO7KnZm3\n"
+                          "text": "[fixture:taskWithCodeUrl] Using preset URL: /task/lvRqI4Td5pRY49Nl\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:40.377Z",
+                      "startTime": "2026-04-15T18:16:10.817Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -294,16 +303,16 @@
                       "workerIndex": 3,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 7391,
+                      "duration": 6786,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithPeopleDataUrl] Using preset URL: /task/uX75WvhrOG15TICT\n"
+                          "text": "[fixture:taskWithPeopleDataUrl] Using preset URL: /task/kA9oisiWbx2eQHqz\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:40.394Z",
+                      "startTime": "2026-04-15T18:16:10.785Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -354,16 +363,16 @@
                       "workerIndex": 4,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 6675,
+                      "duration": 5376,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/AgPyPZhaPDHv7HWW\n"
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:40.363Z",
+                      "startTime": "2026-04-15T18:16:10.801Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -414,12 +423,12 @@
                       "workerIndex": 5,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 4095,
+                      "duration": 4502,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:40.399Z",
+                      "startTime": "2026-04-15T18:16:10.786Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -470,12 +479,12 @@
                       "workerIndex": 6,
                       "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 3360,
+                      "duration": 4102,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:40.384Z",
+                      "startTime": "2026-04-15T18:16:10.795Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -526,12 +535,12 @@
                       "workerIndex": 6,
                       "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 6236,
+                      "duration": 2985,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:44.421Z",
+                      "startTime": "2026-04-15T18:16:15.485Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -579,19 +588,19 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
+                      "workerIndex": 5,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 6223,
+                      "duration": 5306,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithPeopleDataUrl] Using preset URL: /task/uX75WvhrOG15TICT\n"
+                          "text": "[fixture:taskWithPeopleDataUrl] Using preset URL: /task/kA9oisiWbx2eQHqz\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:44.519Z",
+                      "startTime": "2026-04-15T18:16:16.011Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -639,19 +648,19 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4005,
+                      "duration": 3270,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:shareUrl] Using preset URL: /share/bdkOHw0jpCaCoyHL?token=xh3s_ULa_pvgBiNZeWZDWc4Jggkdg9R0CScqiqlU2Xs\n"
+                          "text": "[fixture:shareUrl] Using preset URL: /share/R6A0NTAYd1sJHTo6?token=91NZIrDfE1DZOXvhMzCuJ27n4itLszrgGTD-rJbgoxo\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:45.049Z",
+                      "startTime": "2026-04-15T18:16:16.190Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -702,12 +711,12 @@
                       "workerIndex": 4,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4051,
+                      "duration": 3609,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:47.655Z",
+                      "startTime": "2026-04-15T18:16:16.612Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -741,12 +750,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 10766,
+                      "duration": 7161,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:48.504Z",
+                      "startTime": "2026-04-15T18:16:18.326Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -777,15 +786,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 6889,
+                      "duration": 6990,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:49.063Z",
+                      "startTime": "2026-04-15T18:16:18.479Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -833,15 +842,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3885,
+                      "duration": 4339,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:50.664Z",
+                      "startTime": "2026-04-15T18:16:19.468Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -880,15 +889,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 6440,
+                      "duration": 6267,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:50.751Z",
+                      "startTime": "2026-04-15T18:16:20.230Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -919,15 +928,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
+                      "workerIndex": 5,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 5880,
+                      "duration": 7777,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:51.713Z",
+                      "startTime": "2026-04-15T18:16:21.331Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -958,15 +967,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5501,
+                      "duration": 7413,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:54.554Z",
+                      "startTime": "2026-04-15T18:16:23.812Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1014,15 +1023,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 8074,
+                      "duration": 7262,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:55.967Z",
+                      "startTime": "2026-04-15T18:16:25.480Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1053,15 +1062,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 6881,
+                      "duration": 6913,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:57.198Z",
+                      "startTime": "2026-04-15T18:16:25.495Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1112,12 +1121,12 @@
                       "workerIndex": 4,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2716,
+                      "duration": 3898,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:57.599Z",
+                      "startTime": "2026-04-15T18:16:26.506Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1156,19 +1165,19 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
+                      "workerIndex": 5,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 5846,
+                      "duration": 5215,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/AgPyPZhaPDHv7HWW\n"
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:10:59.278Z",
+                      "startTime": "2026-04-15T18:16:29.116Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1207,19 +1216,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 6408,
+                      "duration": 6142,
                       "errors": [],
-                      "stdout": [
-                        {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/AgPyPZhaPDHv7HWW\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:00.061Z",
+                      "startTime": "2026-04-15T18:16:30.411Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1258,15 +1263,19 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6537,
+                      "duration": 6266,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:00.319Z",
+                      "startTime": "2026-04-15T18:16:31.231Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1305,19 +1314,19 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 6221,
+                      "duration": 5157,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/AgPyPZhaPDHv7HWW\n"
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:04.047Z",
+                      "startTime": "2026-04-15T18:16:32.415Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1356,19 +1365,19 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 5469,
+                      "duration": 6263,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/AgPyPZhaPDHv7HWW\n"
+                          "text": "[fixture:taskWithToolChainUrl] Using preset URL: /task/Ts93b6XyK9pPIJ1T\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:04.085Z",
+                      "startTime": "2026-04-15T18:16:32.749Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1407,15 +1416,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
+                      "workerIndex": 5,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 5178,
+                      "duration": 6581,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:05.129Z",
+                      "startTime": "2026-04-15T18:16:34.335Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1463,15 +1472,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 6,
-                      "parallelIndex": 4,
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4826,
+                      "duration": 4665,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:06.479Z",
+                      "startTime": "2026-04-15T18:16:36.561Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1519,15 +1528,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2118,
+                      "duration": 3048,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:06.863Z",
+                      "startTime": "2026-04-15T18:16:37.505Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1558,15 +1567,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 2,
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 2244,
+                      "duration": 2727,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:08.985Z",
+                      "startTime": "2026-04-15T18:16:37.576Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1614,15 +1623,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 5539,
+                      "duration": 6517,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:09.563Z",
+                      "startTime": "2026-04-15T18:16:39.019Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1670,15 +1679,15 @@
                   "projectName": "e2e-zh",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 3603,
+                      "duration": 5123,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-04-15T17:11:10.279Z",
+                      "startTime": "2026-04-15T18:16:40.312Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1698,8 +1707,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-04-15T17:10:38.143Z",
-    "duration": 406070.494,
+    "startTime": "2026-04-15T18:15:22.171Z",
+    "duration": 795337.482,
     "expected": 31,
     "skipped": 0,
     "unexpected": 0,

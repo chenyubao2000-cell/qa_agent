@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal-09: TestKit - Plugin式可组合框架</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161822;
+  --card: #1c1f2e;
+  --card-hover: #232640;
+  --border: #2a2d42;
+  --border-light: #363a54;
+  --text: #c9cdd8;
+  --text-dim: #7b8098;
+  --text-bright: #eaecf3;
+  --accent: #6c8aff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,.12);
+  --orange: #fbbf24;
+  --orange-dim: rgba(251,191,36,.10);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.10);
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,.10);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,.10);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,.10);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,.10);
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45,212,191,.10);
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* Nav */
+.top-nav {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow-x: auto;
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.nav-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.nav-inner a {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.nav-inner a:hover { background: var(--card); color: var(--text-bright); }
+.nav-inner a.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 60px 20px 40px;
+  background: linear-gradient(180deg, rgba(45,212,191,.06) 0%, transparent 100%);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(45,212,191,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero .badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: var(--teal-dim);
+  border: 1px solid rgba(45,212,191,.25);
+  padding: 4px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.hero .subtitle {
+  font-size: 16px;
+  color: var(--text-dim);
+  max-width: 680px;
+  margin: 0 auto 20px;
+}
+.hero .stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.hero .stat-item { text-align: center; }
+.hero .stat-val {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--teal);
+}
+.hero .stat-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* Section */
+.section { margin-top: 48px; }
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title .icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.section-desc {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 20px;
+  max-width: 800px;
+}
+
+/* Card grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all .2s;
+}
+.card:hover {
+  background: var(--card-hover);
+  border-color: var(--border-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* Tag */
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: .3px;
+}
+.tag-teal { background: var(--teal-dim); color: var(--teal); }
+.tag-blue { background: var(--blue-dim); color: var(--blue); }
+.tag-purple { background: var(--purple-dim); color: var(--purple); }
+.tag-green { background: var(--green-dim); color: var(--green); }
+.tag-orange { background: var(--orange-dim); color: var(--orange); }
+.tag-pink { background: var(--pink-dim); color: var(--pink); }
+.tag-cyan { background: var(--cyan-dim); color: var(--cyan); }
+.tag-red { background: var(--red-dim); color: var(--red); }
+
+/* Blocks visual - composable blocks */
+.blocks-visual {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+.block-piece {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  border: 2px solid;
+  transition: all .3s;
+  cursor: default;
+  position: relative;
+}
+.block-piece:hover {
+  transform: translateY(-4px) rotate(-3deg);
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+.block-piece .block-label {
+  position: absolute;
+  bottom: -18px;
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.block-piece:hover .block-label {
+  opacity: 1;
+}
+
+/* Architecture flow */
+.arch-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 24px 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.arch-layer {
+  flex: 1;
+  min-width: 200px;
+  padding: 20px;
+  border-radius: var(--radius);
+  position: relative;
+}
+.arch-layer:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid var(--border-light);
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  z-index: 1;
+}
+.arch-layer-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.arch-item {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-weight: 500;
+}
+
+/* Responsibility matrix */
+.matrix-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 640px;
+}
+.matrix th, .matrix td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.matrix th {
+  background: var(--bg2);
+  color: var(--text-bright);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  position: sticky;
+  top: 0;
+}
+.matrix td {
+  color: var(--text);
+}
+.matrix tr:hover td {
+  background: var(--card-hover);
+}
+.matrix .role-human { color: var(--green); font-weight: 600; }
+.matrix .role-agent { color: var(--accent); font-weight: 600; }
+.matrix .role-auto { color: var(--orange); font-weight: 600; }
+.matrix .role-dim { color: var(--text-dim); }
+
+/* Code block */
+.code-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  overflow-x: auto;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 16px 0;
+}
+.code-block .kw { color: var(--accent); }
+.code-block .str { color: var(--green); }
+.code-block .cmt { color: var(--text-dim); font-style: italic; }
+.code-block .type { color: var(--purple); }
+.code-block .prop { color: var(--cyan); }
+.code-block .fn { color: var(--orange); }
+
+/* Pros / Cons / Scenario */
+.eval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.eval-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.eval-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eval-card ul {
+  list-style: none;
+  padding: 0;
+}
+.eval-card li {
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.eval-card li:last-child { border-bottom: none; }
+.eval-card li .bullet {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 8px;
+}
+
+/* Plugin brick wall */
+.plugin-wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+  justify-content: center;
+}
+.plugin-brick {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  border: 2px dashed;
+  cursor: default;
+  transition: all .25s;
+  position: relative;
+}
+.plugin-brick:hover {
+  transform: scale(1.06) rotate(-1deg);
+  box-shadow: 0 6px 20px rgba(0,0,0,.3);
+  border-style: solid;
+}
+.plugin-brick .plug-type {
+  display: block;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  margin-top: 2px;
+  opacity: .7;
+}
+
+/* Connector dots */
+.connector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+}
+.connector .dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border-light);
+  animation: pulse-dot 1.5s infinite;
+}
+.connector .dot:nth-child(2) { animation-delay: .2s; }
+.connector .dot:nth-child(3) { animation-delay: .4s; }
+@keyframes pulse-dot {
+  0%, 100% { opacity: .3; }
+  50% { opacity: 1; }
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 32px 20px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .arch-flow { flex-direction: column; }
+  .arch-layer:not(:last-child)::after { display: none; }
+  .eval-grid { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-label">PROPOSALS</span>
+    <a href="proposal-01-testpilot.html">01 TestPilot</a>
+    <a href="#">02</a>
+    <a href="#">03</a>
+    <a href="#">04</a>
+    <a href="#">05</a>
+    <a href="#">06</a>
+    <a href="#">07</a>
+    <a href="#">08</a>
+    <a href="proposal-09-testkit.html" class="active">09 TestKit</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="badge">Proposal 09</div>
+  <h1>TestKit &mdash; Plugin式可组合框架</h1>
+  <p class="subtitle">不预设方案，提供 Plugin 协议，让团队按需组合。<br>Agent 本身就是一种 Plugin。</p>
+
+  <!-- Composable blocks visual -->
+  <div class="blocks-visual">
+    <div class="block-piece" style="background:var(--teal-dim);border-color:var(--teal);color:var(--teal);">G
+      <span class="block-label" style="color:var(--teal);">gen</span>
+    </div>
+    <div class="block-piece" style="background:var(--blue-dim);border-color:var(--blue);color:var(--blue);">M
+      <span class="block-label" style="color:var(--blue);">mock</span>
+    </div>
+    <div class="block-piece" style="background:var(--purple-dim);border-color:var(--purple);color:var(--purple);">R
+      <span class="block-label" style="color:var(--purple);">run</span>
+    </div>
+    <div class="block-piece" style="background:var(--orange-dim);border-color:var(--orange);color:var(--orange);">A
+      <span class="block-label" style="color:var(--orange);">report</span>
+    </div>
+    <div class="block-piece" style="background:var(--pink-dim);border-color:var(--pink);color:var(--pink);">S
+      <span class="block-label" style="color:var(--pink);">monitor</span>
+    </div>
+    <div class="block-piece" style="background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan);">+
+      <span class="block-label" style="color:var(--cyan);">custom</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-val">5</div>
+      <div class="stat-label">CLI 命令</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">10+</div>
+      <div class="stat-label">内置 Plugin</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">1</div>
+      <div class="stat-label">Config 文件</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">~</div>
+      <div class="stat-label">Agent 占比可调</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Core Idea -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--teal-dim);color:var(--teal);">&#9670;</span>
+      核心理念
+    </h2>
+    <p class="section-desc">
+      TestKit 不预设"正确答案"，而是提供一套 Plugin 协议和组合工具链。
+      团队从 Plugin Registry 中选取所需积木，像拼装乐高一样构建自己的测试基础设施。
+      Agent 在此架构中不是控制者，而是可选的、可替换的 Plugin 之一。
+    </p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">
+          <span class="tag tag-teal">Plugin-first</span>
+        </div>
+        <div class="card-desc">一切能力以 Plugin 形式存在：生成、Mock、执行、报告、监控。无 Plugin 则无功能，按需加载。</div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="tag tag-blue">Agent = Plugin</span>
+        </div>
+        <div class="card-desc">Agent 不是架构的"大脑"，而是可插拔的 Plugin。团队可以选择纯自动化路径（0% Agent），也可以让 Agent 参与每一步。</div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="tag tag-purple">Config-driven</span>
+        </div>
+        <div class="card-desc">一个 testkit.config.ts 文件定义所有 Plugin 组合与参数。版本可控、可审计、可复现。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--blue-dim);color:var(--blue);">&#9635;</span>
+      架构概览
+    </h2>
+    <p class="section-desc">三层架构：CLI 入口 &rarr; Plugin Registry &rarr; Config 声明</p>
+
+    <div class="arch-flow">
+      <!-- Layer 1: CLI -->
+      <div class="arch-layer" style="background:var(--teal-dim);border:1px solid rgba(45,212,191,.2);">
+        <div class="arch-layer-title" style="color:var(--teal);">testkit CLI</div>
+        <div class="arch-item" style="background:rgba(45,212,191,.08);color:var(--teal);">testkit init</div>
+        <div class="arch-item" style="background:rgba(45,212,191,.08);color:var(--teal);">testkit generate</div>
+        <div class="arch-item" style="background:rgba(45,212,191,.08);color:var(--teal);">testkit mock</div>
+        <div class="arch-item" style="background:rgba(45,212,191,.08);color:var(--teal);">testkit run</div>
+        <div class="arch-item" style="background:rgba(45,212,191,.08);color:var(--teal);">testkit report</div>
+      </div>
+
+      <!-- Layer 2: Plugin Registry -->
+      <div class="arch-layer" style="background:var(--blue-dim);border:1px solid rgba(96,165,250,.2);">
+        <div class="arch-layer-title" style="color:var(--blue);">Plugin Registry</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/gen-ai</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/gen-ast</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/mock-http (MSW)</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/mock-db (pgmock)</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/mock-llm</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/run-vitest</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/run-pytest</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/report-github</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/report-slack</div>
+        <div class="arch-item" style="background:rgba(96,165,250,.08);color:var(--blue);">@testkit/monitor-sentry</div>
+      </div>
+
+      <!-- Layer 3: Config -->
+      <div class="arch-layer" style="background:var(--purple-dim);border:1px solid rgba(167,139,250,.2);">
+        <div class="arch-layer-title" style="color:var(--purple);">Config</div>
+        <div class="arch-item" style="background:rgba(167,139,250,.08);color:var(--purple);">testkit.config.ts</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:12px;line-height:1.6;">
+          Plugin 选择<br>
+          参数配置<br>
+          环境变量映射<br>
+          CI/CD 集成声明<br>
+          Agent 行为开关
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plugin Wall -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--cyan-dim);color:var(--cyan);">&#9881;</span>
+      Plugin 积木墙
+    </h2>
+    <p class="section-desc">从 Registry 中选取积木，拼出你的测试方案。每块积木可独立使用，也可自由组合。</p>
+
+    <div class="plugin-wall">
+      <div class="plugin-brick" style="background:var(--teal-dim);border-color:var(--teal);color:var(--teal);">
+        @testkit/gen-ai
+        <span class="plug-type">GENERATE &middot; Agent</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--green-dim);border-color:var(--green);color:var(--green);">
+        @testkit/gen-ast
+        <span class="plug-type">GENERATE &middot; Auto</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--blue-dim);border-color:var(--blue);color:var(--blue);">
+        @testkit/mock-http
+        <span class="plug-type">MOCK &middot; MSW</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--purple-dim);border-color:var(--purple);color:var(--purple);">
+        @testkit/mock-db
+        <span class="plug-type">MOCK &middot; pgmock</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan);">
+        @testkit/mock-llm
+        <span class="plug-type">MOCK &middot; Agent录制回放</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--orange-dim);border-color:var(--orange);color:var(--orange);">
+        @testkit/run-vitest
+        <span class="plug-type">RUN &middot; Vitest</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--orange-dim);border-color:var(--orange);color:var(--orange);">
+        @testkit/run-pytest
+        <span class="plug-type">RUN &middot; Pytest</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--pink-dim);border-color:var(--pink);color:var(--pink);">
+        @testkit/report-github
+        <span class="plug-type">REPORT &middot; GitHub</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--pink-dim);border-color:var(--pink);color:var(--pink);">
+        @testkit/report-slack
+        <span class="plug-type">REPORT &middot; Slack</span>
+      </div>
+      <div class="plugin-brick" style="background:var(--red-dim);border-color:var(--red);color:var(--red);">
+        @testkit/monitor-sentry
+        <span class="plug-type">MONITOR &middot; Sentry</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Responsibility Matrix -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--green-dim);color:var(--green);">&#9638;</span>
+      人 / Agent / 自动化 职责矩阵
+    </h2>
+    <p class="section-desc">每个环节的职责可通过 Plugin 选择来调整 Agent 参与度</p>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th style="width:18%;">环节</th>
+            <th style="width:27%;">人</th>
+            <th style="width:27%;">Agent</th>
+            <th style="width:28%;">自动化</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>选择 Plugin 组合</strong></td>
+            <td class="role-human">从 Registry 选择安装</td>
+            <td class="role-agent">建议最佳组合</td>
+            <td class="role-dim">&mdash;</td>
+          </tr>
+          <tr>
+            <td><strong>配置</strong></td>
+            <td class="role-human">编写 testkit.config.ts</td>
+            <td class="role-agent">补全配置缺省值</td>
+            <td class="role-dim">&mdash;</td>
+          </tr>
+          <tr>
+            <td><strong>测试生成</strong></td>
+            <td class="role-dim">&mdash;</td>
+            <td class="role-agent">gen-ai plugin (Agent)</td>
+            <td class="role-auto">gen-ast plugin (AST)</td>
+          </tr>
+          <tr>
+            <td><strong>Mock 管理</strong></td>
+            <td class="role-dim">&mdash;</td>
+            <td class="role-agent">mock-llm plugin (Agent录制)</td>
+            <td class="role-auto">mock-http plugin (MSW)</td>
+          </tr>
+          <tr>
+            <td><strong>测试执行</strong></td>
+            <td class="role-dim">&mdash;</td>
+            <td class="role-dim">&mdash;</td>
+            <td class="role-auto">run-* plugins</td>
+          </tr>
+          <tr>
+            <td><strong>报告</strong></td>
+            <td class="role-human">审核</td>
+            <td class="role-agent">report-analyze plugin (Agent)</td>
+            <td class="role-auto">report-github plugin</td>
+          </tr>
+          <tr>
+            <td><strong>监控</strong></td>
+            <td class="role-human">设定规则</td>
+            <td class="role-agent">monitor-sentry plugin (Agent)</td>
+            <td class="role-auto">轮询 + 触发</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Plugin Protocol -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--accent);color:#fff;">&#123;&#125;</span>
+      Plugin 协议
+    </h2>
+    <p class="section-desc">与 Mira ToolRegistry 一致的接口协议，确保生态互通</p>
+
+    <div class="code-block">
+      <span class="cmt">// Plugin 协议 &mdash; 与 Mira agent-core ToolRegistry 一脉相承</span><br><br>
+      <span class="kw">interface</span> <span class="type">TestKitPlugin</span> {<br>
+      &nbsp;&nbsp;<span class="prop">name</span>: <span class="type">string</span>;          <span class="cmt">// e.g. "@testkit/gen-ai"</span><br>
+      &nbsp;&nbsp;<span class="prop">type</span>: <span class="str">'generate'</span> | <span class="str">'mock'</span> | <span class="str">'run'</span> | <span class="str">'report'</span> | <span class="str">'monitor'</span>;<br><br>
+      &nbsp;&nbsp;<span class="cmt">// Agent 能力声明（可选）</span><br>
+      &nbsp;&nbsp;<span class="prop">agentModel</span>?: <span class="type">string</span>;      <span class="cmt">// e.g. "claude-sonnet-4-20250514"</span><br>
+      &nbsp;&nbsp;<span class="prop">agentSkill</span>?: <span class="type">string</span>;      <span class="cmt">// e.g. "code-review"</span><br><br>
+      &nbsp;&nbsp;<span class="cmt">// CLI 与 CI 集成</span><br>
+      &nbsp;&nbsp;<span class="prop">cliCommand</span>?: <span class="type">string</span>;      <span class="cmt">// 注册到 testkit CLI 的子命令</span><br>
+      &nbsp;&nbsp;<span class="prop">ciIntegration</span>?: <span class="type">CIConfig</span>; <span class="cmt">// GitHub Actions / GitLab CI 配置</span><br>
+      }
+    </div>
+
+    <div class="code-block" style="margin-top:12px;">
+      <span class="cmt">// testkit.config.ts 示例</span><br><br>
+      <span class="kw">export default</span> <span class="fn">defineConfig</span>({<br>
+      &nbsp;&nbsp;<span class="prop">plugins</span>: [<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">genAi</span>({ <span class="prop">model</span>: <span class="str">'claude-sonnet-4-20250514'</span> }),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">mockHttp</span>(),       <span class="cmt">// MSW &mdash; 零 Agent</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">mockLlm</span>({ <span class="prop">record</span>: <span class="kw">true</span> }),  <span class="cmt">// Agent 录制回放</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">runVitest</span>(),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">reportGithub</span>({ <span class="prop">pr</span>: <span class="kw">true</span> }),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">monitorSentry</span>({ <span class="prop">poll</span>: <span class="str">'5m'</span> }),<br>
+      &nbsp;&nbsp;],<br>
+      });
+    </div>
+  </section>
+
+  <!-- Evaluation -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="icon" style="background:var(--orange-dim);color:var(--orange);">&#9733;</span>
+      方案评估
+    </h2>
+
+    <div class="eval-grid">
+      <div class="eval-card" style="border-left:3px solid var(--green);">
+        <h3 style="color:var(--green);">优势</h3>
+        <ul>
+          <li>
+            <span class="bullet" style="background:var(--green);"></span>
+            <span>最灵活 &mdash; 团队可按实际需求自由组合 Plugin</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--green);"></span>
+            <span>与 Mira agent-core ToolRegistry 一脉相承，复用已有协议</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--green);"></span>
+            <span>社区可扩展 &mdash; 任何人可发布第三方 Plugin</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--green);"></span>
+            <span>Agent 占比可调 &mdash; 从 0% 到 100% 按需设定</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="eval-card" style="border-left:3px solid var(--red);">
+        <h3 style="color:var(--red);">劣势</h3>
+        <ul>
+          <li>
+            <span class="bullet" style="background:var(--red);"></span>
+            <span>初期 Plugin 生态不足，需要先期投入建设</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--red);"></span>
+            <span>组合复杂度 &mdash; Plugin 间兼容性需要额外验证</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--red);"></span>
+            <span>新人上手需理解 Plugin 协议与配置体系</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="eval-card" style="border-left:3px solid var(--cyan);">
+        <h3 style="color:var(--cyan);">适用场景</h3>
+        <ul>
+          <li>
+            <span class="bullet" style="background:var(--cyan);"></span>
+            <span>工程能力强、有定制需求的团队</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--cyan);"></span>
+            <span>需要渐进式引入 Agent 能力的组织</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--cyan);"></span>
+            <span>多技术栈并存、需统一测试工具链的平台团队</span>
+          </li>
+          <li>
+            <span class="bullet" style="background:var(--cyan);"></span>
+            <span>已有 Mira 生态、希望复用 ToolRegistry 的团队</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  Proposal 09 &mdash; TestKit: Plugin式可组合框架 &nbsp;|&nbsp; QA Agent Proposals
+</footer>
+
+</body>
+</html>
