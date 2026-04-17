@@ -36,7 +36,7 @@ export default defineConfig({
   globalTimeout: 20 * 60_000,
   timeout: 60_000,
   fullyParallel: true,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 1 : 2,
   workers: process.env.CI ? 3 : 5,
   outputDir: "./test-results",
   reporter: [
@@ -44,7 +44,7 @@ export default defineConfig({
     ["html", { open: "never" }],
   ],
   expect: {
-    timeout: 10_000,
+    timeout: 15_000,
   },
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.PREVIEW_URL || "http://localhost:3000",

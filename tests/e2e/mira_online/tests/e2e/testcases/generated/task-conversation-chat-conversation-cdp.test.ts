@@ -126,11 +126,15 @@ test.describe("US-CONV-MSGSEND · 消息发送功能", () => {
       await taskPage.goto();
 
       await taskPage.attachFile(TEST_FILES.txt);
+      // Wait for R2 upload to complete before clicking Submit.
+      // Submitting while the file still has no server-side path causes
+      // task-input.tsx to silently no-op → waitForURL() times out.
+      await taskPage.waitForUploadComplete();
       await expect(taskPage.getSubmitButton()).toBeEnabled();
       await taskPage.clickSubmit();
 
       await expect(page).toHaveURL(/\/task\/.+/, { timeout: 30_000 });
-      await expect(taskPage.getChatLog()).toBeVisible();
+      await expect(taskPage.getChatLog()).toBeVisible({ timeout: 15_000 });
     },
   );
 

@@ -202,16 +202,22 @@ test.describe("[CDP] Sign-In Page", () => {
       await signIn.fillEmail(TEST_EMAIL);
       await signIn.clickContinue();
 
-      // Step 3: Verify password step
+      // Step 3: Verify password step — must be sign-IN (enterPasswordTitle), not sign-up.
+      // If check-email returns exists=false (e.g. rate-limit 429 treated as missing account),
+      // the app redirects to /sign-up showing "Create password". Asserting only enterPasswordTitle
+      // catches this mis-route early with a clear failure message.
+      await expect(page).toHaveURL(/\/sign-in/, { timeout: 10_000 });
       await expect(signIn.getPasswordTitleHeading()).toHaveText(
-        i18nRegex("auth.enterPasswordTitle", "auth.createPasswordTitle"),
+        i18nRegex("auth.enterPasswordTitle"),
+        { timeout: 15_000 },
       );
 
-      // Step 4: Enter password and submit
+      // Step 4: Enter password and submit — wait for Continue to be enabled before clicking
       await signIn.fillPassword(TEST_PASSWORD);
+      await expect(signIn.getContinueButton()).toBeEnabled({ timeout: 5_000 });
       await signIn.clickContinue();
 
-      await expect(page).toHaveURL(/\/task/);
+      await expect(page).toHaveURL(/\/task/, { timeout: 30_000 });
     },
   );
 

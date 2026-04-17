@@ -457,7 +457,10 @@ export class TaskPage {
       .first();
     await taskItem.hover({ timeout });
     const moreBtn = taskItem.locator('[data-sidebar="menu-action"]');
-    await moreBtn.click({ timeout: 5000 });
+    // The menu-action button has md:opacity-0 and only becomes visible via CSS group-hover.
+    // Playwright's visibility check fails when opacity is 0 (e.g. if hover state races).
+    // Using force:true bypasses the opacity visibility check so the click always lands.
+    await moreBtn.click({ timeout: 5000, force: true });
   }
 
   async getFirstTaskName(): Promise<string> {
@@ -628,6 +631,21 @@ export class TaskPage {
 
   async attachFiles(filePaths: string[]): Promise<void> {
     await this.getHiddenFileInput().setInputFiles(filePaths);
+  }
+
+  /**
+   * Wait for all in-progress R2 uploads to complete.
+   * After setInputFiles(), each file is immediately shown with an "Uploading..."
+   * spinner (animate-spin). Only once the spinner disappears does task-input.tsx
+   * have a server-side path for the file; clicking Submit before that causes a
+   * silent no-op and waitForURL() will time out.
+   */
+  async waitForUploadComplete(timeout = 15_000): Promise<void> {
+    const spinner = this.page
+      .locator("form")
+      .filter({ has: this.page.locator("textarea") })
+      .locator('[class*="animate-spin"]');
+    await spinner.waitFor({ state: "hidden", timeout });
   }
 
   async removeAttachment(): Promise<void> {

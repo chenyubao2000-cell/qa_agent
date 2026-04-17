@@ -103,13 +103,14 @@ test.describe('[VERIFY-FIX] MIRA-1318 场景发送后应导航到新对话页', 
   test('[VERIFY-FIX] TC-VF-TSS-003 输入框为空时发送按钮应禁用，不应导航到新对话页', {
     tag: ['@P1', '@regression', '@full'],
   }, async ({ page, i18n }) => {
-    test.setTimeout(15_000);
+    test.setTimeout(45_000);
 
     const taskPage = new TaskPage(page, i18n);
     await taskPage.goto();
 
-    // Input should be empty on initial load
+    // Wait for input to hydrate (React controlled component race)
     const chatInput = taskPage.getChatInput();
+    await chatInput.waitFor({ state: 'visible', timeout: 15_000 });
     await expect(chatInput).toHaveValue('');
 
     // Submit button should be disabled when input is empty

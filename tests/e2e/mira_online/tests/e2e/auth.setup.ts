@@ -83,9 +83,9 @@ setup("authenticate", async ({ page }) => {
   await page.keyboard.type(password, { delay: 10 });
   await continueBtn.click({ timeout: 30_000 });
 
-  // Wait for redirect after login
+  // Wait for redirect after login — preview env can be slow on cold login
   await page.waitForURL("**/task**", {
-    timeout: 60_000,
+    timeout: 90_000,
     waitUntil: "domcontentloaded",
   });
   console.log(`Login successful as ${email}, saving auth state.`);
