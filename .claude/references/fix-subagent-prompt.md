@@ -100,6 +100,14 @@ All callers MUST provide these inputs:
 
 3. For each failure, FIRST CLASSIFY (using handoff assertions as reference), then act:
 
+   === Step 3a.0: Consult `e2e-flakiness-playbook.md` FIRST ===
+   Before classification and CDP exploration, grep `.claude/references/e2e-flakiness-playbook.md` for
+   the failure's symptom keywords (e.g., "Framer Motion", "Sonner toast", "md:opacity-0",
+   "i18n namespace", "R2 upload", "group-hover", "rate-limit", "AI-generated title").
+   If a pattern matches → apply its Fix directly; skip redundant CDP exploration.
+   After fixing, if you discovered a NEW reusable pattern not yet in the playbook, APPEND it back
+   (symptom / root cause / fix triple) so the next run benefits.
+
    === Step 3a: Classify failure type ===
 
    | Error Pattern | Classification | Reasoning |

@@ -19,7 +19,7 @@ qa-platform/
 ├── .claude/commands/→ 13 个 Slash Command
 │   ├── 已有 8 个：/qa-explore、qa-from-issue、qa-from-branch、qa-verify-fix、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
 │   └── 新增 5 个：/qa-unit-test、/qa-api-test、/qa-perf-test、/qa-eval、/qa-sentinel
-├── .claude/references/ → 11 个共享 Reference
+├── .claude/references/ → 12 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
 ├── hooks/           → 2 个 Hook（session-start 校验、通知）
 ├── scripts/         → PR 监控 + 质量守卫 + Eval 定时
 │   ├── git-watcher.ts（已有）
