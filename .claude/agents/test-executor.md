@@ -63,12 +63,14 @@ Checks:
    c. messages/ directory has files for each language
 5. (when E2E_TEST_EMAIL is set) auth infrastructure:
    a. auth.setup.ts exists at tests/e2e/auth.setup.ts
-   b. playwright.config.ts has setup project (Grep "name: 'setup'" or "auth\\.setup")
+   b. playwright.config.ts has ≥1 setup project — legacy `name: 'setup'` OR per-locale `setup-<locale>`
+      (Grep -E "name:\\s*['\"]setup(-\\w+)?['\"]|auth\\.setup")
    c. playwright/.auth directory exists (create if missing)
-   d. if playwright/.auth/user.json exists: validate it is valid JSON with non-empty `cookies` array. If invalid/empty → delete it (setup project will regenerate on next run)
-   e. if playwright/.auth/user.json exists and is older than 30 minutes → delete it (stale session token, setup project will re-authenticate)
+   d. For each auth file in playwright/.auth/user*.json: validate it is valid JSON with non-empty `cookies` array. If invalid/empty → delete it (setup project will regenerate on next run)
+   e. For each auth file older than 30 minutes → delete it (stale session token, setup project will re-authenticate)
    f. Verify auth.setup.ts contains staleness check (Grep "AUTH_MAX_AGE_MS" in auth.setup.ts). If missing → WARNING: "auth.setup.ts lacks staleness check, may reuse expired session"
    g. Verify fixtures.ts contains session guard (Grep "ensureAuthenticated" in fixtures.ts). If missing → WARNING: "fixtures.ts lacks session guard, mid-run session expiry will cause cascade failures"
+   h. (when APP_LANGUAGES is set) for each locale: verify `setup-${locale}` project exists (Grep -E "name:\\s*['\"]setup-${locale}['\"]") and that `playwright/.auth/user.${locale}.json` is either absent (will be regenerated) or fresh with cookie NEXT_LOCALE=${locale}
 ```
 
 - All pass → Verify that playwright.config.ts includes failure evidence configuration (`screenshot: 'only-on-failure'`, `trace: 'retain-on-failure'`); add if missing

@@ -6,25 +6,23 @@
 import { test, expect } from "../../fixtures";
 import { TaskPage } from "../../pages/task.page";
 import { i18nRegex } from "../../i18n-helpers";
+import { authFileAbsolute, toProjectLocale } from "../../locale-map";
 import type { BrowserContext, Page } from "@playwright/test";
 import path from "node:path";
 
-const AUTH_FILE = path.join(
-  __dirname,
-  "..",
-  "..",
-  "..",
-  "..",
-  "playwright",
-  ".auth",
-  "user.json",
-);
+const PROJECT_ROOT = path.join(__dirname, "..", "..", "..", "..");
 
-/** Create an authenticated context + page for beforeAll / afterAll hooks. */
+/** Create an authenticated context + page for beforeAll / afterAll hooks.
+ *  Picks the per-locale auth file based on current Playwright project (e.g. e2e-fr → user.fr.json).
+ */
 async function createAuthenticatedPage(
   browser: import("@playwright/test").Browser,
+  projectName: string,
 ): Promise<{ ctx: BrowserContext; page: Page }> {
-  const ctx = await browser.newContext({ storageState: AUTH_FILE });
+  const locale =
+    /^(?:e2e|setup)-(.+)$/.exec(projectName)?.[1] ||
+    toProjectLocale((process.env.APP_LANGUAGES || "en").split(",")[0]);
+  const ctx = await browser.newContext({ storageState: authFileAbsolute(PROJECT_ROOT, locale) });
   const page = await ctx.newPage();
   return { ctx, page };
 }
@@ -245,7 +243,7 @@ test.describe.serial("US-SIDEBAR-05 · 重命名弹窗", () => {
 
   test.beforeAll(async ({ browser }) => {
     renamedName = `Renamed-${Date.now()}`;
-    const { ctx, page: p } = await createAuthenticatedPage(browser);
+    const { ctx, page: p } = await createAuthenticatedPage(browser, test.info().project.name);
     const taskPage = new TaskPage(p);
     await taskPage.goto();
     await taskPage.fillChatInput(`Test Rename ${Date.now()}`);
@@ -426,7 +424,7 @@ test.describe.serial("US-SIDEBAR-05 · 重命名弹窗", () => {
   );
 
   test.afterAll(async ({ browser }) => {
-    const { ctx, page: p } = await createAuthenticatedPage(browser);
+    const { ctx, page: p } = await createAuthenticatedPage(browser, test.info().project.name);
     const taskPage = new TaskPage(p);
     await taskPage.goto();
     for (const name of [renamedName, renameTaskName]) {
@@ -451,7 +449,7 @@ test.describe.serial("US-SIDEBAR-06 · 删除弹窗", () => {
   let cancelTaskName: string;
 
   test.beforeAll(async ({ browser }) => {
-    const { ctx, page: p } = await createAuthenticatedPage(browser);
+    const { ctx, page: p } = await createAuthenticatedPage(browser, test.info().project.name);
     const taskPage = new TaskPage(p);
 
     // Create first task (will be deleted).
@@ -461,6 +459,9 @@ test.describe.serial("US-SIDEBAR-06 · 删除弹窗", () => {
     await taskPage.fillChatInput(`Test Delete ${Date.now()}`);
     await taskPage.clickSubmit();
     await p.waitForURL(/\/task\/.+/, { timeout: 60_000 });
+    // Let AI auto-title stabilize (takes 5-10s) — otherwise the captured name
+    // may drift later (e.g. "Test Cancel" → "Test Cancellation").
+    await p.waitForTimeout(10_000);
     deleteTaskName = await taskPage.getActiveTaskName();
 
     // Create second task (will test cancel-delete)
@@ -468,6 +469,7 @@ test.describe.serial("US-SIDEBAR-06 · 删除弹窗", () => {
     await taskPage.fillChatInput(`Test Cancel ${Date.now()}`);
     await taskPage.clickSubmit();
     await p.waitForURL(/\/task\/.+/, { timeout: 60_000 });
+    await p.waitForTimeout(10_000);
     cancelTaskName = await taskPage.getActiveTaskName();
 
     await ctx.close();
@@ -587,7 +589,7 @@ test.describe.serial("US-SIDEBAR-06 · 删除弹窗", () => {
   );
 
   test.afterAll(async ({ browser }) => {
-    const { ctx, page: p } = await createAuthenticatedPage(browser);
+    const { ctx, page: p } = await createAuthenticatedPage(browser, test.info().project.name);
     const taskPage = new TaskPage(p);
     await taskPage.goto();
     try {

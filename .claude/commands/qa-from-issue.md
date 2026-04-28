@@ -59,7 +59,7 @@ Then run i18n + auth infrastructure validation per the same reference file.
 
 > **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
 
-> **Including auth** (when `E2E_TEST_EMAIL` is set): playwright.config.ts must include setup project with `dependencies: ['setup']`, and auth.setup.ts must exist. The setup project re-authenticates every run — no self-healing needed.
+> **Including auth** (when `E2E_TEST_EMAIL` is set): playwright.config.ts must include **per-locale** setup projects `setup-${locale}` (validation regex: `name:\s*['"]setup(-\w+)?['"]`); test projects depend on their matching `setup-${locale}` + `data-setup`. auth.setup.ts must exist and implement UI-driven locale switch per `.claude/references/phase-0-templates.md` § "auth.setup.ts Template". Rationale: `phase-0-templates.md` § "Multi-locale Design Overview". POM/spec rules: `i18n-locator-rules.md`.
 
 auth.setup.ts is not generated at this point — it's written when CDP exploration encounters a login wall in Phase 2. When generated, it must follow qa-explore Phase 1 Step 1 template (setup project pattern).
 

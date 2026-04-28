@@ -22,12 +22,14 @@ export class TalentListPage {
     this.page = page;
     this.i18n = i18n;
 
-    // Result cards on the share page (chat log area)
+    // Result cards on the share page (chat log area).
+    // Button text is `{fileName}{i18n peopleData} | {count}{i18n downloadFile}`.
+    // Match by file name (locale-stable) + `| count` (number is locale-stable).
     this.onePersonCard = page.getByRole("button", {
-      name: /case01_技术人才.*1 人/,
+      name: /case01_技术人才.*\|\s*1\b/,
     });
     this.sixPersonCard = page.getByRole("button", {
-      name: /case01_技术人才.*6 人/,
+      name: /case01_技术人才.*\|\s*6\b/,
     });
 
     // Side / fullscreen panel control buttons

@@ -26,6 +26,7 @@ Only need to extract:
 - `QA_WORKSPACE_DIR` — read specs, write reports
 - `LINEAR_*` — pass through to report-analyzer (bug reporting)
 - `APP_LANGUAGES` — if set, Playwright config has per-language projects (e.g., `e2e-en`, `e2e-zh`). test-executor must handle project selection.
+  > **Per-locale execution strategy** (set by `phase-0-templates.md` config): the **default** locale (first in `APP_LANGUAGES`) runs the full test suite; **secondary** locales run only `@smoke` tests via per-project `grep`. Rationale: business logic is locale-agnostic — covering it once is enough; secondary locales only need to prove infra (per-locale auth / i18n rendering / locale cookie) works. Deep i18n coverage belongs to `/qa-i18n-audit`, not full regression. To opt out (force full suite on all locales) override with `--grep @regression` on the CLI and edit config to drop the per-project `grep`.
 
 Not needed: PLAYWRIGHT_BASE_URL (already in config), E2E_TEST_EMAIL (already in auth.setup.ts).
 Also extract: `SOURCE_PROJECT_DIR` — passed to report-analyzer for source code enrichment in bug reports.

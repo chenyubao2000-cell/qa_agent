@@ -47,15 +47,10 @@ export class TaskPage {
     });
     this.chatInput = page.locator("textarea");
     this.submitBtn = page.getByRole("button", { name: "Submit" });
-    // The visible attachment button in task-input.tsx uses aria-label={tChatbot("addAttachments")}.
-    // Production en.json → "Add photos or files"
-    // QA test env en.json → "Upload file" (singular)
-    // zh.json → "上传文件" / "添加照片或文件"
-    // The hidden <input type="file" aria-label="Upload files"> in prompt-input.tsx
-    // is className="hidden" and is never visible — do NOT target it.
-    this.fileUploadBtn = page.getByRole("button", {
-      name: /Upload files?|Add photos or files|上传文件|添加照片或文件/i,
-    });
+    // Attachment button in task-input.tsx — aria-label is locale-specific (some locales
+    // hardcode "上传文件" / "Téléverser un fichier" / etc., not sourced from messages/*.json).
+    // Use the stable lucide-paperclip svg marker instead of a text regex.
+    this.fileUploadBtn = page.locator("button:has(svg.lucide-paperclip)").first();
 
     // Task detail
     this.chatLog = page.locator('div[role="log"]');
@@ -323,9 +318,13 @@ export class TaskPage {
   }
 
   getDialogCloseBtn(): Locator {
-    return this.page.locator('[role="dialog"]').getByRole("button", {
-      name: this.i18n ? this.i18n.t("canvas.close") : i18nRegex("canvas.close"),
-    });
+    // Radix Dialog.Close's sr-only label is the English literal "Close" (component default,
+    // locale-independent). Fallback: any button containing the lucide-x icon inside the dialog.
+    return this.page
+      .locator(
+        '[role="dialog"] button[aria-label="Close"], [role="dialog"] button:has(svg.lucide-x)',
+      )
+      .first();
   }
 
   // ── Rename Dialog (S9) ──
@@ -577,7 +576,7 @@ export class TaskPage {
   }
 
   getAiLabel(): Locator {
-    return this.page.locator("span").filter({ hasText: "Mira" }).first();
+    return this.page.getByRole("img", { name: "Mira" }).first();
   }
 
   getDownloadFileButton(): Locator {
@@ -663,10 +662,7 @@ export class TaskPage {
   }
 
   getAiMiraLabel(): Locator {
-    return this.page
-      .locator("span")
-      .filter({ hasText: /^Mira$/ })
-      .first();
+    return this.page.getByRole("img", { name: "Mira" }).first();
   }
 
   getToolCards(): Locator {
@@ -814,9 +810,10 @@ export class TaskPage {
   }
 
   getPreviewImageResetBtn(): Locator {
-    return this.page.getByText(
-      this.i18n ? this.i18n.t("canvas.reset") : i18nRegex("canvas.reset"),
-    );
+    // Correct key path is canvas.renderers.image.reset (was canvas.reset — nonexistent).
+    // Always use multi-locale regex: the logged-in account's locale may
+    // override the test's NEXT_LOCALE cookie (observed rendering 重置 in en run).
+    return this.page.getByText(i18nRegex("canvas.renderers.image.reset"));
   }
 
   getPreviewUnsupportedMessage(): Locator {

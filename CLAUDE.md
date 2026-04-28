@@ -13,12 +13,14 @@ qa-platform/
 ├── skills/          → 10 个 Skill
 │   ├── 已有 5 个：CDP 探查、测试用例生成、Playwright E2E、Excel 导出、前置数据管理
 │   └── 新增 5 个：unit-test-generator、api-test-generator、perf-test-generator、llm-eval-builder、mock-config-generator
-├── .claude/agents/  → 9 个 Agent
+├── .claude/agents/  → 12 个 Agent
 │   ├── 已有 5 个：e2e-orchestrator、test-executor、cdp-test-executor、report-analyzer、bug-reporter
-│   └── 新增 4 个：unit-test-agent(opus)、api-orchestrator(sonnet)、eval-agent(sonnet)、sentinel-agent(haiku)
-├── .claude/commands/→ 13 个 Slash Command
+│   ├── 新增 4 个：unit-test-agent(opus)、api-orchestrator(sonnet)、eval-agent(sonnet)、sentinel-agent(haiku)
+│   └── i18n team 3 个：i18n-cdp-runner(sonnet)、i18n-issue-reviewer(sonnet)、i18n-html-reporter(haiku)
+├── .claude/commands/→ 14 个 Slash Command
 │   ├── 已有 8 个：/qa-explore、qa-from-issue、qa-from-branch、qa-verify-fix、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
-│   └── 新增 5 个：/qa-unit-test、/qa-api-test、/qa-perf-test、/qa-eval、/qa-sentinel
+│   ├── 新增 5 个：/qa-unit-test、/qa-api-test、/qa-perf-test、/qa-eval、/qa-sentinel
+│   └── i18n 1 个：/qa-i18n-audit
 ├── .claude/references/ → 12 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
 ├── hooks/           → 2 个 Hook（session-start 校验、通知）
 ├── scripts/         → PR 监控 + 质量守卫 + Eval 定时
@@ -53,6 +55,13 @@ LLM Eval 流水线（新增）：
 质量守卫（新增）：
   sentinel-agent (haiku)    → 监控 Sentry/Langfuse/Railway/DB → 异常触发测试/告警
 
+i18n 审查流水线（新增）：
+  i18n-cdp-runner (sonnet)   → CDP 按 locale×viewport 跑 spec → 抓 snapshot/截图/元数据
+     ↓ 完成后
+  i18n-issue-reviewer (sonnet) → 对比 messages 字典 → 判定未翻译/溢出/lang 不一致
+     ↓ 完成后
+  i18n-html-reporter (haiku)  → 聚合 issues + 截图 → 单文件 HTML 报告（每 issue 必带截图）
+
 CI 增量测试（新增）：
   test-flow.yml             → PR affected 分析 → coverage gap → AI 测试建议 → 选择性执行
 
@@ -75,7 +84,8 @@ PR 监控（独立流程）：
 ├── /qa-api-test   → 分析 API Schema → 生成 API 测试 → 执行 → 报告
 ├── /qa-perf-test  → 分析 endpoint → 生成 k6 性能测试 → 执行 → 基线对比
 ├── /qa-eval       → 构建 eval dataset → LLM-as-Judge 评分 → 趋势分析
-└── /qa-sentinel   → 启动多平台质量守卫监控
+├── /qa-sentinel   → 启动多平台质量守卫监控
+└── /qa-i18n-audit → CDP × (locale×viewport) 审查 → issues JSON → HTML 报告（带截图）
 ```
 
 ## 命令

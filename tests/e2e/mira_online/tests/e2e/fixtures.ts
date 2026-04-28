@@ -1,19 +1,36 @@
 import { test as base, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Page, WorkerInfo, TestInfo } from "@playwright/test";
 
 // ── i18n: read directly from Mira source via i18n-helpers ──
 import { allMessages, i18nRegex } from "./i18n-helpers";
+import {
+  LOCALE_NATIVE_NAMES,
+  authFileForLocale,
+  defaultLocale as computedDefaultLocale,
+  toProjectLocale,
+} from "./locale-map";
 
 const i18nMessages = allMessages;
 
 export type I18n = { t: (key: string) => string; locale: string };
 
+function localeFromProjectName(name: string): string {
+  const m = /^(?:e2e|setup)-(.+)$/.exec(name);
+  if (m?.[1]) return toProjectLocale(m[1]);
+  return computedDefaultLocale();
+}
+
+// Worker-scoped fixtures create data via a logged-in context; reuse the default-locale
+// storageState (data content is locale-agnostic — tasks have Chinese prompts regardless).
+const WORKER_AUTH_FILE = authFileForLocale(computedDefaultLocale());
+
 // ── Session guard: auto re-authenticate on expiry ──
-// See: skills/playwright-script-generator/references/session-guard.md
-const AUTH_FILE = "playwright/.auth/user.json";
 const SIGN_IN_PATH = "/sign-in";
 
-async function reAuthenticate(page: Page): Promise<void> {
+async function reAuthenticate(
+  page: Page,
+  info: { authFile: string; targetLocale: string },
+): Promise<void> {
   const email = process.env.E2E_TEST_EMAIL;
   const password = process.env.E2E_TEST_PASSWORD;
   if (!email || !password)
@@ -43,7 +60,51 @@ async function reAuthenticate(page: Page): Promise<void> {
   });
   console.log("[session-guard] Re-authentication successful");
 
-  await page.context().storageState({ path: AUTH_FILE });
+  // Re-apply UI locale so account preference stays aligned with the project locale.
+  await ensureUiLocale(page, info.targetLocale).catch(() => {});
+
+  await page.context().storageState({ path: info.authFile });
+}
+
+async function ensureUiLocale(page: Page, targetLocale: string): Promise<void> {
+  const nativeName = LOCALE_NATIVE_NAMES[targetLocale];
+  if (!nativeName) return;
+  const currentLang = await page.locator("html").getAttribute("lang").catch(() => null);
+  if (currentLang === targetLocale) return;
+
+  const userMenuBtn = page
+    .locator('[data-sidebar="footer"] [data-sidebar="menu-button"]')
+    .first();
+  if (!(await userMenuBtn.isVisible({ timeout: 5_000 }).catch(() => false))) return;
+  await userMenuBtn.click();
+
+  const langItem = page.getByRole("menuitem", {
+    name: i18nRegex("common.language", "Layout.language"),
+  });
+  const ok = await langItem
+    .first()
+    .isVisible({ timeout: 5_000 })
+    .catch(() => false);
+  if (ok) {
+    await langItem.first().click();
+  } else {
+    await page
+      .locator('[role="menu"] [role="menuitem"][aria-haspopup="menu"]')
+      .first()
+      .click();
+  }
+  await page
+    .getByRole("menuitemcheckbox", {
+      name: new RegExp(`^${nativeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`),
+    })
+    .click({ timeout: 10_000 });
+  await page
+    .waitForFunction(
+      (loc) => document.documentElement.lang === loc,
+      targetLocale,
+      { timeout: 15_000 },
+    )
+    .catch(() => {});
 }
 
 // ── Shared test-data file for cross-project URL passing ──
@@ -84,7 +145,7 @@ async function waitForResultWithClarification(
   targetLocator: import("@playwright/test").Locator,
   fallbackFill = "软件工程师",
   /** Persist cookies periodically so session_data stays fresh across long waits */
-  authFile = AUTH_FILE,
+  authFile = WORKER_AUTH_FILE,
 ) {
   const clarificationBtn = page.locator('[role="log"] button').filter({
     hasText: i18nRegex("toolForms.clarifyQuestion.submit", { exact: true }),
@@ -170,19 +231,41 @@ async function waitForResultWithClarification(
   await targetLocator.waitFor({ state: "visible", timeout: 300_000 });
 }
 
+// Per-locale execution strategy: the default locale runs the full suite, non-default
+// locales run only @smoke tagged tests. Implemented as a beforeEach skip so the
+// filter is explicit and independent of Playwright's CLI/project grep interactions.
+// Bypass with env `FORCE_ALL_LOCALES=1` when a full audit across locales is wanted
+// (mainly to diagnose regressions before releasing — normally use /qa-i18n-audit).
+base.beforeEach(async ({}, testInfo) => {
+  if (process.env.FORCE_ALL_LOCALES === "1") return;
+  const projectName = testInfo.project.name;
+  // Only gate real test projects; let setup-* and data-setup always run.
+  if (!projectName.startsWith("e2e-")) return;
+  const projectLocale = projectName.replace(/^e2e-/, "");
+  if (projectLocale === computedDefaultLocale()) return;
+  const tags = (testInfo as any).tags || [];
+  if (tags.includes("@smoke")) return;
+  base.skip(
+    true,
+    `non-default locale '${projectLocale}' runs only @smoke; deep i18n coverage via /qa-i18n-audit`,
+  );
+});
+
 export const test = base.extend<
   { i18n: I18n; ensureAuthenticated: void },
   TestDataFixtures
 >({
   ensureAuthenticated: [
-    async ({ page }, use) => {
+    async ({ page }, use, testInfo) => {
+      const targetLocale = localeFromProjectName(testInfo.project.name);
+      const authFile = authFileForLocale(targetLocale);
       const originalGoto = page.goto.bind(page);
       page.goto = async (url: string, options?: any) => {
         const response = await originalGoto(url, options);
         // Skip session guard when the test intentionally navigates to sign-in
         const isSignInTarget = url.includes(SIGN_IN_PATH);
         if (!isSignInTarget && page.url().includes(SIGN_IN_PATH)) {
-          await reAuthenticate(page);
+          await reAuthenticate(page, { authFile, targetLocale });
           return originalGoto(url, options);
         }
         return response;
@@ -220,7 +303,7 @@ export const test = base.extend<
         await use(presetUrl);
         return;
       }
-      const ctx = await browser.newContext({ storageState: AUTH_FILE });
+      const ctx = await browser.newContext({ storageState: WORKER_AUTH_FILE });
       const page = await ctx.newPage();
       try {
         await page.goto("/task", {
@@ -228,13 +311,13 @@ export const test = base.extend<
           waitUntil: "domcontentloaded",
         });
         if (page.url().includes(SIGN_IN_PATH)) {
-          await reAuthenticate(page);
+          await reAuthenticate(page, { authFile: WORKER_AUTH_FILE, targetLocale: computedDefaultLocale() });
           await page.goto("/task", {
             timeout: 120_000,
             waitUntil: "domcontentloaded",
           });
         }
-        await ctx.storageState({ path: AUTH_FILE });
+        await ctx.storageState({ path: WORKER_AUTH_FILE });
         await page.waitForLoadState("domcontentloaded");
         const textarea = page.getByRole("textbox", {
           name: i18nRegex("chatbot.placeholder"),
@@ -283,7 +366,7 @@ export const test = base.extend<
         await use(presetUrl);
         return;
       }
-      const ctx = await browser.newContext({ storageState: AUTH_FILE });
+      const ctx = await browser.newContext({ storageState: WORKER_AUTH_FILE });
       const page = await ctx.newPage();
       try {
         await page.goto("/task", {
@@ -291,13 +374,13 @@ export const test = base.extend<
           waitUntil: "domcontentloaded",
         });
         if (page.url().includes(SIGN_IN_PATH)) {
-          await reAuthenticate(page);
+          await reAuthenticate(page, { authFile: WORKER_AUTH_FILE, targetLocale: computedDefaultLocale() });
           await page.goto("/task", {
             timeout: 120_000,
             waitUntil: "domcontentloaded",
           });
         }
-        await ctx.storageState({ path: AUTH_FILE });
+        await ctx.storageState({ path: WORKER_AUTH_FILE });
         await page.waitForLoadState("domcontentloaded");
         const textarea = page.getByRole("textbox", {
           name: i18nRegex("chatbot.placeholder"),
@@ -346,7 +429,7 @@ export const test = base.extend<
         return;
       }
 
-      const ctx = await browser.newContext({ storageState: AUTH_FILE });
+      const ctx = await browser.newContext({ storageState: WORKER_AUTH_FILE });
       const page = await ctx.newPage();
       try {
         await page.goto("/task", {
@@ -354,13 +437,13 @@ export const test = base.extend<
           waitUntil: "domcontentloaded",
         });
         if (page.url().includes(SIGN_IN_PATH)) {
-          await reAuthenticate(page);
+          await reAuthenticate(page, { authFile: WORKER_AUTH_FILE, targetLocale: computedDefaultLocale() });
           await page.goto("/task", {
             timeout: 120_000,
             waitUntil: "domcontentloaded",
           });
         }
-        await ctx.storageState({ path: AUTH_FILE });
+        await ctx.storageState({ path: WORKER_AUTH_FILE });
         await page.waitForLoadState("domcontentloaded");
         const textarea = page.getByRole("textbox", {
           name: i18nRegex("chatbot.placeholder"),
@@ -404,7 +487,7 @@ export const test = base.extend<
         return;
       }
 
-      const ctx = await browser.newContext({ storageState: AUTH_FILE });
+      const ctx = await browser.newContext({ storageState: WORKER_AUTH_FILE });
       const page = await ctx.newPage();
       try {
         // Create a task first
@@ -413,13 +496,13 @@ export const test = base.extend<
           waitUntil: "domcontentloaded",
         });
         if (page.url().includes(SIGN_IN_PATH)) {
-          await reAuthenticate(page);
+          await reAuthenticate(page, { authFile: WORKER_AUTH_FILE, targetLocale: computedDefaultLocale() });
           await page.goto("/task", {
             timeout: 120_000,
             waitUntil: "domcontentloaded",
           });
         }
-        await ctx.storageState({ path: AUTH_FILE });
+        await ctx.storageState({ path: WORKER_AUTH_FILE });
 
         const textarea = page.getByRole("textbox", {
           name: i18nRegex("chatbot.placeholder"),
@@ -516,7 +599,7 @@ export const test = base.extend<
         return;
       }
 
-      const ctx = await browser.newContext({ storageState: AUTH_FILE });
+      const ctx = await browser.newContext({ storageState: WORKER_AUTH_FILE });
       const page = await ctx.newPage();
       try {
         await page.goto("/task", {
@@ -524,13 +607,13 @@ export const test = base.extend<
           waitUntil: "domcontentloaded",
         });
         if (page.url().includes(SIGN_IN_PATH)) {
-          await reAuthenticate(page);
+          await reAuthenticate(page, { authFile: WORKER_AUTH_FILE, targetLocale: computedDefaultLocale() });
           await page.goto("/task", {
             timeout: 120_000,
             waitUntil: "domcontentloaded",
           });
         }
-        await ctx.storageState({ path: AUTH_FILE });
+        await ctx.storageState({ path: WORKER_AUTH_FILE });
         await page.waitForLoadState("domcontentloaded");
         const textarea = page.getByRole("textbox", {
           name: i18nRegex("chatbot.placeholder"),

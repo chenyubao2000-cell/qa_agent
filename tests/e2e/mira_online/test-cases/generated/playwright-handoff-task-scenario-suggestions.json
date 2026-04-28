@@ -1,0 +1,201 @@
+[
+  {
+    "id": "TC-TSS-SG-001",
+    "storyId": "task-scenario-suggestions",
+    "title": "遍历 4 张场景卡片：每次点击都能填充 textarea 并启用 Submit",
+    "priority": "P0",
+    "tags": ["@P0", "@regression", "@full"],
+    "source": "cdp",
+    "baseUrl": "https://www.mira.day/",
+    "pageUrl": "/task",
+    "preconditions": [
+      "用户已登录（authSetup=true）",
+      "浏览器已打开 https://www.mira.day/task",
+      "getScenarioSuggestions().count() === 4 (桌面端 2x2 grid 渲染 4 张卡片)"
+    ],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "name": "scenarioCards", "role": "button", "locatorHint": "taskPage.getScenarioSuggestions()", "count": 4 },
+      { "name": "chatInput", "role": "textbox", "locatorHint": "taskPage.getChatInput()" },
+      { "name": "submitButton", "role": "button", "locatorHint": "taskPage.getSubmitButton()" }
+    ],
+    "steps": [
+      "使用 TaskPage.goto() 打开 /task",
+      "等待第一张场景卡片可见",
+      "循环 i = 0..3：记录 textarea 初值 → clickScenarioCard(i) → 断言 textarea 新值非空且 ≠ 初值 → 断言 Submit 启用",
+      "循环结束后不执行 Submit（避免实际发送数据）"
+    ],
+    "assertions": [
+      { "type": "count", "description": "场景卡片数量为 4", "expected": 4 },
+      { "type": "value-nonempty", "description": "每次点击后 textarea value 非空" },
+      { "type": "value-changed", "description": "每次点击后 textarea value 与上次不同（与点击前对比）" },
+      { "type": "enabled", "description": "每次点击后 Submit 按钮 enabled", "target": "submitButton" }
+    ],
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-TSS-SG-002",
+    "storyId": "task-scenario-suggestions",
+    "title": "点击卡片后 textarea 仅包含 description，不包含 title (i18n-safe substring check)",
+    "priority": "P0",
+    "tags": ["@P0", "@regression", "@full"],
+    "source": "cdp",
+    "baseUrl": "https://www.mira.day/",
+    "pageUrl": "/task",
+    "preconditions": [
+      "用户已登录",
+      "在 /task 页面，4 张场景卡片可见"
+    ],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "name": "scenarioCards", "role": "button", "locatorHint": "taskPage.getScenarioSuggestions()" },
+      { "name": "chatInput", "role": "textbox", "locatorHint": "taskPage.getChatInput()" }
+    ],
+    "steps": [
+      "TaskPage.goto() 打开 /task",
+      "循环 i = 0..3：读取卡片 i 的 textContent（即 title + description 拼接）cardFull",
+      "调用 clickScenarioCard(i) 并等待 textarea 非空",
+      "读取 textarea.inputValue() 得到 value",
+      "断言 value 非空、cardFull 包含 value、value 长度严格小于 cardFull 长度（代表只塞了 description 不含 title）"
+    ],
+    "assertions": [
+      { "type": "value-nonempty", "description": "textarea value 非空" },
+      { "type": "substring", "description": "cardFull 包含 value（value 是卡片完整文本的子串）" },
+      { "type": "length-strict-less", "description": "value.length < cardFull.length（value 不含 title，严格小于完整文本）" }
+    ],
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-TSS-SG-003",
+    "storyId": "task-scenario-suggestions",
+    "title": "二次点击覆盖：textarea 被完全替换为第二张卡的 description",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full"],
+    "source": "cdp",
+    "baseUrl": "https://www.mira.day/",
+    "pageUrl": "/task",
+    "preconditions": [
+      "用户已登录",
+      "在 /task 页面，≥ 3 张卡片可见（点击索引 0 与 2）"
+    ],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "name": "scenarioCards", "role": "button", "locatorHint": "taskPage.getScenarioSuggestions()" },
+      { "name": "chatInput", "role": "textbox", "locatorHint": "taskPage.getChatInput()" }
+    ],
+    "steps": [
+      "TaskPage.goto() 打开 /task",
+      "点击卡片 0 并读取 textarea value → v0",
+      "点击卡片 2 并读取 textarea value → v2；读取卡片 2 的 textContent → card2Full",
+      "断言：v2 ≠ v0；card2Full 包含 v2；v2.length < card2Full.length；v2 不包含 v0"
+    ],
+    "assertions": [
+      { "type": "not-equal", "description": "v2 ≠ v0" },
+      { "type": "substring", "description": "card2Full 包含 v2" },
+      { "type": "length-strict-less", "description": "v2.length < card2Full.length" },
+      { "type": "not-contains", "description": "v2 不包含 v0（确认是替换而非追加）" }
+    ],
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-TSS-SG-004",
+    "storyId": "task-scenario-suggestions",
+    "title": "用户手动输入被场景卡片覆盖（锁定当前 overwrite 行为）",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full"],
+    "source": "cdp",
+    "baseUrl": "https://www.mira.day/",
+    "pageUrl": "/task",
+    "preconditions": [
+      "用户已登录",
+      "在 /task 页面，textarea 可用"
+    ],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "name": "scenarioCards", "role": "button", "locatorHint": "taskPage.getScenarioSuggestions()" },
+      { "name": "chatInput", "role": "textbox", "locatorHint": "taskPage.getChatInput()" },
+      { "name": "submitButton", "role": "button", "locatorHint": "taskPage.getSubmitButton()" }
+    ],
+    "steps": [
+      "TaskPage.goto() 打开 /task",
+      "使用 fillChatInput 向 textarea 填入唯一标记串 userTyped = `USER_TYPED_XYZ_${Date.now()}`",
+      "断言 textarea.inputValue() === userTyped",
+      "点击卡片 1 (clickScenarioCard(1))",
+      "读取 textarea value 和卡片 1 的 textContent",
+      "断言：value 不包含 userTyped；value 是 cardFull 的子串；value.length < cardFull.length；Submit 依旧 enabled"
+    ],
+    "assertions": [
+      { "type": "not-contains", "description": "textarea value 不包含用户输入的唯一串" },
+      { "type": "substring", "description": "cardFull 包含 value（仅 description 被写入）" },
+      { "type": "length-strict-less", "description": "value.length < cardFull.length" },
+      { "type": "enabled", "description": "Submit 按钮仍然 enabled", "target": "submitButton" }
+    ],
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-TSS-SG-005",
+    "storyId": "task-scenario-suggestions",
+    "title": "4 张卡片内容完整性 & label 可见",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full"],
+    "source": "cdp",
+    "baseUrl": "https://www.mira.day/",
+    "pageUrl": "/task",
+    "preconditions": ["用户已登录", "在 /task 页面"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "name": "scenarioLabel", "role": "text", "locatorHint": "taskPage.getScenarioLabel()", "i18nKey": "dashboard.tryScenarios" },
+      { "name": "scenarioCards", "role": "button", "locatorHint": "taskPage.getScenarioSuggestions()", "count": 4 }
+    ],
+    "steps": [
+      "TaskPage.goto() 打开 /task",
+      "断言 label 可见且文本包含 i18n.t('dashboard.tryScenarios')",
+      "断言 getScenarioSuggestions().count() === 4",
+      "循环 i = 0..3：断言每张卡片可见、enabled、textContent trim 后长度 > 0"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "scenarioLabel" },
+      { "type": "text-contains", "target": "scenarioLabel", "i18nKey": "dashboard.tryScenarios", "description": "label 文案等于 i18n.t('dashboard.tryScenarios')" },
+      { "type": "count", "target": "scenarioCards", "expected": 4 },
+      { "type": "visible-each", "description": "每张卡片可见" },
+      { "type": "enabled-each", "description": "每张卡片 enabled" },
+      { "type": "text-nonempty-each", "description": "每张卡片 textContent 非空" }
+    ],
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-TSS-SG-006",
+    "storyId": "task-scenario-suggestions",
+    "title": "点击卡片后 4 张卡片仍保持可见（不触发 submit）",
+    "priority": "P2",
+    "tags": ["@P2", "@regression", "@full"],
+    "source": "cdp",
+    "baseUrl": "https://www.mira.day/",
+    "pageUrl": "/task",
+    "preconditions": ["用户已登录", "在 /task 页面，4 张场景卡片可见"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "name": "scenarioCards", "role": "button", "locatorHint": "taskPage.getScenarioSuggestions()", "count": 4 }
+    ],
+    "steps": [
+      "TaskPage.goto() 打开 /task",
+      "断言 4 张卡片全部可见",
+      "点击卡片 0",
+      "断言 count 仍为 4，且每张卡片仍 isVisible()",
+      "断言 page.url() 仍匹配 `/task` (未导航)"
+    ],
+    "assertions": [
+      { "type": "count", "target": "scenarioCards", "expected": 4, "description": "点击前卡片数量=4" },
+      { "type": "count-after-click", "target": "scenarioCards", "expected": 4, "description": "点击后卡片数量依然=4" },
+      { "type": "visible-each-after-click", "description": "点击后每张卡片仍可见" },
+      { "type": "url-unchanged", "expected": "/task", "description": "URL 仍停留在 /task（未点击 Submit）" }
+    ],
+    "timeoutMs": 15000
+  }
+]

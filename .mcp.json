@@ -37,7 +37,7 @@
       "command": "npx",
       "args": ["-y", "@sentry/mcp-server"],
       "env": {
-        "SENTRY_ACCESS_TOKEN": "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",
+        "SENTRY_ACCESS_TOKEN": "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",
         "HTTPS_PROXY": "http://127.0.0.1:7890",
         "HTTP_PROXY": "http://127.0.0.1:7890"
       }

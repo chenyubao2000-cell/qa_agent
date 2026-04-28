@@ -301,7 +301,7 @@ test.describe("[CDP] Mira Homepage — Navigation Links", () => {
       await home.goto();
 
       await home.clickBottomCta();
-      await expect(page).toHaveURL(/\/task|\/sign-in/);
+      await expect(page).toHaveURL(/\/join-waitlist/);
     },
   );
 

@@ -138,9 +138,10 @@ If projectContext.authSetup is true:
   1. Verify auth.setup.ts exists:
      - Check: file exists at "$targetProjectDir/tests/e2e/auth.setup.ts"
      - If missing → WARNING: "auth.setup.ts not found. Login wall handling will be deferred to qa-fix-tests Phase 2."
-  2. Verify playwright.config.ts has setup project:
-     - Check: Grep("name: 'setup'|auth\\.setup", "$targetProjectDir/playwright.config.ts")
+  2. Verify playwright.config.ts has ≥1 setup project (accepts legacy 'setup' OR per-locale 'setup-<locale>'):
+     - Check: Grep("name:\\s*['\"]setup(-\\w+)?['\"]|auth\\.setup", "$targetProjectDir/playwright.config.ts")
      - If missing → WARNING: "playwright.config.ts missing setup project. Auth will not work."
+     - When APP_LANGUAGES is set: additionally verify each `setup-${locale}` + `user.${locale}.json` per `.claude/references/phase-0-workspace-init.md` § "Per-locale Auth Validation".
   3. Verify playwright/.auth directory exists:
      - Check: directory exists at "$targetProjectDir/playwright/.auth"
      - If missing → create it

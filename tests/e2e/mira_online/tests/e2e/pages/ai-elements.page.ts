@@ -108,8 +108,8 @@ export class AiElementsPage {
 
   getMiraLabel(): Locator {
     return this.page
-      .locator('[role="log"] .real-msg span')
-      .filter({ hasText: /^Mira$/ })
+      .getByRole("log")
+      .getByRole("img", { name: "Mira" })
       .first();
   }
 
@@ -139,7 +139,16 @@ export class AiElementsPage {
 
   async clickFirstToolCard(): Promise<void> {
     await this.toolCards.first().waitFor({ state: "visible", timeout: 15_000 });
+    // React hydration race: tool card DOM is rendered before its onClick
+    // handler is attached. Without a pre-click pause the click is silently
+    // absorbed and waitForWorkspaceOpen hits timeout. Retry once if needed.
+    await this.page.waitForTimeout(1500);
     await this.toolCards.first().click();
+    try {
+      await this.workspaceHeading.waitFor({ state: "visible", timeout: 3000 });
+    } catch {
+      await this.toolCards.first().click();
+    }
   }
 
   // ── Workspace panel getters ──

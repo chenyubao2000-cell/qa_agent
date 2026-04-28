@@ -32,8 +32,9 @@ Execute `.claude/references/phase-0-workspace-init.md` Steps 2a–2f. Each sub-s
 Then run i18n + auth infrastructure validation per the same reference file.
 
 > **Including i18n** (when `APP_LANGUAGES` is set): must also copy i18n messages (Step 2b-1), generate multi-language projects in playwright.config.ts (Step 2d), and generate i18n fixture in fixtures.ts (Step 2e). Skipping any of these will cause downstream test failures in all non-default locales.
+> **Per-locale run strategy**: default locale runs full suite; secondary locales only run `@smoke`. Deep i18n quality audit → `/qa-i18n-audit`, not `/qa-run` full matrix. See `phase-0-templates.md` § "playwright.config.ts Template" for the `grep: /@smoke/` per-project filter.
 
-> **Including auth** (when `E2E_TEST_EMAIL` is set): playwright.config.ts must include setup project with `dependencies: ['setup']`, and auth.setup.ts must exist. The setup project re-authenticates every run — no self-healing needed.
+> **Including auth** (when `E2E_TEST_EMAIL` is set): playwright.config.ts must include **per-locale** setup projects `setup-${locale}` (regex: `name:\s*['"]setup(-\w+)?['"]`); each `e2e-${locale}` test project has `storageState: user.${locale}.json` and `dependencies: ['setup-${locale}', 'data-setup']`. auth.setup.ts must exist and switch UI locale via user menu. Template + rationale: `.claude/references/phase-0-templates.md`. POM/spec rules: `i18n-locator-rules.md`.
 
 > qa-run-prd itself does not use CDP. All CDP work (locator verification, login wall handling, page exploration)
 > is uniformly handled by downstream `/qa-fix-tests`. This avoids redundant CDP exploration (qa-run-prd exploring once + fix-tests exploring again).

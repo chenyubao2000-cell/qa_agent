@@ -17,8 +17,9 @@ import path from "node:path";
 import fs from "node:fs";
 
 import { i18nRegex as i18nPattern } from "./i18n-helpers";
+import { authFileForLocale, defaultLocale } from "./locale-map";
 
-const AUTH_FILE = "playwright/.auth/user.json";
+const AUTH_FILE = authFileForLocale(defaultLocale());
 const SIGN_IN_PATH = "/sign-in";
 const TEST_DATA_PATH = path.join(
   __dirname,

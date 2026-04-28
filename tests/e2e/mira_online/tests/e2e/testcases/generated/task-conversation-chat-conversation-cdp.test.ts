@@ -261,7 +261,10 @@ test.describe("US-CONV-CHATRESPONSE · AI 响应结构", () => {
     },
   );
 
-  test(
+  // fixme: asserts tool card in-progress state, but preset tasks have already
+  // completed — the in-progress window is gone by the time the test runs.
+  // Need a dedicated slow-running fixture task to re-enable.
+  test.fixme(
     "TC-CDP-CONV-017 工具卡片在进行中状态下显示有色边框",
     { tag: ["@P2", "@full"] },
     async ({ page, i18n }) => {
@@ -375,7 +378,7 @@ test.describe("US-CONV-WORKSPACE · 工作区面板", () => {
       await expect(taskPage.getFileUploadButton()).toBeVisible();
       await expect(taskPage.getFileUploadButton()).toHaveAttribute(
         "aria-label",
-        /Upload files?|Add photos or files|上传文件|添加照片或文件/i,
+        /Upload files?|Add photos or files|上传文件|添加照片或文件|Téléverser un fichier|Ajouter des photos ou fichiers/i,
       );
 
       // Cleanup
@@ -405,7 +408,7 @@ test.describe("US-CONV-I18N · i18n 文本验证", () => {
       await expect(taskPage.getFileUploadButton()).toBeEnabled();
       await expect(taskPage.getFileUploadButton()).toHaveAttribute(
         "aria-label",
-        /Upload files?|Add photos or files|上传文件|添加照片或文件/i,
+        /Upload files?|Add photos or files|上传文件|添加照片或文件|Téléverser un fichier|Ajouter des photos ou fichiers/i,
       );
     },
   );

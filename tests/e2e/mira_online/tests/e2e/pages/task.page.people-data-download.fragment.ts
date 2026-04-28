@@ -176,11 +176,173 @@ export class TaskPagePeopleDataDownloadFragment {
   }
 
   /**
+   * The inline download button embedded in the chat-log People Data card
+   * (before the side panel is opened). Clicking this triggers the direct
+   * client-side JSON→XLSX conversion path, producing a sheetjs XLSX blob
+   * regardless of panel state. Prefer this for asserting "download is XLSX"
+   * — the panel-header button's download path depends on preview cache state
+   * and is unreliable under Playwright.
+   */
+  getPeopleDataInlineDownloadButton(): Locator {
+    // The inline download-icon button embedded in the People Data card in chat log,
+    // anchored on the lucide-download svg (locale-independent + stable marker).
+    return this.page
+      .locator('[role="log"] button:has(svg.lucide-download)')
+      .first();
+  }
+
+  async clickPeopleDataInlineDownloadButton(): Promise<void> {
+    const btn = this.getPeopleDataInlineDownloadButton();
+    await btn.waitFor({ state: "visible", timeout: 10_000 });
+    await btn.click({ force: true });
+  }
+
+  /**
    * Click the close button in the People Data panel header.
    */
   async closePeopleDataPanel(): Promise<void> {
     const btn = this.getPeopleDataPanelCloseButton();
     await btn.waitFor({ state: "visible", timeout: 5_000 });
     await btn.click();
+  }
+
+  /**
+   * Install a client-side spy capturing blob-based downloads.
+   *
+   * Why: the download button runs JS that (a) fetches the raw JSON, (b) converts
+   * it to XLSX client-side via a sheetjs-like library, (c) triggers a <a download>
+   * click on a Blob URL. Playwright's `page.waitForEvent('download')` in headless
+   * chrome captures the upstream raw JSON fetch, missing the client XLSX blob.
+   * This spy hooks `URL.createObjectURL` + `HTMLAnchorElement.download` setter
+   * so assertions can check the actual Blob MIME that the user sees.
+   */
+  async installDownloadSpy(): Promise<void> {
+    // Use addInitScript so the hook is in place BEFORE any page script runs —
+    // this captures blobs created during panel mount / preview eagerly. Also apply
+    // to the current window in case the page already loaded.
+    const hookFn = () => {
+      (window as any).__dlEvents = [];
+      const desc = Object.getOwnPropertyDescriptor(
+        HTMLAnchorElement.prototype,
+        "download",
+      );
+      Object.defineProperty(HTMLAnchorElement.prototype, "download", {
+        set(v: string) {
+          (window as any).__dlEvents.push({
+            type: "download=",
+            v,
+            href: this.href,
+          });
+          return desc!.set!.call(this, v);
+        },
+        get() {
+          return desc!.get!.call(this);
+        },
+        configurable: true,
+      });
+      const origCreate = URL.createObjectURL;
+      URL.createObjectURL = function (blob: Blob) {
+        const url = origCreate.call(URL, blob);
+        try {
+          (window as any).__dlEvents.push({
+            type: "blob",
+            mime: (blob as any)?.type,
+            size: (blob as any)?.size,
+            url,
+          });
+        } catch {}
+        return url;
+      };
+    };
+    await this.page.addInitScript(hookFn);
+    // Apply to the already-loaded page too (idempotent — overwrites any existing hook).
+    await this.page.evaluate(hookFn);
+  }
+
+  /**
+   * Clear events captured so far — call right before a fresh click when the page
+   * has done preliminary work (e.g. panel mount fetches) that could pollute the
+   * spy buffer. Does not uninstall the hook.
+   */
+  async resetDownloadSpy(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).__dlEvents = [];
+    });
+  }
+
+  /**
+   * Read spy data captured after a download click. Returns the blob MIME,
+   * its size, the value of `<a download>`, and a computed "effective filename"
+   * matching what the user's browser would save (download attr + MIME-inferred
+   * extension when the attr has none). Use this instead of
+   * `download.suggestedFilename()` when the app performs client-side conversion.
+   */
+  async getCapturedDownload(
+    options: { timeoutMs?: number; expectedBlobMime?: string | RegExp } = {},
+  ): Promise<{
+    blobMime?: string;
+    blobSize?: number;
+    downloadAttr?: string;
+    effectiveFilename?: string;
+  }> {
+    const timeoutMs = options.timeoutMs ?? 10_000;
+    const deadline = Date.now() + timeoutMs;
+    const mimeMatches = (mime?: string): boolean => {
+      if (!options.expectedBlobMime) return !!mime;
+      if (!mime) return false;
+      return options.expectedBlobMime instanceof RegExp
+        ? options.expectedBlobMime.test(mime)
+        : options.expectedBlobMime === mime;
+    };
+    const MIME_TO_EXT: Record<string, string> = {
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        "xlsx",
+      "application/vnd.ms-excel": "xls",
+      "application/json": "json",
+      "text/csv": "csv",
+      "application/pdf": "pdf",
+    };
+    const pick = (
+      events: any[],
+    ): {
+      blobMime?: string;
+      blobSize?: number;
+      downloadAttr?: string;
+      effectiveFilename?: string;
+    } => {
+      const blobs = events.filter((e) => e.type === "blob");
+      let blob: any = blobs[blobs.length - 1];
+      // If caller specified an expected MIME, prefer the latest blob matching it.
+      if (options.expectedBlobMime) {
+        const match = [...blobs].reverse().find((b) => mimeMatches(b.mime));
+        if (match) blob = match;
+      }
+      const dl = [...events].reverse().find((e) => e.type === "download=");
+      let effective: string | undefined;
+      if (dl?.v) {
+        effective = dl.v;
+        if (!/\.[a-z0-9]{2,5}$/i.test(effective) && blob?.mime) {
+          const ext = MIME_TO_EXT[blob.mime];
+          if (ext) effective = `${effective}.${ext}`;
+        }
+      }
+      return {
+        blobMime: blob?.mime,
+        blobSize: blob?.size,
+        downloadAttr: dl?.v,
+        effectiveFilename: effective,
+      };
+    };
+    let captured: ReturnType<typeof pick> = {};
+    while (Date.now() < deadline) {
+      const events: any[] = await this.page.evaluate(
+        () => (window as any).__dlEvents || [],
+      );
+      captured = pick(events);
+      if (captured.downloadAttr && mimeMatches(captured.blobMime))
+        return captured;
+      await this.page.waitForTimeout(250);
+    }
+    return captured;
   }
 }

@@ -3,8 +3,8 @@
     "url": "https://www.mira.day/task",
     "title": "Mira - Task App",
     "mode": "full",
-    "areasCompleted": ["sidebar", "main-input", "task-detail", "user-menu"],
-    "exploredAt": "2026-03-23",
+    "areasCompleted": ["sidebar", "main-input", "task-detail", "user-menu", "scenario-suggestions"],
+    "exploredAt": "2026-04-20",
     "requiresAuth": true
   },
   "states": {
@@ -201,6 +201,25 @@
           ]
         }
       }
+    },
+    "S11": {
+      "name": "Scenario card clicked — textarea filled with description",
+      "trigger": { "action": "click", "label": "Click any scenario suggestion card" },
+      "url": "https://www.mira.day/task",
+      "sourceArea": "scenario-suggestions",
+      "fingerprint": "S0+textarea(value=card.description)+submit(enabled)",
+      "note": "Clicking a scenario card fills the textarea with ONLY the card's description (not the title). Clicking another card fully replaces the textarea value (including any user-typed content). Scenario cards remain visible after click.",
+      "regions": {
+        "scenarioArea": {
+          "elements": [
+            { "tag": "StaticText", "text": "试试以下场景", "i18n": "dashboard.tryScenarios" },
+            { "tag": "button", "role": "scenario-card", "index": 0, "title": "目标公司 Mapping 与触达", "description": "针对目标公司进行 Mapping，筛出最可能看机会的 5 人，并生成触达话术" },
+            { "tag": "button", "role": "scenario-card", "index": 1, "title": "上海 Fintech 产品总监 Longlist", "description": "整理一份上海 fintech 产品总监的 longlist，挑出有 0-1 经验的人选" },
+            { "tag": "button", "role": "scenario-card", "index": 2, "title": "候选人背调与推荐报告", "description": "针对人选从公开渠道补全背景信息，撰写推荐报告，并起草发送给客户的推荐邮件" },
+            { "tag": "button", "role": "scenario-card", "index": 3, "title": "JD 匹配人选与排序", "description": "根据 JD 在主流招聘网站筛选人选，挑出最匹配的 20 位并附匹配理由" }
+          ]
+        }
+      }
     }
   },
   "stateGraph": {
@@ -224,7 +243,10 @@
       { "from": "S4", "to": "S6", "action": "click", "target": "主题 menuitem", "label": "Open theme submenu", "sourceArea": "user-menu" },
       { "from": "S4", "to": "page:/sign-in", "action": "click", "target": "退出登录", "label": "Logout → redirect to sign-in", "sourceArea": "user-menu", "crossPage": true },
       { "from": "S0", "to": "S7", "action": "click", "target": "Task item in sidebar", "label": "Open task detail", "sourceArea": "task-detail" },
-      { "from": "S7", "to": "S0", "action": "click", "target": "新建任务 button", "label": "Create new task → back to empty view", "sourceArea": "sidebar" }
+      { "from": "S7", "to": "S0", "action": "click", "target": "新建任务 button", "label": "Create new task → back to empty view", "sourceArea": "sidebar" },
+      { "from": "S0", "to": "S11", "action": "click", "target": "Scenario card (any of 4)", "label": "Fill textarea with card description", "sourceArea": "scenario-suggestions" },
+      { "from": "S11", "to": "S11", "action": "click", "target": "Another scenario card", "label": "Replace textarea value with new card description (overwrites previous scenario or user input)", "sourceArea": "scenario-suggestions" },
+      { "from": "S11", "to": "page:/task/{taskId}", "action": "click", "target": "Submit button", "label": "Send scenario prompt → navigate to new conversation", "sourceArea": "scenario-suggestions", "crossPage": true, "relatedIssue": "MIRA-1318" }
     ]
   },
   "areas": {
@@ -297,7 +319,57 @@
         "chatElements": ["user-message", "copy-button", "ai-response", "tool-calls", "file-download", "task-completed-status"],
         "headerActions": ["share", "more-menu"]
       }
+    },
+    "scenario-suggestions": {
+      "status": "done",
+      "stateIds": ["S0", "S11"],
+      "type": "suggestion-cards",
+      "name": "Scenario Suggestion Cards (\"试试以下场景\")",
+      "priority": 5,
+      "coverageReport": {
+        "label": "试试以下场景",
+        "labelI18n": "dashboard.tryScenarios",
+        "cardCount": 4,
+        "cardLayout": "2x2 grid below the chat input",
+        "cards": [
+          { "index": 0, "title": "目标公司 Mapping 与触达", "description": "针对目标公司进行 Mapping，筛出最可能看机会的 5 人，并生成触达话术" },
+          { "index": 1, "title": "上海 Fintech 产品总监 Longlist", "description": "整理一份上海 fintech 产品总监的 longlist，挑出有 0-1 经验的人选" },
+          { "index": 2, "title": "候选人背调与推荐报告", "description": "针对人选从公开渠道补全背景信息，撰写推荐报告，并起草发送给客户的推荐邮件" },
+          { "index": 3, "title": "JD 匹配人选与排序", "description": "根据 JD 在主流招聘网站筛选人选，挑出最匹配的 20 位并附匹配理由" }
+        ],
+        "behaviorVerifiedViaCDP": {
+          "fillsDescriptionOnly": "Clicking a card fills textarea with card.description (NOT the title).",
+          "replacesTextarea": "Clicking a second card fully replaces textarea — user-typed content is also overwritten without warning.",
+          "cardsRemainVisible": "Scenario cards remain visible after a card is clicked; they are only hidden after navigating to /task/{taskId}.",
+          "submitEnablesAfterFill": "Submit button transitions disabled → enabled immediately after textarea is populated."
+        },
+        "existingCoverage": {
+          "spec": "tests/e2e/testcases/generated/task-scenario-send-verify-fix.test.ts",
+          "mode": "verify-fix for MIRA-1318",
+          "cases": [
+            "TC-VF-TSS-001 P0 click card[0] + submit → /task/{id}",
+            "TC-VF-TSS-002 P1 sent message appears in chat log",
+            "TC-VF-TSS-003 P1 empty input disables submit",
+            "TC-VF-TSS-004 P1 label + cards visible on /task"
+          ]
+        },
+        "gapsAddedByThisArea": [
+          "Iterate all 4 cards (0..3) — each fills textarea + enables submit",
+          "Fill value equals description only (NOT title)",
+          "Clicking a second card fully replaces the first card's content",
+          "Clicking a card overwrites user-typed content in the textarea",
+          "Label + 4 cards render with correct title + description text (content integrity)",
+          "Scenario cards remain visible after clicking a card (until navigation)"
+        ]
+      },
+      "selectors": {
+        "scenarioLabel": "text=试试以下场景 (via dashboard.tryScenarios)",
+        "scenarioCards": "main [class*=\"grid-cols\"] button",
+        "scenarioCardByIndex": "main [class*=\"grid-cols\"] button >> nth={index}",
+        "chatInput": "textarea[placeholder*=\"请输入\"]",
+        "submitButton": "button[type=\"submit\"]"
+      }
     }
   },
-  "nextStateId": 11
+  "nextStateId": 12
 }

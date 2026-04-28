@@ -76,7 +76,7 @@
   "chatbot": {
     "sendMessage": "发送消息",
     "placeholder": "请输入...",
-    "addAttachments": "上传文件",
+    "addAttachments": "添加照片或文件",
     "uploadLocalFile": "上传本地文件",
     "uploadError": "文件上传失败",
     "uploadErrorMaxFiles": "文件数量超出限制",

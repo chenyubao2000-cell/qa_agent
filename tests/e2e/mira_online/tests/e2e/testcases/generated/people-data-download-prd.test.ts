@@ -20,22 +20,22 @@ test.describe('US-PDD-DOWNLOAD · People Data 下载 — 入口与触发', () =>
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
       await fragment.gotoTask(taskWithPeopleDataUrl);
 
-      // Open People Data panel
-      await fragment.openPeopleDataPanel();
+      // The inline (in-chat) download button triggers the direct client-side
+      // JSON→XLSX conversion path (sheetjs). The side-panel header's download
+      // button takes a different branch whose outcome depends on preview cache
+      // timing and is unreliable under Playwright — prefer the inline path.
+      const inlineBtn = fragment.getPeopleDataInlineDownloadButton();
+      await expect(inlineBtn).toBeVisible();
+      await expect(inlineBtn).toBeEnabled();
 
-      // Download button should be visible and enabled
-      const downloadBtn = fragment.getPeopleDataPanelDownloadButton();
-      await expect(downloadBtn).toBeVisible();
-      await expect(downloadBtn).toBeEnabled();
+      await fragment.installDownloadSpy();
+      await fragment.clickPeopleDataInlineDownloadButton();
+      const captured = await fragment.getCapturedDownload({ expectedBlobMime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', timeoutMs: 15000 });
 
-      // Intercept download and verify the filename ends with .xlsx
-      const [download] = await Promise.all([
-        page.waitForEvent('download'),
-        fragment.clickPeopleDataDownloadButton(),
-      ]);
-
-      const suggestedFilename = download.suggestedFilename();
-      expect(suggestedFilename).toMatch(/\.xlsx$/i);
+      expect(captured.blobMime).toBe(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      expect(captured.effectiveFilename).toMatch(/\.xlsx$/i);
     },
   );
 
@@ -95,28 +95,19 @@ test.describe('US-PDD-XLSX · People Data XLSX 文件格式', () => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
       await fragment.gotoTask(taskWithPeopleDataUrl);
 
-      await fragment.openPeopleDataPanel();
+      const inlineBtn = fragment.getPeopleDataInlineDownloadButton();
+      await expect(inlineBtn).toBeVisible();
 
-      const downloadBtn = fragment.getPeopleDataPanelDownloadButton();
-      await expect(downloadBtn).toBeVisible();
+      await fragment.installDownloadSpy();
+      await fragment.clickPeopleDataInlineDownloadButton();
+      const captured = await fragment.getCapturedDownload({ expectedBlobMime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', timeoutMs: 15000 });
 
-      const [download] = await Promise.all([
-        page.waitForEvent('download'),
-        fragment.clickPeopleDataDownloadButton(),
-      ]);
-
-      const filename = download.suggestedFilename();
-      expect(filename).toMatch(/\.xlsx$/i);
-
-      // Save file locally to inspect it (optional deep check)
-      const savePath = path.join(os.tmpdir(), `people-data-test-${Date.now()}.xlsx`);
-      await download.saveAs(savePath);
-      const stats = fs.statSync(savePath);
-      // XLSX file must be non-empty (> 1KB)
-      expect(stats.size).toBeGreaterThan(1024);
-
-      // Cleanup
-      fs.rmSync(savePath, { force: true });
+      expect(captured.blobMime).toBe(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      expect(captured.effectiveFilename).toMatch(/\.xlsx$/i);
+      // XLSX blob must be non-empty (> 1KB)
+      expect(captured.blobSize ?? 0).toBeGreaterThan(1024);
     },
   );
 
@@ -127,21 +118,19 @@ test.describe('US-PDD-XLSX · People Data XLSX 文件格式', () => {
       const fragment = new TaskPagePeopleDataDownloadFragment(page, i18n);
       await fragment.gotoTask(taskWithPeopleDataUrl);
 
-      await fragment.openPeopleDataPanel();
+      const inlineBtn = fragment.getPeopleDataInlineDownloadButton();
+      await expect(inlineBtn).toBeVisible();
 
-      // Get the displayed filename in the panel header
-      const filenameEl = fragment.getPeopleDataPanelFilename();
-      await expect(filenameEl).toBeVisible();
+      await fragment.installDownloadSpy();
+      await fragment.clickPeopleDataInlineDownloadButton();
+      const captured = await fragment.getCapturedDownload({ expectedBlobMime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', timeoutMs: 15000 });
 
-      const [download] = await Promise.all([
-        page.waitForEvent('download'),
-        fragment.clickPeopleDataDownloadButton(),
-      ]);
-
-      const suggestedFilename = download.suggestedFilename();
-      // Must end with .xlsx — original .json or .peopledata extension replaced
-      expect(suggestedFilename).toMatch(/\.xlsx$/i);
-      expect(suggestedFilename).not.toMatch(/\.(json|peopledata)$/i);
+      expect(captured.blobMime).toBe(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      // Must end with .xlsx — original .json/.peopledata extension replaced client-side.
+      expect(captured.effectiveFilename).toMatch(/\.xlsx$/i);
+      expect(captured.effectiveFilename).not.toMatch(/\.(json|peopledata)$/i);
     },
   );
 

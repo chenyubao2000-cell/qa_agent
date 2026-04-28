@@ -28,11 +28,11 @@ export class ViewAllFilesFragment {
     this.page = page;
     this.i18n = i18n;
 
-    // Toolbar button: icon-only, title attr = chatbot.viewAllFiles
-    // Always use i18nTitleSelector (multi-locale) so it matches regardless of
-    // the user's account locale (e.g. "查看此任务中所有文件" in zh).
+    // Toolbar button: icon-only. Anchor on stable svg marker (lucide-folder-search)
+    // — locale-independent and resilient to stale messages/*.json caches.
+    // See: .claude/references/i18n-locator-rules.md §D4 / selection rule 2.
     this.viewAllFilesToolbarBtn = page
-      .locator(i18nTitleSelector("button", "chatbot.viewAllFiles"))
+      .locator("button:has(svg.lucide-folder-search)")
       .first();
 
     // Result area button: inside chat log, tools.complete.viewAllFiles
@@ -121,7 +121,18 @@ export class ViewAllFilesFragment {
   }
 
   async clickViewAllFilesToolbar(): Promise<void> {
+    // React hydration completes after role=log is visible; without a pre-click
+    // wait the onClick handler may not be attached yet and the click is
+    // silently absorbed → waitForFilesPanelOpen hits 30s timeout. If panel
+    // does not open within 3s after first click, retry once.
+    await this.page.waitForTimeout(1500);
     await this.viewAllFilesToolbarBtn.click();
+    try {
+      await this.filesPanelTitle.waitFor({ state: "visible", timeout: 3000 });
+    } catch {
+      // Retry: handler may have attached between first click and now
+      await this.viewAllFilesToolbarBtn.click();
+    }
   }
   async clickViewAllFilesResult(): Promise<void> {
     await this.viewAllFilesResultBtn.click();

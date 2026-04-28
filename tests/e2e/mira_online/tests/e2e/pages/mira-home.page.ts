@@ -118,11 +118,14 @@ export class MiraHomePage {
   }
 
   private get bottomCtaLink(): Locator {
-    return this.page.locator('a[href="/task"]').filter({
-      hasText: this.i18n
-        ? this.i18n.t("homepage.cta.button")
-        : i18nRegex("homepage.cta.button"),
-    });
+    return this.page
+      .locator('a[href="/join-waitlist"]')
+      .filter({
+        hasText: this.i18n
+          ? this.i18n.t("homepage.cta.button")
+          : i18nRegex("homepage.cta.button"),
+      })
+      .last();
   }
 
   // ── Public Getters ──

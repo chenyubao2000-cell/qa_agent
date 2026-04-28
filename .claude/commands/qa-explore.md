@@ -110,7 +110,7 @@ Execute cdp-explorer SKILL **Phase 1 (Connection)**, then detect login wall (Pha
    - Replace `{loginPagePath}`, `{emailSelector}`, `{passwordSelector}`, `{submitSelector}`, `{postLoginUrlPattern}` with CDP-discovered real values
    - **`{submitSelector}` notes**: Use `^...$` anchors in regex to avoid matching partial text. Use `click({ timeout: 30_000 })` — Playwright's click auto-waits for actionability.
 
-4. **Verify playwright.config.ts** has setup project: Ensure it includes `{ name: 'setup', testMatch: /auth\.setup\.ts/ }` and test projects have `dependencies: ['setup']`. The config template from Phase 0 Step 2d already includes this.
+4. **Verify playwright.config.ts** has per-locale setup projects: for each locale in `APP_LANGUAGES` ensure a `setup-${locale}` project exists (matches regex `name:\s*['"]setup(-\w+)?['"]`), bound to `auth.setup.ts`, with the matching `e2e-${locale}` test project using `storageState: user.${locale}.json` and `dependencies: ['setup-${locale}', 'data-setup']`. Config template & rationale: `.claude/references/phase-0-templates.md` § "playwright.config.ts Template" + "Multi-locale Design Overview" — do NOT hand-roll.
 5. **Generate sign-in POM** (`tests/e2e/pages/sign-in.page.ts`) for login-related specs
 6. After successful login, navigate to the original target URL, continue to Step 2
 

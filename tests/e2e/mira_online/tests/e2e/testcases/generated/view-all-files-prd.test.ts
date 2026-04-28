@@ -24,7 +24,6 @@ async function waitForTaskReady(
 
 // US-VF-ENTRY
 test.describe("US-VF-ENTRY - View All Files -- entry visibility", () => {
-  test.use({ storageState: "playwright/.auth/user.json" });
 
   test(
     "TC-PRD-VF-001: toolbar entry button visible when task has files",
@@ -57,7 +56,6 @@ test.describe("US-VF-ENTRY - View All Files -- entry visibility", () => {
 
 // US-VF-MODAL
 test.describe("US-VF-MODAL - View All Files -- panel open and close", () => {
-  test.use({ storageState: "playwright/.auth/user.json" });
 
   test(
     "TC-PRD-VF-003: clicking toolbar button opens files panel",
@@ -153,7 +151,6 @@ test.describe("US-VF-MODAL - View All Files -- panel open and close", () => {
 
 // US-VF-BATCH
 test.describe("US-VF-BATCH - View All Files -- batch download", () => {
-  test.use({ storageState: "playwright/.auth/user.json" });
 
   test(
     "TC-PRD-VF-011: clicking batch download icon enters selection mode",
@@ -298,7 +295,6 @@ test.describe("US-VF-BATCH - View All Files -- batch download", () => {
 
 // US-VF-E2E
 test.describe("US-VF-E2E - View All Files -- end-to-end scenarios", () => {
-  test.use({ storageState: "playwright/.auth/user.json" });
 
   test(
     "TC-PRD-VF-013: full batch download flow select files and trigger download",

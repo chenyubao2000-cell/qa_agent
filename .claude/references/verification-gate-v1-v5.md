@@ -32,13 +32,24 @@ For each path in return.specs + return.modified_specs:
   1. Glob(path) → file must exist
   2. Read(path) → must contain at least 1 "test(" pattern
   3. Read(path) → must contain "import" statement
-  4. If ANY fails → ERROR → STOP
+  4. i18n lint (SKIP when APP_LANGUAGES is unset) — see `.claude/references/i18n-locator-rules.md`:
+     a. FAIL if spec contains `storageState:\s*['\"]playwright/\.auth/user\.json['\"]` (hardcoded single-locale path)
+     b. FAIL if spec contains a naked locator with translatable text NOT wrapped in i18nRegex/i18n.t:
+        Grep -nE 'getByRole\([^)]*name:\s*["\x27][^"/\x27]*[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af][^"/\x27]*["\x27]' — matches a literal Chinese/Japanese/Korean string
+        Whitelist: lines mentioning `i18n`, `i18nRegex`, `case0[0-9]_`, or fixed English sr-only labels (Submit/Close/Upload files)
+     c. WARN (not FAIL) if spec contains `/…|…|…/` regex concatenating locale-specific strings without matching count of locales in APP_LANGUAGES
+  5. If ANY hard check fails → ERROR → STOP
 
 ── V4: POM file verification (SKIP for qa-gen-cases) ──
 For each path in return.page_objects:
   1. Glob(path) → file must exist
   2. Read(path) → must contain "export class" pattern
-  3. If ANY fails → ERROR → STOP
+  3. i18n lint (SKIP when APP_LANGUAGES is unset):
+     a. FAIL on hardcoded translatable literals per V3 step 4b (same grep, same whitelist)
+     b. FAIL on hardcoded quantifier/unit pairs — Grep -nE '["\x27/][^"\x27/]*\d+\s*(人|人数|candidat|candidate|personne|명|人目)[^"\x27/]*["\x27/]'
+        (Use `\|\s*\d+\b` or localeFromProjectName-aware i18nRegex instead. See rule D2.)
+     c. FAIL on i18n-keyed locators targeting third-party sr-only labels — for example `i18n.t("canvas.close")` matched against Radix Dialog's built-in close button whose label is the English literal "Close". Rule D4.
+  4. If ANY hard check fails → ERROR → STOP
 
 ── V5: cross-artifact consistency ──
   1. Each spec imports from a POM that exists in return.page_objects
