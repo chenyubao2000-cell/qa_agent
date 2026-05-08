@@ -1,0 +1,241 @@
+{
+  "meta": {
+    "slug": "task-completed",
+    "url": "/task/{taskId}",
+    "title": "Task detail page (completed task — chenyubao2000 owner)",
+    "exploredUrl": "https://mira-bff-preview.up.railway.app/task/hHXPuEXSK84cnTRC",
+    "mode": "incremental",
+    "exploredAt": "2026-04-29",
+    "explorer": "main-command (manual CDP)",
+    "areasCompleted": [
+      "followup-suggestions",
+      "rename-inline",
+      "share-dialog",
+      "more-menu",
+      "message-copy",
+      "credits-button"
+    ],
+    "sharedPOM": "tests/e2e/pages/task.page.ts",
+    "incrementalAppend": true,
+    "notes": [
+      "Owner = chenyubao2000@163.com. Visiting same taskId as a different account returns 'No access' page (separate test target).",
+      "Login is plain password flow with E2E_TEST_EMAIL/PASSWORD in .env. SSO branch only triggers for @careerintlinc.com — out of scope for this baseline.",
+      "Existing coverage to NOT duplicate: task-cdp (input area + sidebar + user menu + sign-out + scenario suggestions on /task NEW), task-sidebar-cdp (sidebar More menu rename/delete), share-branch (share URL flow), view-all-files-prd (files drawer)."
+    ]
+  },
+  "states": {
+    "S0": {
+      "name": "Task detail — completed (browse mode)",
+      "url": "/task/{taskId}",
+      "trigger": null,
+      "regions": {
+        "topbar": {
+          "title": { "selector": "main >> :text-is('{taskTitle}')", "text": "{dynamic, e.g. '2025年全球AI大模型市场研究任务'}" },
+          "actions": [
+            { "id": "btn-rename-inline", "selector": "button:has(svg.lucide-pen-line)", "ariaLabel": null, "title": null, "note": "Hidden until hovering task title; reveals inline edit input on click" },
+            { "id": "btn-view-all-files", "selector": "button:has(svg.lucide-folder-search)", "title": "查看此任务中所有文件", "note": "ALREADY COVERED by view-all-files-prd — skip in this baseline" },
+            { "id": "btn-share", "selector": "button:has(svg.lucide-share2)", "title": null, "ariaLabel": null, "opens": "S2-share-dialog" },
+            { "id": "btn-more-menu", "selector": "button:has(svg.lucide-ellipsis)", "ariaHaspopup": "menu", "opens": "S3-more-menu" }
+          ]
+        },
+        "log": {
+          "selector": "[role='log']",
+          "ariaLabel": "对话消息",
+          "items": [
+            { "type": "user-message", "copyBtn": { "selector": "[role='log'] button:has(svg.lucide-copy)", "text": "复制" } },
+            { "type": "ai-plan-list" },
+            { "type": "ai-summary-text" },
+            {
+              "type": "artifact-cards",
+              "count": 6,
+              "selector": "[role='log'] button:has-text('下载文件')",
+              "innerDownloadBtn": "[role='log'] button:has-text('下载文件') >> button[title='下载']",
+              "note": "ALREADY COVERED by canvas-download-prd / canvas-preview-prd"
+            },
+            { "type": "view-all-files-button", "selector": "[role='log'] button:has-text('查看此任务中所有文件')" }
+          ]
+        },
+        "completed-status": {
+          "selector": "main >> :text-is('任务已完成')",
+          "i18nKey": "chatbot.completed | tools.complete.completed | plan.status.completed",
+          "note": "All 3 keys map to '任务已完成' in zh; orchestrator should pick chatbot.completed"
+        },
+        "followup-suggestions": {
+          "header": { "selector": "main >> :text-is('推荐追问')", "i18nKey": "NOT_FOUND_IN_MESSAGES — likely hardcoded; spec must use literal text or anchor on lucide-arrow-right" },
+          "buttons": {
+            "selector": "main button:has(svg.lucide-arrow-right):not([role='log'] *)",
+            "type": "submit",
+            "count": "≥1 (typically 3)",
+            "behavior": "Click submits the suggestion text directly — log gets a new user-message; textarea is NOT pre-filled.",
+            "examples": [
+              "请生成 .docx 文档文件，详细研究摘要。",
+              "在生成的文件中添加市场趋势分析。",
+              "输出所有文件并确认生成完成。"
+            ]
+          }
+        },
+        "input": {
+          "textarea": "main textarea",
+          "uploadBtn": "main button:has-text('上传文件')",
+          "submitBtn": "main button[type='submit']:not([role='log'] *)",
+          "submitDisabledByDefault": true
+        }
+      }
+    },
+    "S1-rename-input": {
+      "name": "Top-bar inline edit mode",
+      "trigger": { "fromState": "S0", "action": "click", "element": "btn-rename-inline" },
+      "sourceArea": "rename-inline",
+      "regions": {
+        "input": "main input[type='text'] (replaces task title StaticText)",
+        "save": "Enter or blur",
+        "cancel": "Escape"
+      },
+      "note": "Risk: this WRITES to backend. Test must restore original title via teardown OR use cloned task. Recommend skipping the actual save in regression and only testing reveal/cancel."
+    },
+    "S2-share-dialog": {
+      "name": "Share dialog",
+      "trigger": { "fromState": "S0", "action": "click", "element": "btn-share" },
+      "sourceArea": "share-dialog",
+      "regions": {
+        "dialog": { "role": "dialog", "name": "分享会话" },
+        "heading": { "selector": "[role='dialog'] >> heading", "level": 2, "text": "分享会话" },
+        "description": "通过链接分享此会话给其他人",
+        "shareUrl": {
+          "selector": "[role='dialog'] >> :text-matches('https://.+/share/.+token=')",
+          "format": "https://{host}/share/{taskId}?token={base64Token}"
+        },
+        "actions": [
+          { "id": "btn-revoke-share", "text": "移除分享", "destructive": true },
+          { "id": "btn-copy-link", "text": "复制链接", "writesToClipboard": true },
+          { "id": "btn-close", "text": "Close", "ariaLabel": "Close" }
+        ]
+      }
+    },
+    "S3-more-menu": {
+      "name": "Top-bar more menu (ellipsis)",
+      "trigger": { "fromState": "S0", "action": "click", "element": "btn-more-menu" },
+      "sourceArea": "more-menu",
+      "regions": {
+        "menu": { "role": "menu", "orientation": "vertical" },
+        "items": [
+          { "text": "任务详情", "behavior": "TBD — orchestrator should explore click effect" }
+        ],
+        "note": "Surprisingly minimal — only 1 menuitem. Confirms task-sidebar More menu (rename/delete/...) is a DIFFERENT menu, not duplicated here."
+      }
+    },
+    "S4-credits-page": {
+      "name": "Credits button (only on /task NEW page, NOT on detail page)",
+      "trigger": { "fromState": "S0", "action": "navigate", "url": "/task" },
+      "sourceArea": "credits-button",
+      "regions": {
+        "creditsBtn": {
+          "selector": "main button:text-matches('-?\\d+\\s*Credits')",
+          "exampleText": "-57184 Credits",
+          "behavior": "TBD — orchestrator click and observe (likely opens billing modal or navigates to /billing)",
+          "anomaly": "chenyubao2000 shows NEGATIVE credits (-57184). Possibly a backend bug — flag as @failing or open Linear issue."
+        }
+      }
+    }
+  },
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "btn-rename-inline", "to": "S1-rename-input", "sourceArea": "rename-inline" },
+      { "from": "S0", "action": "click", "element": "btn-share", "to": "S2-share-dialog", "sourceArea": "share-dialog" },
+      { "from": "S0", "action": "click", "element": "btn-more-menu", "to": "S3-more-menu", "sourceArea": "more-menu" },
+      { "from": "S0", "action": "click", "element": "followup-suggestion[i]", "to": "S0-with-new-message", "sourceArea": "followup-suggestions", "note": "auto-submit, log gains a new user message; subsequent AI response is async" },
+      { "from": "S0", "action": "click", "element": "[role='log'] copyBtn", "to": "S0", "sourceArea": "message-copy", "note": "writes to clipboard; visual feedback may be transient toast" },
+      { "from": "S2-share-dialog", "action": "click", "element": "btn-copy-link", "to": "S2-share-dialog", "sourceArea": "share-dialog", "note": "writes to clipboard" },
+      { "from": "S2-share-dialog", "action": "click", "element": "btn-close", "to": "S0", "sourceArea": "share-dialog" }
+    ]
+  },
+  "areas": {
+    "followup-suggestions": {
+      "id": "followup-suggestions",
+      "type": "suggestions-panel",
+      "name": "Recommended Follow-ups (推荐追问)",
+      "priority": "P1",
+      "specFile": "tests/e2e/testcases/generated/task-completed-followup-cdp.test.ts",
+      "stateIds": ["S0"],
+      "casesPlanned": 4,
+      "caseHints": [
+        "TC-1 [smoke]: 已完成 task 详情页可见 '推荐追问' header + ≥1 个 follow-up button",
+        "TC-2: 每个 follow-up button 含 lucide-arrow-right 图标",
+        "TC-3 [P1]: 点击 follow-up button 自动 submit — log 内新增一条 user-message，文本与 button 文本一致",
+        "TC-4: textarea 不会被 fill（auto-submit 直接走 form）"
+      ]
+    },
+    "rename-inline": {
+      "id": "rename-inline",
+      "type": "inline-edit",
+      "name": "Top-bar Inline Title Rename (pen-line)",
+      "priority": "P1",
+      "specFile": "tests/e2e/testcases/generated/task-completed-rename-inline-cdp.test.ts",
+      "stateIds": ["S0", "S1-rename-input"],
+      "casesPlanned": 4,
+      "caseHints": [
+        "TC-1: hover task title → pen-line 按钮可见",
+        "TC-2: 点击 pen-line → input 替换 title StaticText",
+        "TC-3: 输入新文本 + Esc → 恢复原 title（不写后端，测试安全）",
+        "TC-4 [optional, gated]: 输入新文本 + Enter → 顶栏 + sidebar 都更新；teardown 恢复原 title"
+      ]
+    },
+    "share-dialog": {
+      "id": "share-dialog",
+      "type": "dialog",
+      "name": "Top-bar Share Dialog",
+      "priority": "P2",
+      "specFile": "tests/e2e/testcases/generated/task-completed-share-cdp.test.ts",
+      "stateIds": ["S0", "S2-share-dialog"],
+      "casesPlanned": 5,
+      "caseHints": [
+        "TC-1 [smoke]: 点击 share2 → dialog '分享会话' 可见",
+        "TC-2: dialog 含 share URL，格式 /share/{taskId}?token=...",
+        "TC-3: 点击 '复制链接' → 剪贴板含 URL（用 evaluate_handle 读 navigator.clipboard）",
+        "TC-4: 点击 'Close' → dialog 关闭",
+        "TC-5 [destructive, gated]: 点击 '移除分享' → URL 失效（可放 @failing 或 skip）"
+      ]
+    },
+    "more-menu": {
+      "id": "more-menu",
+      "type": "menu",
+      "name": "Top-bar More Menu (ellipsis)",
+      "priority": "P2",
+      "specFile": "tests/e2e/testcases/generated/task-completed-more-menu-cdp.test.ts",
+      "stateIds": ["S0", "S3-more-menu"],
+      "casesPlanned": 2,
+      "caseHints": [
+        "TC-1: 点击 ellipsis → menu role=menu 可见，含 '任务详情' menuitem",
+        "TC-2: 点击 '任务详情' → 后续行为待探索（orchestrator 在生成时自行 CDP 验证）"
+      ]
+    },
+    "message-copy": {
+      "id": "message-copy",
+      "type": "icon-button",
+      "name": "Log Message Copy",
+      "priority": "P3",
+      "specFile": "tests/e2e/testcases/generated/task-completed-message-copy-cdp.test.ts",
+      "stateIds": ["S0"],
+      "casesPlanned": 3,
+      "caseHints": [
+        "TC-1: log 内 user message 上有 '复制' button (含 lucide-copy 图标)",
+        "TC-2: 点击复制 → 剪贴板含 message 文本",
+        "TC-3 [optional]: AI message 上是否也有复制按钮（待验证）"
+      ]
+    },
+    "credits-button": {
+      "id": "credits-button",
+      "type": "navigation-button",
+      "name": "Top-bar Credits Counter",
+      "priority": "P3",
+      "specFile": "tests/e2e/testcases/generated/task-completed-credits-cdp.test.ts",
+      "stateIds": ["S4-credits-page"],
+      "casesPlanned": 3,
+      "caseHints": [
+        "TC-1: /task 新建任务页可见 Credits 按钮，文本匹配 /-?\\d+\\s*Credits/",
+        "TC-2: task 详情页该按钮被隐藏（regression）",
+        "TC-3 [@failing OR linear-bug]: chenyubao2000 显示负数 -57184 Credits — 数据异常，疑似计费 bug，需要产品确认是否为已知问题"
+      ]
+    }
+  }
+}

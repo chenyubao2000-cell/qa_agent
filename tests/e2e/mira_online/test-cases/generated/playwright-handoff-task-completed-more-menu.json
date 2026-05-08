@@ -1,0 +1,47 @@
+[
+  {
+    "id": "TC-CDP-MORE-001",
+    "storyId": "US-TASK-COMPLETED-MORE-MENU",
+    "title": "点击 ellipsis 按钮打开包含任务详情的菜单",
+    "priority": "P2",
+    "tags": ["@P2", "@smoke", "@regression", "@full"],
+    "preconditions": ["已登录 + fixture taskWithToolChainUrl"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "button", "name": "ellipsis button", "action": "click", "locatorHint": "button:has(svg.lucide-ellipsis)" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[role='menu']", "name": "more menu" },
+      { "type": "text", "selector": "[role='menu'] [role='menuitem']", "i18nKey": "chatbot.taskDetails" },
+      { "type": "count", "selector": "[role='menu'] [role='menuitem']", "expected": 1 }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-MORE-002",
+    "storyId": "US-TASK-COMPLETED-MORE-MENU",
+    "title": "点击任务详情打开 Popover 展示 title / creditsConsumed / createdTime",
+    "priority": "P2",
+    "tags": ["@P2", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "button", "name": "ellipsis button", "action": "click" },
+      { "role": "menuitem", "name": "task details item", "action": "click", "i18nKey": "chatbot.taskDetails" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "task details popover", "i18nKey": "chatbot.taskDetails" },
+      { "type": "visible", "selector": "popover label", "i18nKey": "chatbot.taskTitle" },
+      { "type": "visible", "selector": "popover label", "i18nKey": "chatbot.creditsConsumed" },
+      { "type": "visible", "selector": "popover label", "i18nKey": "chatbot.createdTime" },
+      { "type": "matches", "selector": "creditsConsumed value", "pattern": "^-?\\d+$|^-$" }
+    ],
+    "timeout": 360000
+  }
+]

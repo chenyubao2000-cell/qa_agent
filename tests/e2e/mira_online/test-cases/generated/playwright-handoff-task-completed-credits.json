@@ -1,0 +1,53 @@
+[
+  {
+    "id": "TC-CDP-CREDITS-001",
+    "storyId": "US-TASK-COMPLETED-CREDITS",
+    "title": "/task NEW 页面可见 Credits Pill 且文本匹配 /-?\\d+\\s*Credits/",
+    "priority": "P2",
+    "tags": ["@P2", "@smoke", "@regression", "@full"],
+    "preconditions": ["已登录"],
+    "setup": [],
+    "uiElements": [
+      { "role": "navigation", "name": "/task", "action": "goto" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "main button:has(svg.lucide-coins)", "name": "credits pill" },
+      { "type": "matches", "selector": "main button:has(svg.lucide-coins)", "pattern": "-?\\d+\\s*Credits" }
+    ],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-CDP-CREDITS-002",
+    "storyId": "US-TASK-COMPLETED-CREDITS",
+    "title": "/task/{taskId} 任务详情页不渲染 Credits Pill (regression)",
+    "priority": "P3",
+    "tags": ["@P3", "@full"],
+    "preconditions": ["已登录 + fixture taskWithToolChainUrl"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "button:has(svg.lucide-coins)", "expected": 0 }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-CREDITS-003",
+    "storyId": "US-TASK-COMPLETED-CREDITS",
+    "title": "chenyubao2000 测试账号显示负数 Credits（数据状态追踪）",
+    "priority": "P3",
+    "tags": ["@P3", "@full", "@failing"],
+    "preconditions": ["已登录（chenyubao2000@163.com）"],
+    "setup": [],
+    "uiElements": [
+      { "role": "navigation", "name": "/task", "action": "goto" }
+    ],
+    "assertions": [
+      { "type": "matches", "selector": "main button:has(svg.lucide-coins)", "pattern": "-?\\d+\\s*Credits", "comment": "仅断言显示形态稳健，不论数值符号；TC 自身用于跟踪计费数据异常 -57184" }
+    ],
+    "timeout": 60000
+  }
+]

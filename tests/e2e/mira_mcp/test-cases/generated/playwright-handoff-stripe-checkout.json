@@ -1,0 +1,502 @@
+[
+  {
+    "id": "TC-CSO-001",
+    "storyId": "REQ-003",
+    "title": "无订阅用户点击 Starter Upgrade 触发 Toast 并跳转 Stripe",
+    "priority": "P0",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "定价页 Starter 卡片可见且 Upgrade 按钮可点击"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card", "i18nKey": null },
+      { "name": "redirectToast", "role": "alert", "textHint": "Redirecting to secure checkout...", "i18nKey": null }
+    ],
+    "steps": [
+      "通过 UI 进入定价页",
+      "点击 Starter 卡片的 Upgrade 按钮",
+      "等待 toast 出现并消失",
+      "等待 URL host 变化"
+    ],
+    "assertions": [
+      { "type": "toast-visible", "target": "redirectToast", "expected": "Redirecting to secure checkout..." },
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000 }
+    ],
+    "teardown": [],
+    "outOfApp": ["after redirect to checkout.stripe.com"],
+    "testData": { "plan": "Starter", "expectedHost": "checkout.stripe.com" }
+  },
+  {
+    "id": "TC-CSO-002",
+    "storyId": "REQ-003",
+    "title": "无订阅用户点击 Individual Upgrade 触发 Toast 并跳转 Stripe（验证金额 $100）",
+    "priority": "P0",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "定价页 Individual 卡片可见"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "individualUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Individual card", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "点击 Individual 卡片的 Upgrade 按钮",
+      "等待跳转完成"
+    ],
+    "assertions": [
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000 },
+      { "type": "url-path-contains", "expected": "cs_test_", "note": "Stripe sandbox session id pattern" }
+    ],
+    "teardown": [],
+    "outOfApp": ["after redirect to checkout.stripe.com"],
+    "testData": { "plan": "Individual", "expectedAmount": 100 }
+  },
+  {
+    "id": "TC-CSO-003",
+    "storyId": "REQ-003",
+    "title": "无订阅用户点击 Team Upgrade 触发 Toast 并跳转 Stripe（含 seats 参数）",
+    "priority": "P0",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "定价页 Team 卡片可见且包含 seat 选择控件"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "teamSeatsInput", "role": "spinbutton", "textHint": "Seats", "context": "Team card", "i18nKey": null },
+      { "name": "teamUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Team card", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "在 Team 卡片设置 seat 数为 3",
+      "点击 Team 卡片 Upgrade 按钮",
+      "等待跳转"
+    ],
+    "assertions": [
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000 }
+    ],
+    "teardown": [],
+    "outOfApp": ["after redirect to checkout.stripe.com"],
+    "testData": { "plan": "Team", "seats": 3, "expectedAmount": 600 }
+  },
+  {
+    "id": "TC-CSO-004",
+    "storyId": "REQ-003",
+    "title": "Team seats=1 时金额正确（边界）",
+    "priority": "P1",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "Team 卡片可见且支持 seat=1"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "teamSeatsInput", "role": "spinbutton", "textHint": "Seats", "context": "Team card", "i18nKey": null },
+      { "name": "teamUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Team card", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "Team 卡片设置 seat=1",
+      "点击 Team Upgrade",
+      "等待跳转"
+    ],
+    "assertions": [
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000 }
+    ],
+    "teardown": [],
+    "outOfApp": ["after redirect to checkout.stripe.com"],
+    "testData": { "plan": "Team", "seats": 1, "expectedAmount": 200 }
+  },
+  {
+    "id": "TC-CSO-005",
+    "storyId": "REQ-003",
+    "title": "已有 active 订阅用户点击 Upgrade 被服务端拦截并跳转管理页",
+    "priority": "P0",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户已有 active 订阅"
+    ],
+    "setup": [
+      { "type": "fixture", "fixtureId": "active-subscription", "note": "需要预置一个已有 active 订阅的用户/状态。当前 Fixture Registry 未提供此 fixture，需新建。" },
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "manageSubscriptionButton", "role": "button", "textHint": "Manage", "context": "subscribed user banner", "i18nKey": null },
+      { "name": "anyUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "any plan card if visible", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "若 Upgrade 按钮可见则点击；否则验证 Upgrade 已被替换为'管理订阅'",
+      "监测 URL 变化"
+    ],
+    "assertions": [
+      { "type": "url-host-not", "expected": "checkout.stripe.com", "note": "must NOT redirect to Stripe" },
+      { "type": "url-path-matches", "expected": "settings|subscription|portal", "note": "redirected to management area" }
+    ],
+    "teardown": [],
+    "outOfApp": [],
+    "testData": { "existingSubscription": "active" },
+    "blockedFixture": "active-subscription not in registry — needs new fixture before script generation"
+  },
+  {
+    "id": "TC-CSO-006",
+    "storyId": "REQ-003",
+    "title": "Stripe Test Mode 用 4242 测试卡完成支付，跳回 Mira 成功页",
+    "priority": "P0",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "Stripe 沙箱启用",
+      "测试卡 4242 4242 4242 4242 可用"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "individualUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Individual card", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "点击 Individual Upgrade",
+      "等待跳转到 checkout.stripe.com",
+      "[out-of-app] 在 Stripe 托管页输入 4242 4242 4242 4242 / 任意未来过期日 / 任意 CVC / 任意邮编",
+      "[out-of-app] 提交支付",
+      "等待跳回 Mira"
+    ],
+    "assertions": [
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000, "note": "intermediate state" },
+      { "type": "url-host-back", "expected": "<mira-base-host>", "timeoutMs": 60000, "note": "final return to Mira" },
+      { "type": "url-path-contains", "expected": "success", "note": "success page path" },
+      { "type": "url-query-has", "expected": "session_id", "valueRegex": "^cs_test_[A-Za-z0-9]+$" }
+    ],
+    "teardown": [
+      { "type": "fixture-cleanup", "note": "支付成功会创建真实订阅记录，需要在沙箱环境中通过后端 API 或 Stripe Dashboard 清理（超出 e2e 直接控制范围，由运维流程兜底）" }
+    ],
+    "outOfApp": [
+      "Stripe hosted page card input",
+      "Stripe hosted page submit",
+      "SCA / 3DS challenge if any"
+    ],
+    "testData": { "card": "4242424242424242", "expiry": "any-future", "cvc": "any", "zip": "any", "plan": "Individual" }
+  },
+  {
+    "id": "TC-CSO-007",
+    "storyId": "REQ-003",
+    "title": "用户在 Stripe 主动取消支付，跳回 Mira 定价页且未创建订阅",
+    "priority": "P0",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "点击 Starter Upgrade",
+      "等待跳转到 Stripe",
+      "[out-of-app] 在 Stripe 托管页点击返回/取消",
+      "等待跳回 Mira"
+    ],
+    "assertions": [
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000, "note": "intermediate" },
+      { "type": "url-host-back", "expected": "<mira-base-host>", "timeoutMs": 30000 },
+      { "type": "url-path-contains", "expected": "pricing", "note": "user back on pricing page" },
+      { "type": "element-visible", "target": "starterUpgradeButton", "note": "all 3 plan cards still visible" }
+    ],
+    "teardown": [],
+    "outOfApp": ["Stripe cancel/back action"],
+    "testData": { "plan": "Starter", "action": "cancel" }
+  },
+  {
+    "id": "TC-CSO-008",
+    "storyId": "REQ-003",
+    "title": "跳转超过 5 秒展示「点击此处手动跳转」链接",
+    "priority": "P1",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "可注入网络延迟到 Checkout Session 创建请求（路由拦截 6 秒）"
+    ],
+    "setup": [
+      { "type": "route-intercept", "action": "delay", "data": { "urlPattern": "**/checkout-session**", "delayMs": 6000 } },
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card", "i18nKey": null },
+      { "name": "manualRedirectLink", "role": "link", "textHint": "Click here to continue manually", "i18nKey": null }
+    ],
+    "steps": [
+      "通过 route-intercept 注入 6s 延迟到创建 Session 的 endpoint",
+      "进入定价页",
+      "点击 Starter Upgrade",
+      "等待 5+ 秒"
+    ],
+    "assertions": [
+      { "type": "url-host", "expected": "<mira-base-host>", "note": "still on Mira after 5s" },
+      { "type": "element-visible", "target": "manualRedirectLink", "expectedText": "Click here to continue manually", "timeoutMs": 8000 }
+    ],
+    "teardown": [
+      { "type": "route-cleanup", "data": { "urlPattern": "**/checkout-session**" } }
+    ],
+    "outOfApp": [],
+    "testData": { "networkDelayMs": 6000 }
+  },
+  {
+    "id": "TC-CSO-009",
+    "storyId": "REQ-003",
+    "title": "手动跳转链接可点击并跳转到 Stripe",
+    "priority": "P2",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "处于 TC-CSO-008 的状态：兜底链接已展示"
+    ],
+    "setup": [
+      { "type": "route-intercept", "action": "delay", "data": { "urlPattern": "**/checkout-session**", "delayMs": 6000 } },
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "pricingPage.clickStarterUpgrade", "data": {} },
+      { "type": "ui", "action": "wait", "data": { "selector": "manualRedirectLink", "timeoutMs": 8000 } }
+    ],
+    "uiElements": [
+      { "name": "manualRedirectLink", "role": "link", "textHint": "Click here to continue manually", "i18nKey": null }
+    ],
+    "steps": [
+      "在兜底链接出现后点击它",
+      "等待跳转"
+    ],
+    "assertions": [
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 15000 }
+    ],
+    "teardown": [
+      { "type": "route-cleanup", "data": { "urlPattern": "**/checkout-session**" } }
+    ],
+    "outOfApp": ["after redirect"],
+    "testData": {}
+  },
+  {
+    "id": "TC-CSO-010",
+    "storyId": "REQ-003",
+    "title": "移动端视口（375×812）完整跑通基本流到 Stripe 跳转",
+    "priority": "P1",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "浏览器视口设置为 375×812",
+      "用户已登录",
+      "用户无 active 订阅"
+    ],
+    "setup": [
+      { "type": "viewport", "action": "set", "data": { "width": 375, "height": 812 } },
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card on mobile", "i18nKey": null }
+    ],
+    "steps": [
+      "设置视口 375×812",
+      "进入定价页",
+      "滚动到 Starter 卡片",
+      "点击 Starter Upgrade",
+      "等待跳转"
+    ],
+    "assertions": [
+      { "type": "viewport-no-horizontal-overflow", "page": "pricing-page" },
+      { "type": "element-visible", "target": "starterUpgradeButton" },
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000 },
+      { "type": "screenshot", "name": "mobile-stripe-page", "scope": "viewport-only", "note": "out-of-app verification limited to visual snapshot" }
+    ],
+    "teardown": [],
+    "outOfApp": ["after redirect to checkout.stripe.com — only viewport-level visibility checks"],
+    "testData": { "viewport": "375x812", "plan": "Starter" }
+  },
+  {
+    "id": "TC-CSO-011",
+    "storyId": "REQ-003",
+    "title": "快速双击 Upgrade 按钮仅创建一个 Checkout Session（幂等）",
+    "priority": "P0",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} },
+      { "type": "network-listener", "action": "start", "data": { "urlPattern": "**/checkout-session**", "method": "POST" } }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "在 100ms 间隔内对 Starter Upgrade 触发两次点击",
+      "等待跳转"
+    ],
+    "assertions": [
+      { "type": "network-request-count", "urlPattern": "**/checkout-session**", "method": "POST", "expectedMax": 1, "note": "only 1 session creation request reached server" },
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000 }
+    ],
+    "teardown": [],
+    "outOfApp": ["after redirect"],
+    "testData": { "rapidClickIntervalMs": 100 }
+  },
+  {
+    "id": "TC-CSO-012",
+    "storyId": "REQ-003",
+    "title": "Toast 持续约 1.5 秒后自动消失",
+    "priority": "P1",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "网络正常"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card", "i18nKey": null },
+      { "name": "redirectToast", "role": "alert", "textHint": "Redirecting to secure checkout...", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "点击 Starter Upgrade 并记录时间戳 t0",
+      "监测 Toast 在 DOM 中的存在时长"
+    ],
+    "assertions": [
+      { "type": "toast-text", "target": "redirectToast", "expected": "Redirecting to secure checkout..." },
+      { "type": "toast-lifetime-range", "target": "redirectToast", "minMs": 1000, "maxMs": 2500, "note": "1.5s ± 0.5s tolerance" }
+    ],
+    "teardown": [],
+    "outOfApp": [],
+    "testData": { "expectedToastMs": 1500, "toleranceMs": 500 }
+  },
+  {
+    "id": "TC-CSO-013",
+    "storyId": "REQ-003",
+    "title": "Toast 期间 Upgrade 按钮被禁用，避免重复触发",
+    "priority": "P1",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} },
+      { "type": "network-listener", "action": "start", "data": { "urlPattern": "**/checkout-session**", "method": "POST" } }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card", "i18nKey": null }
+    ],
+    "steps": [
+      "进入定价页",
+      "点击 Starter Upgrade",
+      "在 Toast 显示期间（点击后 500ms）再次尝试点击 Upgrade 按钮",
+      "监听 Session 创建请求次数"
+    ],
+    "assertions": [
+      { "type": "network-request-count", "urlPattern": "**/checkout-session**", "method": "POST", "expectedMax": 1 },
+      { "type": "element-disabled-or-effectively-blocked", "target": "starterUpgradeButton", "duringWindow": "0-1500ms after first click" }
+    ],
+    "teardown": [],
+    "outOfApp": [],
+    "testData": { "secondClickDelayMs": 500 }
+  },
+  {
+    "id": "TC-CSO-014",
+    "storyId": "REQ-003",
+    "title": "Stripe 跳回 Mira 成功页 URL 含合法 session_id 参数",
+    "priority": "P1",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "完成 TC-CSO-006 的支付流程：已成功用 4242 测试卡支付并跳回 Mira"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "pricingPage.clickIndividualUpgrade", "data": {} },
+      { "type": "ui", "action": "wait", "data": { "url-host": "checkout.stripe.com", "timeoutMs": 10000 } },
+      { "type": "stripe-test-pay", "action": "complete", "data": { "card": "4242424242424242" }, "outOfApp": true }
+    ],
+    "uiElements": [],
+    "steps": [
+      "完成支付流程后等待跳回成功页",
+      "解析 URL 参数"
+    ],
+    "assertions": [
+      { "type": "url-query-has", "expected": "session_id" },
+      { "type": "url-query-value-regex", "param": "session_id", "regex": "^cs_test_[A-Za-z0-9]+$", "minLength": 20 }
+    ],
+    "teardown": [],
+    "outOfApp": ["Stripe payment submission"],
+    "testData": { "sessionIdRegex": "^cs_test_[A-Za-z0-9]+$" }
+  },
+  {
+    "id": "TC-CSO-015",
+    "storyId": "REQ-003",
+    "title": "取消支付后再次点击 Upgrade 仍能正常创建新 Session",
+    "priority": "P2",
+    "source": "prd",
+    "feature": "stripe-checkout",
+    "preconditions": [
+      "用户已登录",
+      "用户无 active 订阅",
+      "刚完成 TC-CSO-007（取消跳回定价页）"
+    ],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "pricingPage.goto", "data": {} },
+      { "type": "ui", "action": "click", "pomMethod": "pricingPage.clickStarterUpgrade", "data": {} },
+      { "type": "ui", "action": "wait", "data": { "url-host": "checkout.stripe.com", "timeoutMs": 10000 } },
+      { "type": "stripe-cancel", "action": "back-to-mira", "outOfApp": true }
+    ],
+    "uiElements": [
+      { "name": "starterUpgradeButton", "role": "button", "textHint": "Upgrade", "context": "Starter card", "i18nKey": null }
+    ],
+    "steps": [
+      "在取消跳回的定价页再次点击 Starter Upgrade",
+      "等待跳转"
+    ],
+    "assertions": [
+      { "type": "toast-visible", "target": "redirectToast", "expected": "Redirecting to secure checkout..." },
+      { "type": "url-host", "expected": "checkout.stripe.com", "timeoutMs": 10000 },
+      { "type": "url-query-has", "expected": "session_id", "note": "new session id, not the cancelled one" }
+    ],
+    "teardown": [],
+    "outOfApp": ["Stripe cancel + new redirect"],
+    "testData": { "plan": "Starter" }
+  }
+]

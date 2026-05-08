@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Stripe 集成 · 数据模型 ER 图</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --new: #d97706;
+    --new-bg: #fef3c7;
+    --blue: #2563eb;
+    --green: #059669;
+    --red: #dc2626;
+    --yellow: #ca8a04;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    margin: 0;
+    padding: 32px 48px;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); margin-bottom: 32px; font-size: 14px; }
+  h2 { font-size: 20px; margin-top: 40px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+  h3 { font-size: 16px; margin-top: 24px; }
+  .new { color: var(--new); font-weight: 600; }
+  .new-tag {
+    display: inline-block;
+    background: var(--new-bg);
+    color: var(--new);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .diagram-box {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .mermaid {
+    text-align: center;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 13px;
+    background: white;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f3f4f6;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+  code {
+    font-family: "SF Mono", Monaco, Consolas, monospace;
+    background: #f3f4f6;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; color: inherit; }
+  .flow {
+    background: white;
+    border-left: 4px solid;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .flow.blue { border-color: var(--blue); }
+  .flow.green { border-color: var(--green); }
+  .flow.red { border-color: var(--red); }
+  .flow.yellow { border-color: var(--yellow); }
+  .flow-title { font-weight: 600; margin-bottom: 4px; }
+  .flow-title.blue { color: var(--blue); }
+  .flow-title.green { color: var(--green); }
+  .flow-title.red { color: var(--red); }
+  .flow-title.yellow { color: var(--yellow); }
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .pill.existing { background: #ecfdf5; color: #059669; }
+  .pill.new { background: var(--new-bg); color: var(--new); }
+  .pill.modify { background: #dbeafe; color: var(--blue); }
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>Stripe 集成（Phase 1）· 数据模型 ER 图</h1>
+<p class="subtitle">
+  PRD <code>stripe_integration_phase1_prd_final.md</code> · 仓库 <code>preview/mira</code> · 生成于 2026-04-30
+</p>
+
+<div class="legend">
+  <div class="legend-item"><span class="pill existing">现有</span> 已就绪可直接复用</div>
+  <div class="legend-item"><span class="pill modify">改动</span> 现有表加字段 / 改约束</div>
+  <div class="legend-item"><span class="pill new">新增</span> 一期需要新建</div>
+</div>
+
+<h2>1. 完整 ER 图</h2>
+<div class="diagram-box">
+<div class="mermaid">
+erDiagram
+    USER ||--o{ CREDIT_LEDGER : "balance entries"
+    USER ||--o{ STRIPE_WEBHOOK_EVENT : "fires events"
+    USER ||--o{ USAGE : "consumes"
+    USER ||--o{ CHATS : "creates"
+    USER ||--o{ SESSION : "logged in"
+    USER ||--o{ ACCOUNT : "oauth/password"
+
+    CHATS ||--o{ MESSAGES : "contains"
+    CHATS ||--o{ USAGE : "billed under"
+    CHATS ||--o{ CREDIT : "billed under"
+    CHATS ||--o{ CREDIT_LEDGER : "consume entries"
+
+    MESSAGES ||--o{ USAGE : "step events"
+    MESSAGES ||--o{ CREDIT : "settled credit"
+    MESSAGES ||--o{ CREDIT_LEDGER : "consume by msg"
+
+    USAGE ||--|| USAGE_LLM : "1:1 LLM detail"
+    USAGE ||--|| USAGE_TOOL : "1:1 Tool detail"
+    USAGE ||--o{ USAGE_LLM_ATTEMPT : "retries"
+    USAGE ||--o{ USAGE_METER : "meter lines"
+    USAGE ||--|| CREDIT : "raw credit"
+
+    MODEL_PRICE ||--o{ MODEL_PRICE_TIER : "tiered pricing"
+    MODEL_PRICE ||--o{ USAGE_LLM : "priced by"
+
+    CREDIT_RATE ||--o{ CREDIT : "convert rule"
+    CREDIT_RATE ||--o{ CREDIT_LEDGER : "round rule"
+
+    SYSTEM_CONFIG }o--|| USER : "tier→credit lookup"
+    SYSTEM_CONFIG }o--|| CREDIT_LEDGER : "reset amount lookup"
+
+    USER {
+        TEXT id PK
+        TEXT email UK
+        TEXT name
+        TEXT locale
+        BOOL isActivated
+        BOOL isDisabled
+        TEXT stripe_customer_id "🆕"
+        TEXT stripe_subscription_id "🆕"
+        TEXT tier "🆕 free|starter|individual|team"
+        INT seats "🆕 Team"
+        TEXT subscription_status "🆕"
+        TIMESTAMPTZ current_period_end "🆕"
+        BOOL cancel_at_period_end "🆕"
+        TIMESTAMPTZ createdAt
+    }
+
+    SESSION {
+        TEXT id PK
+        TEXT userId FK
+        TEXT token UK
+        TIMESTAMPTZ expiresAt
+    }
+
+    ACCOUNT {
+        TEXT id PK
+        TEXT userId FK
+        TEXT providerId
+        TEXT accessToken
+    }
+
+    STRIPE_WEBHOOK_EVENT {
+        TEXT event_id PK "🆕 Stripe ID"
+        TEXT event_type "🆕"
+        TEXT user_id FK "🆕"
+        TIMESTAMPTZ received_at "🆕"
+        TIMESTAMPTZ processed_at "🆕"
+        TEXT processing_status "🆕"
+        JSONB raw_payload "🆕 审计"
+        TEXT error_message "🆕"
+    }
+
+    CREDIT_LEDGER {
+        VARCHAR id PK
+        VARCHAR user_id FK
+        VARCHAR txn_type "recharge|consume|refund|expire|manual｜🆕reset?"
+        BIGINT amount "正:充值 负:消费"
+        BIGINT balance_after
+        VARCHAR task_id FK
+        VARCHAR message_id FK
+        VARCHAR idempotency_key UK "复用承载Stripe event_id"
+        VARCHAR external_ref
+        DECIMAL sum_raw
+        DECIMAL carry_before
+        DECIMAL carry_after
+        VARCHAR credit_rate_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    CREDIT {
+        VARCHAR id PK
+        VARCHAR user_id FK
+        VARCHAR task_id FK
+        VARCHAR message_id FK
+        VARCHAR usage_id FK
+        VARCHAR purpose
+        DECIMAL cost_amount
+        DECIMAL raw_credit_amount
+        VARCHAR credit_rate_id FK
+    }
+
+    CREDIT_RATE {
+        VARCHAR id PK
+        VARCHAR version UK
+        DECIMAL credits_per_unit
+        VARCHAR rounding_mode
+        TIMESTAMPTZ effective_at
+    }
+
+    USAGE {
+        VARCHAR id PK
+        VARCHAR user_id FK
+        VARCHAR task_id FK
+        VARCHAR message_id FK
+        usage_type type
+        DECIMAL cost_settled
+        DECIMAL cost_estimated
+        VARCHAR source_provider
+    }
+
+    USAGE_LLM {
+        VARCHAR usage_id PK
+        VARCHAR model_resolved
+        VARCHAR final_provider
+        VARCHAR model_price_id FK
+        INT input_tokens
+        INT output_tokens
+    }
+
+    USAGE_LLM_ATTEMPT {
+        VARCHAR id PK
+        VARCHAR usage_id FK
+        SMALLINT attempt_index
+        BOOL success
+    }
+
+    USAGE_TOOL {
+        VARCHAR usage_id PK
+        VARCHAR tool_name
+        VARCHAR tool_provider
+    }
+
+    USAGE_METER {
+        VARCHAR id PK
+        VARCHAR usage_id FK
+        VARCHAR meter_name
+        DECIMAL quantity
+        DECIMAL cost
+    }
+
+    MODEL_PRICE {
+        VARCHAR id PK
+        VARCHAR model_name
+        VARCHAR provider
+        DECIMAL input_price
+        DECIMAL output_price
+    }
+
+    MODEL_PRICE_TIER {
+        VARCHAR id PK
+        VARCHAR model_price_id FK
+        VARCHAR meter_name
+        BIGINT range_start
+        BIGINT range_end
+        DECIMAL unit_price
+    }
+
+    CHATS {
+        VARCHAR id PK
+        VARCHAR user_id FK
+        TEXT title
+        TIMESTAMPTZ created_at
+    }
+
+    MESSAGES {
+        VARCHAR id PK
+        VARCHAR chat_id FK
+        TEXT role
+        JSONB content
+    }
+
+    SYSTEM_CONFIG {
+        VARCHAR key PK
+        TEXT value
+        VARCHAR data_type
+        VARCHAR category
+    }
+</div>
+</div>
+
+<h2>2. 订阅核心简化视图</h2>
+<p>只看与订阅 / Credit 发放相关的 4 张表（其他不动）：</p>
+<div class="diagram-box">
+<div class="mermaid">
+erDiagram
+    USER ||--o{ STRIPE_WEBHOOK_EVENT : "events"
+    USER ||--o{ CREDIT_LEDGER : "balance"
+    SYSTEM_CONFIG }o--|| USER : "tier credit quota"
+
+    USER {
+        TEXT id PK
+        TEXT email UK
+        TEXT stripe_customer_id "🆕"
+        TEXT stripe_subscription_id "🆕"
+        TEXT tier "🆕"
+        INT seats "🆕"
+        TEXT subscription_status "🆕"
+        TIMESTAMPTZ current_period_end "🆕"
+        BOOL cancel_at_period_end "🆕"
+    }
+
+    STRIPE_WEBHOOK_EVENT {
+        TEXT event_id PK
+        TEXT event_type
+        TEXT user_id FK
+        TIMESTAMPTZ processed_at
+        JSONB raw_payload
+    }
+
+    CREDIT_LEDGER {
+        VARCHAR id PK
+        VARCHAR user_id FK
+        VARCHAR txn_type "recharge｜consume｜🆕reset?"
+        BIGINT amount
+        BIGINT balance_after
+        VARCHAR idempotency_key UK
+        VARCHAR external_ref
+    }
+
+    SYSTEM_CONFIG {
+        VARCHAR key PK
+        TEXT value
+        VARCHAR category
+    }
+</div>
+</div>
+
+<h2>3. 表清单与改动</h2>
+<table>
+  <thead>
+    <tr><th>表</th><th>状态</th><th>说明</th><th>对应 PRD</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>"user"</code></td>
+      <td><span class="pill modify">改动</span></td>
+      <td>新增 7 列：<code>stripe_customer_id / stripe_subscription_id / tier / seats / subscription_status / current_period_end / cancel_at_period_end</code></td>
+      <td>影响与测试评估 → User 数据表</td>
+    </tr>
+    <tr>
+      <td><code>credit_ledger</code></td>
+      <td><span class="pill modify">改动</span></td>
+      <td>建议新增 <code>reset</code> txn_type（需 ALTER <code>chk_credit_ledger_txn_type</code> CHECK 约束）。<code>idempotency_key</code> 复用承载 Stripe event_id</td>
+      <td>REQ-004 / REQ-006</td>
+    </tr>
+    <tr>
+      <td><code>stripe_webhook_event</code></td>
+      <td><span class="pill new">新增</span></td>
+      <td>独立幂等通道（部分 webhook 如 <code>customer.subscription.updated</code> 不写 ledger，需要单独去重）</td>
+      <td>REQ-004 幂等处理</td>
+    </tr>
+    <tr>
+      <td><code>system_config</code></td>
+      <td><span class="pill modify">改动</span></td>
+      <td>新增 seed：<code>billing.tier.starter.credits</code> / <code>.individual.credits</code> / <code>.team.credits_per_seat</code>（值 TBD，沙箱测试期填）</td>
+      <td>REQ-001 / REQ-004</td>
+    </tr>
+    <tr>
+      <td><code>credit / credit_rate / usage / usage_llm / usage_tool / usage_meter / model_price / chats / messages / session / account</code></td>
+      <td><span class="pill existing">现有</span></td>
+      <td>不动</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. 数据流走查（按 REQ）</h2>
+
+<div class="flow blue">
+  <div class="flow-title blue">🔵 蓝线 — 订阅生效（REQ-003 + REQ-004）</div>
+  <pre><code>Stripe Checkout 支付成功
+  ↓
+checkout.session.completed webhook
+  ↓ 同事务
+1) INSERT stripe_webhook_event (event_id 幂等)
+2) UPDATE user 的 7 个 stripe_* 字段
+3) INSERT credit_ledger
+   - txn_type = 'recharge'
+   - amount = system_config["billing.tier.{tier}.credits"] × user.seats
+   - idempotency_key = event_id (UK 防重复)
+   - external_ref = event_id (备份)</code></pre>
+</div>
+
+<div class="flow green">
+  <div class="flow-title green">🟢 绿线 — 月度续费 + Credit 重置（REQ-006）</div>
+  <pre><code>Stripe 自动扣款成功 → invoice.paid webhook
+  ↓
+方案 A: credit_ledger 写两条
+   - 1 条 expire (amount = -current_balance, 清零)
+   - 1 条 recharge (amount = tier 满额)
+
+方案 B（推荐）: credit_ledger 写一条 reset
+   - amount = tier 满额（直接覆盖 balance_after）
+   - 需 ALTER chk_credit_ledger_txn_type 加 'reset'
+
+  + UPDATE user.current_period_end = next_billing_date</code></pre>
+</div>
+
+<div class="flow red">
+  <div class="flow-title red">🔴 红线 — Credit 消费 / 耗尽（REQ-007，已存在不动）</div>
+  <pre><code>用户发任务
+  ↓
+messages INSERT → usage 记录调用 → credit 算 raw_credit_amount
+  ↓
+credit_ledger INSERT (txn_type='consume', amount 为负)
+  ↓
+REQ-007 拦截：
+  if balance_after < 任务成本 → 显示 credits_exhausted 弹窗
+  resetDate 来源 = user.current_period_end</code></pre>
+</div>
+
+<div class="flow yellow">
+  <div class="flow-title yellow">🟡 黄线 — 扣款失败 / 取消（REQ-008 / REQ-009）</div>
+  <pre><code>invoice.payment_failed
+  ↓
+UPDATE user.subscription_status = 'past_due'
+  + INSERT stripe_webhook_event
+  （不动 credit_ledger，past_due 期间用户仍能用）
+
+customer.subscription.deleted（周期末）
+  ↓
+UPDATE user.tier = 'free', subscription_status = 'canceled'
+  + INSERT stripe_webhook_event
+  （Credit 不动，让用户用到当前余额自然耗尽 = 周期末）</code></pre>
+</div>
+
+<h2>5. REQ × 表 矩阵</h2>
+<table>
+  <thead>
+    <tr><th>REQ</th><th>触发点</th><th>读</th><th>写</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>REQ-001</strong> 定价页</td>
+      <td>进入 /pricing</td>
+      <td><code>system_config</code></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>REQ-002</strong> 订阅状态前置查询</td>
+      <td>进入 /pricing</td>
+      <td><code>user.subscription_status / tier / current_period_end</code></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>REQ-003</strong> Checkout Session</td>
+      <td>点 Upgrade</td>
+      <td><code>user.stripe_customer_id</code></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>REQ-004</strong> 首次订阅 webhook</td>
+      <td><code>checkout.session.completed</code></td>
+      <td><code>stripe_webhook_event</code> (查重)</td>
+      <td><code>user</code> + <code>credit_ledger</code> (recharge) + <code>stripe_webhook_event</code></td>
+    </tr>
+    <tr>
+      <td><strong>REQ-005</strong> Customer Portal</td>
+      <td>点"管理订阅"</td>
+      <td><code>user.stripe_customer_id</code></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>REQ-006</strong> 续费重置</td>
+      <td><code>invoice.paid</code></td>
+      <td><code>stripe_webhook_event</code></td>
+      <td><code>user.current_period_end</code> + <code>credit_ledger</code> (reset 或 expire+recharge)</td>
+    </tr>
+    <tr>
+      <td><strong>REQ-007</strong> Credit 耗尽</td>
+      <td>任务发起</td>
+      <td><code>credit_ledger</code> + <code>user.current_period_end</code></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>REQ-008</strong> 扣款失败</td>
+      <td><code>invoice.payment_failed</code></td>
+      <td>—</td>
+      <td><code>user.subscription_status='past_due'</code> + <code>stripe_webhook_event</code></td>
+    </tr>
+    <tr>
+      <td><strong>REQ-009</strong> 取消</td>
+      <td><code>customer.subscription.deleted</code></td>
+      <td>—</td>
+      <td><code>user.tier='free' / status='canceled'</code> + <code>stripe_webhook_event</code></td>
+    </tr>
+    <tr>
+      <td><strong>REQ-010</strong> Credit 常驻显示</td>
+      <td>主页加载</td>
+      <td><code>credit_ledger</code> + <code>user</code> + <code>system_config</code></td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>6. 待决策项</h2>
+<table>
+  <thead>
+    <tr><th>#</th><th>问题</th><th>建议</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>重置语义用 <code>expire</code> + <code>recharge</code> 两条还是新增 <code>reset</code> 一条？</td>
+      <td>新增 <code>reset</code>，避免双写竞态。修改 <code>chk_credit_ledger_txn_type</code></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Team 席位变更怎么记？</td>
+      <td><code>customer.subscription.updated</code> 直接 overwrite <code>user.seats</code>，不建历史表</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>各档 Credit 配额还是 TBD</td>
+      <td><code>system_config</code> 预留 3 条 key，沙箱测试期填值</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>现有 <code>credit.daily_quota / monthly_quota</code> 与"档位月配额"如何并存？</td>
+      <td>需 Evan 决策：是否对付费用户停用 daily 限流，仅走 tier 总额</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><code>recordLedgerEntry</code> 当前只实现 consume</td>
+      <td><code>packages/user-platform/src/billing/credit/ledger.ts:408-416</code> 必须补 <code>recharge</code> 和 <code>reset/expire</code> 实现</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  生成路径：<code>tests/e2e/mira_mcp/test-cases/generated/stripe-data-model-er.html</code><br>
+  数据来源：<code>preview/mira/apps/mira-work/lib/db/migrations/</code> · 003 / 010 / 035 / 037 / 038
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    er: {
+      diagramPadding: 20,
+      layoutDirection: 'TB',
+      minEntityWidth: 140,
+      minEntityHeight: 75,
+      entityPadding: 15,
+      stroke: '#374151',
+      fill: '#f9fafb',
+      fontSize: 12
+    }
+  });
+</script>
+
+</body>
+</html>

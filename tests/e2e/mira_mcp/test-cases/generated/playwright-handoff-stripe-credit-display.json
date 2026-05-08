@@ -1,0 +1,745 @@
+[
+  {
+    "id": "TC-PRD-CDP-001",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-1",
+    "source": "prd",
+    "title": "充足余额已订阅用户 — Credit 徽章常驻显示",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已使用预置已订阅账号登录",
+      "余额充足（>= 50% 配额）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "header [data-testid='credit-badge'], header :text-matches('\\\\d+\\\\s*Credits')", "name": "Credit 徽章", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "header [data-testid='credit-badge']", "name": "Credit 徽章数字", "expected": "/^\\d+\\s*Credits$/", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-010", "credit-display"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-002",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-2",
+    "source": "prd",
+    "title": "免费用户 — 底部条显示 Credits remaining 与 Upgrade 入口",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户为免费档位（tier=free）",
+      "有可用 Credit 余额"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='free-plan-bar']", "name": "底部 Free plan 条", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "[data-testid='free-plan-bar']", "name": "底部条文案", "expected": "Free plan", "i18nKey": null },
+      { "type": "text", "selector": "[data-testid='free-plan-bar']", "name": "底部条文案", "expected": "Credits remaining", "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='free-plan-bar'] >> role=button[name=/Upgrade plan/i]", "name": "Upgrade plan 按钮", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-010", "credit-display", "free-tier"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-003",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-1",
+    "source": "prd",
+    "title": "余额耗尽用户发起任务 — 触发 credits_exhausted 弹窗",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已订阅",
+      "当前 Credit 余额 = 0（或 < 任务成本）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Test prompt for exhaustion check", "locatorHint": "[data-testid='chat-input'], textarea[placeholder*='Ask']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send'], button[aria-label='Send']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "role=dialog[name=/credits/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "role=dialog[name=/credits/i]", "name": "弹窗文案", "expected": "credits have been used up", "i18nKey": "credits.exhausted.message" },
+      { "type": "visible", "selector": "role=dialog >> role=button[name=/Upgrade for more credits/i]", "name": "Upgrade CTA", "expected": null, "i18nKey": "credits.exhausted.cta" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-007", "credit-exhausted"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-004",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-7",
+    "source": "prd",
+    "title": "已取消订阅但保留期内 Credit > 0 — 可继续使用",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户订阅 status=canceled",
+      "period_end 未到",
+      "balance > 0"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Test prompt cancelled retention", "locatorHint": "[data-testid='chat-input'], textarea[placeholder*='Ask']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "role=dialog[name=/credits.*used up/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='task-running'], [data-testid='message-list']", "name": "任务执行中", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-007", "cancelled-retention"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-005",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-9",
+    "source": "prd",
+    "title": "边界 — 余额恰好低于 20% 配额阈值（balance=23/120）",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已订阅",
+      "monthlyQuota=120",
+      "当前 balance=23（低于 20% 阈值 24）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Credit badge", "action": "click", "value": null, "locatorHint": "[data-testid='credit-badge']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null },
+      { "type": "attribute", "selector": "[data-testid='credit-progress-bar']", "name": "进度条警告状态", "expected": "warning", "i18nKey": null },
+      { "type": "visible", "selector": ":text-matches('Credits running low', 'i')", "name": "Credits running low 标签", "expected": null, "i18nKey": "credits.lowWarning" }
+    ],
+    "tags": ["@P1", "@regression", "@req-010", "boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-006",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-9",
+    "source": "prd",
+    "title": "边界 — 余额恰好高于 20% 阈值（balance=25/120）",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已订阅",
+      "monthlyQuota=120",
+      "当前 balance=25（高于 20% 阈值）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Credit badge", "action": "click", "value": null, "locatorHint": "[data-testid='credit-badge']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null },
+      { "type": "attribute", "selector": "[data-testid='credit-progress-bar']", "name": "进度条非警告状态", "expected": "normal", "i18nKey": null },
+      { "type": "hidden", "selector": ":text-matches('Credits running low', 'i')", "name": "Credits running low 标签", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-010", "boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-007",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-1",
+    "source": "prd",
+    "title": "边界 — 余额等于任务成本（balance=5, taskCost=5）",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "balance=5",
+      "任务模板成本估算为 5"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Boundary cost-equal prompt", "locatorHint": "[data-testid='chat-input']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "role=dialog[name=/credits.*used up/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-007", "boundary"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-008",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-1",
+    "source": "prd",
+    "title": "边界 — 余额比任务成本少 1（balance=4, taskCost=5）",
+    "priority": "P0",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "balance=4",
+      "任务模板成本估算为 5"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Boundary insufficient credit prompt", "locatorHint": "[data-testid='chat-input']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "role=dialog[name=/credits/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "role=dialog[name=/credits/i]", "name": "弹窗文案", "expected": "credits have been used up", "i18nKey": "credits.exhausted.message" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-007", "boundary"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-009",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-1",
+    "source": "prd",
+    "title": "决策表 — 已订阅 + 充足余额 → 任务正常执行",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已订阅 active 用户",
+      "balance >> taskCost"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Hello, low cost prompt", "locatorHint": "[data-testid='chat-input']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "role=dialog[name=/credits.*used up/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='task-running'], [data-testid='message-list']", "name": "任务运行/消息列表", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-007", "decision-table"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-010",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-2,AC-007-3,AC-007-4",
+    "source": "prd",
+    "title": "决策表 — 已订阅 active + 耗尽 → 弹窗含 Upgrade for more credits CTA",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "已订阅 active 用户",
+      "balance=0"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Decision table prompt", "locatorHint": "[data-testid='chat-input']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Upgrade for more credits", "action": "click", "value": null, "locatorHint": "role=dialog >> role=button[name=/Upgrade for more credits/i]", "dataType": null, "dataVariant": null, "i18nKey": "credits.exhausted.cta" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": "URL", "expected": "/pricing", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-007", "decision-table"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-011",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-8",
+    "source": "prd",
+    "title": "决策表 — 免费用户尝试付费功能 → 跳转升级流（不显示耗尽弹窗）",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "免费用户（tier=free）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Premium Feature Trigger", "action": "click", "value": null, "locatorHint": "[data-testid='people-data-bulk-enrich'], [data-feature='premium']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "role=dialog[name=/credits.*used up/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null },
+      { "type": "url", "selector": null, "name": "URL", "expected": "/pricing", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-007", "decision-table", "free-tier"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-012",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-3,AC-010-4",
+    "source": "prd",
+    "title": "状态迁移 — 点击 Credit 徽章打开 Credit Balance 模态",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已订阅用户在主页",
+      "header 显示 Credit 徽章"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Credit badge", "action": "click", "value": null, "locatorHint": "[data-testid='credit-badge']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "[data-testid='credit-balance-modal'] >> role=heading", "name": "模态标题", "expected": "Credit Balance", "i18nKey": "credits.modal.title" },
+      { "type": "text", "selector": "[data-testid='credit-balance-modal']", "name": "模态副标题", "expected": "View your usage and manage credits", "i18nKey": "credits.modal.subtitle" },
+      { "type": "visible", "selector": "[data-testid='credit-balance-remaining']", "name": "剩余额度大数字", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "[data-testid='credit-balance-modal']", "name": "Resets 文本", "expected": "Resets", "i18nKey": "credits.modal.resets" },
+      { "type": "visible", "selector": "[data-testid='credit-transaction-table']", "name": "交易表", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-010", "state-transition"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-013",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-6,AC-010-8",
+    "source": "prd",
+    "title": "状态迁移 — 点击 Close 按钮关闭模态",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Credit Balance 模态已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "click credit badge to open modal", "pomMethod": "openCreditBalanceModal" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Close", "action": "click", "value": null, "locatorHint": "[data-testid='credit-balance-modal'] >> role=button[name='Close']", "dataType": null, "dataVariant": null, "i18nKey": "common.close" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-010", "state-transition"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-014",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-8",
+    "source": "prd",
+    "title": "状态迁移 — 点击模态外部区域关闭模态",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Credit Balance 模态已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "click credit badge to open modal", "pomMethod": "openCreditBalanceModal" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "region", "name": "Modal backdrop", "action": "click", "value": null, "locatorHint": "[data-testid='modal-backdrop'], [role='dialog'] >> xpath=..", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@req-010", "state-transition"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-015",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-7",
+    "source": "prd",
+    "title": "状态迁移 — Upgrade plan 按钮跳转定价页",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Credit Balance 模态已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "click credit badge to open modal", "pomMethod": "openCreditBalanceModal" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Upgrade plan", "action": "click", "value": null, "locatorHint": "[data-testid='credit-balance-modal'] >> role=button[name='Upgrade plan']", "dataType": null, "dataVariant": null, "i18nKey": "credits.modal.upgrade" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": "URL", "expected": "/pricing", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-010", "state-transition"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-016",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-5",
+    "source": "prd",
+    "title": "状态迁移 — credits_exhausted 弹窗可关闭返回输入框",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "balance=0",
+      "用户已提交任务并触发 credits_exhausted 弹窗"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "submit prompt to trigger exhausted modal", "pomMethod": "triggerCreditsExhaustedModal" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Close", "action": "click", "value": null, "locatorHint": "role=dialog[name=/credits/i] >> role=button[name=/Close|×|Cancel/i]", "dataType": null, "dataVariant": null, "i18nKey": "common.close" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "role=dialog[name=/credits.*used up/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='chat-input']", "name": "聊天输入框", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-007", "state-transition"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-017",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-3,AC-007-4",
+    "source": "prd",
+    "title": "状态迁移 — credits_exhausted 弹窗 Upgrade CTA 跳转定价页",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "balance=0",
+      "credits_exhausted 弹窗已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "submit prompt to trigger exhausted modal", "pomMethod": "triggerCreditsExhaustedModal" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Upgrade for more credits", "action": "click", "value": null, "locatorHint": "role=dialog >> role=button[name=/Upgrade for more credits/i]", "dataType": null, "dataVariant": null, "i18nKey": "credits.exhausted.cta" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": "URL", "expected": "/pricing", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-007", "state-transition"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-018",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-3,AC-010-4,AC-010-5,AC-010-6",
+    "source": "prd",
+    "title": "场景 — 已订阅用户查看完整 Credit 详情（徽章 → 模态 → 交易历史）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已订阅用户",
+      "存在历史交易记录（至少 1 条扣减 + 1 条月度充值）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Credit badge", "action": "click", "value": null, "locatorHint": "[data-testid='credit-badge']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Close", "action": "click", "value": null, "locatorHint": "[data-testid='credit-balance-modal'] >> role=button[name='Close']", "dataType": null, "dataVariant": null, "i18nKey": "common.close" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "[data-testid='credit-balance-modal'] >> role=heading", "name": "模态标题", "expected": "Credit Balance", "i18nKey": "credits.modal.title" },
+      { "type": "visible", "selector": "[data-testid='credit-transaction-table']", "name": "交易表", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "[data-testid='credit-transaction-table'] tbody tr", "name": "交易表行数", "expected": ">=2", "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='credit-transaction-table'] :text-matches('-\\\\d+')", "name": "扣减负数行", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='credit-transaction-table'] :text-matches('\\\\+\\\\d+')", "name": "充值正数行", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "[data-testid='credit-balance-modal']", "name": "模态（关闭后）", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-010", "scenario", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-019",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-10",
+    "source": "prd",
+    "title": "场景 — 任务消耗 Credit 后余额实时更新",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已订阅用户",
+      "初始 balance 已知（B0）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Run a low-cost task", "locatorHint": "[data-testid='chat-input']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='credit-badge']", "name": "Credit 徽章", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "[data-testid='credit-badge']", "name": "Credit 徽章数字（任务后）", "expected": "/^\\d+\\s*Credits$/", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-010", "scenario", "@full"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-020",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-1,AC-007-2,AC-007-3,AC-007-4,AC-007-6",
+    "source": "prd",
+    "title": "场景 — 完整耗尽流程：发起任务 → 弹窗 → 升级跳转",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "balance=0 已订阅用户",
+      "period_end 已设为有效日期"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Chat input", "action": "fill", "value": "Test prompt for full exhaustion scenario", "locatorHint": "[data-testid='chat-input']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": "[data-testid='chat-send']", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Upgrade for more credits", "action": "click", "value": null, "locatorHint": "role=dialog >> role=button[name=/Upgrade for more credits/i]", "dataType": null, "dataVariant": null, "i18nKey": "credits.exhausted.cta" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "role=dialog[name=/credits/i]", "name": "credits_exhausted 弹窗", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "role=dialog[name=/credits/i]", "name": "弹窗文案 en", "expected": "Your credits have been used up this month", "i18nKey": "credits.exhausted.message" },
+      { "type": "text", "selector": "role=dialog[name=/credits/i]", "name": "弹窗文案 reset", "expected": "Credits will reset on", "i18nKey": null },
+      { "type": "hidden", "selector": "role=dialog :text('{resetDate}')", "name": "占位符未替换", "expected": null, "i18nKey": null },
+      { "type": "url", "selector": null, "name": "URL", "expected": "/pricing", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@req-007", "scenario", "@full"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-021",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-2",
+    "source": "prd",
+    "title": "场景 — 免费用户底部条 Upgrade 按钮跳转升级流",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "免费用户（tier=free）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Upgrade plan", "action": "click", "value": null, "locatorHint": "[data-testid='free-plan-bar'] >> role=button[name=/Upgrade plan/i]", "dataType": null, "dataVariant": null, "i18nKey": "credits.upgradePlan" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": "URL", "expected": "/pricing", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-010", "scenario", "free-tier"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-022",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-12",
+    "source": "prd",
+    "title": "错误猜测 — Credit Balance 模态打开后 focus trap 工作正常",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Credit Balance 模态已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "click credit badge to open modal", "pomMethod": "openCreditBalanceModal" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "region", "name": "Tab key cycle", "action": "press", "value": "Tab", "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "attribute", "selector": "[data-testid='credit-balance-modal']", "name": "模态聚焦在内", "expected": "focused-within", "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='credit-balance-modal']", "name": "模态仍打开", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@a11y", "@req-010", "error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-023",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-9",
+    "source": "prd",
+    "title": "错误猜测 — credits_exhausted 弹窗 aria-label / 角色正确",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "balance=0 触发 credits_exhausted 弹窗"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "submit prompt to trigger exhausted modal", "pomMethod": "triggerCreditsExhaustedModal" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "role=dialog[name=/credits/i]", "name": "role 属性", "expected": "dialog|alertdialog", "i18nKey": null },
+      { "type": "attribute", "selector": "role=dialog[name=/credits/i]", "name": "aria-modal", "expected": "true", "i18nKey": null },
+      { "type": "attribute", "selector": "role=dialog[name=/credits/i] >> role=button[name=/Upgrade for more credits/i]", "name": "CTA 可访问名", "expected": "Upgrade for more credits", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@a11y", "@req-007", "error-guessing"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CDP-024",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-6",
+    "source": "prd",
+    "title": "错误猜测 — 重置日期占位符未被替换（{resetDate} 字符串）",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "触发 credits_exhausted 弹窗或打开 Credit Balance 模态"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "click credit badge to open modal", "pomMethod": "openCreditBalanceModal" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "hidden", "selector": "[data-testid='credit-balance-modal'] :text('{resetDate}')", "name": "字面占位符 {resetDate}", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "[data-testid='credit-balance-modal'] :text('{date}')", "name": "字面占位符 {date}", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='credit-balance-modal'] :text-matches('Resets\\\\s+\\\\w+\\\\s+\\\\d+', 'i')", "name": "格式化日期文本", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-007", "error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-025",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-8",
+    "source": "prd",
+    "title": "错误猜测 — Esc 键关闭模态",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Credit Balance 模态已打开"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" },
+      { "type": "ui", "action": "click credit badge to open modal", "pomMethod": "openCreditBalanceModal" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "region", "name": "Escape key", "action": "press", "value": "Escape", "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@a11y", "@req-010", "error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-026",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-3",
+    "source": "prd",
+    "title": "错误猜测 — 点击徽章短时间内多次 / 双击不应打开多重模态",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": [
+      "Credit 徽章可见"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Credit badge (rapid click)", "action": "click", "value": null, "locatorHint": "[data-testid='credit-badge']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "[data-testid='credit-balance-modal']", "name": "模态实例数", "expected": "1", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@req-010", "error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-027",
+    "storyId": "US-CDP-EXHAUST",
+    "criterionId": "AC-007-2,AC-010-11",
+    "source": "prd",
+    "title": "错误猜测 — 当前语言为 en 时，文案使用英文版（不出现中文混杂）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "浏览器/用户语言为英文（en）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Credit badge", "action": "click", "value": null, "locatorHint": "[data-testid='credit-badge']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "[data-testid='credit-balance-modal'] >> role=heading", "name": "模态标题 en", "expected": "Credit Balance", "i18nKey": "credits.modal.title" },
+      { "type": "text", "selector": "[data-testid='credit-balance-modal']", "name": "副标题 en", "expected": "View your usage and manage credits.", "i18nKey": "credits.modal.subtitle" },
+      { "type": "hidden", "selector": "[data-testid='credit-balance-modal'] :text-matches('[\\\\u4e00-\\\\u9fa5]')", "name": "中文字符（不应存在）", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@req-007", "@req-010", "i18n", "error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CDP-028",
+    "storyId": "US-CDP-DISPLAY",
+    "criterionId": "AC-010-5",
+    "source": "prd",
+    "title": "错误猜测 — 交易表为空时（首月新订阅）展示空状态而非崩溃",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "全新订阅用户",
+      "无任何历史交易（仅首次充值记录）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Credit badge", "action": "click", "value": null, "locatorHint": "[data-testid='credit-badge']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='credit-balance-modal']", "name": "Credit Balance 模态", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "[data-testid='credit-transaction-table'], [data-testid='credit-transaction-empty']", "name": "交易表或空状态", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@req-010", "error-guessing", "edge-case"],
+    "timeout": null
+  }
+]

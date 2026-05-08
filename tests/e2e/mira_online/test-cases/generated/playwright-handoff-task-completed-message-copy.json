@@ -1,0 +1,59 @@
+[
+  {
+    "id": "TC-CDP-MSGCOPY-001",
+    "storyId": "US-TASK-COMPLETED-MSGCOPY",
+    "title": "user message 上 hover 后显示 lucide-copy 复制按钮",
+    "priority": "P3",
+    "tags": ["@P3", "@smoke", "@full"],
+    "preconditions": ["已登录 + fixture taskWithToolChainUrl"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "log", "name": "first user message", "action": "hover", "locatorHint": "[role='log'] .is-user" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "user message copy button", "locatorHint": "[role='log'] .is-user button:has(svg.lucide-copy)" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-MSGCOPY-002",
+    "storyId": "US-TASK-COMPLETED-MSGCOPY",
+    "title": "点击复制按钮将 user message 文本写入剪贴板",
+    "priority": "P3",
+    "tags": ["@P3", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "log", "name": "first user message", "action": "hover" },
+      { "role": "button", "name": "copy message button", "action": "click", "locatorHint": "[role='log'] .is-user button:has(svg.lucide-copy)" }
+    ],
+    "assertions": [
+      { "type": "clipboardEquals", "selector": "navigator.clipboard", "expected": "<userMessageText>" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-MSGCOPY-003",
+    "storyId": "US-TASK-COMPLETED-MSGCOPY",
+    "title": "AI assistant message 上不渲染复制按钮（regression / negative）",
+    "priority": "P3",
+    "tags": ["@P3", "@full"],
+    "preconditions": ["同 001 + AI assistant 至少一条消息"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "[role='log'] :not(.is-user) button:has(svg.lucide-copy)", "expected": 0 }
+    ],
+    "timeout": 360000
+  }
+]
