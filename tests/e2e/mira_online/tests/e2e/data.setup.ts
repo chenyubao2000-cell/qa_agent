@@ -113,6 +113,7 @@ async function createTask(
   prompt: string,
   waitIndicator: RegExp = i18nPattern("chatbot.completed"),
   fallbackFill = "请直接开始",
+  completionTimeoutMs = 300_000,
 ): Promise<string> {
   await page.goto("/task", { timeout: 120_000, waitUntil: "domcontentloaded" });
   await ensureAuthenticated(page);
@@ -136,7 +137,8 @@ async function createTask(
   const clarificationBtn = page.locator('[role="log"] button').filter({
     hasText: i18nPattern("toolForms.clarifyQuestion.submit", { exact: true }),
   });
-  for (let i = 0; i < 60; i++) {
+  const pollIterations = Math.ceil(completionTimeoutMs / 5000);
+  for (let i = 0; i < pollIterations; i++) {
     if (await target.isVisible().catch(() => false)) break;
     if (await clarificationBtn.isVisible().catch(() => false)) {
       const inputs = page.locator('[role="log"] textarea');
@@ -162,7 +164,7 @@ async function createTask(
         .catch(() => {});
     }
   }
-  await target.waitFor({ state: "visible", timeout: 300_000 });
+  await target.waitFor({ state: "visible", timeout: completionTimeoutMs });
   await page.waitForTimeout(3000);
   return new URL(page.url()).pathname;
 }
@@ -176,12 +178,19 @@ async function createTaskInContext(
   prompt: string,
   waitIndicator: RegExp = i18nPattern("chatbot.completed"),
   fallbackFill = "请直接开始",
+  completionTimeoutMs = 300_000,
 ): Promise<string> {
   const ctx = await browser.newContext({ storageState: AUTH_FILE });
   const page = await ctx.newPage();
   try {
     console.log(`[data-setup] Creating ${key}...`);
-    const url = await createTask(page, prompt, waitIndicator, fallbackFill);
+    const url = await createTask(
+      page,
+      prompt,
+      waitIndicator,
+      fallbackFill,
+      completionTimeoutMs,
+    );
     console.log(`[data-setup] ${key}: ${url}`);
     return url;
   } finally {
@@ -327,6 +336,7 @@ setup("create test data", async ({ browser }) => {
           "请先搜索相关信息，再逐一生成以上所有文件，确保 6 个文件全部交付。",
         i18nPattern("chatbot.completed"),
         "请直接开始，使用默认设置",
+        15 * 60_000,
       ),
     });
   }

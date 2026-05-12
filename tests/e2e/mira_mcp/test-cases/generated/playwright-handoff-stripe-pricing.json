@@ -1,0 +1,603 @@
+[
+  {
+    "id": "TC-PRD-PRICE-001",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-AC-1",
+    "source": "prd",
+    "title": "已登录无订阅用户访问定价页（Monthly 默认视图）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "用户当前无 Stripe 订阅（mock /api/subscription 返回 null 或 { subscription: null }）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return no-subscription", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Simple, transparent pricing", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Choose the plan that's right for you.", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Starter", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Individual", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Team", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "starter-card-price", "name": "Starter price", "expected": "$20", "i18nKey": null },
+      { "type": "text", "selector": "individual-card-price", "name": "Individual price", "expected": "$100", "i18nKey": null },
+      { "type": "text", "selector": "team-card-price", "name": "Team price", "expected": "$200", "i18nKey": null },
+      { "type": "visible", "selector": "team-card-most-popular-badge", "name": "Most Popular", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "cta-button-text=Upgrade", "name": "Upgrade buttons", "expected": 3, "i18nKey": null },
+      { "type": "hidden", "selector": "save-badge", "name": "Save 16%", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-001"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-002",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-AC-2",
+    "source": "prd",
+    "title": "已登录无订阅用户切换到 Yearly 显示 Save 16% 徽章",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "用户无 Stripe 订阅",
+      "定价页已加载（Monthly 默认）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return no-subscription", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Yearly", "action": "click", "value": null, "locatorHint": "billing-toggle button[name=Yearly]", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "attribute", "selector": "billing-toggle-yearly", "name": "Yearly toggle", "expected": "aria-pressed=true", "i18nKey": null },
+      { "type": "visible", "selector": "save-badge", "name": "Save 16%", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "save-badge", "name": "Save badge text", "expected": "Save 16%", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-001"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-003",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-AC-1",
+    "source": "prd",
+    "title": "Starter active 用户访问定价页",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "用户当前持有 Starter active 订阅（mock /api/subscription 返回 { tier: 'starter', status: 'active' }）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return starter active", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "starter-card-cta", "name": "Starter CTA", "expected": "View Current Plan", "i18nKey": null },
+      { "type": "visible", "selector": "starter-card-your-plan-badge", "name": "Your Plan", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "individual-card-cta", "name": "Individual CTA", "expected": "Upgrade", "i18nKey": null },
+      { "type": "text", "selector": "team-card-cta", "name": "Team CTA", "expected": "Upgrade", "i18nKey": null },
+      { "type": "text", "selector": "subscription-state-subtitle", "name": "subtitle", "expected": "You're on the Starter plan. Upgrade to unlock more features.", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-002"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-004",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-AC-2",
+    "source": "prd",
+    "title": "Individual active 用户访问定价页",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "用户持有 Individual active 订阅（mock /api/subscription 返回 { tier: 'individual', status: 'active' }）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return individual active", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "starter-card-cta", "name": "Starter CTA", "expected": "Downgrade", "i18nKey": null },
+      { "type": "text", "selector": "individual-card-cta", "name": "Individual CTA", "expected": "View Current Plan", "i18nKey": null },
+      { "type": "visible", "selector": "individual-card-your-plan-badge", "name": "Your Plan", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "team-card-cta", "name": "Team CTA", "expected": "Upgrade", "i18nKey": null },
+      { "type": "text", "selector": "subscription-state-subtitle", "name": "subtitle", "expected": "You're on the Individual plan. Upgrade to unlock team features.", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-002"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-005",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-AC-3",
+    "source": "prd",
+    "title": "Team active 用户访问定价页",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "用户持有 Team active 订阅（mock /api/subscription 返回 { tier: 'team', status: 'active' }）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return team active", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "starter-card-cta", "name": "Starter CTA", "expected": "Downgrade", "i18nKey": null },
+      { "type": "text", "selector": "individual-card-cta", "name": "Individual CTA", "expected": "Downgrade", "i18nKey": null },
+      { "type": "text", "selector": "team-card-cta", "name": "Team CTA", "expected": "View Current Plan", "i18nKey": null },
+      { "type": "visible", "selector": "team-card-your-plan-badge", "name": "Your Plan", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-002"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-006",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-AC-4",
+    "source": "prd",
+    "title": "past_due 用户访问定价页显示警告 banner",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已登录",
+      "用户订阅状态为 past_due（mock /api/subscription 返回 { status: 'past_due' }）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return past_due", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "past-due-banner", "name": "past_due warning banner", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "past-due-banner", "name": "banner text", "expected": "支付失败，请更新支付方式", "i18nKey": null },
+      { "type": "visible", "selector": "manage-subscription-button", "name": "管理订阅", "expected": null, "i18nKey": null },
+      { "type": "enabled", "selector": "manage-subscription-button", "name": "管理订阅", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-002"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-007",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-AC-5",
+    "source": "prd",
+    "title": "Stripe API 超时（>5s）走降级分支",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户已登录",
+      "Stripe 订阅查询接口延迟 6000ms 不响应（mock /api/subscription 延迟 6s）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API with 6000ms delay", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Simple, transparent pricing", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "cta-button-text=Upgrade", "name": "Upgrade buttons", "expected": 3, "i18nKey": null },
+      { "type": "hidden", "selector": "your-plan-badge", "name": "Your Plan badge", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "past-due-banner", "name": "past_due banner", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "stripe-pricing", "REQ-002"],
+    "timeout": 60000
+  },
+  {
+    "id": "TC-PRD-PRICE-008",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-AC-3",
+    "source": "prd",
+    "title": "未登录用户访问定价页 CTA 变为 Sign in to subscribe",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户未登录（清除 auth state / 使用未认证 context）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "Starter", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Individual", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Team", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "cta-button-text=Sign in to subscribe", "name": "Sign in CTAs", "expected": 3, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-001", "unauth"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-009",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-AC-4",
+    "source": "prd",
+    "title": "未登录用户点击 Sign in to subscribe 跳转登录页",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户未登录",
+      "定价页已加载（CTA 显示 Sign in to subscribe）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Sign in to subscribe", "action": "click", "value": null, "locatorHint": "starter-card cta button", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "URL", "expected": "/sign-in|/login", "i18nKey": null },
+      { "type": "visible", "selector": "input[type=email], input[name=email]", "name": "email input", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-001", "unauth"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-010",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-AC-6",
+    "source": "prd",
+    "title": "Team trial 用户访问定价页",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "用户处于 Team trial 状态（mock /api/subscription 返回 { tier: 'team', status: 'trialing', days_remaining: 7 }）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return team trial 7 days", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "subscription-state-subtitle", "name": "subtitle", "expected": "You're on a Team trial. 7 days remaining — upgrade to keep your features.", "i18nKey": null },
+      { "type": "text", "selector": "team-card-cta", "name": "Team CTA", "expected": "View Current Plan", "i18nKey": null },
+      { "type": "visible", "selector": "team-card-your-plan-badge", "name": "Your Plan", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "starter-card-cta", "name": "Starter CTA", "expected": "Downgrade", "i18nKey": null },
+      { "type": "text", "selector": "individual-card-cta", "name": "Individual CTA", "expected": "Downgrade", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "stripe-pricing", "REQ-002", "trial"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-011",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-BV-1",
+    "source": "prd",
+    "title": "Stripe API 4.9s 响应不走降级",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已登录",
+      "Individual active 订阅",
+      "mock /api/subscription 响应延迟 4900ms 后返回 { tier: 'individual', status: 'active' }"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API with 4900ms delay returning individual active", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "individual-card-cta", "name": "Individual CTA", "expected": "View Current Plan", "i18nKey": null },
+      { "type": "visible", "selector": "individual-card-your-plan-badge", "name": "Your Plan", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-002", "boundary"],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-PRICE-012",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-BV-2",
+    "source": "prd",
+    "title": "Stripe API 5.0s 边界值降级",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已登录",
+      "Individual active 订阅",
+      "mock /api/subscription 响应延迟 5000ms"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API with 5000ms delay", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "cta-button-text=Upgrade", "name": "Upgrade buttons", "expected": 3, "i18nKey": null },
+      { "type": "hidden", "selector": "your-plan-badge", "name": "Your Plan badge", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-002", "boundary"],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-PRICE-013",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-BV-3",
+    "source": "prd",
+    "title": "Stripe API 5.1s 超过阈值降级",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已登录",
+      "Individual active 订阅",
+      "mock /api/subscription 响应延迟 5100ms"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API with 5100ms delay", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "cta-button-text=Upgrade", "name": "Upgrade buttons", "expected": 3, "i18nKey": null },
+      { "type": "hidden", "selector": "your-plan-badge", "name": "Your Plan badge", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-002", "boundary"],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-PRICE-014",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-AC-5",
+    "source": "prd",
+    "title": "Yearly → Monthly 切换隐藏 Save 16% 徽章",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录、无订阅",
+      "定价页已加载并已切换到 Yearly"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return no-subscription", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Yearly", "action": "click", "value": null, "locatorHint": "billing-toggle button[name=Yearly]", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Monthly", "action": "click", "value": null, "locatorHint": "billing-toggle button[name=Monthly]", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "attribute", "selector": "billing-toggle-monthly", "name": "Monthly toggle", "expected": "aria-pressed=true", "i18nKey": null },
+      { "type": "hidden", "selector": "save-badge", "name": "Save 16% badge", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-001"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-015",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-AC-7",
+    "source": "prd",
+    "title": "past_due 用户点击「管理订阅」触发 Portal 跳转",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "past_due 订阅（mock /api/subscription）",
+      "mock /api/portal-session 返回 { url: 'https://billing.stripe.com/p/session/test_xxx' }"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API past_due + portal-session", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "管理订阅", "action": "click", "value": null, "locatorHint": "past-due-banner manage-subscription-button", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "URL after click", "expected": "stripe.com|portal-session", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-002", "portal"],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-PRICE-016",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-AC-6",
+    "source": "prd",
+    "title": "完整定价页浏览体验（基本流）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录、无订阅"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return no-subscription", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Yearly", "action": "click", "value": null, "locatorHint": "billing-toggle button[name=Yearly]", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Monthly", "action": "click", "value": null, "locatorHint": "billing-toggle button[name=Monthly]", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Simple, transparent pricing", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Choose the plan that's right for you.", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "pricing-card", "name": "pricing cards", "expected": 3, "i18nKey": null },
+      { "type": "visible", "selector": "team-card-most-popular-badge", "name": "Most Popular", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "save-badge", "name": "Save 16% (after Yearly click)", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "save-badge", "name": "Save 16% (after Monthly click)", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "stripe-pricing", "REQ-001"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-017",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-AC-7",
+    "source": "prd",
+    "title": "定价卡功能列表内容验证",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录、无订阅"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return no-subscription", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "starter-card text=Includes:", "name": "Starter Includes label", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "individual-card text=Everything in Starter, plus:", "name": "Individual plus label", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "team-card text=Everything in Individual, plus:", "name": "Team plus label", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "starter-card feature-item", "name": "Starter feature items", "expected": ">=1", "i18nKey": null },
+      { "type": "count", "selector": "individual-card feature-item", "name": "Individual feature items", "expected": ">=1", "i18nKey": null },
+      { "type": "count", "selector": "team-card feature-item", "name": "Team feature items", "expected": ">=1", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-001"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-018",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-EG-1",
+    "source": "prd",
+    "title": "订阅状态接口返回 5xx 走降级",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户已登录",
+      "mock /api/subscription 返回 HTTP 500"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return 500", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Simple, transparent pricing", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "cta-button-text=Upgrade", "name": "Upgrade buttons", "expected": 3, "i18nKey": null },
+      { "type": "hidden", "selector": "your-plan-badge", "name": "Your Plan badge", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-002", "error-handling"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-019",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-EG-2",
+    "source": "prd",
+    "title": "订阅响应 schema drift（未知 tier）兜底",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户已登录",
+      "mock /api/subscription 返回 { tier: 'premium', status: 'active' }（未知 tier）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return unknown tier 'premium'", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Simple, transparent pricing", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "pricing-card", "name": "pricing cards", "expected": 3, "i18nKey": null },
+      { "type": "count", "selector": "cta-button-text=Upgrade", "name": "Upgrade buttons", "expected": 3, "i18nKey": null },
+      { "type": "hidden", "selector": "your-plan-badge", "name": "Your Plan badge", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "stripe-pricing", "REQ-002", "error-handling"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-020",
+    "storyId": "REQ-001",
+    "criterionId": "REQ-001-EG-1",
+    "source": "prd",
+    "title": "定价页加载期间 Yearly toggle 立即响应",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已登录",
+      "mock /api/subscription 响应延迟 2000ms"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API with 2000ms delay", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Yearly", "action": "click", "value": null, "locatorHint": "billing-toggle button[name=Yearly]", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "save-badge", "name": "Save 16%", "expected": null, "i18nKey": null },
+      { "type": "attribute", "selector": "billing-toggle-yearly", "name": "Yearly toggle", "expected": "aria-pressed=true", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "stripe-pricing", "REQ-001", "ux-responsiveness"],
+    "timeout": 30000
+  },
+  {
+    "id": "TC-PRD-PRICE-021",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-EG-3",
+    "source": "prd",
+    "title": "active 响应缺 status 字段保守渲染",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户已登录",
+      "mock /api/subscription 返回 { tier: 'starter' }（缺 status 字段）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return tier without status", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Simple, transparent pricing", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "cta-button-text=Upgrade", "name": "Upgrade buttons", "expected": 3, "i18nKey": null },
+      { "type": "hidden", "selector": "your-plan-badge", "name": "Your Plan badge", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "stripe-pricing", "REQ-002", "error-handling"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PRICE-022",
+    "storyId": "REQ-002",
+    "criterionId": "REQ-002-BV-4",
+    "source": "prd",
+    "title": "Team trial 剩余 1 天单复数文案",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户已登录",
+      "Team trial 状态（mock /api/subscription 返回 { tier: 'team', status: 'trialing', days_remaining: 1 }）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Mock subscription API to return team trial 1 day", "scope": "test" },
+      { "type": "navigate", "url": "/pricing" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "subscription-state-subtitle", "name": "subtitle", "expected": "You're on a Team trial. 1 day remaining — upgrade to keep your features.", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "stripe-pricing", "REQ-002", "trial", "boundary"],
+    "timeout": null
+  }
+]

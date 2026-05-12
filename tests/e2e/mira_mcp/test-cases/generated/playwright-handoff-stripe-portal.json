@@ -1,0 +1,619 @@
+[
+  {
+    "id": "TC-PRD-PORTAL-001",
+    "storyId": "US-PORTAL-SETTINGS",
+    "criterionId": "REQ-005-AC-001",
+    "source": "prd",
+    "title": "Individual 订阅用户从用户菜单进入 Settings 订阅区域并看到完整字段",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户已登录", "沙箱账号持有 active Individual 订阅"],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "User menu trigger", "action": "click", "value": null, "locatorHint": "[data-testid='sidebar-user-menu-trigger'], [aria-label*='user' i]", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "menuitem", "name": "Billing", "action": "click", "value": null, "locatorHint": "role=menuitem[name='Billing']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "settings page", "expected": "/settings", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Individual", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "$100", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "[role='progressbar'], .credit-progress", "name": "credit progress bar", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Manage Subscription", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@portal"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-002",
+    "storyId": "US-PORTAL-SETTINGS",
+    "criterionId": "REQ-005-AC-002",
+    "source": "prd",
+    "title": "Starter 订阅用户在 Settings 订阅区域显示对应档位",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户已登录", "active Starter 订阅"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "Starter", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "$20", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "text", "name": "seats", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Manage Subscription", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-003",
+    "storyId": "US-PORTAL-SETTINGS",
+    "criterionId": "REQ-005-AC-003",
+    "source": "prd",
+    "title": "Team 订阅用户在 Settings 订阅区域显示席位数",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户已登录", "active Team 订阅且 seats=3"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "Team", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "$200", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "text", "name": "seats indicator", "expected": "3", "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Manage Subscription", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@portal"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-004",
+    "storyId": "US-PORTAL-SETTINGS",
+    "criterionId": "REQ-005-AC-004",
+    "source": "prd",
+    "title": "Free 用户进入 Settings 订阅区域看不到管理订阅按钮",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["用户已登录但无 active 订阅"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "hidden", "selector": "button", "name": "Manage Subscription", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Free plan or Upgrade plan entry", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-005",
+    "storyId": "US-PORTAL-CREDIT",
+    "criterionId": "REQ-005-AC-005",
+    "source": "prd",
+    "title": "Credit 余额已用 0 时进度条显示 0%",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["active 订阅", "沙箱数据 used=0"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "[role='progressbar']", "name": "credit progress", "expected": "aria-valuenow=0", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "0 / total", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-006",
+    "storyId": "US-PORTAL-CREDIT",
+    "criterionId": "REQ-005-AC-006",
+    "source": "prd",
+    "title": "Credit 余额已用满时进度条显示 100% 并应用警告色",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["active 订阅", "沙箱数据 used=total"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "[role='progressbar']", "name": "credit progress", "expected": "aria-valuenow=100", "i18nKey": null },
+      { "type": "attribute", "selector": "[role='progressbar']", "name": "warning color class", "expected": "class*=warning|danger|red", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-007",
+    "storyId": "US-PORTAL-SETTINGS",
+    "criterionId": "REQ-005-AC-007",
+    "source": "prd",
+    "title": "Team 席位数 1 席的展示",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["active Team 订阅", "seats=1"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "1 seat", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@portal", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-008",
+    "storyId": "US-PORTAL-SETTINGS",
+    "criterionId": "REQ-005-AC-008",
+    "source": "prd",
+    "title": "续费日期为今日时正确展示",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["active 订阅", "next_renewal_date == today"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='next-renewal-date'], text", "name": "renewal date", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@portal", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-009",
+    "storyId": "US-PORTAL-PAST-DUE",
+    "criterionId": "REQ-005-AC-009",
+    "source": "prd",
+    "title": "past_due 状态用户看到付款失败警告",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["用户订阅状态为 past_due"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "支付失败|payment failed|update payment", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Manage Subscription", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-010",
+    "storyId": "US-CANCEL-INDICATOR",
+    "criterionId": "REQ-009-AC-001",
+    "source": "prd",
+    "title": "已取消用户在周期内仍显示当前档位 + Cancelling 标注",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["cancel_at_period_end=true", "period_end 未到"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "current plan still shown (Starter|Individual|Team)", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Cancelling at|将于.*取消", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@cancel"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-011",
+    "storyId": "US-CANCEL-PERIOD-END",
+    "criterionId": "REQ-009-AC-002",
+    "source": "prd",
+    "title": "period_end 已到达后档位降为 free",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["cancel_at_period_end=true", "period_end 已经过", "customer.subscription.deleted 已写入"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "Free plan", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "[data-testid='next-renewal-date']", "name": "next renewal", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "button", "name": "Manage Subscription", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@cancel"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-012",
+    "storyId": "US-CANCEL-PERIOD-END",
+    "criterionId": "REQ-009-AC-003",
+    "source": "prd",
+    "title": "已取消但未到期仍可执行任务消耗 Credit",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["cancel_at_period_end=true", "period_end 未到", "Credit 余额>0"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings link or back to workspace", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[role='progressbar']", "name": "credit progress visible", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "[data-testid='credit-used']", "name": "credit used increases after task", "expected": ">0", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@cancel"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PORTAL-013",
+    "storyId": "US-CANCEL-RESUBSCRIBE",
+    "criterionId": "REQ-009-AC-004",
+    "source": "prd",
+    "title": "Cancelled 用户重新订阅后 Customer 数据连续",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户处于 canceled 状态（period_end 已到）"],
+    "setup": [{ "type": "navigate", "url": "/pricing" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Subscribe (Individual)", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "stripe checkout host", "expected": "stripe.com", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "active plan after return (Individual)", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@cancel", "@checkout"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-014",
+    "storyId": "US-PORTAL-UPGRADE",
+    "criterionId": "REQ-005-AC-010",
+    "source": "prd",
+    "title": "通过 Portal 升档后返回 Mira 反映新档位",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["active Starter 订阅"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "stripe portal host", "expected": "stripe.com", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Individual after webhook + return", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal", "@upgrade"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-015",
+    "storyId": "US-USER-MENU",
+    "criterionId": "S9-DESIGN-AC-001",
+    "source": "prd",
+    "title": "用户菜单按 Pencil S9 设计包含 6 项菜单",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户已登录"],
+    "setup": [{ "type": "navigate", "url": "/" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "User menu trigger", "action": "click", "value": null, "locatorHint": "[data-testid='sidebar-user-menu-trigger']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "menuitem", "name": "Billing", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "menuitem", "name": "Upgrade plan", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "menuitem", "name": "Connectors", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "menuitem", "name": "Language", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "menuitem", "name": "Theme", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "menuitem", "name": "Log out", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@user-menu"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-016",
+    "storyId": "US-USER-MENU",
+    "criterionId": "S9-DESIGN-AC-002",
+    "source": "prd",
+    "title": "用户菜单显示当前订阅档位作为副标题",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["active Team 订阅"],
+    "setup": [{ "type": "navigate", "url": "/" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "User menu trigger", "action": "click", "value": null, "locatorHint": "[data-testid='sidebar-user-menu-trigger']", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[data-testid='user-menu-plan-subtitle'], text", "name": "Team Plan", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@user-menu"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-017",
+    "storyId": "US-PORTAL-REDIRECT",
+    "criterionId": "REQ-005-AC-011",
+    "source": "prd",
+    "title": "点击管理订阅整页跳转到 Stripe Portal",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["active 订阅", "已进入 Settings 订阅区域"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "stripe portal host", "expected": "stripe.com", "i18nKey": null },
+      { "type": "count", "selector": "iframe[src*='stripe']", "name": "no stripe iframe", "expected": "0", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@portal"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-018",
+    "storyId": "US-PORTAL-MOBILE",
+    "criterionId": "REQ-005-AC-012",
+    "source": "prd",
+    "title": "移动端整页跳转 Stripe Portal（不使用 iframe）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["移动端 viewport (375x812)", "active 订阅"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "stripe portal host", "expected": "stripe.com", "i18nKey": null },
+      { "type": "count", "selector": "iframe[src*='stripe']", "name": "no stripe iframe", "expected": "0", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal", "@mobile"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-019",
+    "storyId": "US-PORTAL-CONTENT",
+    "criterionId": "REQ-005-AC-013",
+    "source": "prd",
+    "title": "Portal 主页可见核心管理操作（out-of-app）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已跳转到 Stripe Portal"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "stripe portal host", "expected": "stripe.com", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "plan|cancel|payment|invoice", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal", "@out-of-app"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-020",
+    "storyId": "US-PORTAL-RETURN",
+    "criterionId": "REQ-005-AC-014",
+    "source": "prd",
+    "title": "通过 Portal return_url 返回 Mira",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已在 Stripe Portal 内"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "link", "name": "Return to Mira (brand link in portal)", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "back to mira host", "expected": "mira", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal", "@out-of-app"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-021",
+    "storyId": "US-CANCEL-REASON",
+    "criterionId": "REQ-009-AC-005",
+    "source": "prd",
+    "title": "Portal 内点击 Cancel 触发取消原因收集（5 选 1）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["active 订阅", "已进入 Stripe Portal"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Cancel subscription (Portal)", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "stripe portal host", "expected": "stripe.com", "i18nKey": null },
+      { "type": "count", "selector": "input[type='radio'], [role='radio']", "name": "cancel reason options", "expected": "5", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@cancel", "@out-of-app"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-022",
+    "storyId": "US-CANCEL-CONFIRM",
+    "criterionId": "REQ-009-AC-006",
+    "source": "prd",
+    "title": "选择太贵并确认后返回 Mira 显示 Cancelling 标注",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["active 订阅", "已进入 Portal 取消原因页"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Cancel subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "radio", "name": "Too expensive|太贵", "action": "check", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Confirm cancellation", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "back to mira host", "expected": "mira", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Cancelling at|将于.*取消", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@cancel", "@out-of-app"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-023",
+    "storyId": "US-CANCEL-ANALYTICS",
+    "criterionId": "REQ-009-AC-007",
+    "source": "prd",
+    "title": "取消原因被前端埋点上报用于流失分析",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已完成 TC-PRD-PORTAL-022"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "network-log", "name": "plan_cancel_reason event with reason and userId", "expected": "reason=太贵 OR Too expensive", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@cancel", "@analytics"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-024",
+    "storyId": "US-CANCEL-VALIDATION",
+    "criterionId": "REQ-009-AC-008",
+    "source": "prd",
+    "title": "取消原因不选则 Portal 阻止提交",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["已进入 Portal 取消原因页"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Cancel subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Confirm cancellation (without selection)", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "still on stripe portal cancel reason page", "expected": "stripe.com", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@cancel", "@out-of-app", "@negative"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-025",
+    "storyId": "US-CANCEL-RESUME",
+    "criterionId": "REQ-009-AC-009",
+    "source": "prd",
+    "title": "Portal 内撤销取消后回 Mira 取消标注消失",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["cancel_at_period_end=true", "已在 Portal 主页"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Renew|Resume subscription (Portal)", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "text", "name": "Cancelling at|将于.*取消", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@cancel", "@portal", "@out-of-app"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-026",
+    "storyId": "US-PORTAL-ERROR",
+    "criterionId": "REQ-005-AC-015",
+    "source": "prd",
+    "title": "Portal Session 创建失败时显示降级提示",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["active 订阅", "mock 后端 Portal Session API 返回 5xx"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "no redirect (still on settings)", "expected": "settings", "i18nKey": null },
+      { "type": "visible", "selector": "[role='alert'], .toast, text", "name": "error toast", "expected": null, "i18nKey": null },
+      { "type": "enabled", "selector": "button", "name": "Manage Subscription (clickable again)", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal", "@negative"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-027",
+    "storyId": "US-PORTAL-DEDUPE",
+    "criterionId": "REQ-005-AC-016",
+    "source": "prd",
+    "title": "多次快速点击管理订阅不应造成多次跳转",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["active 订阅"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Manage Subscription (click 3x quickly)", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "single navigation to stripe", "expected": "stripe.com", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@portal", "@error-guess"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-028",
+    "storyId": "US-AUTH-GUARD",
+    "criterionId": "REQ-005-AC-017",
+    "source": "prd",
+    "title": "未登录用户访问 Settings 跳转登录页",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["用户未登录"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": "login page", "expected": "/login", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@auth", "@negative"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-029",
+    "storyId": "US-CANCEL-NO-CREDIT",
+    "criterionId": "REQ-009-AC-010",
+    "source": "prd",
+    "title": "period_end 后下个账期不再发放 Credit（UI 显示 Free plan）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["cancel_at_period_end=true", "period_end 已到达"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "Free plan", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "[data-testid='next-renewal-date']", "name": "next renewal hidden", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@cancel"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PORTAL-030",
+    "storyId": "US-PORTAL-FREE",
+    "criterionId": "REQ-005-AC-018",
+    "source": "prd",
+    "title": "Free 用户在 Settings 看到升级方案入口而非管理订阅",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Free 用户已登录"],
+    "setup": [{ "type": "navigate", "url": "/settings" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "hidden", "selector": "button", "name": "Manage Subscription", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Upgrade plan|升级", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@portal"],
+    "timeout": null
+  }
+]

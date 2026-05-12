@@ -1,0 +1,82 @@
+[
+  {
+    "id": "TC-CDP-FOLLOWUP-001",
+    "storyId": "US-TASK-COMPLETED-FOLLOWUP",
+    "title": "已完成任务详情页可见推荐追问 header + 至少一个 follow-up 按钮",
+    "priority": "P1",
+    "tags": ["@P1", "@smoke", "@regression", "@full"],
+    "preconditions": [
+      "已登录",
+      "fixture taskWithToolChainUrl 已成功创建（完成态任务，含 6 个文件 + AI follow-up suggestions）"
+    ],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto", "locatorHint": "page.goto(taskWithToolChainUrl)" },
+      { "role": "text", "name": "completed indicator", "action": "wait", "i18nKey": "chatbot.completed" },
+      { "role": "text", "name": "推荐追问 header", "action": "wait", "i18nKey": "chatbot.suggestedFollowUps" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "推荐追问 header", "i18nKey": "chatbot.suggestedFollowUps" },
+      { "type": "count", "selector": "main button:has(svg.lucide-arrow-right):not([role='log'] *)", "expected": 1, "comparator": "gte" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-FOLLOWUP-002",
+    "storyId": "US-TASK-COMPLETED-FOLLOWUP",
+    "title": "每个 follow-up 按钮包含 lucide-arrow-right 图标",
+    "priority": "P2",
+    "tags": ["@P2", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "main button:has(svg.lucide-arrow-right):not([role='log'] *)", "expected": 1, "comparator": "gte" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-FOLLOWUP-003",
+    "storyId": "US-TASK-COMPLETED-FOLLOWUP",
+    "title": "点击 follow-up 按钮自动提交，log 内新增一条 user-message",
+    "priority": "P1",
+    "tags": ["@P1", "@smoke", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "button", "name": "first follow-up button", "action": "click", "locatorHint": "main button:has(svg.lucide-arrow-right):not([role='log'] *)" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "[role='log'] .is-user", "expected": "N+1", "comparator": "delta" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-FOLLOWUP-004",
+    "storyId": "US-TASK-COMPLETED-FOLLOWUP",
+    "title": "点击 follow-up 后 textarea 不被 fill (auto-submit 直接走 form)",
+    "priority": "P2",
+    "tags": ["@P2", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "button", "name": "first follow-up button", "action": "click", "locatorHint": "main button:has(svg.lucide-arrow-right):not([role='log'] *)" }
+    ],
+    "assertions": [
+      { "type": "value", "selector": "main textarea", "expected": "" }
+    ],
+    "timeout": 360000
+  }
+]

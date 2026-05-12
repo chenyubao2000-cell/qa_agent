@@ -1,0 +1,874 @@
+[
+  {
+    "id": "TC-PRD-WHK-001",
+    "storyId": "US-WHK-CHECKOUT",
+    "criterionId": "REQ-004-AC-001",
+    "source": "prd",
+    "title": "接收受支持的 checkout.session.completed Webhook → Credit 按档位发放（Starter）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "沙箱用户已登录 Mira",
+      "该用户当前无活跃订阅",
+      "通过 UI 进入定价页并完成 Starter 档位 Checkout（沙箱测试卡 4242）"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" },
+      { "type": "ui", "action": "Subscribe to Starter via Stripe Checkout sandbox using card 4242", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger checkout.session.completed for the customer", "scope": "test" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "heading", "name": "Subscription", "action": null, "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.currentPlan", "name": "Current Plan", "expected": "Starter", "i18nKey": null },
+      { "type": "visible", "selector": "subscription.creditBalance", "name": "Credits Balance", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "subscription.nextRenewalDate", "name": "Next renewal date", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-002",
+    "storyId": "US-WHK-CHECKOUT",
+    "criterionId": "REQ-004-AC-001",
+    "source": "prd",
+    "title": "接收 checkout.session.completed → Credit 发放（Individual）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "沙箱用户无活跃订阅",
+      "通过 UI 完成 Individual 档位 Checkout"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" },
+      { "type": "ui", "action": "Subscribe to Individual via Stripe Checkout sandbox using card 4242", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger checkout.session.completed", "scope": "test" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.currentPlan", "name": "Current Plan", "expected": "Individual", "i18nKey": null },
+      { "type": "visible", "selector": "subscription.creditBalance", "name": "Credits Balance", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@webhook", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-003",
+    "storyId": "US-WHK-CHECKOUT",
+    "criterionId": "REQ-004-AC-002",
+    "source": "prd",
+    "title": "接收 checkout.session.completed → Credit 发放（Team，含席位数）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "沙箱用户无活跃订阅",
+      "通过 UI 完成 Team 档位 Checkout，席位数=3"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" },
+      { "type": "ui", "action": "Select Team tier with seats=3 and complete Stripe Checkout sandbox", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger checkout.session.completed", "scope": "test" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.currentPlan", "name": "Current Plan", "expected": "Team（3 席）", "i18nKey": null },
+      { "type": "visible", "selector": "subscription.creditBalance", "name": "Credits Balance", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "subscription.seats", "name": "Seats", "expected": "3", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@webhook", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-004",
+    "storyId": "US-WHK-ROUTING",
+    "criterionId": "REQ-004-AC-003",
+    "source": "prd",
+    "title": "不受支持的 Webhook 事件类型 → 忽略",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "Mira Webhook endpoint 已上线",
+      "用户已订阅 Starter"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger payment_intent.succeeded (out-of-whitelist event)", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance unchanged", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@webhook-simulation", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-005",
+    "storyId": "US-WHK-SECURITY",
+    "criterionId": "REQ-004-AC-004",
+    "source": "prd",
+    "title": "Webhook 签名验证失败 → 返回 400",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "Mira Webhook endpoint 配置 signing_secret"
+    ],
+    "setup": [
+      { "type": "ui", "action": "POST forged payload to Mira webhook endpoint with invalid Stripe-Signature header", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "http.statusCode", "name": "HTTP status", "expected": "400", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@webhook", "@security", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-006",
+    "storyId": "US-WHK-IDEMPOTENCY",
+    "criterionId": "REQ-004-AC-005",
+    "source": "prd",
+    "title": "同一 event_id 第二次重传 → 幂等不重复发放",
+    "priority": "P0",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "已通过 Stripe CLI 触发一次 checkout.session.completed 并记下 event_id"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Trigger stripe CLI: stripe events resend {event_id} for the previous checkout.session.completed", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance unchanged", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@webhook", "@idempotency", "@ui-observable", "@webhook-simulation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-007",
+    "storyId": "US-WHK-IDEMPOTENCY",
+    "criterionId": "REQ-004-AC-005",
+    "source": "prd",
+    "title": "同一 event_id 第三次以上重传 → 持续幂等",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "已经过 TC-006 的两次发送"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Trigger stripe CLI: stripe events resend {event_id} a third time", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "http.statusCode", "name": "HTTP status", "expected": "200", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@idempotency", "@webhook-simulation", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-008",
+    "storyId": "US-WHK-PERF",
+    "criterionId": "REQ-004-AC-006",
+    "source": "prd",
+    "title": "time_to_credit < 30 秒（性能目标）",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "沙箱用户无订阅"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" },
+      { "type": "ui", "action": "Click Subscribe Starter and submit Stripe sandbox checkout with card 4242; record click timestamp", "scope": "test" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "subscription.creditBalance", "name": "Credits Balance becomes non-zero within 30s", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@perf", "@webhook", "@ui-observable", "@backend-only"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-009",
+    "storyId": "US-WHK-PERF",
+    "criterionId": "REQ-004-AC-006",
+    "source": "prd",
+    "title": "time_to_credit 接近 60 秒告警阈值",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "防御性观察沙箱日常表现"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Run multiple Stripe Checkout flows; collect time_to_credit measurements; verify alerting service triggers when >60s", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "alerting.creditGrantDelay", "name": "credit_grant_delay alert", "expected": "P2", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@perf", "@webhook", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-010",
+    "storyId": "US-WHK-RENEWAL",
+    "criterionId": "REQ-006-AC-001",
+    "source": "prd",
+    "title": "续费 Credit 重置 — 余额从 50 不应变成 50+TBD（reset vs grant）",
+    "priority": "P0",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "沙箱用户已订阅 Starter，本月已消耗，UI 显示余额为 50"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure user is subscribed to Starter and has used credits down to 50", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.paid", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance equals Starter full quota (not 50 + full)", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@renewal", "@ui-observable", "@webhook-simulation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-011",
+    "storyId": "US-WHK-RENEWAL",
+    "criterionId": "REQ-006-AC-002",
+    "source": "prd",
+    "title": "Team 席位数 = 1（最小）→ Credit 重置为 TBD × 1",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "沙箱用户已订阅 Team，席位数 = 1"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure Team subscription with seats=1 in sandbox", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.paid", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance equals Team full quota × 1", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@renewal", "@ui-observable", "@webhook-simulation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-012",
+    "storyId": "US-WHK-RENEWAL",
+    "criterionId": "REQ-006-AC-002",
+    "source": "prd",
+    "title": "Team 席位数极端值（100）→ Credit 按比例重置",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "沙箱手工创建 Team 订阅，席位数 = 100"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure Team subscription with seats=100 in sandbox", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.paid", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance equals TBD × 100, displayed with thousands separator", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@webhook", "@renewal", "@ui-observable", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-013",
+    "storyId": "US-WHK-RETRY",
+    "criterionId": "REQ-004-AC-007",
+    "source": "prd",
+    "title": "Stripe 写库失败后 3 天内自动重试成功",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": [
+      "模拟 Credit Ledger 写入失败（DB 不可用）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Inject DB unavailability fault on Mira backend", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger checkout.session.completed (will return 500)", "scope": "test" },
+      { "type": "ui", "action": "Restore DB and let Stripe auto-retry within window", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "logs.creditGrant", "name": "credit_granted log appears after retry succeeds", "expected": "INFO", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@retry", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-014",
+    "storyId": "US-WHK-HAPPY",
+    "criterionId": "REQ-004-AC-001",
+    "source": "prd",
+    "title": "R1 - Happy Path（签名 + 白名单 + 用户存在 + 首次 + 写库 OK）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "沙箱用户已通过 UI 完成 Starter Checkout"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" },
+      { "type": "ui", "action": "Subscribe to Starter via Stripe Checkout sandbox using card 4242", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger checkout.session.completed", "scope": "test" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "value", "selector": "http.statusCode", "name": "HTTP status", "expected": "200", "i18nKey": null },
+      { "type": "text", "selector": "subscription.currentPlan", "name": "Current Plan", "expected": "Starter", "i18nKey": null },
+      { "type": "visible", "selector": "subscription.creditBalance", "name": "Credits Balance equals Starter full quota", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@ui-observable", "@backend-only"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-015",
+    "storyId": "US-WHK-ROUTING",
+    "criterionId": "REQ-004-AC-003",
+    "source": "prd",
+    "title": "R3 - 签名通过但事件不在白名单",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "同 WHK-004"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger customer.created (out-of-whitelist)", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "http.statusCode", "name": "HTTP status", "expected": "200", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-016",
+    "storyId": "US-WHK-MAPPING",
+    "criterionId": "REQ-004-AC-008",
+    "source": "prd",
+    "title": "R4 - 用户 ID 映射失败",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": [
+      "Stripe 沙箱手工创建 customer 但不通过 Mira 注册"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Create orphan Stripe customer in sandbox (not registered in Mira)", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger checkout.session.completed for that customer", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "logs.userMapping", "name": "ERROR user_mapping_failed log entry", "expected": "ERROR", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@webhook", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-017",
+    "storyId": "US-WHK-RETRY",
+    "criterionId": "REQ-004-AC-007",
+    "source": "prd",
+    "title": "R6 - DB 写入失败 → 返回 500，Stripe 重试",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": [
+      "故障注入：DB 临时不可用"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Inject DB fault then trigger stripe CLI: stripe trigger checkout.session.completed", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "http.statusCode", "name": "HTTP status", "expected": "500", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@regression", "@webhook", "@retry", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-018",
+    "storyId": "US-WHK-STATE",
+    "criterionId": "REQ-004-AC-001",
+    "source": "prd",
+    "title": "状态迁移 [no_subscription] → [active]（首次订阅）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "沙箱用户无订阅"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" },
+      { "type": "ui", "action": "Complete Starter Checkout via Stripe sandbox using card 4242", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger checkout.session.completed", "scope": "test" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.currentPlan", "name": "Current Plan", "expected": "Starter", "i18nKey": null },
+      { "type": "visible", "selector": "subscription.creditBalance", "name": "Credits Balance is full", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "subscription.nextRenewalDate", "name": "Next renewal date visible", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@state", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-019",
+    "storyId": "US-WHK-STATE",
+    "criterionId": "REQ-006-AC-001",
+    "source": "prd",
+    "title": "状态迁移 [active] → [active]（续费 + Credit 重置）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已订阅 Starter，本月已消耗 30 Credits"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure Starter subscription active and consume 30 credits", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.paid", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance reset to full", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "subscription.nextRenewalDate", "name": "Next renewal date moved forward", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@renewal", "@state", "@ui-observable", "@webhook-simulation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-020",
+    "storyId": "US-WHK-PASTDUE",
+    "criterionId": "REQ-008-AC-001",
+    "source": "prd",
+    "title": "状态迁移 [active] → [past_due]（扣款失败）",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已订阅 Individual，绑定续费失败的测试卡"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure Individual subscription with renewal-failing test card", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.payment_failed", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pricing", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "pricing.pastDueWarning", "name": "Payment failed warning banner", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "pricing.manageSubscriptionButton", "name": "Manage Subscription button", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@past-due", "@state", "@ui-observable", "@webhook-simulation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-021",
+    "storyId": "US-WHK-PASTDUE",
+    "criterionId": "REQ-008-AC-002",
+    "source": "prd",
+    "title": "past_due 用户仍可正常使用产品（Phase 1 不做功能降级）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "当前用户处于 past_due"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure user is in past_due state via Stripe sandbox", "scope": "test" },
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Task input", "action": "fill", "dataType": "text.random", "dataVariant": "valid", "value": null, "locatorHint": null, "i18nKey": null },
+      { "role": "button", "name": "Send", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "task.executionStarted", "name": "Task execution proceeds normally", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "feature.lockedTooltip", "name": "No 'feature locked' tooltip", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "pricing.pastDueWarning", "name": "Past-due warning banner still visible across pages", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@past-due", "@ui-observable"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-022",
+    "storyId": "US-WHK-PASTDUE",
+    "criterionId": "REQ-008-AC-003",
+    "source": "prd",
+    "title": "状态迁移 [past_due] → [active]（Smart Retries 成功）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户当前 past_due"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure user is in past_due", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.paid (simulating Smart Retries success)", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pricing", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "pricing.pastDueWarning", "name": "Past-due warning banner cleared", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance reset to full", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@past-due", "@state", "@ui-observable", "@webhook-simulation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-023",
+    "storyId": "US-WHK-PASTDUE",
+    "criterionId": "REQ-008-AC-004",
+    "source": "prd",
+    "title": "past_due 用户主动更新支付方式 → 立即重试 → 回 active",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户 past_due，准备 4242 卡"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure user is in past_due state", "scope": "test" },
+      { "type": "navigate", "url": "/settings" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Update payment method", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": "stripe.portal", "name": "Customer Portal URL", "expected": "billing.stripe.com", "i18nKey": null },
+      { "type": "hidden", "selector": "pricing.pastDueWarning", "name": "Past-due warning banner cleared after card update", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@past-due", "@portal", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-024",
+    "storyId": "US-WHK-PASTDUE",
+    "criterionId": "REQ-008-AC-005",
+    "source": "prd",
+    "title": "状态迁移 [past_due] → [canceled]（Smart Retries 全部失败 → REQ-009）",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户 past_due，所有重试都失败"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Simulate 4 Smart Retries all failing for the subscription", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger customer.subscription.deleted", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "subscription.status", "name": "subscription status", "expected": "canceled", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@webhook", "@cancel", "@state", "@webhook-simulation", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-025",
+    "storyId": "US-WHK-E2E",
+    "criterionId": "REQ-004-006-008-INTEG",
+    "source": "prd",
+    "title": "完整端到端场景 — 首次订阅 → 续费 → 扣款失败 → 恢复",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "全新沙箱用户",
+      "Stripe 沙箱与 Mira 后端配置完整",
+      "Stripe CLI 可用"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/pricing" },
+      { "type": "ui", "action": "Complete Starter Checkout via Stripe sandbox using card 4242", "scope": "worker" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.currentPlan", "name": "Current Plan after checkout", "expected": "Starter", "i18nKey": null },
+      { "type": "visible", "selector": "subscription.creditBalance", "name": "Credits Balance reset to full after invoice.paid", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "pricing.pastDueWarning", "name": "Past-due warning shows after invoice.payment_failed", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "pricing.pastDueWarning", "name": "Past-due warning clears after Smart Retries succeeds", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@webhook", "@e2e", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-026",
+    "storyId": "US-WHK-E2E",
+    "criterionId": "REQ-008-AC-004",
+    "source": "prd",
+    "title": "场景 - 扣款失败但用户主动更新卡片立即恢复",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已订阅 Individual，使用续费失败卡"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure Individual subscription active with renewal-failing card", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.payment_failed", "scope": "test" },
+      { "type": "navigate", "url": "/settings" },
+      { "type": "ui", "action": "Update payment method to 4242 in Customer Portal", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Manage Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "pricing.pastDueWarning", "name": "Past-due warning cleared", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance reset to full", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@past-due", "@portal", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-WHK-027",
+    "storyId": "US-WHK-RETRY",
+    "criterionId": "REQ-004-AC-007",
+    "source": "prd",
+    "title": "场景 - 续费时 Mira 后端短暂不可用，Stripe 在 3 天内重试成功",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户活跃订阅，进入续费窗口"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Inject Mira backend fault during invoice.paid arrival", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.paid", "scope": "test" },
+      { "type": "ui", "action": "Restore Mira backend; allow Stripe automatic retry within 3 days window", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "logs.creditReset", "name": "credit_reset INFO log appears after retry", "expected": "INFO", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@retry", "@webhook-simulation", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-028",
+    "storyId": "US-WHK-IDEMPOTENCY",
+    "criterionId": "REQ-004-AC-005",
+    "source": "prd",
+    "title": "场景 - 同一 event 在数小时内被多次重发，幂等保护持续生效",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "已通过 WHK-014 完成首次发放"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Trigger stripe CLI resend at +1h, +6h, +24h with same event_id", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Settings", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance still full quota", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@idempotency", "@webhook-simulation", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-029",
+    "storyId": "US-WHK-CONCURRENCY",
+    "criterionId": "REQ-004-AC-009",
+    "source": "prd",
+    "title": "Webhook 端点同时收到大量并发事件 → 不丢、不重复",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "准备 10 个不同 customer 的事件"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Concurrently POST 10 distinct checkout.session.completed events with different event_ids", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "logs.creditGrant", "name": "credit_granted log count equals 10 (no loss, no duplicate)", "expected": "10", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@concurrency", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-030",
+    "storyId": "US-WHK-PAYLOAD",
+    "criterionId": "REQ-004-AC-010",
+    "source": "prd",
+    "title": "Webhook payload 关键 metadata 字段缺失 → 优雅降级或拒绝",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": [
+      "手工构造 checkout.session.completed payload，缺 plan/tier metadata"
+    ],
+    "setup": [
+      { "type": "ui", "action": "POST mock payload missing metadata.tier to Mira webhook endpoint with valid signature", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "logs.missingField", "name": "ERROR log identifies missing metadata field", "expected": "ERROR", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@webhook", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-031",
+    "storyId": "US-WHK-DUPLICATE-SUB",
+    "criterionId": "REQ-004-AC-011",
+    "source": "prd",
+    "title": "同一 customer 短时间内连续创建多个 Checkout Session → 防重保障",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户首次订阅成功后，又一次发起 Checkout"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Complete first Stripe Checkout for customer", "scope": "test" },
+      { "type": "ui", "action": "Initiate second Checkout for same customer in same period", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "logs.duplicateSubscription", "name": "duplicate_subscription_attempt WARN log entry", "expected": "WARN", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@idempotency", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-032",
+    "storyId": "US-WHK-PAYLOAD",
+    "criterionId": "REQ-004-AC-012",
+    "source": "prd",
+    "title": "Webhook 事件时间戳异常（严重未来时间）→ 系统接受但记录告警",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "构造 timestamp 为 +24h 的 webhook payload"
+    ],
+    "setup": [
+      { "type": "ui", "action": "POST event payload with event.created = now + 24h to webhook endpoint", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "http.statusCode", "name": "HTTP status", "expected": "200", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@webhook", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-033",
+    "storyId": "US-WHK-NOTIFY",
+    "criterionId": "REQ-008-AC-006",
+    "source": "prd",
+    "title": "past_due 用户邮箱无效 → 系统不崩溃",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "沙箱用户邮箱故意无效"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Set sandbox user email to invalid format", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger invoice.payment_failed", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "subscription.status", "name": "Internal past_due flag still set", "expected": "past_due", "i18nKey": null },
+      { "type": "value", "selector": "logs.emailDelivery", "name": "Email delivery failure logged but does not crash main flow", "expected": "ERROR", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@past-due", "@backend-only"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-WHK-034",
+    "storyId": "US-WHK-UPGRADE",
+    "criterionId": "REQ-005-CROSS",
+    "source": "prd",
+    "title": "customer.subscription.updated 档位升级 → Credit 按新档位重置",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户从 Starter 升级到 Individual（通过 Customer Portal）"
+    ],
+    "setup": [
+      { "type": "ui", "action": "Ensure Starter subscription active in sandbox", "scope": "test" },
+      { "type": "navigate", "url": "/settings" },
+      { "type": "ui", "action": "Manage Subscription → upgrade to Individual via Customer Portal", "scope": "test" },
+      { "type": "ui", "action": "Trigger stripe CLI: stripe trigger customer.subscription.updated (if not auto-emitted)", "scope": "test" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "Cancel sandbox subscription via Customer Portal" }
+    ],
+    "uiElements": [
+      { "role": "link", "name": "Subscription", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "subscription.currentPlan", "name": "Current Plan", "expected": "Individual", "i18nKey": null },
+      { "type": "text", "selector": "subscription.creditBalance", "name": "Credits Balance reset to Individual full quota", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "subscription.nextRenewalDate", "name": "Next renewal date unchanged after upgrade", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@webhook", "@upgrade", "@portal", "@ui-observable", "@webhook-simulation"],
+    "timeout": 600000
+  }
+]

@@ -1,0 +1,70 @@
+[
+  {
+    "id": "TC-CDP-FLOWS-001",
+    "storyId": "US-TASK-COMPLETED-CROSS",
+    "title": "share 对话框 → 复制链接 → 关闭 → 点击 follow-up → log 新增 user-message",
+    "priority": "P2",
+    "tags": ["@P2", "@regression", "@full"],
+    "preconditions": ["已登录 + fixture shareUrl"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "share2 button", "action": "click" },
+      { "role": "button", "name": "copy link", "action": "click", "i18nKey": "chatbot.copyLink" },
+      { "role": "button", "name": "close dialog", "action": "click" },
+      { "role": "button", "name": "first follow-up", "action": "click" }
+    ],
+    "assertions": [
+      { "type": "clipboardMatches", "selector": "navigator.clipboard", "pattern": "/share/.+token=" },
+      { "type": "hidden", "selector": "[role='dialog']" },
+      { "type": "count", "selector": "[role='log'] .is-user", "expected": "N+1", "comparator": "delta" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-FLOWS-002",
+    "storyId": "US-TASK-COMPLETED-CROSS",
+    "title": "ellipsis 菜单 → Esc 关闭 → follow-up 仍可点击",
+    "priority": "P3",
+    "tags": ["@P3", "@full"],
+    "preconditions": ["已登录 + fixture shareUrl"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "ellipsis", "action": "click" },
+      { "role": "key", "name": "Escape", "action": "press" },
+      { "role": "button", "name": "first follow-up", "action": "click" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "[role='menu']" },
+      { "type": "count", "selector": "[role='log'] .is-user", "expected": "N+1", "comparator": "delta" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-FLOWS-003",
+    "storyId": "US-TASK-COMPLETED-CROSS",
+    "title": "ellipsis → 任务详情 popover → 关闭 → 重新点击 share 仍可打开 dialog",
+    "priority": "P3",
+    "tags": ["@P3", "@full"],
+    "preconditions": ["已登录 + fixture shareUrl"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "ellipsis", "action": "click" },
+      { "role": "menuitem", "name": "taskDetails", "action": "click", "i18nKey": "chatbot.taskDetails" },
+      { "role": "key", "name": "Escape", "action": "press" },
+      { "role": "button", "name": "share2", "action": "click" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[role='dialog']", "name": "share dialog reopens" }
+    ],
+    "timeout": 360000
+  }
+]

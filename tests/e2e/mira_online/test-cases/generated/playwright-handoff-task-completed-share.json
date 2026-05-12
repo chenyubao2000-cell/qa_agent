@@ -1,0 +1,106 @@
+[
+  {
+    "id": "TC-CDP-SHARE-001",
+    "storyId": "US-TASK-COMPLETED-SHARE",
+    "title": "点击 share2 按钮打开分享会话对话框",
+    "priority": "P1",
+    "tags": ["@P1", "@smoke", "@regression", "@full"],
+    "preconditions": ["已登录 + fixture shareUrl 已创建"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "share2 button", "action": "click", "locatorHint": "button:has(svg.lucide-share2), button:has(svg.lucide-share-2)" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[role='dialog']", "name": "share dialog" },
+      { "type": "text", "selector": "[role='dialog'] heading", "i18nKey": "chatbot.shareChat" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-SHARE-002",
+    "storyId": "US-TASK-COMPLETED-SHARE",
+    "title": "dialog 含 share URL（State B）或 createShareLink 按钮（State A）",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "share2 button", "action": "click" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[role='dialog']", "name": "share dialog" },
+      { "type": "text", "selector": "[role='dialog']", "expected": "<contains '/share/' and 'token='>", "comparator": "matches", "pattern": "/share/.+token=" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-SHARE-003",
+    "storyId": "US-TASK-COMPLETED-SHARE",
+    "title": "点击复制链接将 URL 写入剪贴板，按钮显示 Copied",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full"],
+    "preconditions": ["同 001 + dialog State B（active share 存在）"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "share2 button", "action": "click" },
+      { "role": "button", "name": "copy link button", "action": "click", "i18nKey": "chatbot.copyLink" }
+    ],
+    "assertions": [
+      { "type": "clipboardEquals", "selector": "navigator.clipboard", "expected": "<dialogShareUrl>" },
+      { "type": "text", "selector": "copy link button", "i18nKey": "chatbot.copied", "comparator": "shortLived" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-SHARE-004",
+    "storyId": "US-TASK-COMPLETED-SHARE",
+    "title": "点击 Close 关闭 dialog",
+    "priority": "P2",
+    "tags": ["@P2", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "share2 button", "action": "click" },
+      { "role": "button", "name": "close button", "action": "click", "locatorHint": "[role='dialog'] button[aria-label='Close'], [role='dialog'] button:has(svg.lucide-x)" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "[role='dialog']", "name": "share dialog closed" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-SHARE-005",
+    "storyId": "US-TASK-COMPLETED-SHARE",
+    "title": "点击移除分享 → 链接失效，dialog 退回 State A（destructive）",
+    "priority": "P3",
+    "tags": ["@P3", "@full", "@failing"],
+    "preconditions": ["同 001 + dialog State B"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "share" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "createShareLink", "comment": "尽力恢复 fixture share 链接，避免破坏其他用例" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "share task page", "action": "goto" },
+      { "role": "button", "name": "share2 button", "action": "click" },
+      { "role": "button", "name": "remove share button", "action": "click", "i18nKey": "chatbot.removeShare" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[role='dialog'] button", "i18nKey": "chatbot.createShareLink" }
+    ],
+    "timeout": 360000
+  }
+]

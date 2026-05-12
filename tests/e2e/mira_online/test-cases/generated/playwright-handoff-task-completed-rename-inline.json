@@ -1,0 +1,90 @@
+[
+  {
+    "id": "TC-CDP-RENAME-001",
+    "storyId": "US-TASK-COMPLETED-RENAME",
+    "title": "浏览态下 pen-line 按钮通过 hover 显示",
+    "priority": "P2",
+    "tags": ["@P2", "@smoke", "@regression", "@full"],
+    "preconditions": ["已登录 + fixture taskWithToolChainUrl"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "text", "name": "task title in topbar", "action": "hover" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "button:has(svg.lucide-pen-line)", "name": "pen-line button" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-RENAME-002",
+    "storyId": "US-TASK-COMPLETED-RENAME",
+    "title": "点击 pen-line 打开 RenameTaskDialog 且 input 预填当前 title",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "button", "name": "pen-line button", "action": "click", "locatorHint": "button:has(svg.lucide-pen-line)" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "[role='dialog']", "name": "rename dialog" },
+      { "type": "text", "selector": "[role='dialog'] heading", "i18nKey": "chatbot.editTitle" },
+      { "type": "value", "selector": "[role='dialog'] input", "expected": "<currentTitle>" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-RENAME-003",
+    "storyId": "US-TASK-COMPLETED-RENAME",
+    "title": "点击 Cancel / 按 Esc 关闭 dialog 且不写后端",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full"],
+    "preconditions": ["同 001"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "button", "name": "pen-line button", "action": "click" },
+      { "role": "textbox", "name": "rename input", "action": "fill", "value": "<currentTitle> - draft" },
+      { "role": "button", "name": "cancel button", "action": "click", "i18nKey": "chatbot.cancel" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "[role='dialog']", "name": "rename dialog closed" },
+      { "type": "text", "selector": "topbar title", "expected": "<currentTitle>" }
+    ],
+    "timeout": 360000
+  },
+  {
+    "id": "TC-CDP-RENAME-004",
+    "storyId": "US-TASK-COMPLETED-RENAME",
+    "title": "输入新 title + Save → 顶栏 + sidebar 都更新（destructive，包含 teardown 恢复）",
+    "priority": "P1",
+    "tags": ["@P1", "@regression", "@full", "@failing"],
+    "preconditions": ["同 001（destructive，写后端）"],
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" }
+    ],
+    "teardown": [
+      { "type": "ui", "action": "rename", "data": { "newTitle": "<originalTitle>" } }
+    ],
+    "uiElements": [
+      { "role": "navigation", "name": "taskWithToolChainUrl", "action": "goto" },
+      { "role": "button", "name": "pen-line", "action": "click" },
+      { "role": "textbox", "name": "rename input", "action": "fill", "value": "Renamed-${Date.now()}" },
+      { "role": "button", "name": "save button", "action": "click", "i18nKey": "chatbot.save" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "[role='dialog']", "name": "rename dialog closed" },
+      { "type": "text", "selector": "topbar title", "expected": "Renamed-${Date.now()}" },
+      { "type": "text", "selector": "sidebar active task button", "expected": "Renamed-${Date.now()}" }
+    ],
+    "timeout": 360000
+  }
+]

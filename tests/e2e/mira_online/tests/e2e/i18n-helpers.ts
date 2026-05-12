@@ -45,14 +45,43 @@ function loadAllMessages(): Record<string, Record<string, unknown>> {
 
 function loadFromDir(dir: string): Record<string, Record<string, unknown>> {
   const locales: Record<string, Record<string, unknown>> = {};
-  for (const file of fs.readdirSync(dir)) {
-    if (!file.endsWith(".json") || file.endsWith(".d.json.ts")) continue;
-    const locale = file.replace(".json", "");
+  for (const entry of fs.readdirSync(dir)) {
+    const full = path.join(dir, entry);
+    let stat: fs.Stats;
     try {
-      locales[locale] = JSON.parse(
-        fs.readFileSync(path.join(dir, file), "utf-8"),
-      );
-    } catch {}
+      stat = fs.statSync(full);
+    } catch {
+      continue;
+    }
+    // Legacy layout: messages/{locale}.json
+    if (stat.isFile() && entry.endsWith(".json") && !entry.endsWith(".d.json.ts")) {
+      const locale = entry.replace(/\.json$/, "");
+      try {
+        locales[locale] = JSON.parse(fs.readFileSync(full, "utf-8"));
+      } catch {}
+      continue;
+    }
+    // New layout: messages/{locale}/{namespace}.json — namespace files already
+    // wrap content in their own top-level key (e.g. en/auth.json starts with
+    // { "auth": {...}, "email": {...} }), so merge with Object.assign, NOT
+    // wrap again under filename.
+    if (stat.isDirectory()) {
+      const merged: Record<string, unknown> = {};
+      for (const nsFile of fs.readdirSync(full)) {
+        if (!nsFile.endsWith(".json") || nsFile.endsWith(".d.json.ts")) continue;
+        try {
+          const parsed = JSON.parse(
+            fs.readFileSync(path.join(full, nsFile), "utf-8"),
+          );
+          if (parsed && typeof parsed === "object") {
+            Object.assign(merged, parsed);
+          }
+        } catch {}
+      }
+      if (Object.keys(merged).length > 0) {
+        locales[entry] = merged;
+      }
+    }
   }
   return locales;
 }
