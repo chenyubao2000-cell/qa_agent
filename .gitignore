@@ -3,6 +3,7 @@ node_modules/
 tests/reports/
 .claude/settings.local.json
 playwright-report/
+*reports/
 
 # Env files (contain credentials)
 # .env
