@@ -315,7 +315,10 @@
 | `sentinel-agent` | haiku | 多平台质量监控守护 | qa-sentinel |
 
 **关键认知**
-- Agent **不会自启动**，必须 command 用 `Agent(subagent_type=..., prompt=...)` 调起来
+- Agent 不能"自启动"（不会定时跑、不会被外部事件触发），但**有 3 种调用路径**：
+  1. **Command 显式调起**：command 的 markdown 里写 `Agent(subagent_type=..., prompt=...)` —— 本项目流水线主要走这条
+  2. **用户在主对话里用自然语言喊起**：例如"用 `Explore` agent 帮我找下 XX 在哪定义"、"启动一个 `e2e-orchestrator` 跑下这个 PRD"，主 Claude 看懂后会调起对应 agent
+  3. **主 Claude 自动路由 (auto-delegation)**：当你的提问描述自然匹配某个 agent 的 `description` 字段时，主 Claude 会自动选 agent 帮你跑——能不能命中取决于 agent 的 description 写得准不准
 - 每个 agent **独立上下文**，跨 agent 不共享记忆，所有信息靠 prompt 传
 - 模型分档：opus 干总控/复杂判断、sonnet 干分析/生成、haiku 干纯执行/聚合
 - 多个 agent 可以**并行**起（如 PRD 5 个模块 → 5 个 e2e-orchestrator 同时跑）
@@ -397,7 +400,7 @@
 | 维度 | Command | Agent | Skill |
 |---|---|---|---|
 | **文件位置** | `.claude/commands/*.md` | `.claude/agents/*.md` | `skills/*/SKILL.md` |
-| **谁触发它** | 用户在命令行输入 `/xxx` | Command 通过 `Agent(subagent_type=...)` 调起 | Agent / Command 主动 `Read` 它 |
+| **谁触发它** | 用户在命令行输入 `/xxx` | ① command 显式 `Agent(subagent_type=...)`<br>② 用户在主对话用自然语言喊起<br>③ 主 Claude 按 description 自动路由 | Agent / Command 主动 `Read` 它 |
 | **有自己的模型吗** | ❌ 跑在主对话里（用主 Claude） | ✅ 自己的模型档位 (opus / sonnet / haiku) | ❌ 纯文档，没有模型 |
 | **独立上下文** | ❌ 共用主对话 | ✅ 完全独立，跑完只返摘要 | ❌ 没有上下文 |
 | **可见性** | 用户直接看到执行过程 | 后台执行，用户只看摘要 | 用户一般不直接看 |
