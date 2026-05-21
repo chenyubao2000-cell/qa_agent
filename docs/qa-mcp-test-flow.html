@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/qa-mcp-test 流程图</title>
+<style>
+:root{--bg:#faf6f1;--card:#fff;--border:#e0d6cc;--line:#bfb5a8;--text:#3d3429;--dim:#7a7060;--bright:#1a1208;--blue:#2563eb;--green:#16a34a;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--pink:#db2777;--cyan:#0891b2;--yellow:#a16207}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:24px 16px}h1{text-align:center;font-size:22px;color:var(--bright);margin-bottom:4px}.sub{text-align:center;font-size:12px;color:var(--dim);font-family:'SF Mono','Fira Code',monospace;margin-bottom:20px}.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px}.legend span{font-size:10px;color:var(--dim);display:flex;align-items:center;gap:3px}.legend .d{width:7px;height:7px;border-radius:50%;display:inline-block}.flow{display:flex;flex-direction:column;align-items:center;max-width:1020px;margin:0 auto}.vc{width:2px;background:var(--line);flex-shrink:0}.vc.s{height:10px}.vc.m{height:16px}.vc.l{height:24px}.b{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.3px;white-space:nowrap;display:inline-block}.b.cmd{background:rgba(124,58,237,.1);color:var(--purple)}.b.user{background:rgba(219,39,119,.1);color:var(--pink)}.b.lin{background:rgba(161,98,7,.12);color:var(--yellow)}.b.son{background:rgba(37,99,235,.1);color:var(--blue)}.b.mcp{background:rgba(8,145,178,.1);color:var(--cyan)}.b.vit{background:rgba(22,163,74,.1);color:var(--green)}.b.sk{background:rgba(122,112,96,.08);color:var(--dim);font-size:8px}.pt{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 12px;border-radius:12px;white-space:nowrap;margin:2px 0}.pt.p0{background:#e8e4df;color:var(--dim)}.pt.p1{background:#dbeafe;color:var(--blue)}.pt.p2{background:#ede9fe;color:var(--purple)}.pt.p3{background:#ffedd5;color:var(--orange)}.pt.p4{background:#dcfce7;color:var(--green)}.pt.p5{background:#fce7f3;color:var(--pink)}.nd{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .15s}.nd:hover{box-shadow:0 3px 10px rgba(0,0,0,.07)}.nd .t{font-size:12px;font-weight:600;color:var(--bright);margin:3px 0 4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}.nd .il{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}.nd .il.i{color:var(--cyan)}.nd .il.o{color:var(--green)}.nd .v{font-size:10px;font-family:'SF Mono','Fira Code',monospace;color:var(--dim);line-height:1.5}.nd .v code{color:var(--blue);font-size:10px}.nd.dash{border-style:dashed}.nd.sm{min-width:120px;max-width:190px}.nd.md{min-width:150px;max-width:250px}.nd.w{min-width:200px;max-width:360px}.nd.xw{min-width:280px;max-width:500px}.nd .eg{font-size:9px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;padding:4px 6px;margin-top:4px;line-height:1.6;font-family:'SF Mono','Fira Code',monospace;color:var(--dim)}.nd .eg b{color:var(--bright);font-weight:600}.nd .note{font-size:9px;color:var(--dim);margin-top:3px;font-style:italic}.hr{display:flex;gap:8px;align-items:stretch;flex-wrap:nowrap;overflow-x:auto;padding:2px}.dm{background:#fdf2f8;border:1.5px solid #f9a8d4;border-radius:10px;padding:10px 18px;text-align:center;box-shadow:0 1px 4px rgba(219,39,119,.08)}.dm .t{font-size:13px;font-weight:700;color:var(--pink);margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}.dm .desc{font-size:10px;color:var(--dim)}.bx{display:flex;width:100%;position:relative}.bx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}.bx.b2::before{left:25%;right:25%}.bx.b3::before{left:16.5%;right:16.5%}.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;padding:0 3px;position:relative}.col::before{content:'';display:block;width:2px;height:14px;background:var(--line)}.mx{position:relative;width:100%;height:18px}.mx::before{content:'';position:absolute;top:0;height:2px;background:var(--line)}.mx.b2::before{left:25%;right:25%}.mx.b3::before{left:16.5%;right:16.5%}.mx::after{content:'';position:absolute;bottom:0;left:50%;width:2px;height:16px;background:var(--line);transform:translateX(-50%)}.bl{font-size:10px;font-weight:600;padding:3px 10px;border-radius:6px;margin-bottom:4px;white-space:nowrap;text-align:center}.bl.green{background:rgba(22,163,74,.08);color:var(--green);border:1px solid rgba(22,163,74,.15)}.bl.orange{background:rgba(217,119,6,.08);color:var(--orange);border:1px solid rgba(217,119,6,.15)}.bl.red{background:rgba(220,38,38,.08);color:var(--red);border:1px solid rgba(220,38,38,.15)}.bl.purple{background:rgba(124,58,237,.08);color:var(--purple);border:1px solid rgba(124,58,237,.15)}.bl.gray{background:rgba(122,112,96,.06);color:var(--dim);border:1px solid rgba(122,112,96,.12)}.bl.blue{background:rgba(37,99,235,.08);color:var(--blue);border:1px solid rgba(37,99,235,.15)}.bl.cyan{background:rgba(8,145,178,.08);color:var(--cyan);border:1px solid rgba(8,145,178,.15)}.stop{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--red);text-align:center}.end{background:#f0fdf4;border:1.5px solid #86efac;border-radius:20px;padding:6px 20px;font-size:12px;font-weight:700;color:var(--green);text-align:center}.cond{border:2px dashed var(--orange);border-radius:12px;padding:10px;background:rgba(217,119,6,.02);width:100%;max-width:960px}.cond .cl{text-align:center;font-size:10px;color:var(--orange);font-weight:700;margin-bottom:6px}.art{margin-top:16px;padding:14px 18px;width:100%;max-width:960px;background:var(--card);border:1px solid var(--border);border-radius:10px}.art h3{font-size:13px;color:var(--bright);margin-bottom:8px}.art-g{display:flex;flex-wrap:wrap;gap:6px}.art-i{font-size:10px;padding:4px 8px;background:#faf8f5;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;gap:6px}.art-i code{color:var(--cyan);font-family:'SF Mono','Fira Code',monospace;font-size:10px}.art-i .w{font-size:8px;color:var(--dim)}.sub-phase{background:rgba(124,58,237,.04);border:1px dashed rgba(124,58,237,.3);border-radius:8px;padding:8px;width:100%;max-width:960px}.sub-phase .sp-title{font-size:10px;color:var(--purple);font-weight:700;text-align:center;margin-bottom:6px;letter-spacing:.3px}
+</style>
+</head>
+<body>
+<h1>/qa-mcp-test 流程图</h1>
+<p class="sub">/qa-mcp-test [--prd &lt;path&gt;] [--server &lt;name|url&gt;] [--scope L1|L2|all] [--exec|--no-exec] [--report-linear]</p>
+<div class="legend">
+  <span><span class="d" style="background:var(--purple)"></span>CMD 命令层</span>
+  <span><span class="d" style="background:var(--cyan)"></span>MCP 探活 / Client</span>
+  <span><span class="d" style="background:var(--blue)"></span>SONNET 生成 / 分析</span>
+  <span><span class="d" style="background:var(--green)"></span>VITEST 执行</span>
+  <span><span class="d" style="background:var(--yellow)"></span>LINEAR（可选）</span>
+</div>
+
+<div class="flow">
+
+<!-- P0 -->
+<span class="pt p0">P0 初始化 + 参数解析</span>
+<div class="vc m"></div>
+
+<div class="hr">
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 读取配置</div>
+    <div class="il i">输入</div><div class="v"><code>.env</code></div>
+    <div class="il o">输出</div><div class="v"><code>MCP_SERVER_NAME</code>(slug)<br><code>MCP_SERVER_URL</code><br><code>MCP_AUTH_TOKEN</code><br><code>MCP_PRD_PATH</code></div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 解析 flags</div>
+    <div class="v"><code>--prd</code> 覆盖 PRD<br><code>--server</code> 覆盖 URL<br><code>--scope</code> L1/L2/all<br><code>--exec</code>/<code>--no-exec</code><br><code>--report-linear</code></div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b cmd">CMD</span> 检测模式</div>
+    <div class="v">在线：探活 server<br>离线：<code>--no-exec</code> 或<br><code>MCP_OFFLINE=1</code></div>
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P1 -->
+<span class="pt p1">P1 Schema Discovery</span>
+<div class="vc m"></div>
+
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> 在线还是离线？</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl green">A: 在线（默认）</span>
+    <div class="nd w">
+      <div class="t"><span class="b mcp">MCP</span> probe-mcp.mjs</div>
+      <div class="il i">输入</div><div class="v"><code>MCP_SERVER_URL</code> + <code>MCP_AUTH_TOKEN</code></div>
+      <div class="il o">输出</div><div class="v"><code>discovery.json</code>（含<br>&nbsp;&nbsp;serverInfo / capabilities /<br>&nbsp;&nbsp;instructions / tools[] +<br>&nbsp;&nbsp;每个 tool 的 inputSchema +<br>&nbsp;&nbsp;annotations）</div>
+      <div class="note">401 → token 过期，提示换 token</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl orange">B: 离线</span>
+    <div class="nd md dash">
+      <div class="t"><span class="b cmd">CMD</span> 跳过探活</div>
+      <div class="v">discovery = null<br>所有 spec 用<br><code>it.skip()</code> 标记</div>
+      <div class="note">// TODO: requires live MCP server</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<!-- P2 mcp-orchestrator -->
+<span class="pt p2">P2 mcp-orchestrator (sonnet)</span>
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b son">SONNET</span> mcp-orchestrator</div>
+  <div class="il i">输入</div><div class="v"><code>prdPath</code>, <code>serverSlug</code>, <code>discovery</code>, <code>scope</code>, <code>offline</code></div>
+  <div class="il o">输出</div><div class="v"><code>schemaDiff</code>, <code>casesGenerated</code>, spec / cases / excel / diff 路径</div>
+</div>
+
+<div class="vc m"></div>
+
+<!-- P2 sub-phases -->
+<div class="sub-phase">
+<div class="sp-title">↓ 4 个子阶段</div>
+
+<div class="hr">
+  <div class="nd md">
+    <div class="t"><span class="b son">A</span> 解 PRD</div>
+    <div class="il o">输出</div><div class="v">每个 tool 的<br><code>ExpectedToolSpec</code>：<br>&nbsp;name / title /<br>&nbsp;inputSchema /<br>&nbsp;annotations /<br>&nbsp;scenarios /<br>&nbsp;behaviorRules</div>
+    <div class="note">参考 prd-extraction.md</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b son">B</span> Schema Diff</div>
+    <div class="v" style="font-size:9px">仅在线时执行</div>
+    <div class="il o">输出</div><div class="v"><code>schema-diff.report.md</code><br>🔴 Critical / 🟡 Warn / 🔵 Info</div>
+    <div class="note">不阻断 Phase 3</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b son">C</span> 生成用例</div>
+    <div class="il o">输出</div><div class="v">按 12 维测试矩阵<br>+ P0/P1 优先级<br><br><code>cases.md</code><br><code>cases.xlsx</code><br><code>handoff.json</code></div>
+    <div class="note">调 test-case-generator<br>+ excel-case-export skill</div>
+  </div>
+  <div class="nd md">
+    <div class="t"><span class="b son">D</span> 渲染 spec</div>
+    <div class="il o">输出</div><div class="v">per-tool 一个文件<br><code>{tool}.test.ts</code><br><br>引用共享:<br><code>_lib/mcp-client.ts</code><br><code>_lib/schema-diff.ts</code></div>
+    <div class="note">参考 vitest-template.md</div>
+  </div>
+</div>
+
+</div>
+
+<div class="vc l"></div>
+
+<!-- 12 维测试矩阵 -->
+<div class="cond" style="border-color:var(--blue);background:rgba(37,99,235,.02)">
+  <div class="cl" style="color:var(--blue)">12 维测试矩阵（每个工具复用）</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:9px">
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--red)">P0</b> 1. Schema 合规</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--red)">P0</b> 2. Annotations 标记</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--red)">P0</b> 3. Happy path</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--red)">P0</b> 4. 必填缺失</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--blue)">P1</b> 5. 非法枚举</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--blue)">P1</b> 6. 边界值</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--red)">P0</b> 7. 401 无 token</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--dim)">Skip</b> 8. 403 无权限</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--blue)">P1</b> 9. 不存在 ID</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--red)">P0</b> 10. 幂等性</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--blue)">P1</b> 11. 分页</div>
+    <div style="padding:3px 6px;background:#faf8f5;border:1px solid var(--border);border-radius:4px"><b style="color:var(--blue)">P1</b> 12. 工具特有</div>
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P3 Execute -->
+<span class="pt p3">P3 执行测试（可选）</span>
+<div class="vc m"></div>
+
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> --exec ?（默认 true）</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl green">A: --exec（默认）</span>
+    <div class="nd w">
+      <div class="t"><span class="b vit">VITEST</span> 执行测试套件</div>
+      <div class="il i">输入</div><div class="v"><code>tests/mcp/{slug}/*.test.ts</code><br>使用 <code>pool: "threads"</code> +<br><code>singleThread: true</code></div>
+      <div class="il o">输出</div><div class="v"><code>results.json</code>（vitest JSON 报告）</div>
+      <div class="note">失败不中断，跑完全部用例；<br>quota 用尽自动 ctx.skip()</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl orange">B: --no-exec</span>
+    <div class="nd sm dash" style="text-align:center">
+      <div class="v" style="font-style:italic;font-size:10px">跳过执行<br>仅生成 spec + Excel</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<!-- P4 Report -->
+<span class="pt p4">P4 报告</span>
+<div class="vc m"></div>
+
+<div class="nd w">
+  <div class="t"><span class="b son">SONNET</span> 解析 results.json</div>
+  <div class="il i">输入</div><div class="v"><code>results.json</code><br><code>schema-diff.report.md</code></div>
+  <div class="il o">输出</div><div class="v">统计：total / passed / failed / skipped<br>按 P0/P1 分级 + 失败 detail</div>
+</div>
+
+<div class="vc m"></div>
+
+<div class="nd xw">
+  <div class="t"><span class="b cmd">CMD</span> 生成 {slug}-summary.md</div>
+  <div class="il o">输出</div>
+  <div class="v">
+    <b>概览</b>: 总数 / P0 通过率 / P1 通过率 / Skip<br>
+    <b>Schema Diff</b>: PRD vs Server 摘要<br>
+    <b>失败分析</b>: 用例名 / 错误 / 可能原因<br>
+    <b>质量门禁</b>:<br>
+    &nbsp;&nbsp;• 协议合规 (L1): P0 100%<br>
+    &nbsp;&nbsp;• Schema 一致性: critical / warn 计数<br>
+    &nbsp;&nbsp;• Annotations: P0 100%<br>
+    &nbsp;&nbsp;• 正常路径 (L2): ≥ 95%<br>
+    &nbsp;&nbsp;• 边界 + 负面 (L2): ≥ 80%<br>
+    &nbsp;&nbsp;• 幂等性: 100%
+  </div>
+</div>
+
+<div class="vc l"></div>
+
+<!-- P5 Linear（可选） -->
+<span class="pt p5">P5 Linear 上报（条件）</span>
+<div class="vc m"></div>
+
+<div class="dm">
+  <div class="t"><span class="b cmd">CMD</span> --report-linear 且有失败？</div>
+</div>
+<div class="bx b2" style="height:2px"></div>
+<div class="bx b2">
+  <div class="col">
+    <span class="bl red">A: 是</span>
+    <div class="nd md" style="border-color:var(--yellow)">
+      <div class="t"><span class="b son">SONNET</span> bug-reporter</div>
+      <div class="il i">输入</div><div class="v"><code>failures[]</code></div>
+      <div class="il o">输出</div><div class="v">创建/追加 Linear Issue</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+  <div class="col">
+    <span class="bl gray">B: 否（默认）</span>
+    <div class="nd sm dash" style="text-align:center">
+      <div class="v" style="font-style:italic;font-size:10px">跳过上报<br>用户自审</div>
+    </div>
+    <div class="vc s"></div>
+  </div>
+</div>
+<div class="mx b2"></div>
+
+<div class="end">流水线结束</div>
+
+<!-- 产出物 -->
+<div class="art">
+  <h3>产出物</h3>
+  <div class="art-g">
+    <div class="art-i"><code>test-cases/mcp/{slug}/discovery.json</code><span class="w">在线</span></div>
+    <div class="art-i"><code>test-cases/mcp/{slug}/cases.md</code><span class="w">始终</span></div>
+    <div class="art-i"><code>test-cases/mcp/{slug}/excel/cases.xlsx</code><span class="w">始终</span></div>
+    <div class="art-i"><code>test-cases/mcp/{slug}/handoff.json</code><span class="w">始终</span></div>
+    <div class="art-i"><code>tests/mcp/{slug}/{tool}.test.ts</code><span class="w">始终</span></div>
+    <div class="art-i"><code>tests/mcp/{slug}/reports/schema-diff.report.md</code><span class="w">在线</span></div>
+    <div class="art-i"><code>tests/mcp/{slug}/reports/results.json</code><span class="w">--exec</span></div>
+    <div class="art-i"><code>tests/mcp/{slug}/reports/{slug}-summary.md</code><span class="w">--exec</span></div>
+    <div class="art-i"><code>Linear Issues</code><span class="w">--report-linear + 失败</span></div>
+  </div>
+</div>
+
+<!-- 共享基建说明 -->
+<div class="art" style="margin-top:8px">
+  <h3>共享基建（跨 MCP 复用，不在生成范围）</h3>
+  <div class="art-g">
+    <div class="art-i"><code>tests/mcp/_lib/mcp-client.ts</code><span class="w">McpClient.fromEnv()</span></div>
+    <div class="art-i"><code>tests/mcp/_lib/schema-diff.ts</code><span class="w">diff 工具函数</span></div>
+    <div class="art-i"><code>tests/mcp/_setup.ts</code><span class="w">dotenv + OFFLINE 处理</span></div>
+    <div class="art-i"><code>tests/mcp/vitest.config.ts</code><span class="w">slug-aware 配置</span></div>
+    <div class="art-i"><code>scripts/probe-mcp.mjs</code><span class="w">通用探活脚本</span></div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

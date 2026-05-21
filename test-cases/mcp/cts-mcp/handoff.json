@@ -1,0 +1,81 @@
+{
+  "schema_version": "mcp-test/v1",
+  "slug": "cts-mcp",
+  "milestone": "M2-complete",
+  "prdPath": "docs/CTS MCP V1.0 - PRD Final.md",
+  "server": {
+    "url": "https://mcp-cts-test.ciwork.cn/mcp",
+    "transport": "http",
+    "info": { "name": "mcp-cts-server", "version": "1.0.0" }
+  },
+  "scope": {
+    "covered": [
+      "cts_get_cts_schema",
+      "cts_search_candidates",
+      "cts_get_candidate_detail",
+      "cts_get_candidate_contact_info"
+    ],
+    "pending_v11": ["L3 LLM-driven agent behavior tests", "CI integration"]
+  },
+  "tools": {
+    "cts_get_cts_schema": {
+      "specFile": "tests/mcp/cts-mcp/cts-get-cts-schema.test.ts",
+      "caseCount": { "P0": 11, "P1": 5, "skip": 1, "total": 17 }
+    },
+    "cts_search_candidates": {
+      "specFile": "tests/mcp/cts-mcp/cts-search-candidates.test.ts",
+      "caseCount": { "P0": 8, "P1": 8, "skip": 0, "total": 16 },
+      "constraint": "Daily search quota (10 calls / 500 items). 9 cases auto-skip when exhausted."
+    },
+    "cts_get_candidate_detail": {
+      "specFile": "tests/mcp/cts-mcp/cts-get-candidate-detail.test.ts",
+      "caseCount": { "P0": 7, "P1": 2, "skip": 0, "total": 9 },
+      "fixtureDependency": "fixtures.getKnownCandidateId() — falls back to static id when search quota exhausted"
+    },
+    "cts_get_candidate_contact_info": {
+      "specFile": "tests/mcp/cts-mcp/cts-get-candidate-contact-info.test.ts",
+      "caseCount": { "P0": 8, "P1": 0, "skip": 1, "total": 9 }
+    }
+  },
+  "totals": {
+    "tests": 51,
+    "p0": 34,
+    "p1": 15,
+    "skip": 2,
+    "conditionalSkip_quota": 9
+  },
+  "harness": {
+    "shared": {
+      "mcpClient": "tests/mcp/_lib/mcp-client.ts",
+      "schemaDiff": "tests/mcp/_lib/schema-diff.ts"
+    },
+    "perMcp": {
+      "fixtures": "tests/mcp/cts-mcp/_lib/fixtures.ts"
+    },
+    "vitestConfig": "tests/mcp/vitest.config.ts (slug from MCP_SERVER_NAME)"
+  },
+  "discovery": {
+    "snapshotFile": "test-cases/mcp/cts-mcp/discovery.json",
+    "perToolSamples": [
+      "test-cases/mcp/cts-mcp/discovery-search-happy.json",
+      "test-cases/mcp/cts-mcp/discovery-get_candidate_detail.json"
+    ],
+    "probedAt": "2026-05-08T10:56:40Z"
+  },
+  "schemaDiff": {
+    "reportFile": "tests/mcp/cts-mcp/reports/schema-diff.report.md",
+    "generator": "tests/mcp/cts-mcp/build-schema-diff.ts (uses tests/mcp/_lib/schema-diff.ts)",
+    "summary": { "critical": 8, "warn": 15, "info": 0 }
+  },
+  "offlineMode": {
+    "envFlag": "MCP_OFFLINE=1",
+    "behavior": "All describe blocks skip via describe.skipIf(OFFLINE); _setup.ts skips env validation."
+  },
+  "decisions": {
+    "Q1_slug": "cts-mcp",
+    "Q2_language": "zh-CN",
+    "Q3_offline_form": "describe.skipIf(MCP_OFFLINE) — entire suite skips",
+    "Q4_critical_aborts_run": false,
+    "Q5_vitest_config": "tests/mcp/vitest.config.ts (slug-aware)"
+  }
+}

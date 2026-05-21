@@ -3,9 +3,13 @@ node_modules/
 tests/reports/
 .claude/settings.local.json
 playwright-report/
+*reports/
 
 # Env files (contain credentials)
-# .env
+.env
+
+# Subagent worktrees (harness internal state)
+.claude/worktrees/
 
 # Playwright auth state (contains session tokens)
 playwright/.auth/

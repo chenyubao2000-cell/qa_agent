@@ -1,0 +1,2720 @@
+[
+  {
+    "id": "TC-EC-001",
+    "storyId": "REQ-0",
+    "title": "调用 create_email_draft_content 创建新邮件草稿成功返回 draft_id 和 state",
+    "priority": "P0",
+    "preconditions": "用户已连接 Gmail；LLM 工具池已加载 Mira Host 内置 create_email_draft_content",
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "data": {
+          "url": "/chat"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected",
+        "data": {
+          "provider": "gmail"
+        }
+      }
+    ],
+    "steps": [
+      "在对话输入框输入：帮我给 sarah@example.com 发封邮件，主题是职位邀约，正文说明职位详情",
+      "等待 Mira 调用 create_email_draft_content（监听网络/工具调用）",
+      "等待 Canvas 渲染"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      },
+      {
+        "role": "button",
+        "name": "send",
+        "locatorHint": "[data-testid='chat-send']"
+      },
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "called once with to/subject/body"
+      },
+      {
+        "type": "response",
+        "field": "draft_id",
+        "expected": "non-empty string"
+      },
+      {
+        "type": "response",
+        "field": "state.to",
+        "expected": [
+          "sarah@example.com"
+        ]
+      },
+      {
+        "type": "response",
+        "field": "state.subject",
+        "expected": "职位邀约"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas expanded card",
+        "expected": true
+      },
+      {
+        "type": "visible",
+        "element": "connector type_label 'Gmail'",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "to": [
+        "sarah@example.com"
+      ],
+      "subject": "职位邀约",
+      "body": "..."
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-002",
+    "storyId": "REQ-0",
+    "title": "subject 长度边界 100/101 字符",
+    "priority": "P1",
+    "preconditions": "用户已连接邮箱；Canvas 未渲染",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      }
+    ],
+    "steps": [
+      "构造 subject 长度=99 字符的 create 入参，调用工具",
+      "构造 subject 长度=100 字符的 create 入参，调用工具",
+      "构造 subject 长度=101 字符的 create 入参，调用工具"
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "toolResult",
+        "case": "len=99",
+        "expected": "draft_id returned"
+      },
+      {
+        "type": "toolResult",
+        "case": "len=100",
+        "expected": "draft_id returned"
+      },
+      {
+        "type": "toolResult",
+        "case": "len=101",
+        "expected": "schema validation error, no draft created"
+      }
+    ],
+    "testData": {
+      "subjectLengths": [
+        99,
+        100,
+        101
+      ]
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-003",
+    "storyId": "REQ-0",
+    "title": "对话驱动修改 → 新建 draft + 旧 draft 自动切 execution_aborted 终态",
+    "priority": "P1",
+    "preconditions": "用户已连接 Gmail；已存在活跃 draft_id=d1（pending 态）",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat",
+        "data": {
+          "subject": "旧主题",
+          "to": [
+            "x@y.com"
+          ],
+          "body": "old body"
+        }
+      }
+    ],
+    "steps": [
+      "在对话中说：把主题改成职位邀约 V2",
+      "等待 Mira 读取 d1 最新 state 并调用 create_email_draft_content 传入新字段",
+      "观察 Canvas 状态切换"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      },
+      {
+        "role": "region",
+        "name": "old draft ribbon",
+        "locatorHint": "[data-testid='draft-ribbon'][data-draft-id='d1']"
+      },
+      {
+        "role": "region",
+        "name": "new draft canvas",
+        "locatorHint": "[data-testid='email-canvas'][data-state='expanded']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "called with subject='职位邀约 V2'"
+      },
+      {
+        "type": "state",
+        "field": "d1.state",
+        "expected": "execution_aborted"
+      },
+      {
+        "type": "visible",
+        "element": "d1 ribbon '已取消'",
+        "expected": true
+      },
+      {
+        "type": "visible",
+        "element": "d2 expanded canvas",
+        "expected": true
+      },
+      {
+        "type": "notEqual",
+        "field": "d2.draft_id",
+        "expected": "d1.draft_id"
+      }
+    ],
+    "testData": {
+      "oldSubject": "旧主题",
+      "newSubject": "职位邀约 V2"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-007",
+    "storyId": "REQ-0",
+    "title": "to 字段含非法邮箱 abc@ → schema validation error",
+    "priority": "P1",
+    "preconditions": "用户已连接 Gmail；已存在活跃 draft_id=d1（pending）",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "subject": "s",
+          "body": "b"
+        }
+      }
+    ],
+    "steps": [
+      "构造 create 调用入参 to=['abc@']",
+      "调用 create_email_draft_content",
+      "等待工具返回"
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "toolResult",
+        "expected": "schema validation error"
+      },
+      {
+        "type": "noDraftCreated",
+        "expected": true
+      },
+      {
+        "type": "state",
+        "field": "d1.state",
+        "expected": "pending (unchanged)"
+      }
+    ],
+    "testData": {
+      "to": [
+        "abc@"
+      ]
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-008",
+    "storyId": "REQ-0",
+    "title": "用户未连接任何邮箱时 LLM 不应调用 create_email_draft_content（异常路径双重保险）",
+    "priority": "P1",
+    "preconditions": "用户未绑定任何邮箱 connector（Gmail / Outlook 均未连接）",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureNoConnectorConnected"
+      }
+    ],
+    "steps": [
+      "在对话中说：帮我给 sarah@example.com 发邮件",
+      "观察 LLM 是否调用 create_email_draft_content",
+      "模拟 LLM 误调，断言工具层返回 no_connector_authorized 错误"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "not called"
+      },
+      {
+        "type": "visible",
+        "element": "对话引导连接邮箱提示",
+        "expected": true
+      },
+      {
+        "type": "toolErrorOnForcedCall",
+        "expected": "no_connector_authorized"
+      },
+      {
+        "type": "noDraftCreated",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "connectors": []
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-009",
+    "storyId": "REQ-0",
+    "title": "connector 来源解析正确（回复 Outlook 邮件时 connector.name=Outlook）",
+    "priority": "P2",
+    "preconditions": "用户已连接 Gmail + Outlook；原始线程为 Outlook message",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureBothConnectorsConnected"
+      },
+      {
+        "type": "ui",
+        "action": "seedThread",
+        "pomMethod": "seedOutlookMessage",
+        "data": {
+          "messageId": "outlook-msg-xxx"
+        }
+      }
+    ],
+    "steps": [
+      "构造 LLM 调用 create_email_draft_content 携带 reply_to_message_id='outlook-msg-xxx'",
+      "等待 output",
+      "观察 Canvas header"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "canvas header type_label",
+        "locatorHint": "[data-testid='canvas-type-label']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "response",
+        "field": "connector.name",
+        "expected": "Outlook"
+      },
+      {
+        "type": "response",
+        "field": "connector.logo",
+        "expected": "matches outlook logo url"
+      },
+      {
+        "type": "visible",
+        "element": "Outlook type_label",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "reply_to_message_id": "outlook-msg-xxx"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-036",
+    "storyId": "REQ-0",
+    "title": "调用 create_email_draft_content 不污染 Composio 草稿箱",
+    "priority": "P1",
+    "preconditions": "用户已连接 Gmail；监控 Composio MCP 调用计数；监控用户 Gmail 草稿箱",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "startMonitor",
+        "pomMethod": "startComposioCallMonitor"
+      }
+    ],
+    "steps": [
+      "LLM 主动调 create_email_draft_content 创建 1 封 draft",
+      "查询监控数据：Composio MCP 调用计数",
+      "查询用户 Gmail 草稿箱 API：是否新增 draft 对象"
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "counter",
+        "name": "Composio MCP call count",
+        "expected": 0
+      },
+      {
+        "type": "external",
+        "name": "Gmail drafts.list newcount",
+        "expected": 0
+      },
+      {
+        "type": "external",
+        "name": "Outlook drafts.list newcount",
+        "expected": 0
+      }
+    ],
+    "testData": null,
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-004",
+    "storyId": "REQ-1",
+    "title": "happy 起草新邮件完整链路（含 Confirm 确认 → 发送 → 只读 ribbon）",
+    "priority": "P0",
+    "preconditions": "用户已连接 Gmail；Canvas 未渲染任何草稿",
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "data": {
+          "url": "/chat"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      }
+    ],
+    "steps": [
+      "在对话中说：帮我给 sarah@example.com 发封邮件，主题是职位邀约，正文说明职位详情",
+      "Canvas 展开渲染草稿，验证三字段已填充",
+      "点击 Canvas 发送按钮",
+      "Confirm panel 出现",
+      "点击 panel 内 确认 按钮",
+      "等待发送完成"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      },
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "dialog",
+        "name": "confirm panel",
+        "locatorHint": "[data-testid='confirm-panel']"
+      },
+      {
+        "role": "button",
+        "name": "confirm",
+        "locatorHint": "[data-testid='confirm-approve']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "Canvas expanded",
+        "expected": true
+      },
+      {
+        "type": "visible",
+        "element": "Confirm panel 显示收件人/主题/正文截断/风险提示",
+        "expected": true
+      },
+      {
+        "type": "toolCall",
+        "tool": "send_email (GMAIL_SEND_EMAIL)",
+        "expected": "called once after approve"
+      },
+      {
+        "type": "state",
+        "field": "draft.state",
+        "expected": "executed"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas read-only state",
+        "expected": true
+      },
+      {
+        "type": "visible",
+        "element": "Inline ribbon in chat history",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "to": [
+        "sarah@example.com"
+      ],
+      "subject": "职位邀约",
+      "body": "..."
+    },
+    "testType": "e2e"
+  },
+  {
+    "id": "TC-EC-005",
+    "storyId": "REQ-1",
+    "title": "意图模糊（未提供收件人）→ Mira 追问而不创建草稿",
+    "priority": "P1",
+    "preconditions": "用户已连接 Gmail；Canvas 未展开",
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "data": {
+          "url": "/chat"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      }
+    ],
+    "steps": [
+      "在对话中说：帮我给某人发邮件",
+      "等待 Mira 响应"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      },
+      {
+        "role": "region",
+        "name": "chat message list",
+        "locatorHint": "[data-testid='chat-messages']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "not called"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas 未展开",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "chat messages",
+        "expected": "你想发给哪位候选人？"
+      }
+    ],
+    "testData": {
+      "prompt": "帮我给某人发邮件"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-006",
+    "storyId": "REQ-1",
+    "title": "多 draft 顺序起草（A 完成后接续 B，隐式 ack）",
+    "priority": "P1",
+    "preconditions": "用户已连接 Gmail；Canvas 未渲染",
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "data": {
+          "url": "/chat"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      }
+    ],
+    "steps": [
+      "在对话中说：帮我给 alpha@x.com 发邀约邮件，再给 beta@x.com 发面试反馈",
+      "验证 Mira 同一 turn 内调 write_todo + 调 create 创建 A 的草稿",
+      "在 Canvas 编辑 A 并点击发送 → Confirm 确认 → A 发送成功",
+      "验证 Mira 自动接续创建 B 的草稿，Canvas 切到 B"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      },
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "write_todo",
+        "expected": "called once with two tasks"
+      },
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "called twice (A then B)"
+      },
+      {
+        "type": "textContains",
+        "element": "chat",
+        "expected": "先帮你起 [alpha@x.com]"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas 渲染 A → 发送 A → 自动切到 B",
+        "expected": true
+      },
+      {
+        "type": "count",
+        "name": "active canvas",
+        "expected": 1
+      }
+    ],
+    "testData": {
+      "recipients": [
+        "alpha@x.com",
+        "beta@x.com"
+      ]
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-022",
+    "storyId": "REQ-1",
+    "title": "收件人与发件人相同时允许自发送",
+    "priority": "P2",
+    "preconditions": "用户已连接 Gmail（发件人 self@example.com）；Canvas 已渲染草稿",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected",
+        "data": {
+          "user": "self@example.com"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat",
+        "data": {
+          "to": [
+            "self@example.com"
+          ],
+          "subject": "self test",
+          "body": "self body"
+        }
+      }
+    ],
+    "steps": [
+      "在 To 字段确认 self@example.com",
+      "填好 Subject 与 Body",
+      "点击发送按钮 → Confirm → 确认"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "button",
+        "name": "confirm approve",
+        "locatorHint": "[data-testid='confirm-approve']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "notVisible",
+        "element": "self-send warning",
+        "expected": true
+      },
+      {
+        "type": "toolCall",
+        "tool": "send_email",
+        "expected": "called once"
+      },
+      {
+        "type": "state",
+        "field": "draft.state",
+        "expected": "executed"
+      }
+    ],
+    "testData": {
+      "to": [
+        "self@example.com"
+      ]
+    },
+    "testType": "e2e"
+  },
+  {
+    "id": "TC-EC-033",
+    "storyId": "REQ-1",
+    "title": "草稿创建临时 5xx 静默重试一次后成功",
+    "priority": "P1",
+    "preconditions": "用户已连接邮箱；意图明确",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "mockServer",
+        "pomMethod": "mockCreateDraftFirstCallFails",
+        "data": {
+          "failCount": 1,
+          "code": 500
+        }
+      }
+    ],
+    "steps": [
+      "在对话中发出明确意图的邮件请求",
+      "等待 create_email_draft_content 自动重试"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      },
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "called at least 2 times (1 retry)"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas expanded",
+        "expected": true
+      },
+      {
+        "type": "textNotContains",
+        "element": "chat messages",
+        "expected": "邮件发送失败"
+      }
+    ],
+    "testData": {
+      "failPattern": "5xx-then-200"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-034",
+    "storyId": "REQ-1",
+    "title": "连续 3 次 5xx → 对话提示手动重试，Canvas 不展开",
+    "priority": "P1",
+    "preconditions": "用户已连接邮箱；意图明确",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "mockServer",
+        "pomMethod": "mockCreateDraftAllFails",
+        "data": {
+          "failCount": 3,
+          "code": 500
+        }
+      }
+    ],
+    "steps": [
+      "在对话中发出明确意图的邮件请求",
+      "等待 3 次重试耗尽"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "called 3 times then stops"
+      },
+      {
+        "type": "textContains",
+        "element": "chat messages",
+        "expected": "邮件发送失败，请稍后重试"
+      },
+      {
+        "type": "notVisible",
+        "element": "Canvas expanded",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "failPattern": "5xx x3"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-035",
+    "storyId": "REQ-1",
+    "title": "邮箱授权过期 → 对话提示重新授权，授权完成后不自动重试",
+    "priority": "P1",
+    "preconditions": "用户已连接 Gmail（即将过期）",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "mockServer",
+        "pomMethod": "mockTokenExpired",
+        "data": {
+          "code": 401
+        }
+      }
+    ],
+    "steps": [
+      "在对话中发出邮件请求",
+      "模拟 Token 401",
+      "完成重新授权流程",
+      "等待 5 秒，观察 Mira 是否自动重试"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      },
+      {
+        "role": "button",
+        "name": "reauthorize",
+        "locatorHint": "[data-testid='reauth-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "textContains",
+        "element": "chat messages (initial)",
+        "expected": "邮箱连接已断开，请重新授权"
+      },
+      {
+        "type": "notVisible",
+        "element": "Canvas expanded",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "chat messages (after reauth)",
+        "expected": "邮箱已重新连接，请继续之前的操作"
+      },
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content (after reauth)",
+        "expected": "not called automatically"
+      }
+    ],
+    "testData": {
+      "tokenStatus": "expired"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-030",
+    "storyId": "REQ-2",
+    "title": "happy 起草邮件回复完整链路（含线程检索 + 拉取原文 + Confirm 确认 + 发送）",
+    "priority": "P0",
+    "preconditions": "用户已连接 Gmail；历史线程中存在唯一匹配 sarah@example.com 的邮件",
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "data": {
+          "url": "/chat"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "seedThread",
+        "pomMethod": "seedSingleThread",
+        "data": {
+          "from": "sarah@example.com",
+          "thread_id": "t-001"
+        }
+      }
+    ],
+    "steps": [
+      "在对话中说：回复 Sarah 那封邮件，说我周四有时间面谈",
+      "验证 Mira 调用 GMAIL_FETCH_EMAILS 检索线程",
+      "验证调用 GMAIL_FETCH_MESSAGE_BY_THREAD_ID 拉取原文",
+      "Canvas 展开渲染回复草稿（携带 thread_id=t-001）",
+      "点击 Canvas 发送按钮",
+      "Confirm panel 出现 → 点击 确认"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      },
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "dialog",
+        "name": "confirm panel",
+        "locatorHint": "[data-testid='confirm-panel']"
+      },
+      {
+        "role": "button",
+        "name": "confirm approve",
+        "locatorHint": "[data-testid='confirm-approve']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "GMAIL_FETCH_EMAILS",
+        "expected": "called once"
+      },
+      {
+        "type": "toolCall",
+        "tool": "GMAIL_FETCH_MESSAGE_BY_THREAD_ID",
+        "expected": "called once"
+      },
+      {
+        "type": "state",
+        "field": "draft.thread_id",
+        "expected": "t-001"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas with To filled to sarah@example.com",
+        "expected": true
+      },
+      {
+        "type": "toolCall",
+        "tool": "send_email",
+        "expected": "called with thread_id=t-001 after approve"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas read-only state",
+        "expected": true
+      },
+      {
+        "type": "visible",
+        "element": "Inline ribbon",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "target": "sarah@example.com",
+      "thread_id": "t-001"
+    },
+    "testType": "e2e"
+  },
+  {
+    "id": "TC-EC-031",
+    "storyId": "REQ-2",
+    "title": "目标邮件不明确（命中多个候选） → 列出候选让用户选",
+    "priority": "P1",
+    "preconditions": "用户已连接 Gmail；历史线程中存在 3 封匹配 Sarah 的邮件",
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "data": {
+          "url": "/chat"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "seedThreads",
+        "pomMethod": "seedMultipleThreads",
+        "data": {
+          "keyword": "Sarah",
+          "count": 3
+        }
+      }
+    ],
+    "steps": [
+      "在对话中说：回复 Sarah 的邮件",
+      "等待 Mira 响应"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "chat candidate list",
+        "locatorHint": "[data-testid='thread-candidates']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "candidate list with 3 items",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "chat",
+        "expected": "我找到了几封相关邮件，你要回复哪一封？"
+      },
+      {
+        "type": "notVisible",
+        "element": "Canvas expanded",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "keyword": "Sarah",
+      "matchCount": 3
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-032",
+    "storyId": "REQ-2",
+    "title": "线程 ID 在 Canvas 渲染后丢失（数据层异常） → 发送按钮置灰",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染回复草稿；模拟 thread_id 在渲染后丢失",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createReplyDraft",
+        "pomMethod": "createReplyDraftThenDropThreadId"
+      }
+    ],
+    "steps": [
+      "用户点击 Canvas 发送按钮",
+      "观察按钮状态与提示"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "region",
+        "name": "send hint",
+        "locatorHint": "[data-testid='send-hint']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "element": "send button",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "send hint",
+        "expected": "未关联到原邮件"
+      }
+    ],
+    "testData": {
+      "thread_id": null
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-017",
+    "storyId": "REQ-2",
+    "title": "回复时 thread_id / reply_to_message_id 缺失 → 发送按钮置灰",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染回复草稿，thread_id 与 reply_to_message_id 均为 null",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createReplyDraft",
+        "pomMethod": "createReplyDraftWithoutAnyThreadRef"
+      }
+    ],
+    "steps": [
+      "填好 To/Subject/Body 字段",
+      "点击发送按钮",
+      "监控 Composio send 类工具调用"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "element": "send button",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "send hint",
+        "expected": "未关联原邮件"
+      },
+      {
+        "type": "notVisible",
+        "element": "Confirm panel",
+        "expected": true
+      },
+      {
+        "type": "toolCall",
+        "tool": "send_email",
+        "expected": "not called"
+      }
+    ],
+    "testData": {
+      "thread_id": null,
+      "reply_to_message_id": null
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-020",
+    "storyId": "REQ-4",
+    "title": "Canvas UI 字段编辑 → backend 直写同一 draft_id，Mira 下一轮基于最新 state 响应",
+    "priority": "P0",
+    "preconditions": "Canvas 已渲染 draft_id=d1，Subject 当前值为 旧主题",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat",
+        "data": {
+          "subject": "旧主题",
+          "to": [
+            "a@b.com"
+          ],
+          "body": "b"
+        }
+      }
+    ],
+    "steps": [
+      "在 Canvas 的 Subject 字段输入 新主题 并失焦",
+      "在对话中提问：这封邮件的主题是什么？",
+      "等待 Mira 响应"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas subject",
+        "locatorHint": "[data-testid='canvas-subject']"
+      },
+      {
+        "role": "textbox",
+        "name": "chat input",
+        "locatorHint": "[data-testid='chat-input']"
+      },
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "store",
+        "field": "d1.subject",
+        "expected": "新主题"
+      },
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "not called"
+      },
+      {
+        "type": "state",
+        "field": "d1.draft_id",
+        "expected": "unchanged"
+      },
+      {
+        "type": "textContains",
+        "element": "chat messages (latest)",
+        "expected": "新主题"
+      }
+    ],
+    "testData": {
+      "newSubject": "新主题"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-021",
+    "storyId": "REQ-4",
+    "title": "会话切换后切回 → Canvas 自动按 draft_id 重新挂载",
+    "priority": "P1",
+    "preconditions": "用户已在会话 A 中打开 draft_001（pending 态），Canvas 已渲染",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openConversation",
+        "pomMethod": "openConversation",
+        "data": {
+          "convId": "A"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat",
+        "data": {
+          "draftId": "draft_001"
+        }
+      }
+    ],
+    "steps": [
+      "切换到会话 B",
+      "切回会话 A",
+      "观察 Canvas 状态"
+    ],
+    "uiElements": [
+      {
+        "role": "list",
+        "name": "conversation list",
+        "locatorHint": "[data-testid='conversation-list']"
+      },
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "Canvas auto-mounted with draft_001",
+        "expected": true
+      },
+      {
+        "type": "state",
+        "field": "canvas.draft_id",
+        "expected": "draft_001"
+      },
+      {
+        "type": "noUserAction",
+        "expected": "no manual reopen needed"
+      }
+    ],
+    "testData": {
+      "draftId": "draft_001"
+    },
+    "testType": "e2e"
+  },
+  {
+    "id": "TC-EC-024",
+    "storyId": "REQ-4",
+    "title": "终态 draft（executed）切回会话后点击 ribbon → 只读升级",
+    "priority": "P2",
+    "preconditions": "用户已发送 draft_002（executed 态），对话历史中以 ribbon 折叠",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "sendDraft",
+        "pomMethod": "sendDraftViaUi",
+        "data": {
+          "draftId": "draft_002"
+        }
+      }
+    ],
+    "steps": [
+      "切换到另一会话",
+      "切回当前会话",
+      "点击 draft_002 ribbon"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "inline ribbon",
+        "locatorHint": "[data-testid='draft-ribbon'][data-draft-id='draft_002']"
+      },
+      {
+        "role": "region",
+        "name": "readonly canvas modal",
+        "locatorHint": "[data-testid='readonly-canvas-modal']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "Side Panel / Fullscreen Modal 只读",
+        "expected": true
+      },
+      {
+        "type": "disabled",
+        "element": "all canvas fields",
+        "expected": true
+      },
+      {
+        "type": "notVisible",
+        "element": "edit / send buttons",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "draftId": "draft_002",
+      "state": "executed"
+    },
+    "testType": "e2e"
+  },
+  {
+    "id": "TC-EC-027",
+    "storyId": "REQ-4",
+    "title": "网络断开 → Canvas 顶部出现离线横幅",
+    "priority": "P2",
+    "preconditions": "Canvas 已渲染草稿，网络正常",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat"
+      }
+    ],
+    "steps": [
+      "模拟设备网络断开",
+      "在 Canvas 的 To 字段编辑收件人",
+      "模拟网络恢复"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "offline banner",
+        "locatorHint": "[data-testid='canvas-offline-banner']"
+      },
+      {
+        "role": "textbox",
+        "name": "canvas to",
+        "locatorHint": "[data-testid='canvas-to']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "offline banner",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "offline banner",
+        "expected": "当前已离线，更改未保存"
+      },
+      {
+        "type": "retryAfterReconnect",
+        "expected": "true"
+      }
+    ],
+    "testData": {
+      "networkState": "offline"
+    },
+    "testType": "e2e"
+  },
+  {
+    "id": "TC-EC-028",
+    "storyId": "REQ-4",
+    "title": "草稿已被删除 → Canvas 展示空状态 + 错误提示",
+    "priority": "P2",
+    "preconditions": "Canvas 已渲染 draft_001；模拟 draft_001 在后端被删除",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat",
+        "data": {
+          "draftId": "draft_001"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "mockServer",
+        "pomMethod": "mockDraftDeleted",
+        "data": {
+          "draftId": "draft_001"
+        }
+      }
+    ],
+    "steps": [
+      "用户在 Canvas 内编辑任意字段并提交"
+    ],
+    "uiElements": [
+      {
+        "role": "region",
+        "name": "canvas empty state",
+        "locatorHint": "[data-testid='canvas-empty-state']"
+      },
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "empty state placeholder",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "canvas empty state",
+        "expected": "草稿不存在"
+      },
+      {
+        "type": "textContains",
+        "element": "chat messages",
+        "expected": "可在对话里重新发起"
+      }
+    ],
+    "testData": {
+      "draftId": "draft_001"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-029",
+    "storyId": "REQ-4",
+    "title": "Canvas unmount 前强制提交未写入编辑（标签页关闭）",
+    "priority": "P2",
+    "preconditions": "Canvas 已渲染草稿；用户在 Body 字段输入了新内容（尚未失焦）",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat"
+      }
+    ],
+    "steps": [
+      "用户在 Body 字段输入 未失焦的草稿内容（不失焦）",
+      "用户关闭当前浏览器标签页",
+      "重新打开同一 draft"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas body",
+        "locatorHint": "[data-testid='canvas-body']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "store",
+        "field": "draft.body",
+        "expected": "未失焦的草稿内容"
+      },
+      {
+        "type": "visible",
+        "element": "draft after reopen",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "body": "未失焦的草稿内容"
+    },
+    "testType": "e2e"
+  },
+  {
+    "id": "TC-EC-010",
+    "storyId": "REQ-5",
+    "title": "三字段全部合法 → 发送按钮可点击",
+    "priority": "P0",
+    "preconditions": "Canvas 已渲染草稿",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openEmptyCanvas",
+        "pomMethod": "openEmptyCanvas"
+      }
+    ],
+    "steps": [
+      "在 To 字段输入 a@b.com",
+      "在 Subject 字段输入 X",
+      "在 Body 字段输入 Y",
+      "观察发送按钮状态"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas to",
+        "locatorHint": "[data-testid='canvas-to']"
+      },
+      {
+        "role": "textbox",
+        "name": "canvas subject",
+        "locatorHint": "[data-testid='canvas-subject']"
+      },
+      {
+        "role": "textbox",
+        "name": "canvas body",
+        "locatorHint": "[data-testid='canvas-body']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "enabled",
+        "element": "send button",
+        "expected": true
+      },
+      {
+        "type": "notDisabled",
+        "element": "send button",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "to": [
+        "a@b.com"
+      ],
+      "subject": "X",
+      "body": "Y"
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-011",
+    "storyId": "REQ-5",
+    "title": "To 字段为空 → 发送按钮置灰 + To 字段标红",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染草稿",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "subject": "X",
+          "body": "Y"
+        }
+      }
+    ],
+    "steps": [
+      "Subject 和 Body 已填，To 字段保持空",
+      "观察发送按钮和 To 字段"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas to",
+        "locatorHint": "[data-testid='canvas-to']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "element": "send button",
+        "expected": true
+      },
+      {
+        "type": "cssState",
+        "element": "canvas-to",
+        "expected": "error/red border"
+      }
+    ],
+    "testData": {
+      "to": [],
+      "subject": "X",
+      "body": "Y"
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-012",
+    "storyId": "REQ-5",
+    "title": "Subject 为空 → 发送按钮置灰 + Subject 字段标红",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染草稿",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "body": "Y"
+        }
+      }
+    ],
+    "steps": [
+      "To 和 Body 已填，Subject 保持空",
+      "观察发送按钮和 Subject 字段"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas subject",
+        "locatorHint": "[data-testid='canvas-subject']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "element": "send button",
+        "expected": true
+      },
+      {
+        "type": "cssState",
+        "element": "canvas-subject",
+        "expected": "error/red border"
+      },
+      {
+        "type": "textContains",
+        "element": "send hint",
+        "expected": "请填写收件人、主题和正文"
+      }
+    ],
+    "testData": {
+      "to": [
+        "a@b.com"
+      ],
+      "subject": "",
+      "body": "Y"
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-013",
+    "storyId": "REQ-5",
+    "title": "To 字段含格式非法邮箱（abc@） → chip 红框 + 发送按钮置灰",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染草稿",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "subject": "X",
+          "body": "Y"
+        }
+      }
+    ],
+    "steps": [
+      "在 To 字段输入 abc@",
+      "敲 Enter 或将焦点移出",
+      "观察 chip 状态和发送按钮"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas to",
+        "locatorHint": "[data-testid='canvas-to']"
+      },
+      {
+        "role": "region",
+        "name": "to chips",
+        "locatorHint": "[data-testid='to-chip']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "chip with error state",
+        "expected": true
+      },
+      {
+        "type": "cssState",
+        "element": "to-chip",
+        "expected": "red border"
+      },
+      {
+        "type": "textContains",
+        "element": "validation hint",
+        "expected": "邮箱格式不正确"
+      },
+      {
+        "type": "disabled",
+        "element": "send button",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "to": "abc@"
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-014",
+    "storyId": "REQ-5",
+    "title": "粘贴含多个地址的文本 → 按分隔符自动拆为多个 chip",
+    "priority": "P2",
+    "preconditions": "Canvas 已渲染草稿，To 字段为空",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openEmptyCanvas",
+        "pomMethod": "openEmptyCanvas"
+      }
+    ],
+    "steps": [
+      "在 To 字段粘贴文本：a@b.com, c@d.com; e@f.com",
+      "观察 chip"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas to",
+        "locatorHint": "[data-testid='canvas-to']"
+      },
+      {
+        "role": "region",
+        "name": "to chips",
+        "locatorHint": "[data-testid='to-chip']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "count",
+        "name": "to chips",
+        "expected": 3
+      },
+      {
+        "type": "noError",
+        "element": "all chips",
+        "expected": true
+      },
+      {
+        "type": "noResidual",
+        "element": "unwrapped text in input",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "paste": "a@b.com, c@d.com; e@f.com"
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-015",
+    "storyId": "REQ-5",
+    "title": "收件人数量上限 50 / 第 51 个被阻断",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染草稿，To 字段为空",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openEmptyCanvas",
+        "pomMethod": "openEmptyCanvas"
+      }
+    ],
+    "steps": [
+      "向 To 字段添加 49 个合法邮箱",
+      "添加第 50 个邮箱",
+      "尝试添加第 51 个邮箱"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas to",
+        "locatorHint": "[data-testid='canvas-to']"
+      },
+      {
+        "role": "region",
+        "name": "validation hint",
+        "locatorHint": "[data-testid='to-hint']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "count",
+        "name": "to chips after 50",
+        "expected": 50
+      },
+      {
+        "type": "textContains",
+        "element": "validation hint",
+        "expected": "最多 50 个收件人"
+      },
+      {
+        "type": "blocked",
+        "element": "input 51st",
+        "expected": true
+      },
+      {
+        "type": "count",
+        "name": "to chips final",
+        "expected": 50
+      }
+    ],
+    "testData": {
+      "recipientCounts": [
+        49,
+        50,
+        51
+      ]
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-016",
+    "storyId": "REQ-5",
+    "title": "Body 字段为空或仅含空格 → 发送按钮置灰 + Body 字段标红",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染草稿",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "subject": "X"
+        }
+      }
+    ],
+    "steps": [
+      "在 Body 字段输入仅空格 '   '",
+      "观察发送按钮和 Body 字段"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas body",
+        "locatorHint": "[data-testid='canvas-body']"
+      },
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "element": "send button",
+        "expected": true
+      },
+      {
+        "type": "cssState",
+        "element": "canvas-body",
+        "expected": "error/red border"
+      }
+    ],
+    "testData": {
+      "body": "   "
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-018",
+    "storyId": "REQ-5",
+    "title": "Subject 长度上限 100 / 第 101 个字符被阻断",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染草稿",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openEmptyCanvas",
+        "pomMethod": "openEmptyCanvas"
+      }
+    ],
+    "steps": [
+      "在 Subject 字段输入 100 个字符",
+      "尝试继续输入第 101 个字符"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas subject",
+        "locatorHint": "[data-testid='canvas-subject']"
+      },
+      {
+        "role": "region",
+        "name": "subject hint",
+        "locatorHint": "[data-testid='subject-hint']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "valueLength",
+        "field": "canvas-subject",
+        "expected": 100
+      },
+      {
+        "type": "textContains",
+        "element": "subject hint",
+        "expected": "主题最多 100 个字符"
+      },
+      {
+        "type": "blocked",
+        "element": "101st char",
+        "expected": true
+      },
+      {
+        "type": "preserved",
+        "element": "existing 100 chars",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "subjectLengths": [
+        100,
+        101
+      ]
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-019",
+    "storyId": "REQ-5",
+    "title": "To 字段 15 个 chip 超过 2 行容量 → +N More 折叠 + 点击展开",
+    "priority": "P2",
+    "preconditions": "Canvas 已渲染草稿；To 字段含 15 个 chip",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "toChipCount": 15
+        }
+      }
+    ],
+    "steps": [
+      "失焦 To 字段",
+      "观察 +M More 按钮",
+      "点击 +M More",
+      "点击 收起 回到 2 行折叠态"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "+more",
+        "locatorHint": "[data-testid='to-more-btn']"
+      },
+      {
+        "role": "button",
+        "name": "collapse",
+        "locatorHint": "[data-testid='to-collapse-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "+M More button",
+        "expected": true
+      },
+      {
+        "type": "afterClick",
+        "action": "expand",
+        "element": "all 15 chips visible",
+        "expected": true
+      },
+      {
+        "type": "afterClick",
+        "action": "collapse",
+        "element": "back to 2 rows",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "chipCount": 15
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-023",
+    "storyId": "REQ-5",
+    "title": "取消按钮 → draft 切 execution_aborted + Canvas 折叠 ribbon 显示 已取消",
+    "priority": "P1",
+    "preconditions": "Canvas 编辑态，pending 态 draft",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "createDraft",
+        "pomMethod": "createDraftViaChat"
+      }
+    ],
+    "steps": [
+      "点击 Canvas 取消按钮",
+      "验证 draft state 与 Canvas 形态",
+      "点击 ribbon",
+      "在对话中重新提邮件请求"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas cancel",
+        "locatorHint": "[data-testid='canvas-cancel-btn']"
+      },
+      {
+        "role": "region",
+        "name": "inline ribbon",
+        "locatorHint": "[data-testid='draft-ribbon']"
+      },
+      {
+        "role": "region",
+        "name": "readonly modal",
+        "locatorHint": "[data-testid='readonly-canvas-modal']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "state",
+        "field": "draft.state",
+        "expected": "execution_aborted"
+      },
+      {
+        "type": "visible",
+        "element": "ribbon 已取消",
+        "expected": true
+      },
+      {
+        "type": "afterClick",
+        "action": "click ribbon",
+        "element": "Side Panel readonly",
+        "expected": true
+      },
+      {
+        "type": "notVisible",
+        "element": "edit input",
+        "expected": true
+      },
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content (new request)",
+        "expected": "called with new draft_id"
+      }
+    ],
+    "testData": null,
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-025",
+    "storyId": "REQ-5",
+    "title": "To/Cc 同一邮箱出现 → 发送时按 To>Cc>Bcc 去重保留 To",
+    "priority": "P1",
+    "preconditions": "Canvas 已渲染草稿，同一邮箱 a@b.com 同时出现在 To 和 Cc 字段",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "cc": [
+            "a@b.com"
+          ],
+          "subject": "X",
+          "body": "Y"
+        }
+      }
+    ],
+    "steps": [
+      "点击发送 → Confirm panel 出现",
+      "点击 确认 按钮"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "button",
+        "name": "confirm approve",
+        "locatorHint": "[data-testid='confirm-approve']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "send_email",
+        "expected": "called with to=[a@b.com], cc=[]"
+      },
+      {
+        "type": "state",
+        "field": "draft.state",
+        "expected": "executed"
+      }
+    ],
+    "testData": {
+      "to": [
+        "a@b.com"
+      ],
+      "cc": [
+        "a@b.com"
+      ]
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-026",
+    "storyId": "REQ-5",
+    "title": "发送中按钮禁用 / 发送成功后 Canvas 整体只读",
+    "priority": "P2",
+    "preconditions": "Canvas 草稿各字段校验通过",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "subject": "X",
+          "body": "Y"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "mockServer",
+        "pomMethod": "mockSendDelay",
+        "data": {
+          "delayMs": 2000
+        }
+      }
+    ],
+    "steps": [
+      "点击发送 → Confirm → 确认",
+      "在请求返回前观察按钮（loading + disabled）",
+      "请求返回成功后观察 Canvas"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "duringSend",
+        "element": "send button",
+        "expected": "loading + disabled"
+      },
+      {
+        "type": "afterSend",
+        "element": "Canvas readonly",
+        "expected": true
+      },
+      {
+        "type": "afterSend",
+        "element": "send button gone or 'sent' state",
+        "expected": true
+      },
+      {
+        "type": "afterSend",
+        "element": "all fields not editable",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "delayMs": 2000
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-037",
+    "storyId": "REQ-6",
+    "title": "Confirm panel 弹出展示收件人/主题/正文截断与风险提示",
+    "priority": "P0",
+    "preconditions": "Canvas 草稿通过容器校验（To / Subject / Body 均有效），用户已授权",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "subject": "X",
+          "body": "Y"
+        }
+      }
+    ],
+    "steps": [
+      "点击 Canvas 发送按钮",
+      "等待 Confirm 工具调用",
+      "观察 panel"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "dialog",
+        "name": "confirm panel",
+        "locatorHint": "[data-testid='confirm-panel']"
+      },
+      {
+        "role": "button",
+        "name": "confirm approve",
+        "locatorHint": "[data-testid='confirm-approve']"
+      },
+      {
+        "role": "button",
+        "name": "confirm reject",
+        "locatorHint": "[data-testid='confirm-reject']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "Confirm",
+        "expected": "called once"
+      },
+      {
+        "type": "visible",
+        "element": "confirm panel",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "panel title",
+        "expected": "请确认是否发送这封邮件"
+      },
+      {
+        "type": "textContains",
+        "element": "panel risk hint",
+        "expected": "高风险操作，不可撤回"
+      },
+      {
+        "type": "enabled",
+        "element": "confirm-approve & confirm-reject",
+        "expected": true
+      }
+    ],
+    "testData": null,
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-038",
+    "storyId": "REQ-6",
+    "title": "Confirm panel 点击 拒绝 → 取消发送，Canvas 保持当前状态",
+    "priority": "P0",
+    "preconditions": "Confirm panel 已展示，草稿内容未被修改",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openConfirmPanel",
+        "pomMethod": "openConfirmPanel"
+      }
+    ],
+    "steps": [
+      "点击 panel 内 拒绝 按钮"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "confirm reject",
+        "locatorHint": "[data-testid='confirm-reject']"
+      },
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      },
+      {
+        "role": "region",
+        "name": "email canvas",
+        "locatorHint": "[data-testid='email-canvas']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "toolCall",
+        "tool": "send_email",
+        "expected": "not called"
+      },
+      {
+        "type": "textContains",
+        "element": "chat messages",
+        "expected": "已取消发送"
+      },
+      {
+        "type": "stateUnchanged",
+        "element": "canvas fields",
+        "expected": true
+      },
+      {
+        "type": "toolCall",
+        "tool": "create_email_draft_content",
+        "expected": "not called"
+      }
+    ],
+    "testData": null,
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-039",
+    "storyId": "REQ-6",
+    "title": "Confirm 工具调用失败（Mira Host HITL 层异常） → 不允许降级",
+    "priority": "P0",
+    "preconditions": "Canvas 草稿通过容器校验；模拟 Mira Host HITL 层异常",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "subject": "X",
+          "body": "Y"
+        }
+      },
+      {
+        "type": "ui",
+        "action": "mockServer",
+        "pomMethod": "mockConfirmToolFailure"
+      }
+    ],
+    "steps": [
+      "点击发送按钮",
+      "Confirm 工具返回失败",
+      "监控 send 类 Composio action 调用计数",
+      "观察 Canvas 状态"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      },
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "textContains",
+        "element": "chat messages",
+        "expected": "二次确认服务暂不可用，邮件未发送，请稍后重试"
+      },
+      {
+        "type": "counter",
+        "name": "send_email composio call count",
+        "expected": 0
+      },
+      {
+        "type": "visible",
+        "element": "Canvas expanded editable",
+        "expected": true
+      },
+      {
+        "type": "clickAgain",
+        "element": "send button",
+        "expected": "triggers new Confirm round"
+      }
+    ],
+    "testData": {
+      "confirmToolError": true
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-040",
+    "storyId": "REQ-6",
+    "title": "Confirm panel 等待期间 Canvas 字段被修改 → panel 失效",
+    "priority": "P2",
+    "preconditions": "Confirm panel 已展示",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openConfirmPanel",
+        "pomMethod": "openConfirmPanel"
+      }
+    ],
+    "steps": [
+      "panel 创建后，在 Canvas 的 Subject 字段输入新内容",
+      "观察 panel 状态与对话提示"
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "canvas subject",
+        "locatorHint": "[data-testid='canvas-subject']"
+      },
+      {
+        "role": "dialog",
+        "name": "confirm panel",
+        "locatorHint": "[data-testid='confirm-panel']"
+      },
+      {
+        "role": "region",
+        "name": "chat messages",
+        "locatorHint": "[data-testid='chat-messages']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "notVisible",
+        "element": "confirm panel (auto-closed)",
+        "expected": true
+      },
+      {
+        "type": "textContains",
+        "element": "chat messages",
+        "expected": "邮件内容已修改，请重新点击发送"
+      },
+      {
+        "type": "visible",
+        "element": "Canvas editable",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "modifiedField": "subject"
+    },
+    "testType": "integration"
+  },
+  {
+    "id": "TC-EC-041",
+    "storyId": "REQ-6",
+    "title": "容器校验未通过时点击发送 → Confirm 不被触发",
+    "priority": "P2",
+    "preconditions": "Canvas 草稿 To / Subject 已填，Body 为空（REQ-5 校验未通过）",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openCanvasWithFields",
+        "pomMethod": "openCanvasWithFields",
+        "data": {
+          "to": [
+            "a@b.com"
+          ],
+          "subject": "X",
+          "body": ""
+        }
+      }
+    ],
+    "steps": [
+      "尝试点击发送按钮",
+      "观察 Confirm panel"
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "canvas send",
+        "locatorHint": "[data-testid='canvas-send-btn']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "disabled",
+        "element": "send button",
+        "expected": true
+      },
+      {
+        "type": "toolCall",
+        "tool": "Confirm",
+        "expected": "not called"
+      },
+      {
+        "type": "notVisible",
+        "element": "confirm panel",
+        "expected": true
+      }
+    ],
+    "testData": {
+      "body": ""
+    },
+    "testType": "unit"
+  },
+  {
+    "id": "TC-EC-042",
+    "storyId": "REQ-6",
+    "title": "Confirm panel 用户切换会话再切回 → panel 仍可见",
+    "priority": "P2",
+    "preconditions": "Confirm panel 已展示，草稿内容未被修改",
+    "setup": [
+      {
+        "type": "ui",
+        "action": "ensureConnector",
+        "pomMethod": "ensureGmailConnected"
+      },
+      {
+        "type": "ui",
+        "action": "openConfirmPanel",
+        "pomMethod": "openConfirmPanel"
+      }
+    ],
+    "steps": [
+      "切换到另一个会话",
+      "切回当前会话",
+      "观察 panel"
+    ],
+    "uiElements": [
+      {
+        "role": "list",
+        "name": "conversation list",
+        "locatorHint": "[data-testid='conversation-list']"
+      },
+      {
+        "role": "dialog",
+        "name": "confirm panel",
+        "locatorHint": "[data-testid='confirm-panel']"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "element": "confirm panel after switch back",
+        "expected": true
+      },
+      {
+        "type": "enabled",
+        "element": "confirm-approve & confirm-reject",
+        "expected": true
+      }
+    ],
+    "testData": null,
+    "testType": "e2e"
+  }
+]

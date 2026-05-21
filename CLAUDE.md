@@ -109,6 +109,11 @@ PR 监控（独立流程）：
 - `/qa-eval [--mode build|run|regression] [--project <langfuse-project>] [--days <N>]` — LLM Eval 评估流水线
 - `/qa-sentinel [--platforms sentry,langfuse,railway,db] [--interval 5m]` — 启动多平台质量守卫监控
 
+### MCP 测试（新增）
+- `/qa-mcp-test [--prd <path>] [--server <name|url>] [--scope L1|L2|all] [--exec|--no-exec] [--report-linear]` — MCP 工具自动化测试流水线（L1 协议 + L2 行为）
+  - 操作手册：[docs/mcp-testing-howto.md](docs/mcp-testing-howto.md)（5 分钟加新 MCP）
+  - 架构文档：[docs/mcp-test-design.md](docs/mcp-test-design.md)
+
 ## 约定
 
 - 各项目维护 3 个文件：`.env`、`CLAUDE.md`、`docs/prd/*.md`

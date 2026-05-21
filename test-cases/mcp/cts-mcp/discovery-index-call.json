@@ -1,0 +1,8 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"type\":\"data\",\"data\":{\"types\":[{\"schema_type\":\"city_tree\",\"label\":\"城市树\",\"description\":\"城市树（省市区多级层级）\"},{\"schema_type\":\"industry_tree\",\"label\":\"行业树\",\"description\":\"行业树（多级分类）\"},{\"schema_type\":\"job_category_tree\",\"label\":\"职位类别树\",\"description\":\"职位类别树（多级分类）\"},{\"schema_type\":\"education_tree\",\"label\":\"学历要求\",\"description\":\"学历等级枚举\"},{\"schema_type\":\"school_type_tree\",\"label\":\"院校类型\",\"description\":\"院校类型枚举（985/211/双一流/海外QS100等）\"},{\"schema_type\":\"experience_tree\",\"label\":\"工作年限\",\"description\":\"工作年限枚举\"}]}}\n{\"type\":\"meta\",\"trace_id\":\"6b866f77-9481-48b2-9f87-2938aa072ea7\",\"tool_call_id\":\"ca3016ad-2e4f-49ee-bced-efbf950f1a4d\"}"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"errorCode\":\"CTS_BAD_REQUEST\",\"message\":\"At least one search or filter parameter is required. Available filters: keyword, semantic_query, name, phone, company_name, school_name, job_title, work_content, location, education, school_type, work_experience, industry, job_category, gender, age_min, age_max, job_status, active_within.\",\"hint\":\"CTS 拒绝该请求\",\"traceId\":\"261e60cb-7082-4a7d-b855-b516613660fe\"}"
+    }
+  ],
+  "isError": true
+}

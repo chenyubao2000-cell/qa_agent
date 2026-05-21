@@ -1,0 +1,1312 @@
+[
+  {
+    "id": "TC-VI-001",
+    "storyId": "REQ-001",
+    "title": "task_creation 流式录音录制 30-300 字 → 草稿落框 → 提交",
+    "priority": "P0",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "用户已登录；浏览器麦克风权限已授权；当前位于 task_creation 入口页（A1 default 态）；STT 引擎支持 partial 且 voice_streaming_enabled=true",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "waitForVoiceBtnVisible", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "input 右下角左侧 outline 圆形 mic 图标按钮（32×32）", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "录制中 voice-btn 变形为黑色 primary pill（高 32px、可动波形条）", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "task_creation input 文本区", "testIdHint": "task-input" },
+      { "name": "submitBtn", "role": "button", "locatorHint": "input 右下角右侧 primary arrow-up 按钮", "testIdHint": "submit-btn" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "断言 voiceBtn 变形为 timerWavePill",
+      "等待约 15 秒（mock 音频流注入约 60 字转写）",
+      "断言 inputText 实时接收 partial",
+      "点击 timerWavePill 停止录音",
+      "等待 final transcript 落入 inputText",
+      "断言光标位于文本末尾、submitBtn enabled、timerWavePill 还原为 voiceBtn outline",
+      "点击 submitBtn 提交"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "inputText", "expected": "草稿文本可见且非空" },
+      { "type": "enabled", "target": "submitBtn", "expected": true },
+      { "type": "performance", "target": "click_to_draft", "expected": "P95 ≤ 5000ms（不含口述时间）" },
+      { "type": "notVisible", "target": "credit_hint", "expected": "无 Credit 提示" },
+      { "type": "notVisible", "target": "first_run_modal", "expected": "无 first-run modal" }
+    ],
+    "testData": { "scene": "task_creation", "durationMs": 15000, "mockTranscript": "为某外企招聘 Senior Java 工程师，5 年以上微服务经验" },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-002",
+    "storyId": "REQ-001",
+    "title": "strategy_creation 流式录音追加描述（含 task context 徽标）",
+    "priority": "P0",
+    "scene": "strategy_creation",
+    "designMethod": "scenario",
+    "preconditions": "用户已登录；存在一个已创建的寻访任务；当前位于该任务的 strategy_creation 入口页；浏览器麦克风权限已授权",
+    "setup": [
+      { "type": "fixture", "fixtureId": "tool-chain" },
+      { "type": "navigate", "action": "navigate", "data": { "path": "/strategy-creation" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "taskContextBadge", "role": "text", "locatorHint": "input 框上方 git-branch 图标 + 'Refining strategy · {role} · {location}'", "testIdHint": "task-context-badge" },
+      { "name": "voiceBtn", "role": "button", "locatorHint": "input 右下角左侧 voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "录制中变形 pill", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "strategy_creation input 文本区", "testIdHint": "strategy-input" },
+      { "name": "submitBtn", "role": "button", "locatorHint": "input 右下角右侧 submit-btn", "testIdHint": "submit-btn" }
+    ],
+    "steps": [
+      "断言 taskContextBadge 可见且文案匹配 /Refining strategy · .+ · .+/",
+      "点击 voiceBtn",
+      "等待 12 秒（mock 流式 partial 注入）",
+      "点击 timerWavePill 停止",
+      "断言 inputText 收到 transcript 草稿",
+      "点击 submitBtn 提交"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "taskContextBadge", "expected": true },
+      { "type": "textMatch", "target": "taskContextBadge", "expected": "/Refining strategy/" },
+      { "type": "visible", "target": "inputText", "expected": "草稿文本非空" }
+    ],
+    "testData": { "scene": "strategy_creation", "durationMs": 12000 },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-003",
+    "storyId": "REQ-001",
+    "title": "A3 草稿态追加录音（多段语音追加到 input 末尾）",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "state-transition",
+    "preconditions": "已完成一次流式录音，input 处于 A3 草稿态，已有转写文本'内容A'",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "create", "pomMethod": "recordOnceAndDraft", "data": { "transcript": "内容A" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "草稿态 outline 圆形 mic", "testIdHint": "voice-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "录制 pill", "testIdHint": "timer-wave-pill" }
+    ],
+    "steps": [
+      "断言 inputText 初始值为 '内容A'",
+      "点击 voiceBtn 再次开始录音",
+      "等待 5 秒（mock '内容B'）",
+      "点击 timerWavePill 停止",
+      "断言 inputText 文本为 '内容A' + '内容B'"
+    ],
+    "assertions": [
+      { "type": "textContains", "target": "inputText", "expected": "内容A" },
+      { "type": "textContains", "target": "inputText", "expected": "内容B" },
+      { "type": "cursorAtEnd", "target": "inputText", "expected": true }
+    ],
+    "testData": { "prefix": "内容A", "append": "内容B" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-004",
+    "storyId": "REQ-001",
+    "title": "A1 默认态双按钮布局（voice-btn outline + submit-btn primary）",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "equivalence-partitioning",
+    "preconditions": "当前位于 task_creation A1 default 态；浏览器麦克风权限未触发",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "白底 outline 32×32 mic", "testIdHint": "voice-btn" },
+      { "name": "submitBtn", "role": "button", "locatorHint": "primary 填色 32×32 arrow-up", "testIdHint": "submit-btn" },
+      { "name": "actionsContainer", "role": "group", "locatorHint": "input 右下角双按钮容器", "testIdHint": "input-actions" }
+    ],
+    "steps": [
+      "断言 voiceBtn 可见，尺寸 32x32",
+      "断言 submitBtn 可见，位于 voiceBtn 右侧",
+      "断言 submitBtn disabled（input 为空时）"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "voiceBtn", "expected": true },
+      { "type": "size", "target": "voiceBtn", "expected": "32x32" },
+      { "type": "size", "target": "submitBtn", "expected": "32x32" },
+      { "type": "disabled", "target": "submitBtn", "expected": true }
+    ],
+    "testData": { "viewport": "1280x720" },
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-005",
+    "storyId": "REQ-001",
+    "title": "A2 timer-wave pill 录制态视觉",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "equivalence-partitioning",
+    "preconditions": "已点击 voice-btn 进入流式录制态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "create", "pomMethod": "startStreamingRecord", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "timerWavePill", "role": "button", "locatorHint": "黑色 pill 圆角 高 32px 内含动效波形", "testIdHint": "timer-wave-pill" },
+      { "name": "submitBtn", "role": "button", "locatorHint": "录制中 submit-btn", "testIdHint": "submit-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区不显示 placeholder", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "断言 timerWavePill 可见且为 pill 形状",
+      "断言 submitBtn disabled",
+      "断言 inputText 内 placeholder 已隐藏"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "timerWavePill", "expected": true },
+      { "type": "disabled", "target": "submitBtn", "expected": true }
+    ],
+    "testData": {},
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-006",
+    "storyId": "REQ-001",
+    "title": "A3 草稿态 voice-btn 还原 outline + 光标置末",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "equivalence-partitioning",
+    "preconditions": "已完成一次流式录音，input 草稿落框",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "create", "pomMethod": "recordOnceAndDraft", "data": { "transcript": "草稿内容" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "outline 圆形 mic 图标", "testIdHint": "voice-btn" },
+      { "name": "submitBtn", "role": "button", "locatorHint": "primary arrow-up enabled", "testIdHint": "submit-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 含草稿文本", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "断言 voiceBtn 为 outline 圆形（非 pill）",
+      "断言 submitBtn enabled",
+      "断言 inputText 光标位于末尾"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "voiceBtn", "expected": true },
+      { "type": "enabled", "target": "submitBtn", "expected": true },
+      { "type": "cursorAtEnd", "target": "inputText", "expected": true }
+    ],
+    "testData": {},
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-007",
+    "storyId": "REQ-001",
+    "title": "D1 permission_denied → 右上角 destructive toast「Microphone access blocked」",
+    "priority": "P0",
+    "scene": "task_creation",
+    "designMethod": "cause-effect",
+    "preconditions": "浏览器麦克风权限被拒绝（getUserMedia 返回 NotAllowedError）",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockMicPermissionDenied", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "toastD1", "role": "alert", "locatorHint": "页面右上角 destructive toast", "testIdHint": "toast-permission-denied" },
+      { "name": "toastCloseBtn", "role": "button", "locatorHint": "toast close 按钮", "testIdHint": "toast-close" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "断言 toastD1 可见，文案为 'Microphone access blocked'",
+      "断言 toastCloseBtn 可见",
+      "等待 5 秒",
+      "断言 toastD1 自动消失"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "toastD1", "expected": true },
+      { "type": "textContains", "target": "toastD1", "expected": "Microphone access blocked" },
+      { "type": "notVisible", "target": "toastD1", "expected": "5 秒后自动消失" }
+    ],
+    "testData": { "permission": "denied" },
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-VI-008",
+    "storyId": "REQ-001",
+    "title": "D2a stt_connect_failure（录制启动 ≤3s 未首 partial）→ 右上角 toast + Retry pill",
+    "priority": "P0",
+    "scene": "task_creation",
+    "designMethod": "cause-effect",
+    "preconditions": "mock STT WebSocket 握手失败或 3 秒内无首 partial 返回；浏览器麦克风权限已授权",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockSttConnectFailure", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "timer wave pill", "testIdHint": "timer-wave-pill" },
+      { "name": "toastD2a", "role": "alert", "locatorHint": "右上角 destructive toast", "testIdHint": "toast-stt-connect-failure" },
+      { "name": "retryPill", "role": "button", "locatorHint": "toast 内嵌 Retry pill", "testIdHint": "toast-retry-pill" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "等待最多 3.5 秒",
+      "断言 toastD2a 可见，文案含 'Can't reach voice service'",
+      "断言 retryPill 可见，toast 内无 close 按钮",
+      "断言 timerWavePill 自动还原为 voiceBtn outline",
+      "点击 retryPill",
+      "断言 STT 调用被重新触发但未要求重录"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "toastD2a", "expected": true },
+      { "type": "textContains", "target": "toastD2a", "expected": "Can't reach voice service" },
+      { "type": "visible", "target": "retryPill", "expected": true },
+      { "type": "visible", "target": "voiceBtn", "expected": "timer-wave-pill 还原为 outline" }
+    ],
+    "testData": { "mock": "connect_failure", "firstPartialTimeoutMs": 3000 },
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-VI-009",
+    "storyId": "REQ-001",
+    "title": "D2b stt_finalize_failure（停止后 ≤5s 未 final）→ 右上角 toast + Retry pill",
+    "priority": "P0",
+    "scene": "task_creation",
+    "designMethod": "cause-effect",
+    "preconditions": "mock STT 在用户停止录音后 5 秒内不返回 final transcript",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockSttFinalizeFailure", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" },
+      { "name": "toastD2b", "role": "alert", "locatorHint": "右上角 destructive toast", "testIdHint": "toast-stt-finalize-failure" },
+      { "name": "retryPill", "role": "button", "locatorHint": "toast Retry pill", "testIdHint": "toast-retry-pill" }
+    ],
+    "steps": [
+      "点击 voiceBtn 开始录音",
+      "口述 5 秒",
+      "点击 timerWavePill 停止",
+      "等待 ≥5 秒",
+      "断言 toastD2b 可见，文案含 'Recognition failed'",
+      "断言 retryPill 可见",
+      "点击 retryPill"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "toastD2b", "expected": true },
+      { "type": "textContains", "target": "toastD2b", "expected": "Recognition failed" },
+      { "type": "visible", "target": "retryPill", "expected": true }
+    ],
+    "testData": { "mock": "finalize_failure", "finalizeTimeoutMs": 5000 },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-010",
+    "storyId": "REQ-001",
+    "title": "network_unstable（流式断流 > 3s 自动降级，不进入 D2）",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "state-transition",
+    "preconditions": "流式录音已建立 WebSocket；mock 网络中断 5 秒后恢复",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNetworkUnstable", "data": { "dropMs": 5000 } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" },
+      { "name": "networkRecoveryToast", "role": "status", "locatorHint": "一次性提示 '网络恢复中'", "testIdHint": "toast-network-recovery" }
+    ],
+    "steps": [
+      "点击 voiceBtn 开始录音",
+      "口述 15 秒，中间触发 mock 中断 5 秒",
+      "断言 networkRecoveryToast 一次性显示后消失",
+      "停止录音",
+      "断言 inputText 包含完整 transcript",
+      "断言未出现 D2 toast"
+    ],
+    "assertions": [
+      { "type": "textContains", "target": "inputText", "expected": "完整转写文本" },
+      { "type": "notVisible", "target": "toast-stt-connect-failure", "expected": "不进入 D2a" },
+      { "type": "notVisible", "target": "toast-stt-finalize-failure", "expected": "不进入 D2b" }
+    ],
+    "testData": { "netDropMs": 5000, "totalDurationMs": 15000 },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-011",
+    "storyId": "REQ-001",
+    "title": "录音中切换浏览器 tab → 录音持续",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "流式录音进行中",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "create", "pomMethod": "startStreamingRecord", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "切换到另一个 tab 5 秒",
+      "切回原 tab",
+      "点击 timerWavePill 停止",
+      "断言 inputText 包含切 tab 期间口述的内容"
+    ],
+    "assertions": [
+      { "type": "textNonEmpty", "target": "inputText", "expected": "录音持续，transcript 包含切 tab 期间内容" }
+    ],
+    "testData": { "tabSwitchMs": 5000 },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-012",
+    "storyId": "REQ-001",
+    "title": "录音中关闭页面 → 录音关闭并丢弃",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "流式录音进行中",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "create", "pomMethod": "startStreamingRecord", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" },
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" }
+    ],
+    "steps": [
+      "关闭当前 tab",
+      "重新打开 /task-creation",
+      "断言 inputText 为空、voiceBtn 处于 A1 default 态"
+    ],
+    "assertions": [
+      { "type": "textEquals", "target": "inputText", "expected": "" },
+      { "type": "visible", "target": "voiceBtn", "expected": "outline 圆形" }
+    ],
+    "testData": { "action": "close_page" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-013",
+    "storyId": "REQ-001",
+    "title": "转写文本与 input 已有内容冲突 → 追加不覆盖",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "error-guessing",
+    "preconditions": "用户已在 input 框手动键入'前置文字'；浏览器麦克风权限已授权",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "create", "pomMethod": "typeIntoInput", "data": { "text": "前置文字" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" },
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" }
+    ],
+    "steps": [
+      "点击 voiceBtn 开始录音",
+      "口述 5 秒'补充内容'",
+      "停止录音",
+      "断言 inputText 文本为 '前置文字' + '补充内容'"
+    ],
+    "assertions": [
+      { "type": "textStartsWith", "target": "inputText", "expected": "前置文字" },
+      { "type": "textContains", "target": "inputText", "expected": "补充内容" }
+    ],
+    "testData": { "prefix": "前置文字", "appendDurationMs": 5000 },
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-VI-014",
+    "storyId": "REQ-001",
+    "title": "录音时长 < 0.5 秒 → 误触不调用 STT",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "浏览器麦克风权限已授权",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "等待 0.4 秒",
+      "点击 timerWavePill 停止",
+      "断言 inputText 仍为空、voiceBtn 还原 outline、未触发 STT 网络请求"
+    ],
+    "assertions": [
+      { "type": "textEquals", "target": "inputText", "expected": "" },
+      { "type": "networkRequestCount", "target": "stt_endpoint", "expected": 0 }
+    ],
+    "testData": { "durationMs": 400 },
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-015",
+    "storyId": "REQ-001",
+    "title": "长录音 600 秒自动停止",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "浏览器麦克风权限已授权；mock 持续音频源",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockContinuousAudio", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "推进虚拟时钟至 600s",
+      "断言录音自动停止、timerWavePill 还原 outline、inputText 收到 final transcript"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "voiceBtn", "expected": "outline 还原" },
+      { "type": "textNonEmpty", "target": "inputText", "expected": "final transcript 写入" }
+    ],
+    "testData": { "durationMs": 600000 },
+    "timeoutMs": 60000
+  },
+  {
+    "id": "TC-VI-016",
+    "storyId": "REQ-001",
+    "title": "录音超过 9:00 → 展示 09:00 / 10:00 提示",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "浏览器麦克风权限已授权",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockContinuousAudio", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" },
+      { "name": "longRecordHint", "role": "status", "locatorHint": "录音上限提示 09:00 / 10:00", "testIdHint": "long-record-hint" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "推进虚拟时钟至 545s (>9:00)",
+      "断言 longRecordHint 可见，文案包含 '09:00' 或 '10:00'",
+      "提示不强制中断录音"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "longRecordHint", "expected": true },
+      { "type": "textMatch", "target": "longRecordHint", "expected": "/0?9:00|10:00/" }
+    ],
+    "testData": { "durationMs": 545000 },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-017",
+    "storyId": "REQ-001",
+    "title": "stt_connect_failure 边界值（2.9s / 3.0s / 3.1s）",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "mock STT 首 partial 在指定延迟到达",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "toastD2a", "role": "alert", "locatorHint": "D2a toast", "testIdHint": "toast-stt-connect-failure" }
+    ],
+    "steps": [
+      "对 [2900, 3000, 3100] 三个延迟分别执行：mock 首 partial 在该延迟到达 → 点击 voiceBtn → 等待 4 秒",
+      "断言：2900/3000ms 时 toastD2a 不可见；3100ms 时 toastD2a 可见"
+    ],
+    "assertions": [
+      { "type": "conditional", "target": "toastD2a", "expected": "<=3000ms:notVisible; >3000ms:visible" }
+    ],
+    "testData": { "firstPartialDelayMsList": [2900, 3000, 3100] },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-018",
+    "storyId": "REQ-001",
+    "title": "录音中 submit-btn 应 disabled",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "error-guessing",
+    "preconditions": "流式录音进行中",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "create", "pomMethod": "startStreamingRecord", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "submitBtn", "role": "button", "locatorHint": "submit-btn", "testIdHint": "submit-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" }
+    ],
+    "steps": [
+      "断言 submitBtn disabled",
+      "尝试点击 submitBtn",
+      "断言无任何响应（无提交事件、录音继续）"
+    ],
+    "assertions": [
+      { "type": "disabled", "target": "submitBtn", "expected": true },
+      { "type": "visible", "target": "timerWavePill", "expected": "录音继续" }
+    ],
+    "testData": {},
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-019",
+    "storyId": "REQ-002",
+    "title": "A2-2 非流式录制完整流程 → ✓ 确认 → 一次性回填 → 草稿编辑 → 提交",
+    "priority": "P0",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "用户已登录；浏览器麦克风权限已授权；mock STT 不支持 partial 或 voice_streaming_enabled=false；位于 task_creation A1 default 态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn outline", "testIdHint": "voice-btn" },
+      { "name": "a22Pill", "role": "region", "locatorHint": "全宽 rounded-2xl + warm shadow pill", "testIdHint": "a22-pill" },
+      { "name": "a22WaveRow", "role": "group", "locatorHint": "上段 wave-row：左 fill 波形 + 右 mono 计时器", "testIdHint": "a22-wave-row" },
+      { "name": "a22Timer", "role": "text", "locatorHint": "Geist Mono 13px '0:NN'", "testIdHint": "a22-timer" },
+      { "name": "a22Footer", "role": "group", "locatorHint": "下段 footer：左 + / 右 × ✓", "testIdHint": "a22-footer" },
+      { "name": "a22AttachBtn", "role": "button", "locatorHint": "footer 左侧 + 附件 32×32 outline", "testIdHint": "a22-attach-btn" },
+      { "name": "a22CancelBtn", "role": "button", "locatorHint": "footer 右侧 × 32×32 muted", "testIdHint": "a22-cancel-btn" },
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "footer 右侧 ✓ 32×32 muted", "testIdHint": "a22-confirm-btn" },
+      { "name": "a22Recognizing", "role": "status", "locatorHint": "Recognizing… 临时文案", "testIdHint": "a22-recognizing" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "回填后 input 文本区", "testIdHint": "task-input" },
+      { "name": "submitBtn", "role": "button", "locatorHint": "submit-btn", "testIdHint": "submit-btn" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "断言 a22Pill 可见，整 input 已变形",
+      "断言 a22WaveRow、a22Timer、a22Footer、a22AttachBtn、a22CancelBtn、a22ConfirmBtn 均可见",
+      "口述 15 秒，断言全程无 partial 文字、计时器累计、波形动效",
+      "点击 a22ConfirmBtn",
+      "断言 a22Recognizing 文案出现，a22ConfirmBtn disabled，计时器停止",
+      "等待 STT 一次性返回 final（≤8s）",
+      "断言 a22Pill 还原为标准 input、inputText 含 transcript、光标置末、submitBtn enabled",
+      "编辑 inputText 后点击 submitBtn 提交"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "a22Pill", "expected": "全宽 pill" },
+      { "type": "notVisible", "target": "a22-partial-text", "expected": "录制全程无 partial" },
+      { "type": "textMatch", "target": "a22Timer", "expected": "/^\\d:\\d{2}$/" },
+      { "type": "performance", "target": "confirm_to_draft", "expected": "P95 ≤ 6000ms" },
+      { "type": "enabled", "target": "submitBtn", "expected": true }
+    ],
+    "testData": { "scene": "task_creation", "mock": "nostream", "durationMs": 15000 },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-020",
+    "storyId": "REQ-002",
+    "title": "A2-2 点 × 取消 → 丢弃 audio + 计时回 A1",
+    "priority": "P0",
+    "scene": "task_creation",
+    "designMethod": "state-transition",
+    "preconditions": "已进入 A2-2 录制态约 10 秒",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": { "durationMs": 10000 } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "a22CancelBtn", "role": "button", "locatorHint": "× 取消", "testIdHint": "a22-cancel-btn" },
+      { "name": "voiceBtn", "role": "button", "locatorHint": "outline voice-btn", "testIdHint": "voice-btn" },
+      { "name": "submitBtn", "role": "button", "locatorHint": "submit-btn", "testIdHint": "submit-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" },
+      { "name": "heroText", "role": "heading", "locatorHint": "A1 hero 文案", "testIdHint": "hero-text" }
+    ],
+    "steps": [
+      "点击 a22CancelBtn",
+      "断言 a22Pill 消失、heroText 可见、inputText 为空、voiceBtn outline、submitBtn disabled",
+      "断言未触发 STT 网络请求"
+    ],
+    "assertions": [
+      { "type": "notVisible", "target": "a22Pill", "expected": true },
+      { "type": "visible", "target": "heroText", "expected": true },
+      { "type": "textEquals", "target": "inputText", "expected": "" },
+      { "type": "disabled", "target": "submitBtn", "expected": true },
+      { "type": "networkRequestCount", "target": "stt_endpoint", "expected": 0 }
+    ],
+    "testData": { "mock": "nostream" },
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-VI-021",
+    "storyId": "REQ-002",
+    "title": "A2-2 录制中点击 + 附件 → 附件与录音并存",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "已进入 A2-2 录制态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "a22AttachBtn", "role": "button", "locatorHint": "+ 附件", "testIdHint": "a22-attach-btn" },
+      { "name": "a22Timer", "role": "text", "locatorHint": "计时器", "testIdHint": "a22-timer" },
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓", "testIdHint": "a22-confirm-btn" },
+      { "name": "attachmentArea", "role": "group", "locatorHint": "input 上方附件区", "testIdHint": "attachment-area" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 回填", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 a22AttachBtn",
+      "在文件选择器选择 test.pdf",
+      "断言 attachmentArea 含 test.pdf",
+      "断言 a22Pill 仍在录制（计时器持续）",
+      "等待 5 秒",
+      "点击 a22ConfirmBtn",
+      "等待 final 回填",
+      "断言 inputText 含 transcript、附件仍存在"
+    ],
+    "assertions": [
+      { "type": "textContains", "target": "attachmentArea", "expected": "test.pdf" },
+      { "type": "textNonEmpty", "target": "inputText", "expected": "transcript 回填" }
+    ],
+    "testData": { "mock": "nostream", "attachment": "test.pdf" },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-022",
+    "storyId": "REQ-002",
+    "title": "A2-2 stt_finalize_failure（点✓后 ≤8s 未 final）→ 右上角 toast + Retry pill",
+    "priority": "P0",
+    "scene": "task_creation",
+    "designMethod": "cause-effect",
+    "preconditions": "已进入 A2-2 录制态；mock STT 在用户点 ✓ 后 8 秒内不返回 final",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamFinalizeFailure", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": { "durationMs": 5000 } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓", "testIdHint": "a22-confirm-btn" },
+      { "name": "toastD2b", "role": "alert", "locatorHint": "右上角 destructive toast", "testIdHint": "toast-stt-finalize-failure" },
+      { "name": "retryPill", "role": "button", "locatorHint": "Retry pill", "testIdHint": "toast-retry-pill" }
+    ],
+    "steps": [
+      "点击 a22ConfirmBtn",
+      "等待 ≥8 秒",
+      "断言 toastD2b 可见、文案含 'Recognition failed'、retryPill 可见",
+      "点击 retryPill，断言重新提交本地 audio blob 不重录"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "toastD2b", "expected": true },
+      { "type": "textContains", "target": "toastD2b", "expected": "Recognition failed" },
+      { "type": "visible", "target": "retryPill", "expected": true }
+    ],
+    "testData": { "mock": "nostream_finalize_failure", "timeoutMs": 8000 },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-023",
+    "storyId": "REQ-002",
+    "title": "A2-2 非流式 finalize 超时边界（7.9s / 8.0s / 8.1s）",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "mock STT 在点 ✓ 后指定延迟返回 final",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓", "testIdHint": "a22-confirm-btn" },
+      { "name": "toastD2b", "role": "alert", "locatorHint": "D2b toast", "testIdHint": "toast-stt-finalize-failure" }
+    ],
+    "steps": [
+      "对 [7900, 8000, 8100] 三个延迟分别执行：进入 A2-2，录 5s，点 ✓，mock 在该延迟返回 final",
+      "断言：7900/8000ms 时 toastD2b 不可见；8100ms 时 toastD2b 可见"
+    ],
+    "assertions": [
+      { "type": "conditional", "target": "toastD2b", "expected": "<=8000ms:notVisible; >8000ms:visible" }
+    ],
+    "testData": { "finalDelayMsList": [7900, 8000, 8100] },
+    "timeoutMs": 60000
+  },
+  {
+    "id": "TC-VI-024",
+    "storyId": "REQ-002",
+    "title": "A2-2 empty_state 录制 < 0.5s 点 ✓ → 不调用 STT",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "已进入 A2-2 录制态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓", "testIdHint": "a22-confirm-btn" },
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "进入 A2-2 后 0.4 秒内点 a22ConfirmBtn",
+      "断言 a22Pill 还原为 A1、inputText 为空、未触发 STT 请求"
+    ],
+    "assertions": [
+      { "type": "notVisible", "target": "a22Pill", "expected": true },
+      { "type": "textEquals", "target": "inputText", "expected": "" },
+      { "type": "networkRequestCount", "target": "stt_endpoint", "expected": 0 }
+    ],
+    "testData": { "durationMs": 400, "action": "confirm" },
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-025",
+    "storyId": "REQ-002",
+    "title": "A2-2 empty_state 录制 < 0.5s 点 × → 丢弃回 A1",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "已进入 A2-2 录制态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22CancelBtn", "role": "button", "locatorHint": "×", "testIdHint": "a22-cancel-btn" },
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "voiceBtn", "role": "button", "locatorHint": "outline voice-btn", "testIdHint": "voice-btn" }
+    ],
+    "steps": [
+      "进入 A2-2 后 0.4 秒内点 a22CancelBtn",
+      "断言 a22Pill 消失、回 A1、不弹任何提示"
+    ],
+    "assertions": [
+      { "type": "notVisible", "target": "a22Pill", "expected": true },
+      { "type": "visible", "target": "voiceBtn", "expected": true },
+      { "type": "notVisible", "target": "any-toast", "expected": "无提示" }
+    ],
+    "testData": { "durationMs": 400, "action": "cancel" },
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-026",
+    "storyId": "REQ-002",
+    "title": "A2-2 permission_revoked_mid_session：录制中系统层撤销权限",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "error-guessing",
+    "preconditions": "已进入 A2-2 录制态约 5 秒",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": { "durationMs": 5000 } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "a22Timer", "role": "text", "locatorHint": "计时器", "testIdHint": "a22-timer" },
+      { "name": "toastD1", "role": "alert", "locatorHint": "D1 toast + 额外文案", "testIdHint": "toast-permission-denied" }
+    ],
+    "steps": [
+      "mock 系统层撤销权限",
+      "断言 a22Pill 停止计时（计时器冻结）",
+      "断言进入 D1 视觉态，toast 含 '麦克风权限被撤销，请恢复后重试'",
+      "断言本地 audio blob 保留"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "toastD1", "expected": true },
+      { "type": "textContains", "target": "toastD1", "expected": "麦克风权限被撤销" },
+      { "type": "localStorageContains", "target": "audio_blob", "expected": true }
+    ],
+    "testData": { "mock": "revoke_mid_session" },
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-VI-027",
+    "storyId": "REQ-002",
+    "title": "A2-2 设计稿视觉对照：a22Pill 全宽波形 pill（rounded-2xl + warm shadow）",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "equivalence-partitioning",
+    "preconditions": "已进入 A2-2 录制态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22Pill", "role": "region", "locatorHint": "全宽 pill", "testIdHint": "a22-pill" },
+      { "name": "a22WaveRow", "role": "group", "locatorHint": "wave-row", "testIdHint": "a22-wave-row" },
+      { "name": "a22Timer", "role": "text", "locatorHint": "Geist Mono 13px '0:NN'", "testIdHint": "a22-timer" },
+      { "name": "a22Footer", "role": "group", "locatorHint": "footer", "testIdHint": "a22-footer" }
+    ],
+    "steps": [
+      "断言 a22Pill 占据 input 全宽",
+      "断言 a22Pill CSS border-radius >= 16px（rounded-2xl）、background white、box-shadow 存在",
+      "断言 a22WaveRow、a22Footer 上下两段布局",
+      "断言 a22Timer 文字格式 /^\\d:\\d{2}$/"
+    ],
+    "assertions": [
+      { "type": "cssProperty", "target": "a22Pill", "expected": "border-radius: rounded-2xl" },
+      { "type": "cssProperty", "target": "a22Pill", "expected": "box-shadow non-empty" },
+      { "type": "textMatch", "target": "a22Timer", "expected": "/^\\d:\\d{2}$/" }
+    ],
+    "testData": {},
+    "timeoutMs": 10000
+  },
+  {
+    "id": "TC-VI-028",
+    "storyId": "REQ-002",
+    "title": "A2-2 设计稿视觉对照：footer 三按钮（× / ✓ / +）布局",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "equivalence-partitioning",
+    "preconditions": "已进入 A2-2 录制态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22AttachBtn", "role": "button", "locatorHint": "+ 附件 32×32 outline", "testIdHint": "a22-attach-btn" },
+      { "name": "a22CancelBtn", "role": "button", "locatorHint": "× 32×32 muted", "testIdHint": "a22-cancel-btn" },
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓ 32×32 muted", "testIdHint": "a22-confirm-btn" }
+    ],
+    "steps": [
+      "断言三按钮各为 32×32 圆形",
+      "断言 a22AttachBtn 左对齐、a22CancelBtn 与 a22ConfirmBtn 右侧成对（gap 8px）",
+      "点击 a22ConfirmBtn 进入 Recognizing… 状态",
+      "断言 a22ConfirmBtn 变 disabled、a22CancelBtn 仍可点击"
+    ],
+    "assertions": [
+      { "type": "size", "target": "a22AttachBtn", "expected": "32x32" },
+      { "type": "size", "target": "a22CancelBtn", "expected": "32x32" },
+      { "type": "size", "target": "a22ConfirmBtn", "expected": "32x32" },
+      { "type": "disabled", "target": "a22ConfirmBtn", "expected": "Recognizing 期间 disabled" }
+    ],
+    "testData": {},
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-VI-029",
+    "storyId": "REQ-002",
+    "title": "A2-2 追加录音仍走非流式路径",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "error-guessing",
+    "preconditions": "已完成一次 A2-2 录制并回填到 A3 草稿态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "completeA22Once", "data": { "transcript": "首段" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "草稿态 outline", "testIdHint": "voice-btn" },
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "流式 pill", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 文本区", "testIdHint": "task-input" },
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓", "testIdHint": "a22-confirm-btn" }
+    ],
+    "steps": [
+      "在 A3 草稿态点击 voiceBtn",
+      "断言出现 a22Pill 而非 timerWavePill",
+      "录 5 秒后点 a22ConfirmBtn",
+      "断言 inputText 含 '首段' + 新转写，不覆盖"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "a22Pill", "expected": true },
+      { "type": "notVisible", "target": "timerWavePill", "expected": "未切换为流式" },
+      { "type": "textStartsWith", "target": "inputText", "expected": "首段" }
+    ],
+    "testData": { "mock": "nostream", "append": true },
+    "timeoutMs": 25000
+  },
+  {
+    "id": "TC-VI-030",
+    "storyId": "REQ-002",
+    "title": "A2-2 上传阶段网络中断 → 自动重试 ≤3 次，不进 D2",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "state-transition",
+    "preconditions": "已进入 A2-2 录制态约 5 秒并点 ✓；mock 上传 audio blob 阶段网络中断",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamUploadUnstable", "data": { "dropMs": 3000, "retries": 2 } },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": { "durationMs": 5000 } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓", "testIdHint": "a22-confirm-btn" },
+      { "name": "networkRecoveryToast", "role": "status", "locatorHint": "一次性 toast '网络恢复中'", "testIdHint": "toast-network-recovery" },
+      { "name": "toastD2b", "role": "alert", "locatorHint": "D2b toast", "testIdHint": "toast-stt-finalize-failure" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 回填", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 a22ConfirmBtn",
+      "mock 上传过程中断网 3s",
+      "网络恢复",
+      "断言 networkRecoveryToast 出现一次后消失",
+      "断言 inputText 最终收到 transcript",
+      "断言未出现 toastD2b"
+    ],
+    "assertions": [
+      { "type": "textNonEmpty", "target": "inputText", "expected": "transcript 回填" },
+      { "type": "notVisible", "target": "toastD2b", "expected": "不进入 D2" }
+    ],
+    "testData": { "mock": "nostream_upload_unstable", "retries": 2 },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-031",
+    "storyId": "REQ-002",
+    "title": "A2-2 录制中切换 tab / 关闭页面",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "已进入 A2-2 录制态",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "a22Timer", "role": "text", "locatorHint": "计时器", "testIdHint": "a22-timer" },
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn outline", "testIdHint": "voice-btn" }
+    ],
+    "steps": [
+      "子用例 A：切换 tab 5 秒返回，断言 a22Pill 仍在录制、计时器继续",
+      "子用例 B：关闭页面，重新打开 /task-creation，断言 a22Pill 不残留、voiceBtn outline、A1 default 态"
+    ],
+    "assertions": [
+      { "type": "conditional", "target": "a22Pill", "expected": "tab_switch:visible; close_page:notVisible" }
+    ],
+    "testData": { "actions": ["tab_switch", "close_page"] },
+    "timeoutMs": 30000
+  },
+  {
+    "id": "TC-VI-032",
+    "storyId": "REQ-002",
+    "title": "A2-2 长录音 600s 自动停止",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "已进入 A2-2 录制态；mock 持续音频源",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "enterA22Recording", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "a22Pill", "role": "region", "locatorHint": "a22 pill", "testIdHint": "a22-pill" },
+      { "name": "longRecordHint", "role": "status", "locatorHint": "09:00 / 10:00 提示", "testIdHint": "long-record-hint" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input 回填", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "推进虚拟时钟至 545s，断言 longRecordHint 显示 '09:00' 或 '10:00'",
+      "继续至 600s",
+      "断言 a22Pill 自动停止并触发上传 + final 回填",
+      "断言 inputText 含 transcript"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "longRecordHint", "expected": "≥9:00 显示" },
+      { "type": "textNonEmpty", "target": "inputText", "expected": "final 回填" }
+    ],
+    "testData": { "durationMs": 600000 },
+    "timeoutMs": 60000
+  },
+  {
+    "id": "TC-VI-033",
+    "storyId": "REQ-002",
+    "title": "A2-2 转写文本与 input 已有内容冲突 → 追加不覆盖",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "error-guessing",
+    "preconditions": "用户已在 input 手动键入'前置文字'",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockNostreamBranch", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "typeIntoInput", "data": { "text": "前置文字" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "a22ConfirmBtn", "role": "button", "locatorHint": "✓", "testIdHint": "a22-confirm-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 voiceBtn 进入 A2-2",
+      "录 5 秒",
+      "点击 a22ConfirmBtn",
+      "断言 inputText 以 '前置文字' 开头并追加 transcript"
+    ],
+    "assertions": [
+      { "type": "textStartsWith", "target": "inputText", "expected": "前置文字" }
+    ],
+    "testData": { "prefix": "前置文字", "mock": "nostream" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-034",
+    "storyId": "REQ-003",
+    "title": "STT 识别语言跟随 Mira 全局语言（en）",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "equivalence-partitioning",
+    "preconditions": "用户已在左下角头像菜单将 Mira 全局语言设为 English；浏览器麦克风权限已授权；STT 供应商支持 en",
+    "setup": [
+      { "type": "ui", "action": "wait", "pomMethod": "setMiraLocale", "data": { "locale": "en" } },
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "timerWavePill", "role": "button", "locatorHint": "pill", "testIdHint": "timer-wave-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input", "testIdHint": "task-input" },
+      { "name": "langLabel", "role": "text", "locatorHint": "voice-btn 旁不应有语言标签", "testIdHint": "voice-lang-label" }
+    ],
+    "steps": [
+      "点击 voiceBtn 开始录音",
+      "口述英文 10 秒",
+      "断言 voice_record_started 事件 mira_locale=en、stt_language=en",
+      "停止录音",
+      "断言 inputText 为英文 transcript",
+      "断言 langLabel 不存在"
+    ],
+    "assertions": [
+      { "type": "analyticsEvent", "target": "voice_record_started", "expected": { "mira_locale": "en", "stt_language": "en" } },
+      { "type": "notVisible", "target": "langLabel", "expected": "无独立语言标签" }
+    ],
+    "testData": { "mira_locale": "en", "speakLang": "en" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-035",
+    "storyId": "REQ-003",
+    "title": "STT 识别语言跟随 Mira 全局语言（zh）",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "equivalence-partitioning",
+    "preconditions": "Mira 全局语言设为中文；STT 供应商支持 zh",
+    "setup": [
+      { "type": "ui", "action": "wait", "pomMethod": "setMiraLocale", "data": { "locale": "zh" } },
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "口述中文 10 秒",
+      "停止录音",
+      "断言 voice_record_started 事件 stt_language=zh，inputText 为中文 transcript"
+    ],
+    "assertions": [
+      { "type": "analyticsEvent", "target": "voice_record_started", "expected": { "mira_locale": "zh", "stt_language": "zh" } },
+      { "type": "textMatch", "target": "inputText", "expected": "/[\\u4e00-\\u9fa5]+/" }
+    ],
+    "testData": { "mira_locale": "zh", "speakLang": "zh" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-036",
+    "storyId": "REQ-003",
+    "title": "language_not_supported_by_stt → 回退到 English",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "cause-effect",
+    "preconditions": "Mira 全局语言设为一种 STT 不支持的语言（mock）",
+    "setup": [
+      { "type": "ui", "action": "wait", "pomMethod": "setMiraLocale", "data": { "locale": "unsupported" } },
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockSttCapabilityMatrix", "data": { "unsupportedLocale": "unsupported" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 voiceBtn 录音 10 秒后停止",
+      "断言 STT 调用 language=en（回退）",
+      "断言 voice_transcript_finalized 事件 language_detected=en"
+    ],
+    "assertions": [
+      { "type": "analyticsEvent", "target": "voice_transcript_finalized", "expected": { "language_detected": "en" } },
+      { "type": "backendLog", "target": "stt_request", "expected": "language=en" }
+    ],
+    "testData": { "mira_locale": "unsupported" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-037",
+    "storyId": "REQ-003",
+    "title": "中英混说语言识别",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "Mira 全局语言设为中文或英文；STT 供应商支持混说",
+    "setup": [
+      { "type": "ui", "action": "wait", "pomMethod": "setMiraLocale", "data": { "locale": "zh" } },
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input", "testIdHint": "task-input" }
+    ],
+    "steps": [
+      "点击 voiceBtn 录音",
+      "口述中英混合内容 '招聘 Senior Java 工程师 with 5 years experience'",
+      "停止",
+      "断言 inputText 同时包含中文与英文片段"
+    ],
+    "assertions": [
+      { "type": "textMatch", "target": "inputText", "expected": "/[\\u4e00-\\u9fa5]+/" },
+      { "type": "textMatch", "target": "inputText", "expected": "/[A-Za-z]+/" }
+    ],
+    "testData": { "speakLang": "mixed" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-038",
+    "storyId": "REQ-001",
+    "title": "D1 toast 文案与自动消失",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "触发 permission_denied",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockMicPermissionDenied", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "toastD1", "role": "alert", "locatorHint": "D1 toast", "testIdHint": "toast-permission-denied" },
+      { "name": "toastCloseBtn", "role": "button", "locatorHint": "close 按钮", "testIdHint": "toast-close" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "断言 toastD1 文案为 'Microphone access blocked'、含 close 按钮、位于右上角",
+      "子用例 A：等待 5s，断言 toastD1 自动消失",
+      "子用例 B：再次触发后点 toastCloseBtn，断言立即消失"
+    ],
+    "assertions": [
+      { "type": "textContains", "target": "toastD1", "expected": "Microphone access blocked" },
+      { "type": "visible", "target": "toastCloseBtn", "expected": true },
+      { "type": "notVisible", "target": "toastD1", "expected": "5s 后自动消失或点 close 立即消失" }
+    ],
+    "testData": { "type": "D1" },
+    "timeoutMs": 15000
+  },
+  {
+    "id": "TC-VI-039",
+    "storyId": "REQ-001",
+    "title": "D2 toast 内嵌 Retry pill（替代 close）",
+    "priority": "P2",
+    "scene": "task_creation",
+    "designMethod": "boundary-value",
+    "preconditions": "触发 D2a 或 D2b",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockSttConnectFailure", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" },
+      { "name": "toastD2a", "role": "alert", "locatorHint": "D2a toast", "testIdHint": "toast-stt-connect-failure" },
+      { "name": "retryPill", "role": "button", "locatorHint": "Retry pill", "testIdHint": "toast-retry-pill" },
+      { "name": "toastCloseBtn", "role": "button", "locatorHint": "close 按钮", "testIdHint": "toast-close" }
+    ],
+    "steps": [
+      "点击 voiceBtn",
+      "等待 3.5 秒后断言 toastD2a 可见",
+      "断言 retryPill 可见、toastCloseBtn 不可见",
+      "等待 10 秒",
+      "断言 toastD2a 仍然可见（常驻）"
+    ],
+    "assertions": [
+      { "type": "visible", "target": "retryPill", "expected": true },
+      { "type": "notVisible", "target": "toastCloseBtn", "expected": "D2 无 close" },
+      { "type": "visible", "target": "toastD2a", "expected": "10s 后仍可见" }
+    ],
+    "testData": { "type": "D2a" },
+    "timeoutMs": 20000
+  },
+  {
+    "id": "TC-VI-040",
+    "storyId": "REQ-001",
+    "title": "Retry pill 点击重新提交本地 audio blob（不重录）",
+    "priority": "P1",
+    "scene": "task_creation",
+    "designMethod": "scenario",
+    "preconditions": "D2b toast 已显示；本地 audio blob 仍保留",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "data": { "path": "/task-creation" } },
+      { "type": "ui", "action": "wait", "pomMethod": "mockSttFinalizeFailureThenSuccess", "data": {} },
+      { "type": "ui", "action": "create", "pomMethod": "streamingRecordAndStop", "data": { "durationMs": 5000 } }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "toastD2b", "role": "alert", "locatorHint": "D2b toast", "testIdHint": "toast-stt-finalize-failure" },
+      { "name": "retryPill", "role": "button", "locatorHint": "Retry pill", "testIdHint": "toast-retry-pill" },
+      { "name": "inputText", "role": "textbox", "locatorHint": "input", "testIdHint": "task-input" },
+      { "name": "voiceBtn", "role": "button", "locatorHint": "voice-btn", "testIdHint": "voice-btn" }
+    ],
+    "steps": [
+      "等待 toastD2b 出现",
+      "记录当前 audio blob id",
+      "点击 retryPill",
+      "断言系统未要求用户重录（无新的 getUserMedia 请求、无 voiceBtn 重新进入 timer-wave）",
+      "断言 STT 调用使用相同 audio blob id",
+      "断言成功后 inputText 收到 transcript、进入 A3 草稿态"
+    ],
+    "assertions": [
+      { "type": "networkRequestCount", "target": "getUserMedia", "expected": 0 },
+      { "type": "textNonEmpty", "target": "inputText", "expected": "transcript 回填" },
+      { "type": "notVisible", "target": "toastD2b", "expected": "Retry 成功后 toast 消失" }
+    ],
+    "testData": { "blobRetained": true },
+    "timeoutMs": 20000
+  }
+]

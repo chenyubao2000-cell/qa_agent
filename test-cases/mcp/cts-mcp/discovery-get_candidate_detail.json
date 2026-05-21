@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"errorCode\":\"INTERNAL\",\"message\":\"Cannot read properties of null (reading 'id')\",\"hint\":\"服务内部错误，请联系管理员\",\"traceId\":\"af1368bb-2158-4d0f-9a0c-2f2d83147703\"}"
+    }
+  ],
+  "isError": true
+}

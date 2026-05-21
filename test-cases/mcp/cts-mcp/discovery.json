@@ -1,0 +1,300 @@
+{
+  "probedAt": "2026-05-08T10:56:40.744Z",
+  "serverInfo": {
+    "name": "mcp-cts-server",
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "logging": {},
+    "completions": {},
+    "tools": {}
+  },
+  "instructions": "This is the CTS MCP Server for a recruitment industry internal talent pool system (CTS — Candidate Tracking System). It provides read-only access to the company's internal talent database (12.6M+ accumulated talent records).\n\n**ROUTING: any user request mentioning \"CTS 数据\" / \"CTS 内部数据\" / \"内部人才库里有没有…\" or any similar phrasing about finding people inside CTS goes to this server.** The primary tool is `cts_search_candidates`. For external people data (LinkedIn, Apollo, Exa, etc.), use the PeopleData Tool — this server only covers internal talent. For CRM data (enterprises, customers, positions, financing), use the CRM MCP Server. Candidate-as-business-entity operations (推进流程, 职位匹配) and contact record management are planned for a future release.\n\nAvailable tools fall into two groups. (1) Talent: cts_search_candidates searches the internal talent pool by structured filters (name, company, job title, location, education, experience, etc.) or by semantic_query for JD-based vector similarity matching (CRE model) — supports both modes in one tool, combinable; cts_get_candidate_detail fetches the full standard resume by candidate_id (complete education history, work history with descriptions, project experience, skills, certifications) — includes has_phone/has_email flags but does NOT include actual contact info; cts_get_candidate_contact_info fetches phone and email by candidate_id as a separate call — before calling, check has_phone/has_email from search or detail results and skip if both are false; access is controlled by authentication (no masking — returns plain text if authorized, 403 if not). (2) Schema dictionary: cts_get_cts_schema returns city trees, industry trees, job category trees, education levels, school types, experience ranges, and other enums. All 4 tools are read-only.\n\nCritical usage rules. First, ALWAYS call cts_get_cts_schema before passing dictionary parameters (location, industry, job_category, education, school_type, work_experience) to cts_search_candidates — never guess or hardcode enum values; the schema is cached for one hour. Second, cts_search_candidates and cts_get_candidate_detail return has_phone/has_email boolean flags indicating contact availability but do NOT return actual phone numbers or emails; cts_get_candidate_contact_info returns actual phone/email in plain text (access controlled by authentication — no masking) — check has_phone/has_email before calling and skip if both are false; if the user lacks permission, the server returns 403. Third, all queries are automatically scoped to the current consultant's permissions; do not pass userId. Fourth, default page size is 20; maximum is 100. Fifth, if cts_search_candidates returns 422 (invalid enum value), auto-call cts_get_cts_schema to fetch valid values and retry. Sixth, before calling cts_search_candidates, ALWAYS present your interpreted search conditions to the user first and wait for explicit confirmation — list each filter with its resolved Chinese label (e.g., \"地点：上海, 学历：本科及以上, 行业：人工智能\"), then ask the user to confirm or adjust; only call the tool after the user approves; if the user says \"直接搜\" or similar, you may skip confirmation for that query. Seventh, cts_search_candidates requires at least one search or filter parameter — do not call with an empty parameter set; if the user's request is too vague to derive any filter, ask the user to clarify before calling. Eighth, when semantic_query is provided, results are ranked by semantic relevance (CRE model); structured filters can be combined with semantic_query as post-filters.\n\nCommon workflows: For internal talent search, start with cts_get_cts_schema to resolve location/education/industry codes, then cts_search_candidates with structured filters, then cts_get_candidate_detail for full resume review, then check has_phone/has_email — if either is true and the consultant wants to reach out, call cts_get_candidate_contact_info. For JD-based talent matching, pass the JD text via semantic_query to cts_search_candidates, optionally combine with location/experience filters, then drill into detail and contact. For quick talent lookup by name or phone, pass name or phone directly to cts_search_candidates — no schema call needed for free-text fields. For any search, always present your interpreted conditions to the user before calling the tool — only execute after user confirmation.\n",
+  "tools": [
+    {
+      "name": "cts_search_candidates",
+      "description": "#### #1 cts\\_search\\_candidates\n\n**Title:** cts_search_candidates\n\n> V1.0（P0）| 人才域 | 读\n\n**Description**: `**[CTS Talent Search Tool · Use this tool whenever users ask about \"CTS data\", \"CTS internal data\", or \"if there are any in the internal talent pool\"]**\nSearch for talents in the CTS internal talent pool by keyword/structured filtering (name/company/position/location/education/experience/industry/position category/college type/career status, etc.) or semantic similarity. Supports free combination of three search modes: keyword/semantic_query/hybrid.\n\nPRECONDITIONS (check ONCE before the first search in a conversation; do NOT re-check on subsequent searches):\n  1. At least one search or filter parameter is present (keyword / name / phone / company_name / job_title / semantic_query / location / education / ...). Calling with no parameters fails with CTS_BAD_REQUEST.\n  2. Dictionary values are available. Dictionary parameters (location, industry, job_category, education, school_type, work_experience) need enum values from cts_get_cts_schema, fetched ONCE per conversation. BEFORE calling cts_get_cts_schema, scan the conversation history — if a prior cts_get_cts_schema result contains the needed types, REUSE those values directly and skip calling cts_get_cts_schema entirely. Only call cts_get_cts_schema when the needed values are genuinely missing from history; pass every missing type in a single schema_types=[...] call.\n  3. Search conditions have been presented to the user and the user has approved. Do NOT execute without approval.\n\nRUNTIME ERRORS (handle only when the current call returns an error):\n  - VALIDATION_FAILED naming a specific dictionary field → the value for THAT field is stale; re-fetch only that one dictionary, correct the value, retry this search ONCE, then stop.\n  - Any other error (CTS_BAD_REQUEST, AUTH_*, CTS_UPSTREAM, ...) → surface the error to the user; do NOT re-fetch schemas and do NOT retry.\n\nAFTER A SUCCESSFUL SEARCH (termination rule — critical):\n  - Present the results to the user in natural language (counts, sample candidates, has_phone/has_email notes).\n  - STOP. Your next turn MUST be a user-facing response, NOT another tool call.\n  - Do NOT spontaneously re-run cts_get_cts_schema or cts_search_candidates. The task is complete until the user issues a NEW request in their next message.\n  - Only chain additional tool calls if the user explicitly asks (e.g., \"给我看第一个人的详情\" → cts_get_candidate_detail; \"看他的电话\" → first check has_phone, then cts_get_candidate_contact_info if true).\n\nSEARCH MODES (the three text-matching approaches can be used alone OR combined freely — structured filters like location/education/industry can be stacked on top of any mode):\n  (A) Keyword mode — pass `keyword` alone (with or without structured filters). Fuzzy matches across skills / company / title text fields. No semantic ranking. Best for short concrete terms like \"Python\"、\"自动驾驶\"、\"后端开发\".\n  (B) Semantic mode — pass `semantic_query` alone (with or without structured filters). CRE vector similarity, results ranked by relevance. Best for pasted JDs or natural-language requirement descriptions (\"找做 LLM Agent 方向的候选人, 熟悉 RAG 和工具编排\").\n  (C) Hybrid mode — pass BOTH `keyword` AND `semantic_query` together. Semantic does broad ranking + keyword filters/boosts the candidate pool. Use when the user gives a free-form requirement AND a hard must-have term (\"语义: LLM Agent 方向, 必含 keyword: 字节\"). When `semantic_query` is present, results are always ranked by semantic relevance regardless of mode.\n\nMODE SELECTION RULES:\n  - Short phrase / single concept (< 10 chars) → prefer `keyword`\n  - Long JD / multi-sentence requirement → use `semantic_query`\n  - Entity-specific value (specific company / school / job title / name / phone) → use the dedicated parameter (`company_name` / `school_name` / `job_title` / `name` / `phone`) — DO NOT stuff these into `keyword`\n  - Semantic requirement + hard must-have token → hybrid (`semantic_query` + `keyword`)\n  - Semantic requirement + specific entity filter → `semantic_query` + dedicated parameter (e.g., `semantic_query` + `company_name`)\n  - NEVER put the same content in both `keyword` and `semantic_query` — redundant.\n\nReturns a paginated summary list (latest education + recent 2 work experiences + has_phone/has_email flags indicating contact availability). For the full resume call cts_get_candidate_detail; check has_phone/has_email before calling cts_get_candidate_contact_info and skip if both are false.`\n\n> 中文参考：**【CTS人才搜索工具 · 用户问\"CTS数据\"、\"CTS内部数据\"、\"内部人才库里有没有\"时必用本工具】**\n> 在 CTS 内部人才库中按关键词 / 结构化筛选（姓名 / 公司 / 职位 / 地点 / 学历 / 经验 / 行业 / 岗位类别 / 院校类型 / 求职状态等）或语义相似度搜索人才。支持 keyword / semantic_query / hybrid 三种搜索模式自由组合。\n>\n> **前置条件**（只在本会话**首次搜索前**检查一次，后续搜索不再重检）：\n>   1. 至少传入一个搜索/筛选参数（keyword / name / phone / company_name / job_title / semantic_query / location / education / …），无参数会失败返 `CTS_BAD_REQUEST`。\n>   2. 字典类参数（location, industry, job_category, education, school_type, work_experience）的 value 已就绪。**先在历史消息中查找此前 `cts_get_cts_schema` 的结果**——只要找到包含所需类型的，**直接复用 value，跳过调用 `cts_get_cts_schema`**。仅当历史确无此字典值时，才调 `cts_get_cts_schema`，并用 `schema_types=[...]` 一次取齐所有缺失字典。\n>   3. 已向用户展示理解到的筛选条件并获得确认。未确认不要执行。\n>   4.如果是长文本jd描述，或者无法进行关键字抽取的，推荐使用纯语义搜索。\n>\n> **运行时错误处理**（仅在本次调用返回错误时才触发）：\n>   - `VALIDATION_FAILED` 指向某个字典字段 → 该字段 value 失效；只重取该字段对应字典、修正后**最多重试一次**，然后停止。\n>   - 其他错误（`CTS_BAD_REQUEST` / `AUTH_*` / `CTS_UPSTREAM` 等）→ **不要**重取字典、**不要**重试，直接把错误告知用户。\n>\n> **三种搜索模式**（三种文本匹配方式可**单独使用**或**任意组合**；结构化筛选 location/education/industry 等可叠加在任一模式上）：\n>   - **(A) 关键字模式**：只传 `keyword`（可叠加结构化筛选）。跨技能/公司/岗位字段模糊匹配，不做语义排序。适合短的具体词 \"Python\"、\"自动驾驶\"、\"后端开发\"。\n>   - **(B) 语义模式**：只传 `semantic_query`（可叠加结构化筛选）。CRE 向量相似度，按相关度排序。适合 JD 全文或自然语言描述需求（\"找做 LLM Agent 方向、熟悉 RAG 和工具编排的候选人\"）。\n>   - **(C) 混合模式**：**同时传 `keyword` 和 `semantic_query`**。语义做广泛召回 + 排序，keyword 做硬性过滤/加权。适合\"需求描述 + 必含某词\"的场景（\"语义：LLM Agent 方向；必含 keyword：字节\"）。只要 `semantic_query` 存在，结果一律按语义相关度排序。\n>\n> **模式选择规则**：\n>   - 短语/单一概念（< 10 字）→ 优先用 `keyword`\n>   - JD 全文 / 多句描述 → 用 `semantic_query`\n>   - 具体实体值（特定公司/学校/职位/姓名/手机号）→ 用对应专用参数（`company_name` / `school_name` / `job_title` / `name` / `phone`），**不要塞进 `keyword`**\n>   - 语义需求 + 硬必含词 → 混合（`semantic_query` + `keyword`）\n>   - 语义需求 + 具体实体过滤 → `semantic_query` + 专用参数（如 `semantic_query` + `company_name`）\n>   - **同一内容不要同时传入 `keyword` 和 `semantic_query`**，冗余。\n>\n> **搜索成功后**（关键终止规则）：\n>   - 用自然语言向用户展示结果（数量、样例人选、has_phone / has_email 情况）。\n>   - **停止**。下一回合必须是**面向用户的自然语言回复**，**不是**另一个 tool call。\n>   - **不要**自发地再次调用 `cts_get_cts_schema` 或 `cts_search_candidates`。搜索任务已完成——直到用户在下一条消息里提出**新的**请求，才再行动。\n>   - 只有用户显式要求时才链式调用其他工具（如\"给我看第一个人的详情\" → `cts_get_candidate_detail`；\"看他的电话\" → 先查 `has_phone`，为 true 再调 `cts_get_candidate_contact_info`）。\n>\n> 返回分页摘要列表（最近教育经历 + 最近 2 段工作经历 + has_phone / has_email 联系方式可用性标识）。完整简历请调用 `cts_get_candidate_detail`；调用 `cts_get_candidate_contact_info` 前先检查 has_phone/has_email，均为 false 时跳过。\n\n**Input Schema**：\n\n| 参数名           | 类型    | 必填 | 说明                                                                                                                                                               |\n| ---------------- | ------- | ---- |------------------------------------------------------------------------------------------------------------------------------------------------------------------|\n| `keyword`        | string  | 否   | 关键字模糊搜索（跨技能/公司/职位等文本字段）。已知特定字段用专属参数（name / company_name / job_title）。**可与 `semantic_query` 组合成混合模式**：语义召回 + keyword 硬过滤。                                         |\n| `semantic_query` | string  | 否   | 语义搜索文本（JD 全文或招聘需求描述），走 CRE 模型向量相似度匹配，结果按语义相关度排序。**可叠加任意结构化筛选**（location/education/industry/company_name/…），**也可与 `keyword` 组合成混合模式**。禁止把和 `keyword` 相同的内容重复填在这里。 |\n| `limit`          | integer | 否   | 返回条数上限，不传默认 20，最大可以支持200。                                                    |\n| `cursor`         | string  | 否   | 分页游标，由上次请求返回的 `next_cursor` 传入                                                                                                                                   |\n\n**筛选参数**（功能域：**搜索内部人才库** · 典型场景：库里有没有做 XX 的人？按姓名 / 公司 / 地点 / 学历 / 经验等多维筛选，或通过 JD 语义匹配）：\n\n| 参数名            | 类型       | 必填 | 说明                                                                                                                 | 枚举值                                                                           |\n| ----------------- | ---------- | ---- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |\n| `name`            | string     | 否   | 人才姓名搜索（模糊匹配）                                                                                             | —                                                                                |\n| `phone`           | string     | 否   | 手机号搜索（精确匹配）                                                                                               | —                                                                                |\n| `company_name`    | string     | 否   | 公司名称搜索（模糊匹配，多个取 OR；匹配当前和历史工作经历中的公司）                                                  | —                                                                                |\n| `school_name`     | string     | 否   | 学校名称搜索（模糊匹配）                                                                                             | —                                                                                |\n| `job_title`       | string     | 否   | 职位名称关键词（模糊匹配，多个取 OR；匹配工作经历中的职位名称）                                                       | —                                                                                |\n| `work_content`    | string     | 否   | 工作内容/技能关键词搜索                                                                                              | —                                                                                |\n| `location`        | string\\[\\] | 否   | 居住地/期望工作地点筛选（需要 `city_tree` 字典 value；多选取 OR）                                                     | —                                                                                |\n| `education`       | string\\[\\] | 否   | 学历要求筛选（需要 `education_tree` 字典 value）                                                                      | —                                                                                |\n| `school_type`     | string\\[\\] | 否   | 院校类型筛选（需要 `school_type_tree` 字典 value；多选取 OR）                                                         | —                                                                                |\n| `work_experience` | string\\[\\] | 否   | 工作年限筛选（需要 `experience_tree` 字典 value；多选取 OR）                                                          | —                                                                                |\n| `industry`        | string\\[\\] | 否   | 行业筛选（需要 `industry_tree` 字典 value；多选取 OR）                                                                | —                                                                                |\n| `job_category`    | string\\[\\] | 否   | 求职意向职位类别筛选（需要 `job_category_tree` 字典 value；多选取 OR）                                                | —                                                                                |\n\n> 上述带「需要 … 字典 value」的字段传值前，**一次性**调用 `cts_get_cts_schema(schema_types=[...])` 取齐所有还没有的字典；本会话内已取过的字典直接复用，不要重复调用。\n| `gender`          | string     | 否   | 性别筛选                                                                                                             | `\"男\"` / `\"女\"`                                                                  |\n| `age_min`         | integer    | 否   | 最小年龄（含）                                                                                                       | —                                                                                |\n| `age_max`         | integer    | 否   | 最大年龄（含）                                                                                                       | —                                                                                |\n| `job_status`      | string\\[\\] | 否   | 求职状态筛选（多选，取 OR）                                                                                          | `\"在职看机会\"` / `\"离职\"` / `\"在职不看\"` / ...                                   |\n| `active_within`   | string     | 否   | 活跃时间筛选                                                                                                         | `\"近7天\"` / `\"近30天\"` / `\"近90天\"`                                              |\n| `sort_by`         | string     | 否   | 排序方式，默认综合排序；`semantic_query` 传入时默认按语义相关度排序                                                   | `\"default\"`（综合排序）/ `\"active_first\"`（活跃时间由新到旧）/ `\"update_first\"`（更新时间由新到旧） |\n\n**Output Schema（公共，搜索类工具适用）**：\n\n| 字段名        | 类型    | 说明                            |\n| ------------- | ------- | ------------------------------- |\n| `items`       | array   | 记录列表（JSONL 格式流式返回）  |\n| `total`       | integer | 符合条件的总记录数              |\n| `next_cursor` | string  | 下一页游标，无更多数据时为 null |\n\n**Output Schema 条目字段**（**搜索内部人才** 返回摘要 · 含求职状态 / 活跃时间 / 最近教育和工作经历）：\n\n**基本信息**：\n\n| 字段名              | 类型    | 说明                                                                                                         |\n| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |\n| `candidate_id`      | string  | Unique talent identifier in CTS system. Required for cts_get_candidate_detail and cts_get_candidate_contact_info calls. |\n| `name`              | string  | 姓名                                                                                                         |\n| `gender`            | string  | 性别                                                                                                         |\n| `age`               | integer | 年龄                                                                                                         |\n| `current_residence` | string  | 当前居住地                                                                                                   |\n| `first_education`   | string  | First/initial degree obtained (e.g., 本科, 大专). Indicates the talent's educational starting point, distinct from highest education. |\n| `work_years`        | string  | 工作年限                                                                                                     |\n| `active_time`       | string  | Last activity date in CTS system (yyyy-MM-dd). More recent = higher likelihood of being reachable and data being current. |\n| `job_status`        | string  | Current job-seeking status (e.g., \"在职看机会\", \"离职\", \"在职不看\"). Indicates receptiveness to outreach — prioritize \"在职看机会\" and \"离职\" for active candidates. |\n| `native_place`      | string  | 户籍                                                                                                         |\n| `detail_url`        | string  | Direct link to this talent's detail page in CTS system. Use for deep-linking when the consultant wants to view the full profile in CTS. |\n\n**求职意向**：\n\n| 字段名                     | 类型   | 说明           |\n| -------------------------- | ------ | -------------- |\n| `current_salary`           | string | 当前薪资       |\n| `expected_salary`          | string | 期望薪资       |\n| `preferred_locations`      | string | 期望工作地点   |\n| `preferred_industries`     | string | 求职意向行业   |\n| `preferred_job_categories` | string | 求职意向岗位类别 |\n\n**联系方式可用性**：\n\n| 字段名      | 类型    | 说明                                                                                                                                |\n| ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |\n| `has_phone` | boolean | Whether this talent has a phone number on file. When true, call cts_get_candidate_contact_info to retrieve it. When false, skip the contact info call for phone. |\n| `has_email` | boolean | Whether this talent has an email address on file. When true, call cts_get_candidate_contact_info to retrieve it. When false, skip the contact info call for email. |\n\n**最近教育经历** `latest_education`（object，仅最后一段；完整教育经历请调用 `cts_get_candidate_detail`）：\n\n| 字段名       | 类型   | 说明     |\n| ------------ | ------ | -------- |\n| `school`     | string | 学校     |\n| `education`  | string | 学历     |\n| `speciality` | string | 专业     |\n| `start_time` | string | 开始时间 |\n| `end_time`   | string | 结束时间 |\n\n**最近工作经历** `recent_work_experiences`（object，最近 2 段，不含工作内容描述；完整工作经历请调用 `cts_get_candidate_detail`）：\n\n| 字段名       | 类型   | 说明       |\n| ------------ | ------ | ---------- |\n| `company`    | string | 公司名称   |\n| `title`      | string | 职位       |\n| `start_time` | string | 开始时间   |\n| `end_time`   | string | 结束时间   |\n| `duration`   | string | 任职时长   |\n\n**Annotations**：`readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, `openWorldHint: true`\n\n## Trace ID propagation\n\nEach response includes `_meta.trace_id` (in the final `{\"type\":\"meta\"}` line of the response) and `_meta.tool_call_id`. For subsequent tool calls in the **same conversation**, pass the received `trace_id` back as the `trace_id` parameter so backend analytics can link related calls (schema → search → detail → contact). Omit on the first call of a new conversation — the server will generate a fresh one.\n\nThe optional `user_query` parameter carries the user's original full query text; it is used only for analytics correlation and does not affect search behavior.\n\n---\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "description": "Fuzzy keyword search across skills, company names, job titles, and other text fields. For specific field search, use dedicated parameters (name, company_name, job_title) instead."
+          },
+          "semantic_query": {
+            "type": "string",
+            "description": "Semantic search text (JD excerpt or recruitment requirement description). Triggers CRE model vector similarity matching. Can be combined with structured filters as post-filters. When provided, results are ranked by semantic relevance."
+          },
+          "name": {
+            "type": "string",
+            "description": "Talent name search (fuzzy match)."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number search (exact match)."
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Company name search (fuzzy match, multiple, OR). Matches against current and past work experience companies. Pass multiple names to search across several companies at once."
+          },
+          "school_name": {
+            "type": "string",
+            "description": "School name search (fuzzy match)."
+          },
+          "job_title": {
+            "type": "string",
+            "description": "Job title keywords (fuzzy match, multiple, OR). Matches against job titles in work experience. Pass multiple titles to search across several roles at once."
+          },
+          "work_content": {
+            "type": "string",
+            "description": "Work content or skill keywords search. Matches against work descriptions and skill tags."
+          },
+          "location": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Location filter — current residence or preferred work location (multiple, OR). Valid values from cts_get_cts_schema(schema_type=\"city_tree\"). Do NOT guess — always resolve from schema first."
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Education level filter. Valid values from cts_get_cts_schema(schema_type=\"education_tree\"). Do NOT guess — always resolve from schema first."
+          },
+          "school_type": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "School type filter (multiple, OR). Valid values from cts_get_cts_schema(schema_type=\"school_type_tree\"). Do NOT guess — always resolve from schema first."
+          },
+          "work_experience": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Work experience years filter (multiple, OR). Valid values from cts_get_cts_schema(schema_type=\"experience_tree\"). Do NOT guess — always resolve from schema first."
+          },
+          "industry": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Industry filter (multiple, OR). Valid values from cts_get_cts_schema(schema_type=\"industry_tree\"). Do NOT guess — always resolve from schema first."
+          },
+          "job_category": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Preferred job category filter (multiple, OR). Valid values from cts_get_cts_schema(schema_type=\"job_category_tree\"). Do NOT guess — always resolve from schema first."
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "男",
+              "女"
+            ],
+            "description": "Gender filter. Allowed: \"男\", \"女\"."
+          },
+          "age_min": {
+            "type": "integer",
+            "description": "Minimum age filter. CTS only supports fixed 5-year buckets; age_min/age_max must pair as one of: 20-25, 25-30, 30-35, 35-40, 40-45."
+          },
+          "age_max": {
+            "type": "integer",
+            "description": "Maximum age filter. Must pair with age_min as one of the supported buckets (20-25, 25-30, 30-35, 35-40, 40-45)."
+          },
+          "job_status": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Job-seeking status filter (multiple, OR). Common values: \"在职看机会\", \"离职\", \"在职不看\"."
+          },
+          "active_within": {
+            "type": "string",
+            "enum": [
+              "今日活跃",
+              "近3天",
+              "近7天",
+              "近15天",
+              "近30天"
+            ],
+            "description": "Activity time filter — talents active within the specified period. Allowed: \"今日活跃\", \"近3天\", \"近7天\", \"近15天\", \"近30天\". Mapped to CTS ActiveTimeEnum (101/102/103/104/105)."
+          },
+          "sort_by": {
+            "type": "string",
+            "enum": [
+              "default",
+              "active_first",
+              "update_first"
+            ],
+            "description": "Sort order. When semantic_query is provided, defaults to semantic relevance ranking. Otherwise: \"default\" (general relevance), \"active_first\" (most recently active), \"update_first\" (most recently updated). Default: \"default\"."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 20,
+            "description": "Maximum number of results to return. Default: 20, max: 200. Note: daily per-user cumulative item quota applies; see error CTS_DAILY_QUOTA_EXCEEDED."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor from the previous response's next_cursor. Omit for the first page."
+          },
+          "trace_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Trace id returned by a previous tool response (_meta.trace_id) in the same conversation. Pass it back so backend analytics can correlate schema → search → detail → contact. Omit on the first call of a new conversation — the server will generate a fresh one."
+          },
+          "user_query": {
+            "type": "string",
+            "description": "The user's original full query text. Used for analytics correlation only; does not affect search behavior. Example: '找一个北京的资深前端工程师，5 年以上经验'."
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get Cts Search Candidates",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "cts_get_candidate_detail",
+      "description": "#### #2 cts\\_get\\_candidate\\_detail\n\n**Title:** cts_get_candidate_detail\n\n> V1.0（P0）| 人才域 | 读\n\n**Description**: `Fetch the full standard resume of a CTS talent by candidate_id — profile, job intent, complete education history, complete work history with descriptions, project experience, language skills, certifications, skill tags, training, awards, and self-evaluation. Also includes has_phone/has_email flags indicating contact availability. Does NOT include actual contact information (phone numbers or emails) — check has_phone/has_email first, then call cts_get_candidate_contact_info separately if needed. Use after cts_search_candidates to review a specific talent's full background. Compared to search results (which show only latest education + recent 2 work experiences without descriptions), this returns all history entries with full work content descriptions.`\n\n> 中文参考：通过 candidate_id 获取人才的完整标准简历，包括基本信息、求职意向、全部教育经历、全部工作经历（含工作内容描述）、项目经历、语言能力、资质证书、专业技能、培训经历、获奖情况、自我评价。同时返回 has_phone / has_email 标识联系方式可用性。不含实际联系方式（手机号或邮箱）——先检查 has_phone / has_email，需要时再调用 `cts_get_candidate_contact_info` 单独获取。通常在 `cts_search_candidates` 之后调用以深入了解某个人才。与搜索摘要的区别：搜索只返回最近一段教育经历和最近两段工作经历（且不含工作内容），详情返回全部历史并含完整工作内容描述。\n\n**Input Schema**：\n\n| 参数名         | 类型   | 必填 | 说明                                                                               |\n| -------------- | ------ | ---- | ---------------------------------------------------------------------------------- |\n| `candidate_id` | string | 是   | 人才唯一编号（Talent unique identifier in CTS. Obtained from cts_search_candidates results.） |\n\n**Output Schema**（功能域：**查看人才完整简历** · 典型场景：顾问评估人才是否匹配寻访需求）：\n\n> 默认返回：基本信息（同搜索列表全部字段：基本信息 / 求职意向 / 联系方式可用性 / detail_url，此处不再重复）+ 完整教育 / 工作 / 项目经历 + 技能 / 证书 / 自评。以下仅列出详情新增字段。\n\n**教育经历** `education_history`（array，全部教育经历；搜索列表仅返回最后一段）：\n\n| 字段名       | 类型   | 说明     |\n| ------------ | ------ | -------- |\n| `school`     | string | 学校     |\n| `education`  | string | 学历     |\n| `speciality` | string | 专业     |\n| `start_time` | string | 开始时间 |\n| `end_time`   | string | 结束时间 |\n\n**工作经历** `work_history`（array，全部工作经历，含工作内容描述；搜索列表仅返回最近 2 段且不含描述）：\n\n| 字段名          | 类型   | 说明                                                                                                                                   |\n| --------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------- |\n| `company`       | string | 公司名称                                                                                                                               |\n| `title`         | string | 职位                                                                                                                                   |\n| `summary`       | string | Job responsibilities and achievements description. This field is only available in detail, not in search results.                     |\n| `work_industry` | string | 工作行业（多个标签以\"， \"连接）                                                                                                        |\n| `work_category` | string | 工作类别（多个标签以\"， \"连接）                                                                                                        |\n| `start_time`    | string | 开始时间                                                                                                                               |\n| `end_time`      | string | 结束时间                                                                                                                               |\n\n> 说明：CTS 顶层 `workExpList` 不返回部门 / 下属人数 / 薪资字段，因此 `work_history` 条目中不含 `department` / `underling_number` / `salary`。若业务需要这几项，需要改为从 `categoryList[key=\"WorkExperience\"]` 提取。\n\n**项目经历** `project_history`（array，来自 `categoryList[key=\"ProExperience\"]`）：\n\n| 字段名             | 类型   | 说明         |\n| ------------------ | ------ | ------------ |\n| `project_name`     | string | 项目名称     |\n| `company`          | string | 所在公司     |\n| `title`            | string | 担任职位     |\n| `responsibilities` | string | 项目职责     |\n| `start_time`       | string | 开始时间     |\n| `end_time`         | string | 结束时间     |\n\n**技能与资质**（`skill_tags` / `certificates` 来自 `categoryList[key=\"Skills\" | \"Certificates\"]`；`language_skills` 来自 `categoryList[key=\"LanguagesSkills\"]`）：\n\n| 字段名                      | 类型   | 说明                                            |\n| --------------------------- | ------ | ----------------------------------------------- |\n| `skill_tags`                | string | 专业技能标签（所有条目以\"， \"连接的字符串）     |\n| `language_skills`           | array  | 语言能力列表                                    |\n| `language_skills[].language`| string | 语种（如 \"英语\" / \"日语\"）                      |\n| `language_skills[].level`   | string | 听说能力（如 \"一般\" / \"良好\" / \"熟练\" / \"精通\"）|\n| `certificates`              | array  | 资质证书列表                                    |\n| `certificates[].name`       | string | 证书名称                                        |\n| `certificates[].date`       | string | 获证时间                                        |\n\n**其他信息**（全部来自 `categoryList`）：\n\n| 字段名                         | 类型   | 说明                                            |\n| ------------------------------ | ------ | ----------------------------------------------- |\n| `training_history`             | array  | 培训经历列表（来自 `TrainingInfo`）             |\n| `training_history[].institution`| string | 培训机构                                        |\n| `training_history[].start_time`| string | 培训开始时间                                    |\n| `training_history[].end_time` | string | 培训结束时间                                    |\n| `training_history[].description`| string | 培训内容描述                                    |\n| `awards`                       | array  | 获奖情况列表（来自 `PrizeWinning`）             |\n| `awards[].name`                | string | 奖项名称                                        |\n| `awards[].date`                | string | 获奖时间                                        |\n| `self_evaluation`              | string | 自我评价（来自 `SelfEvaluation` 类别的首条记录）|\n\n> 说明：CTS 的 `TrainingInfo` 类别不包含单独的培训课程名字段，因此 `training_history` 条目中不返回 `name`；`institution`（培训机构）通常是最接近的标识。\n\n**Annotations**：`readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, `openWorldHint: true`\n\n## Trace ID propagation\n\nThe response body consists of two JSON lines: a `{\"type\":\"data\",\"data\":{...}}` line with the detail payload, followed by a `{\"type\":\"meta\",\"trace_id\":\"...\",\"tool_call_id\":\"...\"}` line. For subsequent tool calls in the **same conversation**, pass the received `trace_id` back as the `trace_id` parameter so backend analytics can link related calls. Omit on the first call of a new conversation.\n\n---\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Talent unique identifier in CTS. Obtained from cts_search_candidates results."
+          },
+          "trace_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Trace id returned by a previous tool response (_meta.trace_id) in the same conversation. Pass it back so backend analytics can correlate schema → search → detail → contact. Omit on the first call of a new conversation — the server will generate a fresh one."
+          }
+        },
+        "required": [
+          "candidate_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get Cts Candidate Detail",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "cts_get_candidate_contact_info",
+      "description": "#### #3 cts\\_get\\_candidate\\_contact\\_info\n\n**Title:** cts_get_candidate_contact_info\n\n> V1.0（P0）| 人才域 | 读\n\n**Description**: `Fetch contact information (phone, email) for a CTS talent by candidate_id. This is a separate call from cts_get_candidate_detail — the detail API returns has_phone/has_email flags but not actual contact info. IMPORTANT: Before calling, check has_phone/has_email from cts_search_candidates or cts_get_candidate_detail results — skip this call if both are false (no contact info on file). Use when a consultant confirms interest in a talent and needs to prepare for outreach. Access is controlled by authentication — authorized users receive plain-text contact info; unauthorized requests are rejected with 403. Typically called after cts_get_candidate_detail when the consultant decides to reach out.`\n\n> 中文参考：通过 candidate_id 获取人才联系方式（手机号、邮箱）。该接口独立于 `cts_get_candidate_detail`（详情接口返回 has_phone / has_email 标识但不返回实际联系方式）。调用前先检查搜索或详情结果中的 has_phone / has_email，均为 false 时跳过本调用（无联系方式记录）。当顾问确认某个人才值得联系、需要准备后续触达时使用。访问通过鉴权控制——有权限则明文返回完整联系方式，无权限直接返回 403 拒绝。通常在 `cts_get_candidate_detail` 之后、顾问决定联系时调用。\n\n**Input Schema**：\n\n| 参数名         | 类型   | 必填 | 说明                                                                                          |\n| -------------- | ------ | ---- | --------------------------------------------------------------------------------------------- |\n| `candidate_id` | string | 是   | 人才唯一编号（Talent unique identifier in CTS. Obtained from cts_search_candidates results.） |\n\n**Output Schema**（功能域：**获取人才联系方式** · 典型场景：顾问确认人才值得联系后获取触达方式）：\n\n| 字段名  | 类型           | 说明                                                                                       |\n| ------- | -------------- | ------------------------------------------------------------------------------------------ |\n| `phone` | string \\| null | Plain-text phone number. Returned only if the authenticated user has access — otherwise the call is rejected with 403. Null when the talent has no phone on file (has_phone=false). |\n| `email` | string \\| null | Plain-text email address. Returned only if the authenticated user has access — otherwise the call is rejected with 403. Null when the talent has no email on file (has_email=false). |\n\n**Annotations**：`readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, `openWorldHint: true`\n\n## Trace ID propagation\n\nThe response body consists of two JSON lines: a `{\"type\":\"data\",\"data\":{...}}` line with the contact payload, followed by a `{\"type\":\"meta\",\"trace_id\":\"...\",\"tool_call_id\":\"...\"}` line. For subsequent tool calls in the **same conversation**, pass the received `trace_id` back as the `trace_id` parameter so backend analytics can link related calls. Omit on the first call of a new conversation.\n\n---\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Talent unique identifier in CTS. Obtained from cts_search_candidates results."
+          },
+          "trace_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Trace id returned by a previous tool response (_meta.trace_id) in the same conversation. Pass it back so backend analytics can correlate schema → search → detail → contact. Omit on the first call of a new conversation — the server will generate a fresh one."
+          }
+        },
+        "required": [
+          "candidate_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get Cts Candidate Contact Info",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "cts_get_cts_schema",
+      "description": "#### #4 cts\\_get\\_cts\\_schema\n\n**Title:** cts_get_cts_schema\n\n> V1.0（P0）| 系统工具 | 读\n\n**Description**: `Resolve CTS taxonomy values (city / industry / job_category / education / school_type / experience) into internal IDs for cts_search_candidates. Large dictionaries (city_tree / industry_tree / job_category_tree) contain thousands of entries — full-dump is refused; you MUST pass `queries` (binding each label to ONE specific dictionary) to resolve specific values. Small dictionaries (education_tree / school_type_tree / experience_tree, <15 items each) can be fetched in full via `schema_types`.\n\nTHREE CALLING MODES:\n  (a) Index mode — omit both params → returns the list of available dictionary types. Use this only if you are unsure which types exist.\n  (b) Full mode — schema_types=[small_dict] (only) → returns the full enum. ONLY for education_tree / school_type_tree / experience_tree.\n  (c) Resolve mode — queries=[{schema_type, label}, ...] → each entry binds the label to EXACTLY ONE dictionary. The label is searched ONLY in that dictionary — no cross-schema matching (e.g. \"本科\" will NOT leak into city_tree). Returns top 5 candidates per label. REQUIRED for large dictionaries.\n\nExample for \"学历本科、城市北京\":\n  queries=[\n    {schema_type: \"education_tree\", label: \"本科\"},\n    {schema_type: \"city_tree\",      label: \"北京\"}\n  ]\nEach label goes ONLY to its paired schema_type. Do NOT put \"本科\" and city_tree in the same slot — bind every label to the correct dictionary up front.\n\nMATCHING (automatic, server-side, LLM does not need to specify):\n  - exact + range-equivalent + substring (combined, always returned together when any hits): label equals query verbatim is `exact` (high, 1.0); labels that equal query after stripping range suffixes (以上/及以上/以下/及以下) are `substring` (high, 0.95) — this captures aggregate siblings (e.g. query=\"本科以上\" hits 本科 AND 本科及以上, both with \"本科\" as core); other labels containing query as substring are `substring` (high, 0.9). Cross-core entries like 大专及以上 / 硕士及以上 are NOT matched against query=\"本科以上\" because the range-suffix stripping only groups same-core siblings.\n  - path_subsequence: query characters appear in order within the full path (ancestor labels + self), LCS coverage ≥ 0.8 → high; 0.5-0.8 → medium. Handles compound inputs like \"深圳宝安\" matching 宝安区 (path \"广东省/深圳市/宝安区\").\n  - fuzzy (2-gram Jaccard ≥ 0.4): typo tolerance. ≥ 0.7 → medium; else → low. Handles \"苏州工业院\" → 苏州工业园区.\n  - NOTE: queries shorter than 3 characters (e.g. \"北京\"、\"本科\") only run exact+substring; fuzzy/path_subseq are skipped for them to avoid spurious 1-char matches.\n\nQUERY CONSTRUCTION (critical — read before writing queries):\n  - Pass the user's natural-language words AS-IS; do NOT simplify or summarize. If the user says \"本科以上\", pass label=\"本科以上\" (not \"本科\") — dropping \"以上\" changes the semantic from a RANGE to a SINGLE level and may miss the intended aggregate value (e.g. 本科及以上).\n  - Similarly: \"5年以上\" → \"5年以上\" (not \"5年\"); \"硕士及以上\" → \"硕士及以上\"; \"高级\" → \"高级\" (don't drop modifiers).\n  - When the user gives multiple values (e.g. \"本科、硕士\"), issue ONE queries entry per value: queries=[{education_tree, \"本科\"}, {education_tree, \"硕士\"}].\n\nUSING RESULTS:\n  - Pass item.value to cts_search_candidates (NEVER pass item.label).\n  - Show item.label or item.ancestor_path to the user, NEVER item.value (UUIDs/codes are internal).\n  - When exact and substring hits both appear, prefer the one that matches user intent: the user literally saying a term → exact; user hinting at a range/aggregate → corresponding substring match (e.g. user says \"本科以上\" → pick 本科及以上, not 本科).\n  - If multiple high-confidence candidates come back (ambiguous — e.g. \"朝阳区\" in both Beijing and Changchun), ask the user to disambiguate BEFORE searching.\n  - If only medium/low candidates come back, confirm with the user before searching.\n  - If candidates array is empty, tell the user the value was not found and ask them to rephrase.\n\nCACHE RULES:\n  - Dictionary data is cached server-side for 1 hour; no cost to call multiple times.\n  - BUT: if you already resolved a query (e.g. \"深圳\" → 深圳市 UUID) earlier in this conversation, REUSE that value directly; do NOT call this tool again for the same query.`\n\n> 中文参考：把用户说的城市/行业/职位/学历/院校类型/工作年限等自然语言名字，解析成 CTS 内部 ID，供 `cts_search_candidates` 使用。\n>\n> **大字典**（`city_tree` / `industry_tree` / `job_category_tree`，各含上千条）**拒绝全量返回**——必须通过 `queries` 参数、**为每个 label 明确指定它属于哪个字典**。**小字典**（`education_tree` / `school_type_tree` / `experience_tree`，各 <15 条）可用 `schema_types` 拿全量。\n>\n> **三种调用模式**：\n>   - **(a) 索引模式**：两个参数都不传 → 返回全量可用字典类型清单。仅在不确定类型名时使用，返回参数较大，谨慎使用。\n>   - **(b) 全量模式**：只传 `schema_types=[小字典]` → 返回完整枚举。**仅限** education_tree / school_type_tree / experience_tree。\n>   - **(c) 解析模式**（最常用）：传 `queries=[{schema_type, label}, ...]`，每个 entry 把 label **明确绑定到一个字典**。label 只会在绑定的字典里查找，**不会跨字典误伤**（\"本科\" 不会跑到 city_tree 里去）。返回 top 5 候选/label。大字典**必须**用此模式。\n>\n> **\"学历本科、城市北京\" 的正确调法**：\n>\n> ```json\n> queries: [\n>   {\"schema_type\": \"education_tree\", \"label\": \"本科\"},\n>   {\"schema_type\": \"city_tree\",      \"label\": \"北京\"}\n> ]\n> ```\n>\n> 每个 label 绑定到它所属的字典——不要写成\"schema_types=[education_tree, city_tree], query_labels=[本科, 北京]\"这种平行列表（会让\"本科\"也去 city_tree 查）。\n>\n> **query 构造规则**（写 query 前必读）：\n>   - **原样传入用户的自然语言**，不要简化或摘要。用户说\"本科以上\"就传 `label=\"本科以上\"`（不传\"本科\"）——丢掉\"以上\"会把**范围语义**降级成**单值**，漏掉 education_tree 里的聚合值\"本科及以上\"。\n>   - 同理：\"5 年以上\" → `\"5年以上\"`（不传\"5年\"）；\"硕士及以上\" → `\"硕士及以上\"`；\"高级\" → `\"高级\"`（不要丢修饰词）。\n>   - 用户给**多个值**（如\"本科、硕士\"），每个值一条 queries entry：`queries=[{education_tree,\"本科\"}, {education_tree,\"硕士\"}]`。\n>\n> **匹配算法**（server 端自动，LLM 无需指定）：\n>   - `exact` + range-equivalent + `substring`（**一起返回，都算 high confidence**）：label 与 query 完全相等 → `exact`（1.0）；去掉 `以上/及以上/以下/及以下` 等范围后缀后相等（如 \"本科\" 和 \"本科及以上\" 的 core 都是 \"本科\"）→ `substring`（0.95），捕获聚合兄弟项；其余 label 含 query 原文 → `substring`（0.9）。**关键**：因为 range 后缀剥除只聚同 core 的兄弟，query=\"本科以上\" **不会**误中 \"大专及以上\"\"硕士及以上\"（它们的 core 是 \"大专\"\"硕士\"，和 \"本科\" 不等）。\n>   - `path_subsequence`：query 的字符按顺序在完整路径（祖先 label + 自身 label）中出现，LCS 覆盖率 ≥ 0.8 为 high，0.5-0.8 为 medium。处理\"深圳宝安\"这种合成词（匹配到 \"广东省/深圳市/宝安区\"）。\n>   - `fuzzy`（2-gram Jaccard ≥ 0.4）：错字容错。≥ 0.7 为 medium，否则 low。处理\"苏州工业**院**\"→\"苏州工业园区\"。\n>   - 注意：**小于 3 字的 query**（如\"北京\"、\"本科\"）只走 exact+substring，不走 fuzzy/path_subseq，避免单字误伤（如\"本科\"误命中\"科尔沁\"）。\n>\n> **如何使用结果**：\n>   - 把 `item.value` 传给 `cts_search_candidates`（**绝不传 `item.label`**）。\n>   - 向用户展示时用 `item.label` 或 `item.ancestor_path`，**绝不展示 `item.value`**（UUID/code 是内部标识）。\n>   - **当 exact 和 substring 候选同时出现**：按用户意图挑——用户说具体值 → 挑 exact；用户说范围/\"以上\" → 挑对应的 substring（例如用户\"本科以上\" → 选 `本科及以上` 而不是 `本科`）。\n>   - 返回多个 high confidence 候选（如\"朝阳区\"同时存在于北京和长春）→ **向用户澄清后再搜索**。\n>   - 只返回 medium/low confidence 候选 → 向用户确认后再搜索。\n>   - 返回空 candidates → 告知用户未找到该值、请重新表述。\n>\n> **缓存规则**：\n>   - 字典数据服务端缓存 1 小时，重复调用本工具无额外成本。\n>   - 但：如果本会话内此前已经解析过某个 query（如 \"深圳\" → 深圳市 UUID），**直接复用该值**，不要再次调本工具解析同一个 query。\n\n**Input Schema**（两个参数互斥：resolve 模式用 `queries`，full 模式用 `schema_types`；都不传则返回 index）：\n\n| 参数名         | 类型                                   | 必填 | 说明                                                                                                                                                                                                            |\n| -------------- | -------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| `schema_types` | string[]                               | 否   | **仅用于 FULL 模式**——小字典全量获取（education_tree / school_type_tree / experience_tree）。大字典传入会报错。                                                                                                |\n| `queries`      | Array<{schema_type: string; label: string}> | 否   | **RESOLVE 模式**——为每个 label 明确绑定它所属的字典。label 只在绑定的字典里解析，**杜绝跨字典误伤**。例：`queries=[{schema_type:\"education_tree\", label:\"本科\"}, {schema_type:\"city_tree\", label:\"北京\"}]`。 |\n\n**可用字典类型**：\n\n| schema\\_type        | 类别 | 规模   | 推荐调用方式                                                | 用于 `cts_search_candidates` 参数 |\n| ------------------- | ---- | ------ | ----------------------------------------------------------- | -------------------------------- |\n| `city_tree`         | 大   | 3000+  | `queries=[{schema_type:\"city_tree\", label:\"<城市名>\"}]`     | `location`                       |\n| `industry_tree`     | 大   | 数百   | `queries=[{schema_type:\"industry_tree\", label:\"<行业>\"}]`   | `industry`                       |\n| `job_category_tree` | 大   | 数百   | `queries=[{schema_type:\"job_category_tree\", label:\"...\"}]`  | `job_category`                   |\n| `education_tree`    | 小   | 13     | `schema_types=[\"education_tree\"]` 拿全量（也可走 queries）  | `education`                      |\n| `school_type_tree`  | 小   | 5      | `schema_types=[\"school_type_tree\"]`                         | `school_type`                    |\n| `experience_tree`   | 小   | 5      | `schema_types=[\"experience_tree\"]`                          | `work_experience`                |\n\n**Output Schema —— 索引模式**（`schema_types` 和 `queries` 都不传时）：\n\n| 字段名                | 类型   | 说明             |\n| --------------------- | ------ | ---------------- |\n| `types`               | array  | 可用字典类型列表 |\n| `types[].schema_type` | string | 字典类型标识     |\n| `types[].label`       | string | 字典名称（中文） |\n| `types[].description` | string | 用途说明         |\n\n**Output Schema —— 全量/解析模式**（传了 `schema_types` 或 `queries`）：\n\n| 字段名                     | 类型    | 说明                                                                                                                                               |\n| -------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |\n| `schemas`                  | array   | 字典结果列表                                                                                                                                       |\n| `schemas[].schema_type`    | string  | 字典类型标识                                                                                                                                       |\n| `schemas[].items`          | array   | 候选条目列表。全量模式下是整个字典；解析模式下是该字典内所有 label 命中的并集，每条带 `matched_query` 标明是哪个 label 召回的（仅本字典内的 label）。 |\n| `schemas[].items[].value`  | string  | **内部 ID——传给 `cts_search_candidates` 的对应字段。不要展示给用户。**                                                              |\n| `schemas[].items[].label`  | string  | **中文显示名——向用户展示时用此字段。**                                                                                              |\n| `schemas[].items[].parent_value` | string  | 父节点 value（树形字典）；顶层为 null。                                                                                       |\n| `schemas[].items[].level`  | integer | 层级深度（1=顶层）。                                                                                                                |\n| `schemas[].items[].ancestor_path`  | string  | **解析模式下出现**，完整路径显示名，如 `\"广东省 / 深圳市 / 宝安区\"`。用于向用户澄清/确认。                                  |\n| `schemas[].items[].match_type`     | string  | **解析模式下出现**，`exact` \\| `substring` \\| `path_subsequence` \\| `fuzzy`。                                                |\n| `schemas[].items[].confidence`     | string  | **解析模式下出现**，`high` \\| `medium` \\| `low`。low 和 medium 需要向用户确认。                                              |\n| `schemas[].items[].score`          | number  | **解析模式下出现**，0-1 匹配分数，调试用。                                                                                    |\n| `schemas[].items[].matched_query`  | string  | **解析模式下出现**，召回此条的 query_label，便于按 query 分组。                                                                |\n\n**Annotations**：`readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, `openWorldHint: true`\n\n## Trace ID propagation\n\nThe response body consists of two JSON lines: a `{\"type\":\"data\",\"data\":{...}}` line with the schema payload, followed by a `{\"type\":\"meta\",\"trace_id\":\"...\",\"tool_call_id\":\"...\"}` line. For subsequent tool calls in the **same conversation**, pass the received `trace_id` back as the `trace_id` parameter so backend analytics can link related calls (schema → search → detail → contact). Omit on the first call of a new conversation.\n\n---\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "schema_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "city_tree",
+                "industry_tree",
+                "job_category_tree",
+                "education_tree",
+                "school_type_tree",
+                "experience_tree"
+              ]
+            },
+            "description": "FULL mode — dictionary types to fetch in full. Use this ONLY for small dictionaries (education_tree / school_type_tree / experience_tree, <15 items each) when you want the complete enum. For large dictionaries (city_tree / industry_tree / job_category_tree) full-dump is refused; use `queries` instead. Omit both params to get the index of available types."
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "schema_type": {
+                  "type": "string",
+                  "enum": [
+                    "city_tree",
+                    "industry_tree",
+                    "job_category_tree",
+                    "education_tree",
+                    "school_type_tree",
+                    "experience_tree"
+                  ],
+                  "description": "Which dictionary to search in for this label."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Natural-language name/keyword to resolve (e.g., \"深圳宝安\", \"本科\", \"互联网\")."
+                }
+              },
+              "required": [
+                "schema_type",
+                "label"
+              ],
+              "additionalProperties": false
+            },
+            "description": "RESOLVE mode — each entry is a {schema_type, label} pair that binds the query explicitly to ONE dictionary. NO cross-schema matching. Example for 学历本科 + 城市北京: queries=[{schema_type:\"education_tree\", label:\"本科\"}, {schema_type:\"city_tree\", label:\"北京\"}]. Each label is resolved independently via tiered matching (exact → substring → path_subsequence → fuzzy); top 5 candidates per label. Batch EVERYTHING needed for this search into one call; do not re-resolve labels already resolved earlier in the conversation."
+          },
+          "trace_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Trace id returned by a previous tool response (_meta.trace_id) in the same conversation. Pass it back so backend analytics can correlate schema → search → detail → contact. Omit on the first call of a new conversation — the server will generate a fresh one."
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get Cts Data Dictionary",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    }
+  ]
+}
