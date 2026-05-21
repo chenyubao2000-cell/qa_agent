@@ -17,9 +17,10 @@ qa-platform/
 │   ├── 已有 5 个：e2e-orchestrator、test-executor、cdp-test-executor、report-analyzer、bug-reporter
 │   ├── 新增 4 个：unit-test-agent(opus)、api-orchestrator(sonnet)、eval-agent(sonnet)、sentinel-agent(haiku)
 │   └── i18n team 3 个：i18n-cdp-runner(sonnet)、i18n-issue-reviewer(sonnet)、i18n-html-reporter(haiku)
-├── .claude/commands/→ 14 个 Slash Command
+├── .claude/commands/→ 15 个 Slash Command
 │   ├── 已有 8 个：/qa-explore、qa-from-issue、qa-from-branch、qa-verify-fix、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
 │   ├── 新增 5 个：/qa-unit-test、/qa-api-test、/qa-perf-test、/qa-eval、/qa-sentinel
+│   ├── 白盒 1 个：/qa-tool-probe
 │   └── i18n 1 个：/qa-i18n-audit
 ├── .claude/references/ → 12 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
 ├── hooks/           → 2 个 Hook（session-start 校验、通知）
@@ -55,6 +56,9 @@ LLM Eval 流水线（新增）：
 质量守卫（新增）：
   sentinel-agent (haiku)    → 监控 Sentry/Langfuse/Railway/DB → 异常触发测试/告警
 
+工具白盒探针（新增）：
+  tool-probe-orchestrator (sonnet) → 4 桩注入 (模型决定位置) → tool.execute() 直调脚本 → claude -p 裁决 → Markdown 报告
+
 i18n 审查流水线（新增）：
   i18n-cdp-runner (sonnet)   → CDP 按 locale×viewport 跑 spec → 抓 snapshot/截图/元数据
      ↓ 完成后
@@ -85,6 +89,7 @@ PR 监控（独立流程）：
 ├── /qa-perf-test  → 分析 endpoint → 生成 k6 性能测试 → 执行 → 基线对比
 ├── /qa-eval       → 构建 eval dataset → LLM-as-Judge 评分 → 趋势分析
 ├── /qa-sentinel   → 启动多平台质量守卫监控
+├── /qa-tool-probe → 4 桩注入 → tool.execute() 直调 → claude CLI 裁决 → Markdown 报告
 └── /qa-i18n-audit → CDP × (locale×viewport) 审查 → issues JSON → HTML 报告（带截图）
 ```
 
@@ -108,6 +113,9 @@ PR 监控（独立流程）：
 ### LLM 评估 / 质量守卫（新增）
 - `/qa-eval [--mode build|run|regression] [--project <langfuse-project>] [--days <N>]` — LLM Eval 评估流水线
 - `/qa-sentinel [--platforms sentry,langfuse,railway,db] [--interval 5m]` — 启动多平台质量守卫监控
+
+### 工具白盒探针（新增）
+- `/qa-tool-probe <tool1> [tool2 ...] [--prd <path>] [--source <dir>] [--extra-case "<desc>"] [--confirm-probes] [--dry-run]` — 在 `SOURCE_PROJECT_DIR` 的源码上插入 4 个可关断调试桩（位置由模型决定）→ 生成 `tool.execute()` 直调脚本 + claude CLI 裁决脚本 → 跑出 Markdown 报告（默认不询问、不清理、跑完所有用例）
 
 ## 约定
 
