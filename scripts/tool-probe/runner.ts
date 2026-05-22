@@ -2,58 +2,27 @@
 /**
  * Tool-probe runner — generic, lives in qa_agent.
  *
- * Reads a JSON config that points at the source project's tool factories,
- * dynamically imports them, calls tool.execute() per case, and writes
- * evidence-<run-id>.jsonl.
+ * Reads a JSON config and runs each case against its declared tool. Tools come
+ * in two flavors discriminated by `kind`:
+ *
+ *   - "vercel-ai" : dynamically imports the source project's tool factory and
+ *                   calls `tool.execute(input, opts)` in-process. Captures the
+ *                   4 white-box probe events via monkey-patched logger.
+ *
+ *   - "mcp-http"  : connects to a remote MCP server via StreamableHTTP transport
+ *                   and calls `client.callTool({name, arguments})`. No probe
+ *                   injection possible (server is a separate process); evidence
+ *                   contains only input + output.
+ *
+ * Per-case evidence rows are appended to a JSONL file in the schema judge.ts expects.
  *
  * Usage:
  *   bun --env-file=<source-project>/.env scripts/tool-probe/runner.ts --config <abs-path>
- *
- * Config schema: see `scripts/tool-probe/config.schema.ts` (zod) below.
  */
 import { mkdirSync, readFileSync, writeFileSync, appendFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { z } from "zod";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Config schema
-// ─────────────────────────────────────────────────────────────────────────────
-
-const stepSchema = z.object({ input: z.record(z.string(), z.unknown()) });
-
-const caseSchema = z.object({
-  name: z.string(),
-  tool: z.string(),
-  description: z.string(),
-  steps: z.array(stepSchema).min(1),
-  expect: z.enum(["ok", "tool_error"]),
-  expectErrorCode: z.string().nullable().optional(),
-  judgeFocus: z.string().optional(),
-  tokenOverride: z.union([z.string(), z.null()]).optional(),
-  acceptPartialAsPass: z.boolean().optional(),
-});
-
-const toolEntrySchema = z.object({
-  module: z.string(),               // absolute path to the tool's .ts file
-  factory: z.string(),              // export name of the factory function
-  descriptionExport: z.string(),    // export name of the description constant
-});
-
-const configSchema = z.object({
-  runId: z.string(),                                // e.g. "2026-05-21T08-22-43-114Z"
-  sourceProjectDir: z.string(),                     // chdir target
-  loggerModule: z.string(),                         // absolute path to logger source file (must export `logger`)
-  tools: z.record(z.string(), toolEntrySchema),
-  authEnvVar: z.string().nullable().optional(),     // env var to override per-case
-  debugEnvVar: z.string(),                          // e.g. "GH_TOOL_DEBUG"
-  eventPrefix: z.string(),                          // e.g. "gh-debug"
-  cases: z.array(caseSchema),
-  evidenceOutPath: z.string(),                      // absolute path to write evidence JSONL
-});
-
-type Config = z.infer<typeof configSchema>;
-type TestCase = z.infer<typeof caseSchema>;
+import { configSchema, type Config, type TestCase, type ToolEntry } from "./case-schema";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CLI parse
@@ -102,6 +71,112 @@ function truncateLogPayload(ev: CapturedEvent): CapturedEvent {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Executor abstraction — the ONE fork point between vercel-ai and mcp-http
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface Executor {
+  description: string;
+  /** Execute one step. Probe logs (if any) land in the shared captureBuffer. */
+  execute(input: Record<string, unknown>): Promise<unknown>;
+  close?(): Promise<void>;
+}
+
+type ExecFn = (input: unknown, opts: unknown) => Promise<unknown>;
+
+async function createVercelExecutor(entry: Extract<ToolEntry, { kind: "vercel-ai" }>): Promise<Executor> {
+  const mod = (await import(pathToFileURL(entry.module).href)) as Record<string, unknown>;
+  const factory = mod[entry.factory] as (() => { execute?: ExecFn }) | undefined;
+  const description = mod[entry.descriptionExport] as string | undefined;
+  if (typeof factory !== "function") {
+    throw new Error(`${entry.module} does not export factory "${entry.factory}"`);
+  }
+  if (typeof description !== "string") {
+    throw new Error(`${entry.module} does not export description "${entry.descriptionExport}"`);
+  }
+  const tool = factory();
+  const exec = tool.execute as ExecFn | undefined;
+  if (!exec) throw new Error(`tool.execute undefined for kind=vercel-ai`);
+  return {
+    description,
+    execute: async (input) => exec(input, { toolCallId: "test", messages: [] }),
+  };
+}
+
+async function createMcpHttpExecutor(
+  toolKey: string,
+  entry: Extract<ToolEntry, { kind: "mcp-http" }>,
+): Promise<Executor> {
+  // Dynamic import keeps SDK out of the load path when no mcp-http tools are configured.
+  const { Client } = (await import("@modelcontextprotocol/sdk/client/index.js")) as {
+    Client: new (
+      info: { name: string; version: string },
+      opts: { capabilities: Record<string, unknown> },
+    ) => {
+      connect(t: unknown): Promise<void>;
+      listTools(): Promise<{ tools: Array<{ name: string; description?: string }> }>;
+      callTool(p: { name: string; arguments: Record<string, unknown> }): Promise<unknown>;
+      close(): Promise<void>;
+    };
+  };
+  const { StreamableHTTPClientTransport } = (await import(
+    "@modelcontextprotocol/sdk/client/streamableHttp.js"
+  )) as {
+    StreamableHTTPClientTransport: new (
+      url: URL,
+      opts: { requestInit?: { headers?: Record<string, string> } },
+    ) => unknown;
+  };
+
+  const headers: Record<string, string> = {};
+  if (entry.authTokenEnv) {
+    const token = process.env[entry.authTokenEnv];
+    if (!token) {
+      throw new Error(
+        `kind=mcp-http tool "${toolKey}" expects auth env var ${entry.authTokenEnv} but it is unset`,
+      );
+    }
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const transport = new StreamableHTTPClientTransport(new URL(entry.serverUrl), {
+    requestInit: { headers },
+  });
+  const client = new Client(
+    { name: "tool-probe-runner", version: "0.1.0" },
+    { capabilities: {} },
+  );
+  await client.connect(transport);
+
+  const remoteName = entry.toolName ?? toolKey;
+  const { tools: remoteTools } = await client.listTools();
+  const meta = remoteTools.find((t) => t.name === remoteName);
+  const description = meta?.description ?? `(MCP tool ${remoteName}; description unavailable)`;
+
+  return {
+    description,
+    execute: async (input) =>
+      client.callTool({ name: remoteName, arguments: input }),
+    close: async () => client.close(),
+  };
+}
+
+async function buildExecutors(cfg: Config): Promise<Record<string, Executor>> {
+  const executors: Record<string, Executor> = {};
+  for (const [name, entry] of Object.entries(cfg.tools)) {
+    if (entry.kind === "vercel-ai") {
+      executors[name] = await createVercelExecutor(entry);
+    } else if (entry.kind === "mcp-http") {
+      executors[name] = await createMcpHttpExecutor(name, entry);
+    } else {
+      // exhaustiveness guard
+      const _exhaustive: never = entry;
+      throw new Error(`unknown tool kind: ${JSON.stringify(_exhaustive)}`);
+    }
+  }
+  return executors;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -112,146 +187,165 @@ interface StepResult {
   threw?: string;
 }
 
-type ExecFn = (input: unknown, opts: unknown) => Promise<unknown>;
-
 async function main(): Promise<void> {
   const { config: configPath } = parseArgs();
   const raw = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
   const cfg: Config = configSchema.parse(raw);
 
-  if (process.env[cfg.debugEnvVar] !== "1") {
-    console.error(`❌ ${cfg.debugEnvVar} must be '1' to capture logs. Aborting.`);
+  const toolEntries = Object.entries(cfg.tools);
+  const hasVercel = toolEntries.some(([, e]) => e.kind === "vercel-ai");
+  const hasMcp = toolEntries.some(([, e]) => e.kind === "mcp-http");
+
+  // DEBUG gate only matters for vercel-ai (probes feed through logger monkey-patch).
+  // MCP-only runs have no probes to capture, so the gate is bypassed.
+  if (hasVercel && process.env[cfg.debugEnvVar] !== "1") {
+    console.error(`❌ ${cfg.debugEnvVar} must be '1' to capture vercel-ai probe logs. Aborting.`);
     process.exit(2);
   }
 
-  // 1. Make the source project's relative paths + tsconfig + workspaces resolve.
-  process.chdir(cfg.sourceProjectDir);
-
-  // 2. Import the source project's logger module FIRST, patch it, THEN import tools.
-  //    bun caches the module instance, so tool files importing the same logger get our patched copy.
-  const loggerMod = (await import(pathToFileURL(cfg.loggerModule).href)) as {
-    logger: { info: (msg: string, ctx?: Record<string, unknown>) => void };
-  };
-  const logger = loggerMod.logger;
-  if (!logger || typeof logger.info !== "function") {
-    console.error(`❌ ${cfg.loggerModule} does not export a logger with .info()`);
-    process.exit(2);
-  }
-
+  // chdir + logger monkey-patch are ONLY relevant when any vercel-ai tool exists.
   let captureBuffer: CapturedEvent[] | null = null;
-  const originalInfo = logger.info.bind(logger);
-  logger.info = (msg: string, ctx?: Record<string, unknown>): void => {
-    originalInfo(msg, ctx);
-    if (
-      captureBuffer &&
-      ctx &&
-      typeof ctx.event === "string" &&
-      ctx.event.startsWith(`${cfg.eventPrefix}.`)
-    ) {
-      captureBuffer.push({ event: ctx.event, data: ctx });
-    }
-  };
+  if (hasVercel) {
+    process.chdir(cfg.sourceProjectDir);
 
-  // 3. Load tool factories + descriptions.
-  type ToolEntry = { factory: () => { execute?: ExecFn }; description: string };
-  const TOOLS: Record<string, ToolEntry> = {};
-  for (const [name, entry] of Object.entries(cfg.tools)) {
-    const mod = (await import(pathToFileURL(entry.module).href)) as Record<string, unknown>;
-    const factory = mod[entry.factory] as ToolEntry["factory"] | undefined;
-    const description = mod[entry.descriptionExport] as string | undefined;
-    if (typeof factory !== "function") {
-      console.error(`❌ ${entry.module} does not export factory "${entry.factory}"`);
+    if (!cfg.loggerModule) {
+      console.error(`❌ vercel-ai tool requires cfg.loggerModule, but it is null/missing`);
       process.exit(2);
     }
-    if (typeof description !== "string") {
-      console.error(`❌ ${entry.module} does not export description "${entry.descriptionExport}"`);
+    const loggerMod = (await import(pathToFileURL(cfg.loggerModule).href)) as {
+      logger: { info: (msg: string, ctx?: Record<string, unknown>) => void };
+    };
+    const logger = loggerMod.logger;
+    if (!logger || typeof logger.info !== "function") {
+      console.error(`❌ ${cfg.loggerModule} does not export a logger with .info()`);
       process.exit(2);
     }
-    TOOLS[name] = { factory, description };
+    const originalInfo = logger.info.bind(logger);
+    logger.info = (msg: string, ctx?: Record<string, unknown>): void => {
+      originalInfo(msg, ctx);
+      if (
+        captureBuffer &&
+        ctx &&
+        typeof ctx.event === "string" &&
+        ctx.event.startsWith(`${cfg.eventPrefix}.`)
+      ) {
+        captureBuffer.push({ event: ctx.event, data: ctx });
+      }
+    };
   }
 
-  // 4. Prepare evidence file.
+  // Build all executors (init MCP clients once per tool, etc.).
+  const executors = await buildExecutors(cfg);
+  console.log(
+    `🚀 Running ${cfg.cases.length} cases ` +
+      `[vercel-ai: ${toolEntries.filter(([, e]) => e.kind === "vercel-ai").length}, ` +
+      `mcp-http: ${toolEntries.filter(([, e]) => e.kind === "mcp-http").length}] ` +
+      `→ ${cfg.evidenceOutPath}`,
+  );
+
   mkdirSync(path.dirname(cfg.evidenceOutPath), { recursive: true });
   writeFileSync(cfg.evidenceOutPath, "", "utf-8");
-  console.log(`🚀 Running ${cfg.cases.length} cases → ${cfg.evidenceOutPath}`);
 
-  // 5. Run cases sequentially.
-  for (const [i, c] of cfg.cases.entries()) {
-    console.log(`  [${i + 1}/${cfg.cases.length}] ${c.name} ...`);
-    const entry = TOOLS[c.tool];
-    if (!entry) {
-      const row = makeErrorRow(c, "", `unknown tool: ${c.tool}`);
-      appendFileSync(cfg.evidenceOutPath, JSON.stringify(row) + "\n", "utf-8");
-      continue;
-    }
-
-    // Auth env override
-    const envVar = cfg.authEnvVar;
-    const overrideApplies = c.tokenOverride !== undefined && envVar;
-    const tokenWasSet = envVar ? envVar in process.env : false;
-    const originalToken = envVar ? process.env[envVar] : undefined;
-    if (overrideApplies && envVar) {
-      if (c.tokenOverride === null) delete process.env[envVar];
-      else if (typeof c.tokenOverride === "string") process.env[envVar] = c.tokenOverride;
-    }
-
-    try {
-      const tool = entry.factory();
-      const exec = tool.execute as ExecFn | undefined;
-      if (!exec) throw new Error(`tool.execute undefined for ${c.tool}`);
-
-      const stepResults: StepResult[] = [];
-      for (const step of c.steps) {
-        captureBuffer = [];
-        let output: unknown = null;
-        let threw: string | undefined;
-        try {
-          output = await exec(step.input, { toolCallId: "test", messages: [] });
-        } catch (err) {
-          threw = err instanceof Error ? err.message : String(err);
-        }
-        const logs = (captureBuffer ?? []).map(truncateLogPayload);
-        captureBuffer = null;
-        stepResults.push({
-          input: step.input,
-          output: truncateValue(output),
-          logs,
-          threw,
-        });
+  try {
+    for (const [i, c] of cfg.cases.entries()) {
+      console.log(`  [${i + 1}/${cfg.cases.length}] ${c.name} ...`);
+      const ex = executors[c.tool];
+      const entryMaybe = cfg.tools[c.tool];
+      if (!ex || !entryMaybe) {
+        const row = makeErrorRow(c, entryMaybe?.kind ?? null, "", `unknown tool: ${c.tool}`);
+        appendFileSync(cfg.evidenceOutPath, JSON.stringify(row) + "\n", "utf-8");
+        continue;
       }
 
-      const row = {
-        name: c.name,
-        tool: c.tool,
-        toolDescription: entry.description,
-        description: c.description,
-        expect: c.expect,
-        expectErrorCode: c.expectErrorCode ?? null,
-        judgeFocus: c.judgeFocus,
-        acceptPartialAsPass: c.acceptPartialAsPass ?? false,
-        evidence: { steps: stepResults },
-      };
-      appendFileSync(cfg.evidenceOutPath, JSON.stringify(row) + "\n", "utf-8");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`     runner error on ${c.name}: ${msg}`);
-      const row = makeErrorRow(c, entry.description, msg);
-      appendFileSync(cfg.evidenceOutPath, JSON.stringify(row) + "\n", "utf-8");
-    } finally {
+      // Auth env override applies to vercel-ai only (legacy single-env model).
+      // For mcp-http, auth is bound at connect time via entry.authTokenEnv.
+      const entry = entryMaybe;
+      const envVar = cfg.authEnvVar;
+      const overrideApplies =
+        entry.kind === "vercel-ai" && c.tokenOverride !== undefined && !!envVar;
+      const tokenWasSet = envVar ? envVar in process.env : false;
+      const originalToken = envVar ? process.env[envVar] : undefined;
       if (overrideApplies && envVar) {
-        if (tokenWasSet) process.env[envVar] = originalToken;
-        else delete process.env[envVar];
+        if (c.tokenOverride === null) delete process.env[envVar];
+        else if (typeof c.tokenOverride === "string") process.env[envVar] = c.tokenOverride;
+      }
+
+      try {
+        const stepResults: StepResult[] = [];
+        for (const step of c.steps) {
+          captureBuffer = hasVercel ? [] : null;
+          let output: unknown = null;
+          let threw: string | undefined;
+          try {
+            output = await ex.execute(step.input);
+          } catch (err) {
+            threw = err instanceof Error ? err.message : String(err);
+          }
+          const logs = (captureBuffer ?? []).map(truncateLogPayload);
+          captureBuffer = null;
+          stepResults.push({
+            input: step.input,
+            output: truncateValue(output),
+            logs,
+            threw,
+          });
+        }
+
+        const row = {
+          name: c.name,
+          tool: c.tool,
+          toolKind: entry.kind,                       // "vercel-ai" | "mcp-http" — judge uses this to adapt prompt
+          toolDescription: ex.description,
+          description: c.description,
+          expect: c.expect,
+          expectErrorCode: c.expectErrorCode ?? null,
+          judgeFocus: c.judgeFocus,
+          acceptPartialAsPass: c.acceptPartialAsPass ?? false,
+          evidence: { steps: stepResults },
+        };
+        appendFileSync(cfg.evidenceOutPath, JSON.stringify(row) + "\n", "utf-8");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`     runner error on ${c.name}: ${msg}`);
+        const row = makeErrorRow(c, entry.kind, ex.description, msg);
+        appendFileSync(cfg.evidenceOutPath, JSON.stringify(row) + "\n", "utf-8");
+      } finally {
+        if (overrideApplies && envVar) {
+          if (tokenWasSet) process.env[envVar] = originalToken;
+          else delete process.env[envVar];
+        }
+      }
+    }
+  } finally {
+    // Close any executors with cleanup (e.g. MCP clients).
+    for (const [name, ex] of Object.entries(executors)) {
+      if (ex.close) {
+        try {
+          await ex.close();
+        } catch (err) {
+          console.warn(
+            `   ⚠ executor close failed for ${name}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
       }
     }
   }
 
   console.log(`\n✓ Wrote ${cfg.cases.length} rows to ${cfg.evidenceOutPath}`);
+  // Silence unused-var: hasMcp is captured in the startup banner; nothing else uses it.
+  void hasMcp;
 }
 
-function makeErrorRow(c: TestCase, toolDescription: string, threw: string): Record<string, unknown> {
+function makeErrorRow(
+  c: TestCase,
+  toolKind: "vercel-ai" | "mcp-http" | null,
+  toolDescription: string,
+  threw: string,
+): Record<string, unknown> {
   return {
     name: c.name,
     tool: c.tool,
+    toolKind,
     toolDescription,
     description: c.description,
     expect: c.expect,

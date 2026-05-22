@@ -197,18 +197,29 @@ qa_agent/tests/reports/tool-probe/
 {
   runId: string;                                  // ISO timestamp, used in output filenames
   sourceProjectDir: string;                       // absolute path; runner does process.chdir() here
-  loggerModule: string;                           // absolute path to source's logger .ts file (must export `logger`)
-  tools: Record<string, {
-    module: string;                               // absolute path to tool .ts
-    factory: string;                              // export name of factory function
-    descriptionExport: string;                    // export name of description constant
-  }>;
-  authEnvVar: string | null;                      // env var to override per-case (e.g. "GITHUB_API_TOKEN"); null = no override mechanism
+  loggerModule: string | null;                    // absolute path to source's logger .ts file (vercel-ai only; null when all tools are mcp-http)
+  tools: Record<string, ToolEntry>;
+  authEnvVar: string | null;                      // legacy single-env-var override mechanism (vercel-ai only); null = no override
   debugEnvVar: string;                            // e.g. "GH_TOOL_DEBUG" — runner refuses to start unless this is set to "1" in env
-  eventPrefix: string;                            // e.g. "gh-debug" — what the monkey-patch listens for
+  eventPrefix: string;                            // e.g. "gh-debug" — what the monkey-patch listens for (vercel-ai only)
   cases: TestCase[];
   evidenceOutPath: string;                        // absolute path where runner writes evidence JSONL
 }
+
+// Discriminated union — see scripts/tool-probe/case-schema.ts for the authoritative zod definition.
+type ToolEntry =
+  | {
+      kind: "vercel-ai";                          // in-process Vercel AI SDK tool
+      module: string;                             // absolute path to tool .ts
+      factory: string;                            // export name of factory function
+      descriptionExport: string;                  // export name of description constant
+    }
+  | {
+      kind: "mcp-http";                           // remote MCP server reached via StreamableHTTP
+      serverUrl: string;                          // full MCP server URL
+      toolName?: string;                          // remote tool name if differs from config.tools key
+      authTokenEnv?: string | null;               // env var holding the Bearer token; null = no auth
+    };
 
 interface TestCase {
   name: string;
@@ -225,12 +236,27 @@ interface TestCase {
 
 ## How Runner Works (informational)
 
+Runner forks on `tool.kind` (the only place vercel-ai and mcp-http diverge):
+
+### kind=vercel-ai (in-process)
 1. `process.chdir(cfg.sourceProjectDir)` → relative paths + tsconfig + workspaces resolve correctly inside dynamic-imported source files.
 2. Dynamic `import(pathToFileURL(cfg.loggerModule).href)` → grab `logger`, monkey-patch its `.info()` to capture `<eventPrefix>.*` events into a per-case buffer.
-3. Dynamic `import(...)` each tool module → pluck factory + description from named exports.
-4. Sequential case loop with per-case auth env override, truncation (8 KB per field), JSONL append.
+3. Dynamic `import(toolFile)` → pluck factory + description from named exports.
+4. Sequential case loop: `tool.execute(input, { toolCallId, messages })`; collect probe logs.
 
 Order is critical: logger imported BEFORE tools, so the monkey-patch is in place when tools resolve `logger.info` at runtime (bun caches modules — subsequent imports see the patched copy).
+
+### kind=mcp-http (remote RPC)
+1. Skip `chdir` and logger monkey-patch (logger lives in the remote server process, unreachable).
+2. Dynamic `import("@modelcontextprotocol/sdk")` + `StreamableHTTPClientTransport` with auth header from `entry.authTokenEnv`.
+3. `client.connect()` once per tool; `client.listTools()` to fetch description.
+4. Sequential case loop: `client.callTool({ name, arguments: step.input })`; output is the raw `ToolResult`. **No probe logs available** — evidence row's `logs[]` will be empty.
+5. `client.close()` in the `finally` block.
+
+If a config mixes both kinds, the runner applies the relevant lifecycle per tool entry. Same evidence row schema, same judge.
+
+### Per-case auth override (`tokenOverride`)
+Applies to vercel-ai only — the runner mutates `process.env[cfg.authEnvVar]` before each step and restores it after. For mcp-http, auth is bound at connect time via `entry.authTokenEnv`; declare separate tool entries with different env vars to test alt-auth scenarios.
 
 ## Evidence Row Schema (what runner emits per line)
 

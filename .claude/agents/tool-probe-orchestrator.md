@@ -68,7 +68,28 @@ Before each probe, `Grep` for `<prefix>-debug.<stage>` in the same function. If 
 If `confirmProbes === true`: print the plan and STOP.
 Else: proceed to Phase 3.
 
-## Phase 3: Patch Tool & Provider Files (inline — NO helper module)
+## Phase 3 — REORDERED (write config + validate BEFORE patching)
+
+> **Critical ordering rule**: source-code patches are **physical state changes** the user must clean up via git. Schema errors found after patching leave the workspace dirty. So we **flip the original order**: build + validate the config first, and only touch source files once validation passes.
+>
+> Sub-steps in this new order:
+> 1. **3a — Write the config** (originally Phase 4). Schema details below in "Phase 3a: Write the Config".
+> 2. **3b — Run validator gate**. Shell out:
+>    ```
+>    bun <qa_agent>/scripts/tool-probe/validate-cases.ts --config <abs path to config-<runId>.json>
+>    ```
+>    - exit 0 → proceed to 3c
+>    - exit 1 → surface the JSON `issues[]` to the user, **do not patch source files**, return with `patchedFiles: []` and `validationFailed: true`. The config file is left on disk for the user to inspect / fix.
+>    - exit 2 → I/O error, treat as fatal, same behavior as exit 1.
+> 3. **3c — Patch tool & provider files** (the original Phase 3 body below).
+>
+> This guarantees: if cases are malformed (duplicate names, unknown tools, broken zod shape, tokenOverride without authEnvVar, empty-input extra-case without intent declaration), the user's source tree stays clean.
+
+## Phase 3c: Patch Tool & Provider Files (inline — NO helper module)
+
+> **Skip-rule for kind=mcp-http**: MCP tools live in a remote server process. There is no source-side `execute` function to wrap and no in-process logger to monkey-patch. **For every tool entry with `kind: "mcp-http"`, skip Phase 3c entirely**: emit no probes, edit no files, leave `patchedFiles[]` empty for that tool. Evidence for these cases will contain only `tool.input` + `tool.output` (the `callTool` ToolResult); judge.ts already tolerates the absent `provider.request` / `provider.response` log entries.
+>
+> Only proceed with the 4-probe patching below for `kind: "vercel-ai"` tools.
 
 For each non-skipped probe, use `Edit`. Patch rules (full spec in Part A of the skill):
 
@@ -120,12 +141,12 @@ If a tool's description constant is file-scoped (`const GITHUB_SEARCH_DESCRIPTIO
 
 `Read` the patched region (10 lines before and after) to sanity-check. If the file looks broken, revert that single `Edit` and report the failure.
 
-## Phase 4: Write the Config
+## Phase 3a: Write the Config
 
 The config is a single JSON file written under qa_agent's reports dir:
 
 ```
-D:\work\code\qa_agent\tests\reports\tool-probe\config-<runId>.json
+$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json
 ```
 
 (Path is absolute. Create parent directory if missing.)
@@ -156,23 +177,37 @@ The `loggerModule` is the absolute path of the source file that exports the **si
 
 **Verification**: before writing the config, `Grep` for the candidate logger's source file and confirm peer logger imports trace back to the same module via re-exports. If you find truly disjoint logger modules (rare), capture only the side that holds more probes and note the limitation in the return JSON.
 
-## Phase 5: Return
+## Phase 4: Return
 
-Emit a JSON block:
+### Success (validator passed, patches applied):
 
 ```json
 {
+  "validationFailed": false,
   "patchedFiles": [
     "apps/mira-work/lib/ai/tools/github-search.ts",
     "apps/mira-work/lib/ai/tools/github-lookup.ts",
     "packages/sourcing/src/providers/github/github-client.ts"
   ],
   "skippedProbes": [],
-  "configFile": "D:\\work\\code\\qa_agent\\tests\\reports\\tool-probe\\config-<runId>.json",
-  "evidenceTarget": "D:\\work\\code\\qa_agent\\tests\\reports\\tool-probe\\evidence-<runId>.jsonl",
-  "reportTarget": "D:\\work\\code\\qa_agent\\tests\\reports\\tool-probe\\report-<runId>.md"
+  "configFile": "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json",
+  "evidenceFile": "$QA_WORKSPACE_DIR/tests/reports/tool-probe/evidence-<runId>.jsonl",
+  "reportFile":   "$QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<runId>.md"
 }
 ```
+
+### Failure (validator rejected, NO patches applied):
+
+```json
+{
+  "validationFailed": true,
+  "patchedFiles": [],
+  "configFile": "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json",
+  "validatorOutput": { /* raw JSON from validate-cases.ts stdout */ }
+}
+```
+
+The command layer must inspect `validationFailed` and short-circuit before Phase 4 (runner) if it's `true`.
 
 ## Constraints
 

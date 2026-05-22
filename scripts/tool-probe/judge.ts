@@ -41,22 +41,24 @@ const JUDGE_SYSTEM = `You are evaluating whether a tool behaved correctly for a 
 
 You will be given:
 1. Tool description (what it promises to do)
-2. Test case intent + judge focus
-3. Expected outcome (ok / tool_error, optionally with an error code)
-4. Captured logs from every step: tool.input, provider.request (URL + query), provider.response (RAW data, BEFORE shaping), tool.output (final shaped value the LLM would see), any thrown error
+2. Evidence model — tells you which logs are available for this case (varies by tool kind, see "# Evidence model" section below)
+3. Test case intent + judge focus
+4. Expected outcome (ok / tool_error, optionally with an error code)
+5. Captured evidence — per-step inputs, outputs, and whatever logs the evidence model lists; possibly a thrown error
 
 You must determine:
-- Did the tool honor qualifiers / sort / filters?
-- Did auto-behaviors (injections, redirects, clamps) fire when expected?
-- For error cases: correct error code? message LLM-actionable?
-- For local-validation errors: NO provider call (short-circuited correctly)?
+- Did the tool honor the user's intent (qualifiers / sort / filters / auto-behaviors)?
+- Does the output shape match what the tool description promises?
+- For error cases: correct error code/shape? message actionable?
+- For local-validation errors (when applicable per evidence model): NO outbound provider call?
 
 Verdict scale:
 - pass: behavior fully matches expectation
 - partial: mostly works OR evidence insufficient to fully verify focus point
 - fail: clear bug (wrong code, ignored qualifier, wrong shape, sort violated, etc.)
 
-Be specific. Cite evidence by quoting log fields. Don't say "looks fine" without naming what you checked.`;
+Be specific. Cite evidence by quoting log fields. Don't say "looks fine" without naming what you checked.
+Do NOT mark a case "fail" for evidence types the model declares unavailable.`;
 
 const LANG_ZH = `
 
@@ -67,6 +69,7 @@ OUTPUT LANGUAGE: 请用简体中文撰写 reasoning / issues 自由文本。
 interface EvidenceRow {
   name: string;
   tool: string;
+  toolKind?: "vercel-ai" | "mcp-http" | null;   // present in runs written by post-MCP-support runner.ts
   toolDescription: string;
   description: string;
   expect: "ok" | "tool_error";
@@ -87,16 +90,38 @@ const VERDICT_SCHEMA_JSON = {
   },
 } as const;
 
+// Mode-specific evidence model preamble injected into the per-case prompt.
+// White-box runs (vercel-ai) carry tool.input / tool.output / provider.request / provider.response logs.
+// Black-box runs (mcp-http) carry ONLY tool.input + tool.output — provider.* is unreachable.
+const EVIDENCE_MODEL_WHITEBOX = `# Evidence model: WHITE-BOX (in-process Vercel AI SDK tool)
+The evidence is captured via inline probes inside the tool's source code:
+  - tool.input              — what the tool received
+  - provider.request        — outbound HTTP (URL, method, query) before fetch
+  - provider.response       — raw response data + statusCode AFTER parse, BEFORE shaping
+  - tool.output             — final shaped value returned to the LLM
+Use ALL four when judging. For local-validation errors there should be NO provider.request.`;
+
+const EVIDENCE_MODEL_MCP = `# Evidence model: BLACK-BOX (remote MCP-HTTP tool via JSON-RPC)
+The tool runs in a separate server process; we only see what crosses the RPC boundary:
+  - tool.input              — arguments sent to client.callTool()
+  - tool.output             — the raw ToolResult { content: [...], isError?: bool }
+There are NO provider.request / provider.response logs available — do NOT mark fail for their absence.
+Judge ONLY on input correctness, output shape/content, and whether the result matches the expected outcome.`;
+
 function buildPrompt(row: EvidenceRow): string {
+  const isMcp = row.toolKind === "mcp-http";
+  const evidenceModel = isMcp ? EVIDENCE_MODEL_MCP : EVIDENCE_MODEL_WHITEBOX;
   const body = [
     JUDGE_SYSTEM,
+    "",
+    evidenceModel,
     "",
     `# Tool description`,
     "",
     row.toolDescription,
     "",
     `# Test case: ${row.name}`,
-    `Tool: ${row.tool}`,
+    `Tool: ${row.tool}${row.toolKind ? ` (kind=${row.toolKind})` : ""}`,
     `Intent: ${row.description}`,
     `Expected: ${row.expect}${row.expectErrorCode ? ` (code: ${row.expectErrorCode})` : ""}`,
     `Judge focus: ${row.judgeFocus ?? "(none — general correctness)"}`,
@@ -297,6 +322,74 @@ function renderReport(rows: EvidenceRow[], verdicts: JudgeResult[], started: str
   ].join("\n");
 }
 
+// Marker pair used to protect the tool-probe block from being clobbered when
+// report-analyzer rewrites the combined summary. report-analyzer is instructed
+// (see .claude/agents/report-analyzer.md Step 4) to preserve everything between
+// these two markers verbatim.
+const TP_START = "<!-- tool-probe-runs:start -->";
+const TP_END = "<!-- tool-probe-runs:end -->";
+
+function resolveCombinedSummaryPath(reportPath: string): string {
+  const qaWorkspace = process.env.QA_WORKSPACE_DIR;
+  if (qaWorkspace) {
+    return path.join(qaWorkspace, "tests", "reports", "combined", "summary.md");
+  }
+  // Fallback: derive from reportPath. Tool-probe report lives at
+  // <root>/tests/reports/tool-probe/report-<runId>.md, so combined is two levels up.
+  const reportsDir = path.dirname(path.dirname(reportPath));
+  return path.join(reportsDir, "combined", "summary.md");
+}
+
+function appendToCombinedSummary(
+  rows: EvidenceRow[],
+  counts: { pass: number; partial_expected: number; partial: number; fail: number; error: number },
+  started: string,
+  finished: string,
+  reportPath: string,
+): void {
+  const combinedPath = resolveCombinedSummaryPath(reportPath);
+  const tools = [...new Set(rows.map((r) => r.tool))].join(",");
+  const durationS = Math.max(
+    0,
+    Math.round((new Date(finished).getTime() - new Date(started).getTime()) / 1000),
+  );
+  const runId = path.basename(reportPath, ".md").replace(/^report-/, "");
+  const relReport = path.relative(path.dirname(combinedPath), reportPath).replace(/\\/g, "/");
+  const newRow =
+    `| ${runId} | ${tools} | ${rows.length} | ${counts.pass} | ${counts.partial_expected} | ${counts.partial} | ${counts.fail} | ${counts.error} | ${durationS}s | [report](${relReport}) |`;
+
+  const HEADER_LINES = [
+    "## Tool-Probe Runs",
+    "",
+    "| Run | Tools | Total | ✅ | 🟡 | ⚠️ | ❌ | 💥 | Duration | Report |",
+    "| --- | ----- | ----- | -- | -- | -- | -- | -- | -------- | ------ |",
+  ];
+
+  mkdirSync(path.dirname(combinedPath), { recursive: true });
+
+  let existing = "";
+  try {
+    existing = readFileSync(combinedPath, "utf-8");
+  } catch {
+    // file doesn't exist — that's fine
+  }
+
+  let next: string;
+  if (existing.includes(TP_START) && existing.includes(TP_END)) {
+    // Section exists — insert the new row right before the END marker so order is chronological.
+    next = existing.replace(TP_END, `${newRow}\n${TP_END}`);
+  } else {
+    const block = [TP_START, ...HEADER_LINES, newRow, TP_END, ""].join("\n");
+    next = existing
+      ? existing.endsWith("\n")
+        ? existing + "\n" + block
+        : existing + "\n\n" + block
+      : block;
+  }
+  writeFileSync(combinedPath, next, "utf-8");
+  console.log(`   ↪ Combined summary: ${combinedPath}`);
+}
+
 function parseArgs(): { evidence: string; report: string } {
   const args = process.argv.slice(2);
   const out: Record<string, string> = {};
@@ -345,6 +438,17 @@ async function main(): Promise<void> {
   console.log(
     `   ✅ ${counts.pass}  🟡 ${counts.partial_expected}  ⚠️ ${counts.partial}  ❌ ${counts.fail}  💥 ${counts.error}`,
   );
+
+  // Best-effort: append a row to the cross-pipeline combined summary so E2E + tool-probe
+  // results live in one place. Failure here is non-fatal — the standalone report above
+  // is still the authoritative artifact.
+  try {
+    appendToCombinedSummary(rows, counts, started, finished, reportPath);
+  } catch (e) {
+    console.warn(
+      `   ⚠ combined summary append skipped: ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
   process.exit(0);
 }
 

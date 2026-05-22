@@ -15,28 +15,32 @@ You are a tool-probe pipeline orchestrator. Given one or more tool names defined
 This is **white-box probing**, not HTTP black-box testing (which is `/qa-api-test`).
 
 ```
-/qa-tool-probe <tool1> [tool2 ...] [--prd <path>] [--source <dir>] [--extra-case "<one-liner>" ...] [--confirm-probes] [--dry-run]
+/qa-tool-probe <tool1> [tool2 ...] [--prd <path>] [--source <dir>]
+               [--mcp <url> [--mcp-auth-env <NAME>]]
+               [--extra-case "<one-liner>" ...] [--confirm-probes] [--dry-run]
      |
-Phase 0: Load project context (.env → SOURCE_PROJECT_DIR + judge config); pick runId
+Phase 0: Load .env (SOURCE_PROJECT_DIR / QA_WORKSPACE_DIR / judge config); pick runId
      |
-Phase 1: Tool discovery (Grep/Read — find tool factory + provider client + project logger module)
+Phase 1: Tool discovery — forks on mode
+         ├─ vercel-ai (default): Grep/Read source to find factory + provider + logger
+         └─ mcp-http (--mcp):    MCP Client listTools() over StreamableHTTP
      |
-Phase 2: Test case ideation (reuse test-case-generator skill + tool inputSchema + optional PRD + --extra-case)
+Phase 2: Test case ideation (tool-probe-case-generator skill → zod-validated cases[])
+         · inputSchema source: zod TS (vercel) or JSON Schema (mcp)
      |
 Phase 3: Dispatch tool-probe-orchestrator agent
-         → decides probe positions, patches source files inline,
-         → writes ONE config JSON at qa_agent/tests/reports/tool-probe/config-<runId>.json
+         · 3a write config.json → 3b validate-cases.ts gate → 3c patch source
+         · 3c skipped entirely for kind=mcp-http tools
      |
-Phase 4: Execute runner — bun --env-file=<source-env> qa_agent/scripts/tool-probe/runner.ts --config <cfg>
-         → writes evidence-<runId>.jsonl
+Phase 4: bun runner.ts --config <cfg>  →  evidence-<runId>.jsonl
+         · runner forks on tool.kind (vercel-ai: import+execute; mcp-http: MCP Client)
      |
-Phase 5: Execute judge — bun qa_agent/scripts/tool-probe/judge.ts --evidence ... --report ...
-         → writes report-<runId>.md
+Phase 5: bun judge.ts → report-<runId>.md + append to combined/summary.md
      |
 Phase 6: Surface report (failures + summary)
 ```
 
-**Key architecture point**: `runner.ts` and `judge.ts` live ONCE inside qa_agent and are generic. The orchestrator does NOT generate them per-run. The only per-run artifact written into the source project is the inline probe patches; the per-run config JSON + evidence + report all live in qa_agent.
+**Key architecture point**: `runner.ts` / `judge.ts` / `validate-cases.ts` live ONCE inside qa_agent and are generic. The only per-run artifact written into the source project is the inline probe patches (vercel-ai mode only). The per-run config JSON + evidence + report all live in `$QA_WORKSPACE_DIR/tests/reports/tool-probe/`.
 
 ## Phase 0: Load Project Context
 
@@ -45,13 +49,22 @@ Read(".env")
 ```
 
 Extract:
-- `SOURCE_PROJECT_DIR` — source code dir (read tools + write runner/judge + insert probes here)
-- `QA_WORKSPACE_DIR` — qa_agent workspace (fallback for evidence/report)
+- `SOURCE_PROJECT_DIR` — source code dir (read tools + insert probes here in vercel-ai mode). **Not required in MCP mode.**
+- `QA_WORKSPACE_DIR` — qa_agent workspace (config / evidence / report all written under `$QA_WORKSPACE_DIR/tests/reports/tool-probe/`)
 - `JUDGE_LANG` (default `zh`) — judge reason language
-- `CLAUDE_JUDGE_CONCURRENCY` (default `4`) — parallel `claude -p` subprocesses
+- `CLAUDE_JUDGE_CONCURRENCY` (default `1`) — parallel `claude -p` subprocesses. **Keep at 1 when running inside a Claude Code session** (parallel `claude -p` contends with the parent session and gets killed, exit 9). Bump to 4+ only when invoking from a standalone shell.
 - `CLAUDE_JUDGE_TIMEOUT` (default `240`) — per judge call timeout (seconds)
+- `TOOL_PROBE_AUTH_ENV_VAR` (optional, no default) — name of the env var that holds the vercel-ai mode's API token. Used to populate `config.authEnvVar` so `tokenOverride` in cases can mutate it. If unset, cases that use `tokenOverride` will be **rejected by validate-cases.ts** with `missing-auth-env-var`. Example: `TOOL_PROBE_AUTH_ENV_VAR=GITHUB_API_TOKEN`.
 
-Source code dir priority: `--source` > `SOURCE_PROJECT_DIR` > error out (this command requires source).
+Source code dir priority (vercel-ai mode only): `--source` > `SOURCE_PROJECT_DIR` > error out. In MCP mode (`--mcp <url>`), source dir is ignored.
+
+**Generate `runId` once here, reuse across all subsequent phases**:
+
+```
+runId = new Date().toISOString().replace(/[:.]/g, "-")     // e.g. 2026-05-21T08-22-43-114Z
+```
+
+This single `runId` is the suffix on `discovery-<runId>.json` (MCP mode), `config-<runId>.json`, `evidence-<runId>.jsonl`, and `report-<runId>.md`. Generating it later (e.g. in Phase 3) would break Phase 1a's discovery output filename.
 
 ### Parameter Parsing
 
@@ -61,10 +74,22 @@ Parse `$ARGUMENTS`. Positional args before any flag are tool names.
 |------|---------|-------------|
 | `<toolN>` (positional, 1..N) | — | Tool names (e.g. `github_search`) or factory names (e.g. `createGithubSearchTool`). Required ≥1. |
 | `--prd <path>` | — | Optional PRD doc; fed to case ideation. |
-| `--source <dir>` | `SOURCE_PROJECT_DIR` | Override source code dir. |
+| `--source <dir>` | `SOURCE_PROJECT_DIR` | Override source code dir (vercel-ai mode only). |
+| `--mcp <url>` | — | If set, treat the listed tools as **remote MCP tools** served by this StreamableHTTP URL. Skips source discovery and probe injection; tool schemas come from `tools/list` instead of grepping source. Auth: env var named by `--mcp-auth-env` (defaults to `MCP_AUTH_TOKEN`). |
+| `--mcp-auth-env <NAME>` | `MCP_AUTH_TOKEN` | Env var holding the Bearer token for the MCP server. Only meaningful with `--mcp`. |
 | `--extra-case "<desc>"` | — | Free-form extra case description (repeatable); ideation will turn into structured cases. |
-| `--confirm-probes` | **off** | If set, model lists planned probe locations and waits for user confirmation before inserting. |
-| `--dry-run` | **off** | If set, instrument + generate runner/judge but do NOT execute. |
+| `--confirm-probes` | **off** | If set, model lists planned probe locations and waits for user confirmation before inserting (vercel-ai only; ignored in MCP mode). |
+| `--dry-run` | **off** | If set, do all preparation (Phase 1–3 incl. validator) but skip runner+judge execution. In vercel-ai mode this still patches source; in MCP mode this only writes the config. |
+
+**Two modes — pick by flag**:
+- **Vercel-AI mode (default)**: probe + import in-process. Requires `SOURCE_PROJECT_DIR` (or `--source`). Tools are grepped from the source tree.
+- **MCP-HTTP mode (`--mcp <url>`)**: black-box RPC. Tools discovered via `client.listTools()`. No source patching. Evidence is `tool.input` + `tool.output` only (no provider.* probes).
+
+**Flag conflict rules**:
+- `--mcp` + `--source` — `--source` is **ignored** (MCP mode has no source side); print a one-line notice but proceed.
+- `--mcp` + `--prd` — both honored; PRD informs case ideation regardless of mode.
+- `--mcp` + `--confirm-probes` — `--confirm-probes` **ignored** (no probes to confirm).
+- Mixing vercel-ai and mcp-http tools in one invocation is **not supported**. Call `/qa-tool-probe` twice — both runs append to the same `combined/summary.md` so reports merge cleanly.
 
 **Defaults the user already approved**:
 - Probe placement is NOT confirmed by default — agent decides and writes directly.
@@ -76,6 +101,27 @@ Parse `$ARGUMENTS`. Positional args before any flag are tool names.
 If no tool args supplied → exit with `Error: at least one tool name required. Usage: /qa-tool-probe <tool> [...]`.
 
 ## Phase 1: Tool Discovery
+
+### Branch 1a — MCP-HTTP mode (when `--mcp <url>` set)
+
+Connect to the MCP server via StreamableHTTP, list tools, filter to the requested set. **Replaces** the source-grep flow below. Use the dedicated CLI:
+
+```sh
+bun $QA_WORKSPACE_DIR/scripts/tool-probe/mcp-discover.ts \
+  --url       <value from --mcp> \
+  --tools     <comma-separated tool names from positional args> \
+  --auth-env  <value from --mcp-auth-env, default MCP_AUTH_TOKEN> \
+  --out       $QA_WORKSPACE_DIR/tests/reports/tool-probe/discovery-<runId>.json
+```
+
+Exit codes:
+- `0` — all requested tools resolved; discovery JSON written
+- `1` — one or more tool names missing on the server; stderr lists what's available; **abort the pipeline**
+- `2` — argv / connection / I/O error; abort
+
+The script writes a discovery JSON matching the "MCP-HTTP shape" below — each entry carries `kind: "mcp-http"`, the server-returned `description` + `inputSchema`, plus the `serverUrl` / `authTokenEnv` bookkeeping the orchestrator needs to write a runner config. `loggerModule` / `sharedProviders` / `providerFile` are **omitted** (no source-side probes in this mode).
+
+### Branch 1b — Vercel-AI mode (default)
 
 For each tool name `<toolN>`, locate its definition in `$SOURCE_PROJECT_DIR`:
 
@@ -115,11 +161,23 @@ For each tool, capture:
 
 If discovery is ambiguous (multiple candidates), prefer the file with `createTool(`/`tool(` and the matching `inputSchema`/`description` pair. If still ambiguous, ask the user with `AskUserQuestion`.
 
-Produce `discovery.json`:
+**Compute `prefix` via the shared CLI** (same rule as Phase 1a uses internally — single source of truth, no drift risk):
+
+```sh
+bun $QA_WORKSPACE_DIR/scripts/tool-probe/prefix.ts <comma-separated tool names>
+# e.g. → "github" for github_search,github_lookup
+```
+
+Then write `discovery-<runId>.json` to `$QA_WORKSPACE_DIR/tests/reports/tool-probe/` (symmetric with Phase 1a) so the orchestrator can pick it up.
+
+Produce `discovery.json`. The shape depends on `kind`:
+
+**Vercel-AI shape** (from Branch 1b):
 ```json
 {
   "tools": [
     {
+      "kind": "vercel-ai",
       "name": "github_search",
       "toolFile": "apps/mira-work/lib/ai/tools/github-search.ts",
       "executeStart": 154,
@@ -136,37 +194,65 @@ Produce `discovery.json`:
 }
 ```
 
-**Prefix derivation**: take the longest common root word across tool names (e.g. `github_search`+`github_lookup` → `gh`). Used for the gated env var name (`<PREFIX>_TOOL_DEBUG`) and event prefix (`<prefix>-debug.*`).
+**MCP-HTTP shape** (from Branch 1a):
+```json
+{
+  "tools": [
+    {
+      "kind": "mcp-http",
+      "name": "cts_search_candidates",
+      "description": "Search CTS candidate database by filters",
+      "inputSchema": { "type": "object", "properties": { "q": { "type": "string" } }, "required": ["q"] },
+      "serverUrl": "https://cts-mcp.example.com/mcp",
+      "authTokenEnv": "CTS_MCP_TOKEN"
+    }
+  ],
+  "prefix": "cts"
+}
+```
+
+**Prefix derivation**: longest common leading underscore-segment(s) across tool names (e.g. `github_search`+`github_lookup` → `github`; single tool `cts_search_candidates` → `cts`). Used in vercel-ai mode for the gated env var name (`<PREFIX>_TOOL_DEBUG`) and event prefix (`<prefix>-debug.*`); in MCP mode it's bookkeeping only (no probes use it). For mcp-http mode, this is computed automatically by `mcp-discover.ts`.
 
 ## Phase 2: Test Case Ideation
 
-Generate the case list **without invoking sub-agents** for simple cases; only delegate if PRD is present.
+**Use `skills/tool-probe-case-generator/SKILL.md`** (NOT the generic `test-case-generator` skill — that one targets E2E / Playwright and outputs Markdown + handoff JSON, which is the wrong shape for this pipeline).
 
-Inputs to feed into ideation:
-- `descriptionSource` (raw text)
-- `inputSchemaSource` (raw zod/TS source)
+The tool-probe-case-generator skill:
+- Borrows test-case-generator's 6 design methods & dedup logic, but maps them to tool-probe's 7 required categories
+- Outputs JSON cases **directly conforming to** `scripts/tool-probe/case-schema.ts` (the single source of truth shared with `runner.ts`)
+- Self-validates via `casesArraySchema.safeParse(cases)` before returning — catches schema drift at ideation time, not at runner startup
+- Returns in-memory array; no file write (command layer embeds into config)
+
+Generate **without invoking sub-agents**; only delegate to a sub-agent if PRD is present and complex.
+
+Inputs to feed into the skill (skill auto-detects which form based on `kind`):
+- `descriptionSource` (raw text — Vercel: tool's description constant; MCP: `tools[].description` from listTools)
+- `inputSchemaSource` — **two shapes by mode**:
+  - vercel-ai → raw zod TS source (parse via regex/AST)
+  - mcp-http → JSON Schema object from `tools[].inputSchema` (read directly)
+- `hasProvider` from Phase 1 discovery (vercel-ai only; MCP mode always treats as `false` — no provider-level probes exist)
+- `kind` from Phase 1 discovery (`"vercel-ai"` | `"mcp-http"`)
 - Optional PRD content from `--prd <path>`
 - `--extra-case` strings
 
-Use `skills/test-case-generator/SKILL.md` as the case-design guide, then transform output into the runner-expected shape (see `skills/tool-probe/SKILL.md (Part B — Generated Scripts)` for the schema).
-
-**Required case categories** (generate at least 1 per category per tool):
+**Required case categories** (skill enforces ≥ 5/7 produce real cases; remaining can be N/A with reason):
 
 | Category | Example |
 |---|---|
-| happy path (each major input mode) | search + lookup variants |
-| input-schema validation (missing required / wrong type) | drop a required field |
-| local validation early-rejection | invalid qualifier / sort |
-| numeric clamping / normalization | per_page=0, page=15, float values |
-| provider error mapping | 404 → not_found, 401 → auth_error |
-| boundary / edge | empty result, max-length query |
-| auto-behavior (if any documented) | type:org injection, user→org redirect |
+| ① happy path (each major input mode) | search + lookup variants |
+| ② input-schema validation (missing required / wrong type) | drop a required field |
+| ③ local validation early-rejection | invalid qualifier / sort |
+| ④ numeric clamping / normalization | per_page=0, page=15, float values |
+| ⑤ provider error mapping | 404 → not_found, 401 → auth_error |
+| ⑥ boundary / edge | empty result, max-length query |
+| ⑦ auto-behavior (if any documented) | type:org injection, user→org redirect |
 
-If `--extra-case` provided, append one case per `--extra-case` flag.
+If `--extra-case` provided, the skill appends one case per flag with `name: "extra-<n>"` (input inferred from description, falls back to `{}` + `requires manual input fill` judgeFocus note when not inferrable — never guesses silently).
 
-**Truncation hint**: cases that fetch large responses (e.g. lists) should set `per_page` ≤ 5 so provider.response stays under the 8 KB per-case budget.
+**Truncation hint**: skill applies this automatically — cases that fetch large responses (lists) set `per_page` ≤ 5 so provider.response stays under runner.ts's 8 KB per-case budget.
 
-Output (in memory, passed to Phase 3): `cases.json` array, each item:
+Output (in memory, passed to Phase 3): zod-validated `cases[]` array. Schema is `casesArraySchema` from `scripts/tool-probe/case-schema.ts`. Example item:
+
 ```json
 {
   "name": "search-user-happy",
@@ -181,85 +267,135 @@ Output (in memory, passed to Phase 3): `cases.json` array, each item:
 }
 ```
 
+If the skill's zod validation fails, **stop here** and surface the failed case names + zod error paths to the user. Do not proceed to Phase 3 with invalid cases.
+
+**Persist cases for reproducibility** (mandatory):
+
+```
+Write($QA_WORKSPACE_DIR/tests/reports/tool-probe/cases-<runId>.json, JSON.stringify(cases, null, 2))
+```
+
+LLM-driven ideation is non-deterministic — without persistence, re-running after any later failure produces a different case set. By snapshotting `cases-<runId>.json` immediately after Phase 2 succeeds, the user (or the orchestrator on retry) can re-feed the exact same batch via `--cases-file <path>` (see "Re-run from existing cases" section if implemented; for now treat the file as documentation of what ran).
+
 ## Phase 3: Dispatch tool-probe-orchestrator
 
-Pick `runId = new Date().toISOString().replace(/[:.]/g, "-")` (e.g. `2026-05-21T08-22-43-114Z`).
-
-Launch the orchestrator agent (sonnet) with this brief:
+`runId` was generated in Phase 0; reuse it. Launch the orchestrator agent (sonnet). The brief is **deliberately minimal** — the agent file (`.claude/agents/tool-probe-orchestrator.md`) holds the authoritative phase order (3a write config → 3b validator gate → 3c patch source) and the kind-skip rule for mcp-http. Don't duplicate that here.
 
 ```
-You are tool-probe-orchestrator. First read .claude/agents/tool-probe-orchestrator.md.
-Then read skills/tool-probe/SKILL.md (Part A — Instrumentation; Part B — Config & Execution).
+You are tool-probe-orchestrator. First read .claude/agents/tool-probe-orchestrator.md, then skills/tool-probe/SKILL.md (Part A applies to vercel-ai only; Part B applies to both kinds).
 
 Input:
-- sourceProjectDir: "$SOURCE_PROJECT_DIR"
-- discovery: {discovery.json from Phase 1, including loggerModule absolute path}
-- cases: {cases.json from Phase 2}
-- prefix: "{discovery.prefix}"
-- confirmProbes: {true|false from --confirm-probes}
-- runId: "<runId>"
+- discovery: { tools: [...], prefix: "<prefix>" }   // Phase 1 output; each tool carries its own "kind"
+- cases: [...]                                       // Phase 2 zod-validated cases
+- confirmProbes: <bool>                              // from --confirm-probes (ignored when all tools are kind=mcp-http)
+- runId: "<runId>"                                   // generated in Phase 0
+- sourceProjectDir: "<abs path | null>"              // null when all tools are kind=mcp-http
+- authEnvVar: "<env var name | null>"                // from .env's TOOL_PROBE_AUTH_ENV_VAR (vercel-ai mode only; null if unset)
 
-Tasks:
-1. Decide exact insertion lines for the 4 probes per tool (you choose, not me).
-2. If confirmProbes=true, print the plan and STOP. Otherwise instrument directly:
-   - Inline the gated `logger.info` call at each probe site (NO helper file).
-   - Add a `logger` import to each patched file if absent.
-   - Patch tool and provider files in place. Do NOT back up — user manages git.
-   - Add `export` to file-scoped description constants the runner needs to import.
-   - Dedup: Grep for existing `<prefix>-debug.<stage>` in the same function; skip if present.
-3. Write ONE config JSON to:
-   D:\work\code\qa_agent\tests\reports\tool-probe\config-<runId>.json
-   Schema: see Part B of the skill. Includes runId, sourceProjectDir, loggerModule (abs path),
-   tools map (abs paths to .ts + factory + descriptionExport), authEnvVar, debugEnvVar
-   (=<PREFIX>_TOOL_DEBUG), eventPrefix (=<prefix>-debug), cases, evidenceOutPath.
+Config schema (one entry per tool):
+- kind=vercel-ai → { module, factory, descriptionExport }
+- kind=mcp-http  → { serverUrl, authTokenEnv, toolName? }
+See scripts/tool-probe/case-schema.ts for the authoritative zod definition.
+Top-level fields the orchestrator must fill: { runId, sourceProjectDir, loggerModule, tools, authEnvVar, debugEnvVar, eventPrefix, cases, evidenceOutPath }.
+  - authEnvVar = caller-provided value (no fabrication); leave null if caller passed null.
 
-Return: { patchedFiles[], skippedProbes[], configFile, evidenceTarget, reportTarget }.
+Phase 3 task summary (full ordering rules in your agent file):
+  3a) Write config-<runId>.json
+  3b) Run validate-cases.ts; exit ≠ 0 → return validationFailed:true, no patches
+  3c) Patch source — only for kind=vercel-ai tools; mcp-http tools skipped entirely
+
+Return on success: { validationFailed: false, patchedFiles[], skippedProbes[], configFile, evidenceFile, reportFile }
+Return on validation failure: { validationFailed: true, patchedFiles: [], configFile, validatorOutput }
 ```
 
-If `--confirm-probes` is set and the agent returns a plan, surface it to the user and exit (the user reruns without the flag once they're happy).
+> Field naming alignment: brief returns `evidenceFile` / `reportFile` (was `evidenceTarget` / `reportTarget` in an earlier draft) — matches Phase 6's final return shape. Pass-through without rename.
+
+**Confirm-probes short-circuit**: if `--confirm-probes` was set (vercel-ai only) and the agent returns a plan, surface it and exit so the user can rerun without the flag.
+
+**Validator short-circuit**: when `validationFailed=true`, print the validator's `issues[]` (errors first) and **skip Phase 4/5/6** — exit 0 with a clear message. No patches to clean up because Phase 3 ordering guarantees patches happen after validator passes.
 
 ## Phase 4: Execute Runner (skipped if `--dry-run`)
 
-Locate the source project's `.env` (e.g. `apps/mira-work/.env` for monorepos, or `<source>/.env` for flat projects).
+**Vercel-AI mode** — locate the source project's `.env` (e.g. `$SOURCE_PROJECT_DIR/apps/mira-work/.env` for monorepos, or `$SOURCE_PROJECT_DIR/.env` for flat projects):
 
-```powershell
-$env:<PREFIX>_TOOL_DEBUG = "1"
-bun --env-file=<absolute-path-to-source-env> `
-  D:\work\code\qa_agent\scripts\tool-probe\runner.ts `
-  --config D:\work\code\qa_agent\tests\reports\tool-probe\config-<runId>.json
+```sh
+<PREFIX>_TOOL_DEBUG=1 \
+bun --env-file=<abs-path-to-source-env> \
+  $QA_WORKSPACE_DIR/scripts/tool-probe/runner.ts \
+  --config $QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json
 ```
 
-The runner `process.chdir(sourceProjectDir)` internally so the source project's tsconfig / workspaces / relative paths resolve correctly during dynamic import. It writes `evidence-<runId>.jsonl` and prints per-case progress. Failures inside the runner (e.g. one case threw) are captured into the evidence row's `threw` field — the runner does NOT exit on a single case failure. Only catastrophic errors (import failure, fs error) cause non-zero exit; surface those to the user but still continue to Phase 5 if the evidence file is partially populated.
+**MCP-HTTP mode** — no source `.env`; the auth env var (from `--mcp-auth-env`) must be present in the shell:
+
+```sh
+<MCP_AUTH_ENV_NAME>=<token> \
+bun $QA_WORKSPACE_DIR/scripts/tool-probe/runner.ts \
+  --config $QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json
+```
+
+(No `--env-file` and no `<PREFIX>_TOOL_DEBUG=1` because there's no probe to gate.)
+
+The runner internally:
+- For vercel-ai tools: `process.chdir(sourceProjectDir)` + dynamic import + monkey-patch logger.
+- For mcp-http tools: connect via MCP Client + `callTool(...)`. No chdir, no logger patch.
+- DEBUG env (`cfg.debugEnvVar`) is **only enforced when ≥1 vercel-ai tool present**; MCP-only runs skip the gate.
+
+It writes `evidence-<runId>.jsonl` and prints per-case progress. Failures inside the runner (e.g. one case threw) are captured into the evidence row's `threw` field — the runner does NOT exit on a single case failure. Only catastrophic errors (executor init failure, fs error) cause non-zero exit; surface those to the user but still continue to Phase 5 if the evidence file is partially populated.
 
 ## Phase 5: Execute Judge (skipped if `--dry-run`)
 
-```powershell
-bun D:\work\code\qa_agent\scripts\tool-probe\judge.ts `
-  --evidence D:\work\code\qa_agent\tests\reports\tool-probe\evidence-<runId>.jsonl `
-  --report   D:\work\code\qa_agent\tests\reports\tool-probe\report-<runId>.md
+```sh
+bun $QA_WORKSPACE_DIR/scripts/tool-probe/judge.ts \
+  --evidence $QA_WORKSPACE_DIR/tests/reports/tool-probe/evidence-<runId>.jsonl \
+  --report   $QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<runId>.md
 ```
 
-The judge runs all cases through `claude -p` (concurrency = `CLAUDE_JUDGE_CONCURRENCY`, default 1), then writes Markdown. It exits 0 regardless of individual verdicts — failure status lives in the report.
+The judge runs all cases through `claude -p` (concurrency = `CLAUDE_JUDGE_CONCURRENCY`, default 1), then writes Markdown and **automatically appends a row to `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`** (between `<!-- tool-probe-runs:start -->` / `:end -->` markers — report-analyzer preserves this block when rewriting summary.md for E2E). It exits 0 regardless of individual verdicts — failure status lives in the per-run report.
+
+**Judge-side debug artifacts**: if a `claude -p` call fails to parse JSON / returns rc≠0, judge.ts retries up to 3× with backoff. **Each failed attempt dumps the prompt + stdout + stderr to `$QA_WORKSPACE_DIR/tests/reports/tool-probe/.judge-debug/fail-<ts>-<id>-att<N>.log`** (override via env `CLAUDE_JUDGE_DEBUG_DIR`). If a verdict comes back as `💥 error` in the report, this dir is where the raw evidence of the judge's failure lives.
 
 ## Phase 6: Surface Report
 
-Read `report-<ts>.md`. Extract:
+Read `report-<runId>.md`. Extract:
 - Summary line (counts of ✅ / ⚠️ / ❌ / 💥)
 - Per-failure mini-summary (case name + 1-line reasoning)
 
-Print to user. End with the absolute path of the full report.
+Print to user. End with the absolute path of the full report and a note that the combined cross-pipeline summary has been updated at `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`.
 
-**Final return** (always exit 0):
+**Final return** (always exit 0). `patchedFiles` may be empty in MCP mode:
 
 ```json
 {
+  "mode": "vercel-ai | mcp-http",
   "patchedFiles": ["apps/.../github-search.ts", "packages/.../github-client.ts"],
-  "configFile": "D:\\work\\code\\qa_agent\\tests\\reports\\tool-probe\\config-<runId>.json",
-  "evidenceFile": "D:\\work\\code\\qa_agent\\tests\\reports\\tool-probe\\evidence-<runId>.jsonl",
-  "reportFile": "D:\\work\\code\\qa_agent\\tests\\reports\\tool-probe\\report-<runId>.md",
+  "configFile":   "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json",
+  "evidenceFile": "$QA_WORKSPACE_DIR/tests/reports/tool-probe/evidence-<runId>.jsonl",
+  "reportFile":   "$QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<runId>.md",
+  "combinedSummary": "$QA_WORKSPACE_DIR/tests/reports/combined/summary.md",
   "summary": { "total": 24, "pass": 19, "partial": 2, "fail": 2, "error": 1 },
   "failures": [
     { "name": "search-repo-sort-by-stars", "reasoning": "items[2].stars > items[1].stars — sort not honored" }
   ]
 }
 ```
+
+For MCP mode, the same shape applies with `mode: "mcp-http"`, `patchedFiles: []`, and evidence rows containing only `tool.input` + `tool.output` (no `provider.*` log entries).
+
+### Triage guide — what to do with each verdict
+
+| Verdict | Likely cause | What to do |
+|---|---|---|
+| ✅ `pass` | Tool behaved as expected | Nothing |
+| 🟡 `partial_expected` | Case was authored with `acceptPartialAsPass: true`; judge had to guess but it's documented as acceptable | Nothing, but periodically review whether the case can be tightened |
+| ⚠️ `partial` | Evidence didn't fully verify the judge focus point | **Read `judgeFocus` + evidence in `report-<runId>.md`**. Usually means either (a) the case input doesn't exercise the focus condition strongly enough — refine the case; or (b) provider logs are sparse — add more inputs |
+| ❌ `fail` | Three possibilities — distinguish before filing a bug | See decision tree below |
+| 💥 `error` | judge.ts retries exhausted (claude CLI failed to return parseable JSON) | Inspect `.judge-debug/fail-*.log` from Phase 5; usually a transient claude CLI issue — re-run just judge.ts (or the full pipeline) |
+
+**`fail` decision tree** — before filing a product bug, classify it:
+
+1. **Read the failing case's `judgeFocus` + reasoning + evidence** in `report-<runId>.md`
+2. Ask in this order:
+   - **Is the tool actually broken?** Pattern: judge cites concrete violations from logs (e.g. "items[2].stars > items[1].stars — sort:stars not honored"). The evidence speaks for itself → **product bug**, file/escalate.
+   - **Is the case wrong?** Pattern: the case asserts something the tool never promised (e.g. expected a field that's not in the inputSchema, or set `expect: tool_error` for a happy-path input). Look at the case in `cases-<runId>.json` → **case bug**, refine in next ideation pass.
+   - **Is the judge misreading?** Pattern: judge reasoning doesn't match what the evidence actually shows (e.g. claims a field is missing that's clearly present, or applies criteria not in `judgeFocus`). Rare — usually transient model variance → **rerun judge.ts on the same evidence**; if it persists, sharpen `judgeFocus` or set `acceptPartialAsPass: true` on cases where the judge can't be sure.
+3. Re-run after each fix uses the **same** `cases-<runId>.json` so the diff is comparable — this is why Phase 2 persists cases to disk.
