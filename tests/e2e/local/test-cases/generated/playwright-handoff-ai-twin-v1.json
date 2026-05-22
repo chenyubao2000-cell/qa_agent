@@ -1,0 +1,6067 @@
+[
+  {
+    "id": "TC-PRD-TWIN-FORM-001",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-1",
+    "source": "prd",
+    "title": "U1 onboarding 页面骨架与默认值正确渲染",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "新用户已注册并完成邮箱验证",
+      "user_twin_profile 为空",
+      "注册时间 >= V1 上线日"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "Create your AI Twin",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "label",
+        "name": "Avatar",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "label",
+        "name": "AI Twin name",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "label",
+        "name": "Personality",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Change",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Continue",
+        "i18nKey": null
+      },
+      {
+        "type": "count",
+        "selector": "radio",
+        "name": "personality-row",
+        "expected": 4
+      },
+      {
+        "type": "attribute",
+        "selector": "radio",
+        "name": "Default",
+        "expected": "checked"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-002",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-3",
+    "source": "prd",
+    "title": "三字段全用默认值一键提交成功",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Continue",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/task/new?first_meet=true"
+      },
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_name",
+        "expected": "Aria"
+      },
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_avatar_source",
+        "expected": "preset_m1"
+      },
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_personality",
+        "expected": "default"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-003",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-3",
+    "source": "prd",
+    "title": "自定义 name + Professional + 自定义上传 avatar 提交成功",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "valid",
+        "value": "My Twin 01",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Change",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "link",
+        "name": "Upload your own",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "file-upload",
+        "action": "fill",
+        "dataType": "file.image",
+        "dataVariant": "png",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "radio",
+        "name": "Professional",
+        "action": "check",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Continue",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/task/new?first_meet=true"
+      },
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_name",
+        "expected": "My Twin 01"
+      },
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_personality",
+        "expected": "professional"
+      },
+      {
+        "type": "attribute",
+        "selector": "db",
+        "name": "user_twin_profile.twin_avatar_source",
+        "expected": "custom"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-004",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-2",
+    "source": "prd",
+    "title": "name 边界值 20 字符提交成功",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "boundary:20",
+        "value": "AriaAriaAriaAriaAria",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Continue",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_name",
+        "expected": "AriaAriaAriaAriaAria"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-005",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-name_too_long",
+    "source": "prd",
+    "title": "name 长度 21 字符被拒绝",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "long:21",
+        "value": "AriaAriaAriaAriaAriaX",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Name must be 1-20 characters",
+        "i18nKey": null
+      },
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Continue"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-006",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-name_blocked_brand",
+    "source": "prd",
+    "title": "name 含品牌黑名单 mira 被拒绝",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "invalid",
+        "value": "Mira_Helper",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Name can't include other AI brand names",
+        "i18nKey": null
+      },
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Continue"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-006b",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-name_blocked_brand-pure",
+    "source": "prd",
+    "title": "name 含纯品牌子串 mira (no underscore) 被拒绝",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户在 edit U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=edit"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "invalid:brand-pure",
+        "value": "MiraHelper",
+        "i18nKey": "twin.fields.name.label"
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "alert",
+        "name": "twin-name-hint",
+        "expected": null,
+        "i18nKey": "twin.errors.nameBlockedBrand"
+      },
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Save changes"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "@REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-007",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-name_blocked_brand",
+    "source": "prd",
+    "title": "name 含品牌黑名单 openai/chatgpt/claude/anthropic 任意子串被拒绝",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "invalid",
+        "value": "OpenAI Bot",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Name can't include other AI brand names",
+        "i18nKey": null
+      },
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Continue"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-008",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-name_invalid_chars",
+    "source": "prd",
+    "title": "name 含非法字符（破折号等）被拒绝",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "invalid",
+        "value": "Twin-2025",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Only letters, numbers and spaces",
+        "i18nKey": null
+      },
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Continue"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-009",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-name_invalid_chars",
+    "source": "prd",
+    "title": "name 含 emoji/控制符被拒绝",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "emoji",
+        "value": "Aria 🚀",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Only letters, numbers and spaces",
+        "i18nKey": null
+      },
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Continue"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-010",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-4",
+    "source": "prd",
+    "title": "avatar 上传大小 1.99MB 边界值成功",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户在 onboarding U1，已点开 Change 弹层"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openAvatarChangePopover"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "uploaded_avatar",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "link",
+        "name": "Upload your own",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "file-upload",
+        "action": "fill",
+        "dataType": "file.image",
+        "dataVariant": "png",
+        "value": "1.99MB-1024x1024.png",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "popover",
+        "name": "avatar-change"
+      },
+      {
+        "type": "attribute",
+        "selector": "img",
+        "name": "currentAvatar",
+        "expected": "custom-uploaded"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-011",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-avatar_upload_too_large",
+    "source": "prd",
+    "title": "avatar 上传 2.4MB 超过上限被拒绝",
+    "priority": "P0",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户在 onboarding U1，已点开 Change 弹层"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openAvatarChangePopover"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "link",
+        "name": "Upload your own",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "file-upload",
+        "action": "fill",
+        "dataType": "file.image",
+        "dataVariant": "oversized",
+        "value": "2.4MB-oversized.jpg",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Image must be ≤ 2MB",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-012",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-4",
+    "source": "prd",
+    "title": "avatar MIME 非法 (gif/svg/bmp) 被拒绝",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户在 onboarding U1，已点开 Change 弹层"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openAvatarChangePopover"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "link",
+        "name": "Upload your own",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "file-upload",
+        "action": "fill",
+        "dataType": "file.image",
+        "dataVariant": "invalid",
+        "value": "test.gif",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "alert",
+        "name": "mime-not-allowed",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-013",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-avatar_upload_failed",
+    "source": "prd",
+    "title": "avatar 上传 R2 5xx/超时回滚到上一状态",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户在 onboarding U1",
+      "mock R2 服务返回 5xx 或超时"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockR2Failure"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openAvatarChangePopover"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "link",
+        "name": "Upload your own",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "file-upload",
+        "action": "fill",
+        "dataType": "file.image",
+        "dataVariant": "png",
+        "value": "1.2MB.jpg",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "toast",
+        "name": "Upload failed · Retry",
+        "i18nKey": null
+      },
+      {
+        "type": "attribute",
+        "selector": "img",
+        "name": "currentAvatar",
+        "expected": "preset_m1"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-014",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-EX-network_timeout_on_submit",
+    "source": "prd",
+    "title": "U1 提交超过 8s 显示 Try again 不丢表单",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "用户在 onboarding U1，三字段已合规",
+      "mock 后端提交响应延迟 > 8s"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockSubmitDelay",
+        "data": {
+          "delayMs": 9000
+        }
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "valid",
+        "value": "Lumi",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Continue",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Try again",
+        "i18nKey": null
+      },
+      {
+        "type": "value",
+        "selector": "textbox",
+        "name": "AI Twin name",
+        "expected": "Lumi"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-015",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-Interaction",
+    "source": "prd",
+    "title": "avatarField 实时回显 currentAvatar / currentLbl",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "valid",
+        "value": "Lumi",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Change",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "preset_m3",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "label",
+        "name": "currentLbl",
+        "expected": "Lumi"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Your AI Twin",
+        "i18nKey": null
+      },
+      {
+        "type": "attribute",
+        "selector": "img",
+        "name": "currentAvatar",
+        "expected": "preset_m3"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-016",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-AC-Personality",
+    "source": "prd",
+    "title": "选择 personality 4 档单选互斥",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "radio",
+        "name": "Default",
+        "action": "check",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "radio",
+        "name": "Professional",
+        "action": "check",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "radio",
+        "name": "Friendly",
+        "action": "check",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "radio",
+        "name": "Concise",
+        "action": "check",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "radio",
+        "name": "Concise",
+        "expected": "checked"
+      },
+      {
+        "type": "count",
+        "selector": "radio:checked",
+        "name": "personality-rows",
+        "expected": 1
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-017",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-Edge-1",
+    "source": "prd",
+    "title": "avatar 上传但未点 CTA 后刷新 -> 资源 48h 内 GC",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户在 onboarding U1，已成功上传 1.2MB JPG，CTA 尚未点击"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "avatar_upload",
+        "pomMethod": "uploadAvatar",
+        "data": {
+          "size": "1.2MB"
+        }
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "r2-object",
+        "name": "gc-flag",
+        "expected": "marked"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-FORM-018",
+    "storyId": "US-TWIN-FORM",
+    "criterionId": "REQ-001-Edge-2",
+    "source": "prd",
+    "title": "U1 草稿不持久 - 关闭浏览器再登录回到原 mode 同字段空白",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户在 onboarding U1，已输入 name=Lumi 但未提交"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "pomMethod": "fillName",
+        "data": {
+          "name": "Lumi"
+        }
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "close-browser-and-relogin",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "value",
+        "selector": "textbox",
+        "name": "AI Twin name",
+        "expected": ""
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-001"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-001",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-onboarding-en",
+    "source": "prd",
+    "title": "onboarding 模式 hero/CTA 桌面文案矩阵 (EN)",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "新用户已登录",
+      "UI 语言=英文",
+      "断点=桌面 1280"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "heading",
+        "name": "hero_title",
+        "expected": "Create your AI Twin",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "It takes initiative, gets sharper with your action, Take 30 seconds to set it up.",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Continue",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Exit",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-002",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-onboarding-zh",
+    "source": "prd",
+    "title": "onboarding 模式 hero/CTA 桌面文案矩阵 (ZH)",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "UI 语言=中文",
+      "断点=桌面",
+      "mode=onboarding"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setLocale",
+        "data": {
+          "locale": "zh"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "heading",
+        "name": "hero_title",
+        "expected": "创建你的 AI 分身",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "它会主动出手、随你的行动越用越准，花 30 秒先设置一下。",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "继续",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-002",
+      "@i18n-zh"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-003",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-migration-en",
+    "source": "prd",
+    "title": "migration 模式 hero/CTA 桌面文案矩阵 (EN)",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "老用户登录 (注册时间 < V1 上线日)",
+      "profile 缺失",
+      "locale=en, viewport=desktop"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=migration"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "heading",
+        "name": "hero_title",
+        "expected": "Old friend, Meet your NEW partner",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "We've upgraded Mira into your own AI Twin, Take 30 seconds to set it up.",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Continue",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Exit",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-004",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-migration-zh",
+    "source": "prd",
+    "title": "migration 模式 hero/CTA 桌面文案矩阵 (ZH)",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "老用户登录, profile 缺失, locale=zh"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setLocale",
+        "data": {
+          "locale": "zh"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=migration"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "heading",
+        "name": "hero_title",
+        "expected": "老朋友，来见见你的新伙伴",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "我们把 Mira 升级成了你自己的 AI 分身，花 30 秒先设置一下。",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "继续",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-002",
+      "@i18n-zh"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-005",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-edit-en",
+    "source": "prd",
+    "title": "edit 模式 hero/CTA 文案矩阵 (EN)",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已有 profile 用户, locale=en"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Aria"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=edit"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "heading",
+        "name": "hero_title",
+        "expected": "Edit your AI Twin",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Tweak the name, personality, or avatar of your AI Twin anytime.",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Save changes",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Cancel",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-006",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-edit-zh",
+    "source": "prd",
+    "title": "edit 模式 hero/CTA 文案矩阵 (ZH)",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已有 profile 用户, locale=zh"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setLocale",
+        "data": {
+          "locale": "zh"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=edit"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "heading",
+        "name": "hero_title",
+        "expected": "编辑你的 AI 分身",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "随时调整你分身的名字、个性或头像。",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "保存修改",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "取消",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-002",
+      "@i18n-zh"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-007",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-Mobile-onboarding",
+    "source": "prd",
+    "title": "移动端 onboarding CTA 文案与底栏渲染",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "移动端 viewport 390",
+      "mode=onboarding"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setViewport",
+        "data": {
+          "width": 390,
+          "height": 844
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "section",
+        "name": "bottomBar"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Create Aria and Start",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "closeBtn-X-icon"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-002",
+      "@mobile"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-008",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-Mobile-migration",
+    "source": "prd",
+    "title": "移动端 migration CTA 文案",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "viewport=mobile, mode=migration"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setViewport",
+        "data": {
+          "width": 390
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=migration"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Create Aria and Start",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-002",
+      "@mobile"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-009",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-Mobile-edit",
+    "source": "prd",
+    "title": "移动端 edit CTA 内联渲染 (无 bottomBar)",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "viewport=mobile, mode=edit"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setViewport",
+        "data": {
+          "width": 390
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=edit"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "section",
+        "name": "bottomBar"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Save changes",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-002",
+      "@mobile"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-010",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-exit-onboarding",
+    "source": "prd",
+    "title": "onboarding 点 Exit 触发挽留 dialog",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户在 onboarding U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Exit",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "dialog",
+        "name": "exit_confirm"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "You haven't finished setting up your Twin. Leave anyway?",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-011",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-exit-then-relogin",
+    "source": "prd",
+    "title": "onboarding 挽留后确认离开 - 下次登录仍回 onboarding",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "onboarding U1 + 已触发挽留 dialog"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "clickExit"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Confirm Leave",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "logout-and-relogin",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-012",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-exit-migration",
+    "source": "prd",
+    "title": "migration 点 Exit 也走挽留 dialog",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户在 migration U1"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=migration"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Exit",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "dialog",
+        "name": "exit_confirm"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-013",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-cancel-edit",
+    "source": "prd",
+    "title": "edit 模式 Cancel 直接返回不弹挽留",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已有 profile 用户, 从 U6 触发 U1 edit"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openTwinEditFromMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "valid",
+        "value": "Lumi",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Cancel",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/task/abc"
+      },
+      {
+        "type": "hidden",
+        "selector": "dialog",
+        "name": "exit_confirm"
+      },
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_name",
+        "expected": "Aria"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-014",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-edit-cta-disabled",
+    "source": "prd",
+    "title": "edit 模式无变更时 CTA opacity 0.4 不可点",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已有 profile 用户进入 U1 edit"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=edit"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "disabled",
+        "selector": "button",
+        "name": "Save changes"
+      },
+      {
+        "type": "attribute",
+        "selector": "button",
+        "name": "Save changes",
+        "expected": "opacity:0.4"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-015",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-edit-save-toast",
+    "source": "prd",
+    "title": "edit 提交成功 - 跳回触发页 + edit_saved_toast",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户从 U6 进入 edit, 已合规修改至少一个字段"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/xyz"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openTwinEditFromMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "valid",
+        "value": "Aria 2",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Save changes",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/task/xyz"
+      },
+      {
+        "type": "visible",
+        "selector": "toast",
+        "name": "Twin updated",
+        "i18nKey": null
+      },
+      {
+        "type": "text",
+        "selector": "db",
+        "name": "user_twin_profile.twin_name",
+        "expected": "Aria 2"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-016",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-AC-existing-profile-bypass",
+    "source": "prd",
+    "title": "已配置用户普通登录 不路由 U1",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "profile.exists=true"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "login"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/workspace"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-017",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-Edge-route-retry",
+    "source": "prd",
+    "title": "profile 写入成功但路由跳转失败 客户端重试一次",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "提交合规, mock 路由跳转失败一次"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockRouteFailOnce"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Continue",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "toast",
+        "name": "Saved · Tap to continue",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MODE-018",
+    "storyId": "US-TWIN-MODE",
+    "criterionId": "REQ-002-Edge-url-guard",
+    "source": "prd",
+    "title": "服务端强制路由 - 已有 profile 用户访问 /ai-twin/create?mode=onboarding 应被拦截",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": [
+      "profile 已存在"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/workspace"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-002"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-001",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-1",
+    "source": "prd",
+    "title": "U1 提交后跳 U2 渲染完整打招呼消息",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户 first_name=Evan",
+      "onboarding U1 三字段填默认值"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user",
+        "pomMethod": "createUserWithFirstName",
+        "data": {
+          "first_name": "Evan"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Continue",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/task/new?first_meet=true"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "First meeting · Aria",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Hey Evan 👋",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "I am your AI Twin, Aria, here in your Workspace 24/7",
+        "i18nKey": null
+      },
+      {
+        "type": "count",
+        "selector": "list-row",
+        "name": "training-suggestions",
+        "expected": 4
+      },
+      {
+        "type": "count",
+        "selector": "follow-up",
+        "name": "typical-tasks",
+        "expected": 3
+      },
+      {
+        "type": "attribute",
+        "selector": "textarea",
+        "name": "promptInput",
+        "expected": "placeholder:Or just tell me what you want to do..."
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-002",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-greeting-name",
+    "source": "prd",
+    "title": "greeting_name 取 users.first_name",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "users.first_name=Evan"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user",
+        "pomMethod": "createUserWithFirstName",
+        "data": {
+          "first_name": "Evan"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Hey Evan 👋",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-003",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-EX-greeting_name_missing",
+    "source": "prd",
+    "title": "greeting_name 兜底 there (first_name 缺失)",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": [
+      "用户注册时未采集 first_name (first_name=null)"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user",
+        "pomMethod": "createUserWithFirstName",
+        "data": {
+          "first_name": null
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Hey there 👋",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-004",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-msgContent2-en",
+    "source": "prd",
+    "title": "U2 msgContent.2 三条能力自述完整渲染 (EN)",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "locale=en, 完成 U1 进入 U2"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Handle the everyday work around sourcing",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Search and surface talent for you",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Drive your browser through the Mira Extension",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-005",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-msgContent2-zh",
+    "source": "prd",
+    "title": "U2 msgContent.2 三条能力自述完整渲染 (ZH)",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "locale=zh, 完成 U1 进入 U2"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setLocale",
+        "data": {
+          "locale": "zh"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "处理寻访前后的日常活儿",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "替你搜寻人才",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "通过 Mira 浏览器插件接管你的浏览器",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003",
+      "@i18n-zh"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-006",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-list-rows",
+    "source": "prd",
+    "title": "U2 list 4 条训练建议 row 渲染",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "完成 U1 进入 U2"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "count",
+        "selector": "list-row",
+        "name": "training-suggestion-row",
+        "expected": 4
+      },
+      {
+        "type": "visible",
+        "selector": "marker",
+        "name": "complete"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-007",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-followups-en",
+    "source": "prd",
+    "title": "U2 followUps 3 条典型任务渲染 (EN)",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "locale=en, 完成 U1 进入 U2"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Write a weekly hiring market analysis report",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Parse attached resumes and extract candidates' core skills",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Find 5 senior frontend engineer candidates on LinkedIn",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-008",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-followups-zh",
+    "source": "prd",
+    "title": "U2 followUps 3 条典型任务渲染 (ZH)",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "locale=zh, 完成 U1 进入 U2"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "setLocale",
+        "data": {
+          "locale": "zh"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "写一份本周的招聘市场分析报告",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "解析附件中的简历，提取候选人的核心技能",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "在 LinkedIn 上帮我找 5 位资深前端工程师",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003",
+      "@i18n-zh"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-009",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-followup-click",
+    "source": "prd",
+    "title": "点击 followUps 任一条 - 文案写入输入框并自动发送",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "U2 已渲染 followUps 3 条"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Write a weekly hiring market analysis report",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "user-message",
+        "name": "Write a weekly hiring market analysis report",
+        "i18nKey": null
+      },
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/task/new"
+      },
+      {
+        "type": "hidden",
+        "selector": "query",
+        "name": "first_meet=true"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-010",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-direct-input",
+    "source": "prd",
+    "title": "U2 直接输入并发送进入正常流",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "U2 已渲染"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "promptInput",
+        "action": "fill",
+        "dataType": "text.random",
+        "dataVariant": "valid",
+        "value": "Help me prepare for a client meeting",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "send-message",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "user-message",
+        "name": "Help me prepare for a client meeting",
+        "i18nKey": null
+      },
+      {
+        "type": "hidden",
+        "selector": "list-row",
+        "name": "training-suggestions"
+      },
+      {
+        "type": "hidden",
+        "selector": "follow-up",
+        "name": "typical-tasks"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-011",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-EX-profile_load_failure",
+    "source": "prd",
+    "title": "profile_load_failure - U2 读不到 profile 兜底默认值",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": [
+      "U1 提交成功, U2 加载时 profile 读取失败"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockProfileLoadFailureOnU2"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "aiHd",
+        "name": "twin-name",
+        "expected": "Aria",
+        "i18nKey": null
+      },
+      {
+        "type": "attribute",
+        "selector": "img",
+        "name": "twin-avatar",
+        "expected": "preset_m1"
+      },
+      {
+        "type": "visible",
+        "selector": "log",
+        "name": "profile_load_failure_alert"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-012",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-EX-greeting_render_lag",
+    "source": "prd",
+    "title": "greeting_render_lag > 1.5s 显示 ThinkingIndicator",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "mock greeting 渲染延迟 > 1.5s"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockGreetingRenderLag",
+        "data": {
+          "ms": 1700
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "thinking-indicator",
+        "name": "Aria is preparing to meet you...",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-013",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-Edge-refresh",
+    "source": "prd",
+    "title": "U2 刷新 - 打招呼消息不重发",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已进入 U2 且 chatBody 已渲染招呼消息"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "browser-refresh",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "count",
+        "selector": "assistant-message",
+        "name": "greeting",
+        "expected": 1
+      },
+      {
+        "type": "hidden",
+        "selector": "query",
+        "name": "first_meet=true"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-014",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-Edge-edit-return",
+    "source": "prd",
+    "title": "U2 返回 U1 修改 name 后回 U2 - avatar/name 实时同步但 msgContent 不重生成",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "U2 已渲染 (name=Aria)"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openTwinEditAndChangeName",
+        "data": {
+          "newName": "Lumi"
+        }
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "go-back-to-U2",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "aiHd",
+        "name": "twin-name",
+        "expected": "Lumi"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Hey Evan 👋",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "I am your AI Twin, Aria",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-U2-015",
+    "storyId": "US-TWIN-U2",
+    "criterionId": "REQ-003-AC-input-placeholder",
+    "source": "prd",
+    "title": "U2 inputArea placeholder 文案正确",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "完成 U1 进入 U2"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "textarea",
+        "name": "promptInput",
+        "expected": "placeholder:Or just tell me what you want to do..."
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-003"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-001",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-message-assistant",
+    "source": "prd",
+    "title": "U6 Mira/Message/Assistant avatar+name 使用 twin_profile",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "twin_name=Lumi, twin_avatar_source=custom"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi",
+          "avatar": "custom"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/new"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user-query",
+        "pomMethod": "submitQuery",
+        "data": {
+          "query": "Find me 3 backend engineers"
+        },
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "aiHd",
+        "name": "twin-name",
+        "expected": "Lumi"
+      },
+      {
+        "type": "attribute",
+        "selector": "aiHd img",
+        "name": "twin-avatar",
+        "expected": "custom-url"
+      },
+      {
+        "type": "attribute",
+        "selector": "aiHd img",
+        "name": "size",
+        "expected": "20x20-pill"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-002",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-confirmation",
+    "source": "prd",
+    "title": "Mira/Confirmation 卡片头像名字归属分身",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Agent 触发 Confirmation 卡片"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/new"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "task-to-confirmation",
+        "pomMethod": "triggerConfirmation",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "Confirmation aiHd",
+        "name": "twin-name",
+        "expected": "Lumi"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Make exception",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Skip this one",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-003",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-tool-header",
+    "source": "prd",
+    "title": "Mira/Tool/Header 显示分身身份",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Agent 调用 tool"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/new"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "tool-execution",
+        "pomMethod": "triggerToolCall",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "Tool/Header aiHd",
+        "name": "twin-name",
+        "expected": "Lumi"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-004",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-reasoning",
+    "source": "prd",
+    "title": "Mira/Reasoning 显示分身身份",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Agent 进入 Reasoning 状态"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/new"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "reasoning-task",
+        "pomMethod": "triggerReasoning",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "Reasoning header",
+        "name": "twin-name",
+        "expected": "Lumi"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-005",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-suggested-followups",
+    "source": "prd",
+    "title": "Mira/SuggestedFollowUps 头像名字归属分身",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "assistant 输出后附 SuggestedFollowUps"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/new"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "followups",
+        "pomMethod": "triggerSuggestedFollowUps",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "SuggestedFollowUps aiHd",
+        "name": "twin-name",
+        "expected": "Lumi"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-006",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-task-header-first-meeting",
+    "source": "prd",
+    "title": "Mira/TaskHeader U2 状态显示 First meeting · {twin_name}",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "twin_name=Lumi, 用户从 U1 提交进入 U2"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "pomMethod": "submitTwinWithName",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "TaskHeader",
+        "name": "title",
+        "expected": "First meeting · Lumi"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-007",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-task-header-transition",
+    "source": "prd",
+    "title": "TaskHeader 进入任务后切换为任务标题",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "U2 提交首个 query"
+    ],
+    "setup": [
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/ai-twin/create?mode=onboarding"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "submitTwinDefaults"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "promptInput",
+        "action": "fill",
+        "dataType": "text.random",
+        "dataVariant": "valid",
+        "value": "Find 5 senior frontend engineers for client Acme",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "send-message",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "TaskHeader",
+        "name": "title",
+        "expected": "matches:Founding|Engineer|Acme"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-008",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-input-placeholder-u6",
+    "source": "prd",
+    "title": "U6 inputArea placeholder 切换为 Or keep asking {name}...",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "twin_name=Lumi, 用户在 U6 任务执行态"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "textarea",
+        "name": "promptInput",
+        "expected": "placeholder:Or keep asking Lumi..."
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-009",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-AC-history-render",
+    "source": "prd",
+    "title": "历史 Task Record 老消息渲染层贴当前 twin_profile",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "V1 上线前的老 Task Record (老消息原 Mira 身份)",
+      "当前 twin_name=Lumi"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "legacy-task-record",
+        "pomMethod": "seedLegacyTaskRecord",
+        "scope": "worker"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/legacy-1"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "legacy-message aiHd",
+        "name": "twin-name",
+        "expected": "Lumi"
+      },
+      {
+        "type": "hidden",
+        "selector": "text",
+        "name": "Mira",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-010",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-EX-avatar_url_404",
+    "source": "prd",
+    "title": "avatar_url_404 自动回退 preset_m1",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": [
+      "profile.twin_avatar_url 指向被误删的 R2 资源 (返回 404)"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_avatar_url": "https://r2.example/missing.jpg"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "aiHd img",
+        "name": "twin-avatar",
+        "expected": "preset_m1"
+      },
+      {
+        "type": "hidden",
+        "selector": "alert",
+        "name": "avatar-error"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-011",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-EX-name_field_corrupt",
+    "source": "prd",
+    "title": "name_field_corrupt 数据库读到 null 回退 Aria",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": [
+      "profile.twin_name 数据库返回 null"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": null
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "aiHd",
+        "name": "twin-name",
+        "expected": "Aria"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-012",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-Edge-edit-during-conversation",
+    "source": "prd",
+    "title": "修改 profile 后 - 已渲染消息保持快照、新消息使用新身份",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户在 U6 已收到 2 条 assistant 消息 (name=Aria)"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Aria"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "two-assistant-messages",
+        "pomMethod": "seedTwoMessages",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "open-twin-edit-from-menu",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "valid",
+        "value": "Lumi",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Save changes",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "promptInput",
+        "action": "fill",
+        "dataType": "text.random",
+        "dataVariant": "valid",
+        "value": "Continue",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "send-message",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "aiHd.last",
+        "name": "twin-name",
+        "expected": "Lumi"
+      },
+      {
+        "type": "count",
+        "selector": "aiHd",
+        "name": "with-name-Lumi",
+        "expected": 3
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-013",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-Edge-system-announcement",
+    "source": "prd",
+    "title": "系统级公告 Mira Support 不被分身覆盖",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "系统下发一条公告/客服消息"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "system-announcement",
+        "pomMethod": "pushSystemAnnouncement"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "system-message aiHd",
+        "name": "name",
+        "expected": "Mira Support"
+      },
+      {
+        "type": "attribute",
+        "selector": "system-message aiHd img",
+        "name": "logo",
+        "expected": "mira-platform-logo"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-014",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-Edge-mira-logo-shape",
+    "source": "prd",
+    "title": "默认 Mira logo 头像渲染为圆角矩形",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户未自定义头像 (默认 Mira logo)"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_avatar_source": "default_mira"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "aiHd img",
+        "name": "shape",
+        "expected": "rounded-square"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-RENDER-015",
+    "storyId": "US-TWIN-RENDER",
+    "criterionId": "REQ-004-Edge-paused-badge",
+    "source": "prd",
+    "title": "Paused 状态 aPaused 徽标不被分身身份替换",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "Agent 进入 Paused 状态"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "paused-state",
+        "pomMethod": "triggerPaused",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "aPaused",
+        "name": "badge-text",
+        "expected": "Paused · Awaiting your confirmation"
+      },
+      {
+        "type": "attribute",
+        "selector": "aPaused",
+        "name": "color",
+        "expected": "stale"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-004"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-001",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-twin-section",
+    "source": "prd",
+    "title": "sidebarUser 弹层顶部 AI Twin section 渲染",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "已配置 profile (twin_name=Lumi, avatar=custom)"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi",
+          "avatar": "custom"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "sidebarUser",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "popover",
+        "name": "user-menu"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "AI Twin",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "section",
+        "name": "twinRow"
+      },
+      {
+        "type": "text",
+        "selector": "twinRow",
+        "name": "twin-name",
+        "expected": "Lumi"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "twin-settings-icon"
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@smoke",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-002",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-settings-click",
+    "source": "prd",
+    "title": "点击 settings 图标跳 /ai-twin/create?mode=edit",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "sidebarUser 弹层已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "twin-settings-icon",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/ai-twin/create?mode=edit"
+      },
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "Edit your AI Twin",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-003",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-twinrow-click",
+    "source": "prd",
+    "title": "点击整行 twinRow 也触发 edit",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "sidebarUser 弹层已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "twinRow",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/ai-twin/create?mode=edit"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-004",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-main-menu-items",
+    "source": "prd",
+    "title": "主弹层 3 项 chevron - Settings / Language / Theme",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "sidebarUser 弹层已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "count",
+        "selector": "menu-row.chevron-right",
+        "name": "main-menu-rows",
+        "expected": 3
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Settings",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Language",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Theme",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-005",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-hover-settings-subpop",
+    "source": "prd",
+    "title": "hover mSetting 展开 settingsSubPop 子弹层",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "sidebarUser 弹层已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "menuitem",
+        "name": "Settings",
+        "action": "hover",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "popover",
+        "name": "settingsSubPop"
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Skills",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Connectors",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Chrome Extension",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-006",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-click-settings-subpop",
+    "source": "prd",
+    "title": "click mSetting 也能展开 settingsSubPop",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "sidebarUser 弹层已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "menuitem",
+        "name": "Settings",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "popover",
+        "name": "settingsSubPop"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-007",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-chrome-extension",
+    "source": "prd",
+    "title": "subChrome 点击新标签打开 Chrome Web Store",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "settingsSubPop 已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSettingsSubPop"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "menuitem",
+        "name": "Chrome Extension",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "new-tab",
+        "expected": "matches:chrome.google.com/webstore"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-008",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-skills-connectors",
+    "source": "prd",
+    "title": "subSkill / subConn 跳转既有 Skills / Connectors 页",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "settingsSubPop 已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSettingsSubPop"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "menuitem",
+        "name": "Skills",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "matches:/settings/skills"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-009",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-Edge-hover-out",
+    "source": "prd",
+    "title": "鼠标离开 mSetting 子弹层及时收起",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "settingsSubPop 已通过 hover 展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "hoverSettingsToOpenSubPop"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "hover-out-of-menu-area",
+        "action": "hover",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "popover",
+        "name": "settingsSubPop"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-010",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-footer-items",
+    "source": "prd",
+    "title": "footer items - Docs / Blog / Sign out 行为",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "sidebarUser 弹层已展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Docs",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Blog",
+        "i18nKey": null
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Sign out",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-011",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-click-outside",
+    "source": "prd",
+    "title": "点击弹层外区域关闭主弹层和子弹层",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "sidebarUser 弹层 + settingsSubPop 同时展开"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSettingsSubPop"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "click-empty-area",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "hidden",
+        "selector": "popover",
+        "name": "user-menu"
+      },
+      {
+        "type": "hidden",
+        "selector": "popover",
+        "name": "settingsSubPop"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-012",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-AC-save-return-referrer",
+    "source": "prd",
+    "title": "edit 保存成功后跳回触发页 (非 U2)",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户从 U6 -> sidebarUser -> settings 图标进入 U1 edit"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/u6-abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openTwinEditFromMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "AI Twin name",
+        "action": "fill",
+        "dataType": "identity.name",
+        "dataVariant": "valid",
+        "value": "Lumi",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Save changes",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": "page",
+        "expected": "/task/u6-abc"
+      },
+      {
+        "type": "visible",
+        "selector": "toast",
+        "name": "Twin updated",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P0",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-013",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-EX-profile_unset",
+    "source": "prd",
+    "title": "profile_unset 兜底 - 显示 Set up your Twin CTA",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "老用户 profile 缺失 (服务端容错)"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "loginUserWithoutProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Set up your Twin",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-MENU-014",
+    "storyId": "US-TWIN-MENU",
+    "criterionId": "REQ-005-EX-avatar_image_404",
+    "source": "prd",
+    "title": "avatar_image_404 弹层内回退 preset_m1",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "profile.twin_avatar_url 返回 404"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_avatar_url": "https://r2.example/missing.jpg"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "openSidebarUserMenu"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "attribute",
+        "selector": "twinRow img",
+        "name": "twin-avatar",
+        "expected": "preset_m1"
+      },
+      {
+        "type": "visible",
+        "selector": "menu-row",
+        "name": "Settings",
+        "i18nKey": null
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-005"
+    ],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-001",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-system-2-blocks",
+    "source": "prd",
+    "title": "System prompt 由 2 个 text block 组成且各打 cache_control",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已配置 profile",
+      "后端日志可观测"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "llm-call",
+        "pomMethod": "triggerLlmCallAndCaptureRequest",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "count",
+        "selector": "request.system",
+        "name": "text-blocks",
+        "expected": 2
+      },
+      {
+        "type": "attribute",
+        "selector": "request.system[0].cache_control",
+        "name": "type",
+        "expected": "ephemeral"
+      },
+      {
+        "type": "attribute",
+        "selector": "request.system[1].cache_control",
+        "name": "type",
+        "expected": "ephemeral"
+      },
+      {
+        "type": "text",
+        "selector": "request.system[1].text",
+        "name": "starts-with-identity",
+        "expected": "matches:^Your name in this conversation is "
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-002",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-default-no-tone",
+    "source": "prd",
+    "title": "default personality 时 Segment 2 不含 tone 行",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "twin_personality=default"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_personality": "default"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "llm-call",
+        "pomMethod": "triggerLlmCallAndCaptureRequest",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "request.system[1].text",
+        "name": "no-tone-line",
+        "expected": "not-matches:When responding, lean toward a .* tone"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-003",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-nondefault-tone",
+    "source": "prd",
+    "title": "非 default personality 时 Segment 2 末尾追加 tone 行",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "twin_personality ∈ {professional, friendly, concise}"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_personality": "friendly"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "llm-call",
+        "pomMethod": "triggerLlmCallAndCaptureRequest",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "request.system[1].text",
+        "name": "ends-with-tone",
+        "expected": "matches:When responding, lean toward a friendly tone\\.$"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-004",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-tools-no-twin",
+    "source": "prd",
+    "title": "工具描述不掺 twin_name",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "profile 已配置"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile",
+        "data": {
+          "twin_name": "Lumi"
+        }
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "llm-call",
+        "pomMethod": "triggerLlmCallAndCaptureRequest",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "request.tools",
+        "name": "no-twin-name",
+        "expected": "not-contains:Lumi"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-005",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-cache-hit-5-turns",
+    "source": "prd",
+    "title": "同用户连续 5 轮对话 Segment 1 + Segment 2 命中",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已配置 profile",
+      "5 分钟内连续对话"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "5-turn-conversation",
+        "pomMethod": "runFiveTurnConversation",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "log.turn-2-to-5",
+        "name": "segment1_hit_rate",
+        "expected": "==1.0"
+      },
+      {
+        "type": "text",
+        "selector": "log.turn-2-to-5",
+        "name": "segment2_hit_rate",
+        "expected": "==1.0"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-006",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-multi-user-segment1",
+    "source": "prd",
+    "title": "不同用户并发对话 Segment 1 共享缓存",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "2~3 个不同 user 同时触发 sourcing_agent"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "three-users-with-profiles",
+        "pomMethod": "seedThreeUsers",
+        "scope": "worker"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "concurrent-conversations",
+        "pomMethod": "runConcurrentLlmCalls",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "three-users",
+        "scope": "worker"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "log",
+        "name": "segment1_shared_cache_entry",
+        "expected": "==1"
+      },
+      {
+        "type": "text",
+        "selector": "log",
+        "name": "segment1_hit_rate",
+        "expected": ">=0.95"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-007",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-lru-invalidate",
+    "source": "prd",
+    "title": "U1 edit 提交后 LRU 失效 - 下一轮 Segment 2 miss 再下一轮命中",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": [
+      "用户已对话过 N 轮, Segment 2 命中稳定"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "warm-up-cache",
+        "pomMethod": "runFiveTurnConversation",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "open-twin-edit-from-menu",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "radio",
+        "name": "Friendly",
+        "action": "check",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "Save changes",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "promptInput",
+        "action": "fill",
+        "dataType": "text.random",
+        "dataVariant": "valid",
+        "value": "Round N+1",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "send-message",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "textbox",
+        "name": "promptInput",
+        "action": "fill",
+        "dataType": "text.random",
+        "dataVariant": "valid",
+        "value": "Round N+2",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "send-message",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "log.turn-n+1",
+        "name": "segment2_cache_hit",
+        "expected": "==false"
+      },
+      {
+        "type": "text",
+        "selector": "log.turn-n+2",
+        "name": "segment2_cache_hit",
+        "expected": "==true"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-008",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-idle-5min",
+    "source": "prd",
+    "title": "同用户 5 分钟无操作后回来 全部 miss 重建",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "Anthropic ephemeral cache TTL 5 分钟"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "warm-cache",
+        "pomMethod": "warmCache",
+        "scope": "worker"
+      },
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "waitIdle",
+        "data": {
+          "minutes": 6
+        }
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "textbox",
+        "name": "promptInput",
+        "action": "fill",
+        "dataType": "text.random",
+        "dataVariant": "valid",
+        "value": "After idle",
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "send-message",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "log.after-idle",
+        "name": "segment1_cache_hit",
+        "expected": "==false"
+      },
+      {
+        "type": "text",
+        "selector": "log.after-idle",
+        "name": "segment2_cache_hit",
+        "expected": "==false"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-009",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-prompt-redeploy",
+    "source": "prd",
+    "title": "部署更新 PLATFORM_SOURCING_PROMPT - 全员 cache miss",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "部署一次包含 PLATFORM_SOURCING_PROMPT 变更的 release"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "platform-prompt-change",
+        "pomMethod": "deployPromptChange",
+        "scope": "worker"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "n-users-llm-calls",
+        "pomMethod": "runNUserCallsRightAfterDeploy",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "log.post-deploy",
+        "name": "segment1_hit_rate",
+        "expected": "==0"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-010",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-lru-ttl-30min",
+    "source": "prd",
+    "title": "profile session 启动一次性加载 + LRU TTL 30 分钟",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "session 启动"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "session-start",
+        "pomMethod": "startSessionAndObserveDb",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "db.query-count",
+        "name": "select-user_twin_profile-on-session-start",
+        "expected": "==1"
+      },
+      {
+        "type": "text",
+        "selector": "db.query-count",
+        "name": "select-during-30min-window",
+        "expected": "==0"
+      },
+      {
+        "type": "text",
+        "selector": "db.query-count",
+        "name": "select-after-30min01s",
+        "expected": "==1"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-011",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-AC-no-db-on-llm-call",
+    "source": "prd",
+    "title": "禁止每次 LLM 调用前查库 - 性能反模式守卫",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "用户已对话过"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "navigate",
+        "action": "navigate",
+        "url": "/task/abc"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "10-turn-conversation",
+        "pomMethod": "run10TurnsAndMonitorDb",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "db.query-count",
+        "name": "user_twin_profile-selects",
+        "expected": "==1"
+      }
+    ],
+    "tags": [
+      "@P1",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-012",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-EX-profile_load_db_timeout",
+    "source": "prd",
+    "title": "profile_load_db_timeout 500ms 降级 default profile",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "mock 数据库 query 延迟 > 500ms"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockDbDelay",
+        "data": {
+          "delayMs": 600
+        }
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "session-start",
+        "pomMethod": "startSession",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "session.profile",
+        "name": "twin_name",
+        "expected": "Aria"
+      },
+      {
+        "type": "text",
+        "selector": "session.profile",
+        "name": "twin_personality",
+        "expected": "default"
+      },
+      {
+        "type": "visible",
+        "selector": "log",
+        "name": "profile_load_db_timeout_alert"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-013",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-EX-prompt_cache_hit_drop",
+    "source": "prd",
+    "title": "prompt_cache_hit_rate 监控告警 - segment1_hit_rate < 90% 24h 触发 warn",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": [
+      "监控系统接入 segment1_hit_rate 7 日滚动窗口"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockSegment1HitRate",
+        "data": {
+          "rate": 0.88,
+          "windowHours": 24
+        }
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "alert",
+        "name": "prompt_cache_hit_drop_warn"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-014",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-EX-profile_lru_miss",
+    "source": "prd",
+    "title": "profile_lru_miss_on_request 连续 > 5 次 warn 告警",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "同一 user_id 连续 5 次以上请求 LRU miss"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "navigate",
+        "pomMethod": "mockLruThrash"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "6-requests",
+        "pomMethod": "send6Requests",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "alert",
+        "name": "profile_lru_miss_on_request_warn"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-TWIN-SYS-015",
+    "storyId": "US-TWIN-SYS",
+    "criterionId": "REQ-006-Edge-multi-tab",
+    "source": "prd",
+    "title": "多 tab 并发同 user_id - 一个 tab 改 profile 其他 tab 失效",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": [
+      "同 user 开 2 个浏览器 tab"
+    ],
+    "setup": [
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "user_twin_profile",
+        "pomMethod": "seedProfile"
+      },
+      {
+        "type": "ui",
+        "action": "create",
+        "resource": "two-tabs",
+        "pomMethod": "openTwoTabs",
+        "scope": "worker"
+      }
+    ],
+    "teardown": [
+      {
+        "type": "ui",
+        "action": "delete",
+        "resource": "user_twin_profile",
+        "scope": "test"
+      }
+    ],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "tab-A-edit-personality-concise",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      },
+      {
+        "role": "button",
+        "name": "tab-B-send-query",
+        "action": "click",
+        "value": null,
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      {
+        "type": "text",
+        "selector": "log.tab-B-next-turn",
+        "name": "segment2_cache_hit",
+        "expected": "==false"
+      },
+      {
+        "type": "text",
+        "selector": "log.tab-B-next-turn.system[1].text",
+        "name": "tone-line",
+        "expected": "matches:concise tone"
+      }
+    ],
+    "tags": [
+      "@P2",
+      "@regression",
+      "@full",
+      "REQ-006",
+      "@backend-observability"
+    ],
+    "timeout": 600000
+  }
+]
