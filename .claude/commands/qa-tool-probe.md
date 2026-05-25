@@ -1,6 +1,6 @@
 ---
 description: "工具白盒探针：4 桩注入 → tool.execute() 直调 → claude CLI 裁决 → Markdown 报告"
-allowed-tools: Agent, Bash, Read, Write, Edit, Grep, Glob
+allowed-tools: Agent, Bash, Read, Write, Edit, Grep, Glob, WebFetch
 ---
 
 You are a tool-probe pipeline orchestrator. Given one or more tool names defined in the source project, you:
@@ -17,6 +17,7 @@ This is **white-box probing**, not HTTP black-box testing (which is `/qa-api-tes
 ```
 /qa-tool-probe <tool1> [tool2 ...] [--prd <path>] [--source <dir>]
                [--mcp <url> [--mcp-auth-env <NAME>]]
+               [--api-doc <url> ...]
                [--extra-case "<one-liner>" ...] [--confirm-probes] [--dry-run]
      |
 Phase 0: Load .env (SOURCE_PROJECT_DIR / QA_WORKSPACE_DIR / judge config); pick runId
@@ -77,6 +78,7 @@ Parse `$ARGUMENTS`. Positional args before any flag are tool names.
 | `--source <dir>` | `SOURCE_PROJECT_DIR` | Override source code dir (vercel-ai mode only). |
 | `--mcp <url>` | — | If set, treat the listed tools as **remote MCP tools** served by this StreamableHTTP URL. Skips source discovery and probe injection; tool schemas come from `tools/list` instead of grepping source. Auth: env var named by `--mcp-auth-env` (defaults to `MCP_AUTH_TOKEN`). |
 | `--mcp-auth-env <NAME>` | `MCP_AUTH_TOKEN` | Env var holding the Bearer token for the MCP server. Only meaningful with `--mcp`. |
+| `--api-doc <url>` | — | URL to the **official upstream API documentation** for what the tool wraps. **Endpoint-specific URL preferred** (e.g. `https://docs.github.com/en/rest/search/search`), but a TOC/root URL (e.g. `https://docs.github.com/en/rest`) also works — Phase 1.5 will use the endpoint hint extracted from the tool's source (`providerFile:providerFetchLine`) to instruct WebFetch to either pinpoint the section or return a `sub_url` for one auto-follow hop. Repeatable. Only affects Phase 2 ideation; not used by judge/runner. |
 | `--extra-case "<desc>"` | — | Free-form extra case description (repeatable); ideation will turn into structured cases. |
 | `--confirm-probes` | **off** | If set, model lists planned probe locations and waits for user confirmation before inserting (vercel-ai only; ignored in MCP mode). |
 | `--dry-run` | **off** | If set, do all preparation (Phase 1–3 incl. validator) but skip runner+judge execution. In vercel-ai mode this still patches source; in MCP mode this only writes the config. |
@@ -213,6 +215,80 @@ Produce `discovery.json`. The shape depends on `kind`:
 
 **Prefix derivation**: longest common leading underscore-segment(s) across tool names (e.g. `github_search`+`github_lookup` → `github`; single tool `cts_search_candidates` → `cts`). Used in vercel-ai mode for the gated env var name (`<PREFIX>_TOOL_DEBUG`) and event prefix (`<prefix>-debug.*`); in MCP mode it's bookkeeping only (no probes use it). For mcp-http mode, this is computed automatically by `mcp-discover.ts`.
 
+## Phase 1.5: Official API Doc Fetch (skipped if no `--api-doc`)
+
+For each `--api-doc <url>` flag, fetch the upstream documentation so Phase 2 ideation can ground cases against the real API contract — not just the tool's hand-written description string.
+
+### Step A: Build endpoint hints (one per tool)
+
+Phase 1 already told us where each tool's upstream call happens. Extract a **real endpoint signature** so the doc fetch can find the right section even if the user passed a TOC URL.
+
+```
+for tool in tools:
+    if tool.kind == "vercel-ai" and tool.hasProvider:
+        # Read ±10 lines around providerFile:providerFetchLine.
+        # Regex/eyeball for one of:
+        #   fetch("https://api.github.com/search/users", ...)   →  "GET /search/users"
+        #   client.get('/repos/{owner}/{repo}', ...)            →  "GET /repos/{owner}/{repo}"
+        #   request({ method: 'POST', url: '/users' })          →  "POST /users"
+        # If method can't be determined, record just the path. If nothing matches, hint = null.
+        tool.endpointHint = extract_endpoint_signature(tool.providerFile, tool.providerFetchLine)
+    else:
+        # MCP mode (no source) or pure-local tool — fall back to name + description first line.
+        tool.endpointHint = `${tool.name} — ${first_line(tool.description)}`
+```
+
+### Step B: Fetch with hint + 1-hop follow protocol
+
+```
+followBudget = 1   # hard cap; never recurse further
+
+for url in apiDocUrls:
+    hintsBlock = tools.filter(hasHint).map(t => `- tool "${t.name}" → ${t.endpointHint}`).join("\n")
+    result = WebFetch(url, prompt: """
+        I'm extracting upstream API contract for these tools:
+        {hintsBlock}
+
+        If THIS page documents the relevant endpoint(s) → extract concise structured markdown:
+        HTTP method+path, all params (name/type/required/enum/min/max/default),
+        documented error codes / status mappings, rate limit, pagination limits,
+        any auto-behaviors (redirects, type coercion, server-side normalization).
+        Drop marketing copy.
+
+        If THIS page is an INDEX/TOC and does NOT itself contain the endpoint's params/errors →
+        DO NOT GUESS. Return EXACTLY this JSON on a single line, nothing else:
+          {"sub_url": "<best link from the page that documents the endpoint(s) above>"}
+        Pick the link by matching the endpoint path/name. The sub_url must be on the SAME HOST as the current page.
+
+        If THIS page covers MANY endpoints → extract only the section(s) matching the hints above.
+    """)
+
+    if result starts with "{" and parses as { sub_url: string } and followBudget > 0:
+        subUrl = result.sub_url
+        if hostOf(subUrl) != hostOf(url):
+            warn("model returned cross-host sub_url; refusing to follow:", subUrl)
+            apiDocs.append("(TOC page — model failed to locate sub-page on same host)")
+            continue
+        followBudget--
+        result = WebFetch(subUrl, prompt: <same prompt minus the sub_url branch — must extract or fail>)
+
+    apiDocs.append(result)
+    followBudget = 1   # reset budget per --api-doc URL
+```
+
+### Failure handling
+
+- Single URL WebFetch fails (network/404) → print one-line warning, continue with remaining URLs
+- All URLs fail → proceed to Phase 2 without `apiDocs` (don't block); ideation falls back to inputSchema + description only
+- Follow-up fetch (second hop) returns another `sub_url` → ignore the suggestion, use whatever extracted content the second fetch produced; **never make a 3rd hop**
+- Cross-host sub_url → refuse, log warning, keep first-fetch content (or empty if TOC)
+
+### Notes
+
+- Why fetch in the command layer instead of the skill: skills are markdown without runtime; WebFetch must happen here so the skill receives plain text strings as input.
+- Why endpoint hint matters: prevents the model from hallucinating params/errors when the fetched page is a TOC — official spec absence is better than fabricated official spec.
+- **Idempotency**: WebFetch results are not cached across runs. If you're iterating on the same tool and don't want to refetch, save the extracted markdown locally and feed it via `--prd <path>` instead (PRD slot already accepts arbitrary supplementary context).
+
 ## Phase 2: Test Case Ideation
 
 **Use `skills/tool-probe-case-generator/SKILL.md`** (NOT the generic `test-case-generator` skill — that one targets E2E / Playwright and outputs Markdown + handoff JSON, which is the wrong shape for this pipeline).
@@ -233,6 +309,7 @@ Inputs to feed into the skill (skill auto-detects which form based on `kind`):
 - `hasProvider` from Phase 1 discovery (vercel-ai only; MCP mode always treats as `false` — no provider-level probes exist)
 - `kind` from Phase 1 discovery (`"vercel-ai"` | `"mcp-http"`)
 - Optional PRD content from `--prd <path>`
+- Optional `apiDocs: string[]` from Phase 1.5 (official upstream API docs fetched via `--api-doc`); **when present, ideation should prefer official enums/error codes/limits over inferring from inputSchema alone, and add cases for any auto-behaviors documented officially but not mentioned in the tool's own description**
 - `--extra-case` strings
 
 **Required case categories** (skill enforces ≥ 5/7 produce real cases; remaining can be N/A with reason):

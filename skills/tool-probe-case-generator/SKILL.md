@@ -97,6 +97,20 @@ Runner 对每个字段做 8KB 截断。**会返回大列表的 case** 应在 inp
 
 至少 **5/7 类** 必须产出真实 case（不能多于 2 类标 N/A），否则覆盖度不足。
 
+### `apiDocs` 在 7 类中的具体作用（传了 --api-doc 时）
+
+| 类别 | 没 apiDocs 时 | 有 apiDocs 时的增益 |
+|---|---|---|
+| ① happy path | 用 inputSchema 字段名 + description 举例 | 用官方文档里的真实示例参数（更可能命中真实分支）|
+| ② input-schema 校验 | 删 required / 错 type | 同左，**额外**对官方文档列出但 inputSchema 漏掉的字段做缺失测试（暴露 schema 缺漏）|
+| ③ 本地早拒 | 读 tool 源码白名单 | **diff** tool 白名单 vs 官方枚举：tool 多/少认的值各出 1 条 |
+| ④ 数值钳制 | 取 inputSchema `.max()` 边界 | 取 **官方上限**（如 GitHub per_page 真实上限 100）做"上限+1"，验证 tool 是否真的钳制 |
+| ⑤ provider 错误映射 | 凭经验猜 401/404/429 | 直接用官方文档的 status code 表 → tool error code 映射，**枚举完整**|
+| ⑥ 边界 | inputSchema 推 | 官方文档若写明特殊边界（如"空 q 返回 422"），按官方造 |
+| ⑦ auto-behavior | tool description 里写明的才能造 | **关键增益**：官方文档常含 tool desc 没提的自动行为（user→org redirect、查询字符串注入、type coercion）→ 一条都不能漏 |
+
+冲突处理：若 `descriptionSource` 与 `apiDocs` 矛盾（例：desc 说支持 `sort: popularity`，官方文档没列），把这条冲突明确写成一条 ③ 类 case，让 runner+judge 实测哪个是真。**不要静默以一方为准**。
+
 ---
 
 ## 去重逻辑（借用 test-case-generator Phase C，比对单位调整）
@@ -137,9 +151,28 @@ Runner 对每个字段做 8KB 截断。**会返回大列表的 case** 应在 inp
     hasProvider: boolean,          // from Phase 1 discovery
   },
   prd?: string,                    // optional PRD body
+  apiDocs?: string[],              // optional upstream-API docs fetched via --api-doc (one entry per URL)
   extraCases?: string[],           // --extra-case flags
 }
 ```
+
+### 关于 `apiDocs`（来自 `/qa-tool-probe --api-doc <url>`）
+
+这是工具所封装的**上游官方 API 文档**（如 GitHub REST docs、Stripe API ref），命令层用 WebFetch 抓回来并提示模型只保留结构化片段（HTTP 方法/路径、参数枚举、错误码映射、速率/分页限制、auto-behavior）。它和 `descriptionSource` 不一样：
+
+| 来源 | 是什么 | 可信度 |
+|---|---|---|
+| `descriptionSource` | tool 作者写给 LLM 看的 hint，可能漏字段、口径与上游不一致 | 中（开发者主观）|
+| `inputSchemaSource` | tool 实际接受的入参，**这是真**实生效的边界 | 高（运行时校验）|
+| `apiDocs` | 上游 API 真实契约（响应字段、错误码、限流、自动改写） | 高（官方文档）|
+
+**用法准则**：
+- **冲突即用例**：`descriptionSource` 与 `apiDocs` 在枚举值、错误码、限制上不一致 → 这是潜在 bug 来源，**必须**为冲突点生成 case，由 runner+judge 决定哪一方为真。例：tool desc 说 `per_page` 上限 50，官方说 100 → 出一条 `per_page=80` 的 case 验证 tool 是真钳到 50 还是放过。
+- **填补盲区**：`descriptionSource` 没提的官方 auto-behavior（如 `/users/:login` 当 login 是 org 时 302→`/orgs/:login`）→ 必出 ⑦ 类 case。
+- **错误码白名单**：⑤ 类（provider 错误映射）的 `expectErrorCode` 应优先取自 `apiDocs` 列出的官方状态码 → tool 错误码映射，而不是凭感觉猜。
+- **数值边界**：④ 类（钳制/归一化）的"上限+1"取自 `apiDocs` 写明的上限，不是 inputSchema 的 `.max()`（后者只反映 tool 自己的认知）。
+- **不要 dump 进 case**：`apiDocs` 是 ideation 上下文，不是 case 字段内容；`judgeFocus` 可以引用官方约束（如 "official spec: max per_page=100"）但要简短。
+- **缺失退化**：没传 `--api-doc` 时 `apiDocs` 为空 → 按原有 inputSchema+description 推理，**不要**编造官方限制。
 
 ### Step 2: 解析 inputSchema 字段
 
