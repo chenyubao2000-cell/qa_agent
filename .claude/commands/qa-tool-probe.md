@@ -29,6 +29,11 @@ Phase 1: Tool discovery — forks on mode
 Phase 2: Test case ideation (tool-probe-case-generator skill → zod-validated cases[])
          · inputSchema source: zod TS (vercel) or JSON Schema (mcp)
      |
+Phase 2.5: Cross-source contract diff (tool source vs apiDocs vs PRD)
+         · skipped if <2 sources present
+         · static analysis only, never blocks the pipeline
+         · output: contract-diff-<runId>.json + .md
+     |
 Phase 3: Dispatch tool-probe-orchestrator agent
          · 3a write config.json → 3b validate-cases.ts gate → 3c patch source
          · 3c skipped entirely for kind=mcp-http tools
@@ -354,6 +359,179 @@ Write($QA_WORKSPACE_DIR/tests/reports/tool-probe/cases-<runId>.json, JSON.string
 
 LLM-driven ideation is non-deterministic — without persistence, re-running after any later failure produces a different case set. By snapshotting `cases-<runId>.json` immediately after Phase 2 succeeds, the user (or the orchestrator on retry) can re-feed the exact same batch via `--cases-file <path>` (see "Re-run from existing cases" section if implemented; for now treat the file as documentation of what ran).
 
+## Phase 2.5: Cross-Source Contract Diff (skipped if <2 sources)
+
+Static analysis pass: compare what the **tool implementation** says vs what the **official API docs** say vs what the **PRD** says about the same API. Surfaces contract violations the runtime tests don't catch — e.g. tool clamps `per_page` at 50 while the upstream allows 100, or tool fails to implement an auto-redirect documented by the official spec.
+
+This phase is **audit, not enforcement**. Even when findings include `severity=error`, Phase 3/4/5/6 still proceed normally. The diff goes into the final report as a separate section so reviewers can spot static issues alongside runtime ones.
+
+### Source budget (≥ 2 required to run)
+
+| Source | Origin | Always present? |
+|---|---|---|
+| Tool source | Phase 1 (`descriptionSource` + `inputSchemaSource` + `providerCall`) | ✅ yes |
+| Official API docs | Phase 1.5 `apiDocs[]` (set only if `--api-doc <url>` passed) | ❌ optional |
+| PRD | `--prd <path>` content | ❌ optional |
+
+If only the tool source is available (no `--api-doc`, no `--prd`), **skip Phase 2.5 entirely** and note in the final report:
+```
+Contract diff skipped: only 1 source available. Pass --api-doc and/or --prd to enable.
+```
+
+For MCP-HTTP tools, `providerCall` is absent (no source visibility) — the diff still runs on inputSchema vs apiDocs/PRD but cannot inspect clamping / redirect / branch logic. Note this in the rendered `.md` so the reader knows the diff has a blind spot.
+
+### Step A: Collect raw material per tool
+
+For each tool in `discovery.tools`, assemble:
+
+```ts
+toolMaterial = {
+  name,
+  descriptionSource,    // raw text from Phase 1
+  inputSchemaSource,    // raw zod TS (vercel) or JSON Schema object (mcp)
+  providerCall: {       // null for kind=mcp-http
+    file,
+    line,
+    endpointHint,           // from Phase 1.5 Step A — e.g. "GET /search/users"
+    surroundingLines,       // ±20 lines around providerFetchLine; captures clamping / branch / redirect logic
+  } | null,
+}
+```
+
+### Step B: Synthesize the diff (Claude inline, no subagent)
+
+This is a one-shot synthesis task — do it directly in the command layer, no subagent. **One Claude call per tool** (don't batch — different tools have different sources). Prompt template:
+
+```
+You are a contract auditor. Three sources describe the same tool/API. List all material inconsistencies as a JSON array.
+
+[SOURCE A — tool implementation]
+- name: {toolName}
+- description: {descriptionSource}
+- inputSchema: {inputSchemaSource}
+- provider call: {endpointHint or "N/A (mcp-http tool, no source visibility)"}
+- code around the call (±20 lines): {surroundingLines or "N/A"}
+
+[SOURCE B — official API documentation, {N} segment(s)]
+{apiDocs.join("\n\n---\n\n") or "(not provided)"}
+
+[SOURCE C — PRD]
+{prd or "(not provided)"}
+
+Scan along these 8 dimensions and emit one finding per material inconsistency:
+  1. endpoint        — URL path / HTTP method
+  2. params          — field set (missing in tool? missing in spec?)
+  3. enums           — allowed value lists
+  4. required        — required vs optional flag
+  5. numeric_limit   — .min / .max / clamping boundaries
+  6. error_mapping   — upstream status code → tool error code
+  7. auto_behavior   — server-side redirect / normalization / injection documented by spec
+  8. auth            — header / scope / token type
+
+Rules:
+- All three sources agree → NOT a finding, skip
+- Tool stricter than official (e.g. lower .max) → severity=warn, note may be intentional
+- Tool conflicts with official (wrong endpoint, missing error mapping, missing documented auto-behavior) → severity=error
+- Spec or PRD mentions something tool doesn't implement → severity=error if silently wrong, severity=warn if tool actively rejects with a clear error
+- A source doesn't mention a dimension → that source's field = null; still record the finding if the other two disagree
+- No findings → return []
+
+Output shape (JSON array, nothing else — no prose, no markdown fence):
+[
+  {
+    "id": "f-001",                  // sequential f-NNN within this tool
+    "dimension": "<one of the 8>",
+    "field": "<param name / error code / null>",
+    "severity": "error" | "warn" | "info",
+    "tool": "<one-line description of tool side, or null if silent>",
+    "spec": "<one-line description of official spec side, or null if silent>",
+    "prd": "<one-line description of PRD side, or null if silent>",
+    "summary": "<one-sentence Chinese summary of the divergence>",
+    "recommendation": "<one-sentence Chinese fix suggestion>"
+  }
+]
+```
+
+### Step C: Truncation safeguards
+
+Before sending to Claude, cap source sizes to keep the prompt manageable:
+- `apiDocs` joined → 12 KB max (drop tail entries first; log which were truncated)
+- `prd` → 8 KB max (truncate tail; log the cut)
+- `surroundingLines` → already bounded by ±20 lines, no truncation needed
+
+If truncation happened, append a one-line note to the `.md` output: `> ⚠️ Source X truncated to N KB — diff may have missed content past that point.`
+
+### Step D: Persist outputs
+
+Write two files in the standard report directory:
+
+```
+$QA_WORKSPACE_DIR/tests/reports/tool-probe/
+├─ contract-diff-<runId>.json   ← structured findings (one object per tool: {tool, findings[]})
+└─ contract-diff-<runId>.md     ← rendered Markdown for human consumption
+```
+
+JSON shape (multi-tool runs aggregate under one file):
+
+```json
+{
+  "runId": "<runId>",
+  "sources": { "toolCount": 2, "apiDocCount": 1, "prdProvided": true },
+  "perTool": [
+    {
+      "tool": "github_search",
+      "kind": "vercel-ai",
+      "findings": [ /* array of finding objects from Step B */ ],
+      "counts": { "error": 1, "warn": 2, "info": 0 }
+    },
+    {
+      "tool": "github_lookup",
+      "kind": "vercel-ai",
+      "findings": [ ... ],
+      "counts": { "error": 0, "warn": 1, "info": 1 }
+    }
+  ],
+  "totals": { "error": 1, "warn": 3, "info": 1 }
+}
+```
+
+Markdown template (one H2 section per tool):
+
+```markdown
+## 跨源契约 Diff (Static Analysis)
+
+> 对比来源：工具源码 · 官方 API 文档（N 段）· PRD
+> 总计 X 项差异：❌ Y errors / ⚠️ Z warnings / ℹ️ W info
+
+### Tool: github_search
+
+❌ 1 error / ⚠️ 2 warnings / ℹ️ 0 info
+
+#### F-001 · auto_behavior — 未实现官方 user→org 跳转
+| 来源 | 内容 |
+|---|---|
+| 工具 | type=user 且 404 时直接抛错 |
+| 官方 | 同样请求会 302 redirect 到 /orgs/:login |
+| PRD | （未提及）|
+| **建议** | execute 内检测到 404 时重试 /orgs/:login |
+
+#### F-002 · numeric_limit — per_page 上限被人为压低
+...
+```
+
+If a tool's `findings` array is empty, render `✅ 三源一致，未发现契约不一致。` for that tool. If all tools have empty findings, the full `.md` is just that single line under the H2.
+
+### Step E: Failure handling
+
+- Claude returns malformed JSON → retry once with `Reply with valid JSON only — no prose, no markdown fences`; if still bad, write a stub `.md` (`⚠️ Contract diff failed: <error>. See logs.`) and continue with the pipeline. **Never block.**
+- Claude returns valid JSON but with extra prose around it → strip everything before the first `[` and after the last `]`, then parse
+- Single tool synthesis fails but others succeed → still write the aggregated outputs; failed tool's section says `⚠️ Diff synthesis failed for this tool — see logs`
+- All synthesis fails → write a stub `contract-diff-<runId>.md` noting the failure; pipeline continues to Phase 3
+
+### Step F: Pipeline continuation
+
+After Phase 2.5, proceed to Phase 3 unconditionally. The contract diff is **read-only** with respect to Phase 3 — it doesn't modify `cases-<runId>.json` or `config-<runId>.json`. Its only effect on the final output is the appended report section produced in Phase 6 Step A below.
+
 ## Phase 3: Dispatch tool-probe-orchestrator
 
 `runId` was generated in Phase 0; reuse it. Launch the orchestrator agent (sonnet). The brief is **deliberately minimal** — the agent file (`.claude/agents/tool-probe-orchestrator.md`) holds the authoritative phase order (3a write config → 3b validator gate → 3c patch source) and the kind-skip rule for mcp-http. Don't duplicate that here.
@@ -433,26 +611,49 @@ The judge runs all cases through `claude -p` (concurrency = `CLAUDE_JUDGE_CONCUR
 
 ## Phase 6: Surface Report
 
-Read `report-<runId>.md`. Extract:
-- Summary line (counts of ✅ / ⚠️ / ❌ / 💥)
+### Step A: Append contract diff (if Phase 2.5 produced one)
+
+If `contract-diff-<runId>.md` exists, append its content to `report-<runId>.md` so the final report is self-contained — runtime verdicts and static analysis in one file:
+
+```sh
+cat $QA_WORKSPACE_DIR/tests/reports/tool-probe/contract-diff-<runId>.md \
+  >> $QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<runId>.md
+```
+
+If Phase 2.5 was skipped (only 1 source), still append a one-line `## 跨源契约 Diff\n\nSkipped: only tool source available. Pass --api-doc and/or --prd to enable.\n` so readers know it was considered.
+
+### Step B: Read & surface
+
+Read the updated `report-<runId>.md`. Extract:
+- Runtime summary line (counts of ✅ / ⚠️ / ❌ / 💥)
 - Per-failure mini-summary (case name + 1-line reasoning)
+- **Contract diff summary if present** (counts of ❌ / ⚠️ / ℹ️ and the top error finding)
 
 Print to user. End with the absolute path of the full report and a note that the combined cross-pipeline summary has been updated at `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`.
 
-**Final return** (always exit 0). `patchedFiles` may be empty in MCP mode:
+**Final return** (always exit 0). `patchedFiles` may be empty in MCP mode; `contractDiff*` keys are `null` when Phase 2.5 was skipped:
 
 ```json
 {
   "mode": "vercel-ai | mcp-http",
   "patchedFiles": ["apps/.../github-search.ts", "packages/.../github-client.ts"],
-  "configFile":   "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json",
-  "evidenceFile": "$QA_WORKSPACE_DIR/tests/reports/tool-probe/evidence-<runId>.jsonl",
-  "reportFile":   "$QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<runId>.md",
+  "configFile":      "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json",
+  "evidenceFile":    "$QA_WORKSPACE_DIR/tests/reports/tool-probe/evidence-<runId>.jsonl",
+  "reportFile":      "$QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<runId>.md",
+  "contractDiffFile": "$QA_WORKSPACE_DIR/tests/reports/tool-probe/contract-diff-<runId>.md",
+  "contractDiff":     { "error": 1, "warn": 3, "info": 1 },
   "combinedSummary": "$QA_WORKSPACE_DIR/tests/reports/combined/summary.md",
   "summary": { "total": 24, "pass": 19, "partial": 2, "fail": 2, "error": 1 },
   "failures": [
     { "name": "search-repo-sort-by-stars", "reasoning": "items[2].stars > items[1].stars — sort not honored" }
-  ]
+  ],
+  "topContractFinding": {
+    "id": "f-001",
+    "tool": "github_search",
+    "dimension": "auto_behavior",
+    "severity": "error",
+    "summary": "未实现官方 user→org 跳转"
+  }
 }
 ```
 
