@@ -10,26 +10,25 @@ QA 自动化测试平台（qa-platform）。通用 QA 能力集中管理，多�
 
 ```
 qa-platform/
-├── skills/          → 10 个 Skill
-│   ├── 已有 5 个：CDP 探查、测试用例生成、Playwright E2E、Excel 导出、前置数据管理
-│   └── 新增 5 个：unit-test-generator、api-test-generator、perf-test-generator、llm-eval-builder、mock-config-generator
-├── .claude/agents/  → 12 个 Agent
-│   ├── 已有 5 个：e2e-orchestrator、test-executor、cdp-test-executor、report-analyzer、bug-reporter
-│   ├── 新增 4 个：unit-test-agent(opus)、api-orchestrator(sonnet)、eval-agent(sonnet)、sentinel-agent(haiku)
-│   └── i18n team 3 个：i18n-cdp-runner(sonnet)、i18n-issue-reviewer(sonnet)、i18n-html-reporter(haiku)
-├── .claude/commands/→ 14 个 Slash Command
-│   ├── 已有 8 个：/qa-explore、qa-from-issue、qa-from-branch、qa-verify-fix、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
-│   ├── 新增 5 个：/qa-unit-test、/qa-api-test、/qa-perf-test、/qa-eval、/qa-sentinel
+├── skills/          → 7 个 Skill
+│   ├── E2E 相关 4 个：cdp-explorer、test-case-generator、playwright-script-generator、excel-case-export
+│   ├── 前置数据 1 个：test-data-setup
+│   ├── 白盒 1 个：whitebox-testing（普通代码 Vitest + Tool/MCP 插桩）
+│   └── 灰盒 1 个：greybox-testing（插桩运行中源码 + CDP 驱动 + 服务端日志对齐）
+├── .claude/agents/  → 7 个 Agent
+│   ├── E2E 5 个：e2e-orchestrator(opus)、test-executor(haiku)、cdp-test-executor(sonnet)、report-analyzer(sonnet)、bug-reporter(sonnet)
+│   ├── 白盒 1 个：tool-probe-orchestrator(sonnet)
+│   └── 灰盒 1 个：greybox-runner(sonnet)
+├── .claude/commands/→ 9 个 Slash Command
+│   ├── E2E 7 个：/qa-explore、qa-from-issue、qa-from-branch、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
 │   ├── 白盒 1 个：/qa-whitebox
-│   └── i18n 1 个：/qa-i18n-audit
-├── .claude/references/ → 12 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
-├── hooks/           → 2 个 Hook（session-start 校验、通知）
-├── scripts/         → PR 监控 + 质量守卫 + Eval 定时
-│   ├── git-watcher.ts（已有）
-│   ├── sentinel-watcher.ts（新增：多平台监控守护进程）
-│   └── eval-cron.ts（新增：Langfuse eval 定时任务）
-└── .github/workflows/
-    └── test-flow.yml（新增：PR 级增量测试 CI）
+│   └── 灰盒 1 个：/qa-greybox
+├── .claude/references/ → 13 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
+├── hooks/           → 1 个 Hook（session-start 校验）
+└── scripts/         → PR 监控 + 工具
+    ├── git-watcher.ts + stop-watcher.sh（PR 监控守护进程）
+    ├── demo-mcp-server.ts（whitebox MCP 示例服务）
+    └── proxy-bootstrap.mjs（bug-reporter 走代理用）
 ```
 
 ## 流水线
@@ -44,30 +43,17 @@ E2E 测试流水线（已有）：
      ↓ 命令层接收失败列表
   bug-reporter (sonnet)     → 创建/追加 Linear Issue（上报层）
 
-单元测试流水线（新增）：
-  unit-test-agent (opus)    → 分析 diff → 生成 Vitest/pytest 测试 → 执行 → 报告
-
-API 测试流水线（新增）：
-  api-orchestrator (sonnet) → 分析 Schema → 生成 API 测试 + MSW mock → 执行 → 报告
-
-LLM Eval 流水线（新增）：
-  eval-agent (sonnet)       → Langfuse trace → eval dataset → LLM-as-Judge → 趋势分析
-
-质量守卫（新增）：
-  sentinel-agent (haiku)    → 监控 Sentry/Langfuse/Railway/DB → 异常触发测试/告警
-
-工具白盒探针（新增）：
+白盒测试流水线：
+  /qa-whitebox (命令层)      → classify-diff 分类变更 → 普通代码读源码生成 Vitest（Mode A）
+     ↓ Tool/MCP 目标（Mode B）
   tool-probe-orchestrator (sonnet) → 4 桩注入 (模型决定位置) → tool.execute() 直调脚本 → claude -p 裁决 → Markdown 报告
 
-i18n 审查流水线（新增）：
-  i18n-cdp-runner (sonnet)   → CDP 按 locale×viewport 跑 spec → 抓 snapshot/截图/元数据
+灰盒测试流水线：
+  /qa-greybox (命令层)        → 插桩运行中源码 (复用白盒 4 探针) → 本地起服务 (带 DEBUG env)
      ↓ 完成后
-  i18n-issue-reviewer (sonnet) → 对比 messages 字典 → 判定未翻译/溢出/lang 不一致
-     ↓ 完成后
-  i18n-html-reporter (haiku)  → 聚合 issues + 截图 → 单文件 HTML 报告（每 issue 必带截图）
-
-CI 增量测试（新增）：
-  test-flow.yml             → PR affected 分析 → coverage gap → AI 测试建议 → 选择性执行
+  greybox-runner (sonnet)    → CDP 驱动真实流程 (每步埋 nonce) → 采集服务端探针簇 → 与 CDP 步骤对齐 → 断言内部行为
+     ↓ 命令层收尾
+  /qa-greybox               → 停服务 + 从备份还原源码 (必做) → CDP 步骤 × 内部证据对照报告
 
 SessionStart hook：
   hooks/session-start.sh → 校验 .env 必需变量 → 输出 {"env":"ok"}；同时兜底清理白盒测试残留的沙箱（`$SOURCE_PROJECT_DIR/.qa-sandboxes/wb-*`，见 `.claude/settings.json` 注册）
@@ -79,18 +65,12 @@ PR 监控（独立流程）：
 ├── /qa-explore    → CDP 页面探查 → 生成 + 执行（不汇报 Linear）
 ├── /qa-from-issue → Linear issue → 生成 + 执行 + 汇报 Linear
 ├── /qa-from-branch → GitHub 分支 vs main → 匹配已有 spec + 生成缺失 spec → 执行 + 可选 Linear 汇报
-├── /qa-verify-fix → Linear bug issue → 验证修复（断言期望行为）+ 汇报 Linear
 ├── /qa-run-prd    → PRD 文档 → 生成 + /qa-fix-tests 修复（不汇报 Linear）
 ├── /qa-gen-cases  → PRD 文档 → 仅生成用例 + Excel
 ├── /qa-fix-tests  → CDP 探查 → 修复失败测试
 ├── /qa-run        → 直接执行 spec → report-analyzer
-├── /qa-unit-test  → 分析变更 → 生成单元测试 → 执行 → 报告
-├── /qa-api-test   → 分析 API Schema → 生成 API 测试 → 执行 → 报告
-├── /qa-perf-test  → 分析 endpoint → 生成 k6 性能测试 → 执行 → 基线对比
-├── /qa-eval       → 构建 eval dataset → LLM-as-Judge 评分 → 趋势分析
-├── /qa-sentinel   → 启动多平台质量守卫监控
-├── /qa-whitebox   → 分析分支最新提交 → 白盒测试（普通代码用 Vitest，Tool/MCP/Sub-agent 加插桩）→ 报告
-└── /qa-i18n-audit → CDP × (locale×viewport) 审查 → issues JSON → HTML 报告（带截图）
+├── /qa-whitebox   → 分析分支最新提交或直测指定文件/工具 → 白盒测试（普通代码用 Vitest，Tool/MCP 加插桩）→ 报告
+└── /qa-greybox    → 插桩运行中源码 + 本地起服务 → CDP 驱动真实流程 → 服务端探针与 CDP 对齐 → 断言内部行为
 ```
 
 ## 命令
@@ -99,23 +79,16 @@ PR 监控（独立流程）：
 - `/qa-explore` — 探查浏览器页面，自动生成 E2E 测试基线 + 用例 + POM + spec
 - `/qa-from-issue <issues>` — 从 Linear issue 生成或更新 E2E 测试（支持批量：多个 key / 关键词 / --all-open）
 - `/qa-from-branch [branch] [issue-key|url ...] [--source <dir>]` — 从 GitHub 分支变更驱动 QA 测试
-- `/qa-verify-fix <issues>` — 验证 Linear bug issue 是否已修复
 - `/qa-run-prd` — PRD 驱动 E2E 测试流水线
 - `/qa-gen-cases` — 仅从 PRD 生成用例 + Excel，不生成脚本
 - `/qa-fix-tests` — 通过 CDP 探查真实页面，修复失败的测试
 - `/qa-run` — 执行已有 E2E 测试，汇总报告，上报 Linear
 
-### 单元测试 / API 测试 / 性能测试（新增）
-- `/qa-unit-test [--target <file-or-dir>] [--style <vitest|pytest>]` — 分析代码变更，生成增量单元测试，执行并报告
-- `/qa-api-test [--target <api-dir-or-file>] [--mock-level L1|L2|L3|all]` — 分析 API Schema，生成 API/集成测试，执行并报告
-- `/qa-perf-test [--target <api-endpoint>] [--concurrent <N>] [--duration <time>]` — 生成 k6 性能测试，执行并与基线对比
+### 白盒测试
+- `/qa-whitebox [--branch <branch>] [--target <file[,file...]>] [--prd <path>] [--since <days=7>]` — 分析分支最新提交或直测指定文件/工具 → 普通代码生成 Vitest/pytest 用例；Tool/MCP 额外插桩 → 执行 + LLM 裁决 → Markdown 报告（`--prd` 可选）
 
-### LLM 评估 / 质量守卫（新增）
-- `/qa-eval [--mode build|run|regression] [--project <langfuse-project>] [--days <N>]` — LLM Eval 评估流水线
-- `/qa-sentinel [--platforms sentry,langfuse,railway,db] [--interval 5m]` — 启动多平台质量守卫监控
-
-### 白盒测试（新增）
-- `/qa-whitebox [--branch <branch>] [--target <file[,file...]>] [--prd <path>] [--since <days=7>]` — 分析分支最新提交或直测指定文件/工具 → 普通代码生成 Vitest/pytest 用例；Tool/MCP/Sub-agent 额外插桩 → 执行 + LLM 裁决 → Markdown 报告（`--prd` 可选）
+### 灰盒测试
+- `/qa-greybox --target <file|tool|route> --flow "<用户流程>" [--launch "<启动命令>"] [--port <n>] [--correlation nonce|time|marker] [--judge]` — 在运行中的服务端源码插桩（复用白盒 4 探针）→ 本地起服务 → CDP 驱动真实流程 → 服务端探针簇与 CDP 步骤对齐 → 断言内部行为 → 用完还原源码。适用「bug 只在真实 UI 复现、但断言目标是服务端内部逻辑」的场景；必须能本地起服务（远程 preview 插不了桩）
 
 ## 约定
 

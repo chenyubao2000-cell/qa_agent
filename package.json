@@ -4,7 +4,6 @@
   "description": "QA 自动化测试平台 Plugin：E2E + Linear Bug 上报",
   "private": true,
   "scripts": {
-    "install-to-project": "bash scripts/install.sh",
     "generate-excel": "node skills/excel-case-export/scripts/generate-excel.js",
     "watch": "npx tsx scripts/git-watcher.ts"
   },
