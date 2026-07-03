@@ -3,11 +3,17 @@ description: "PRD 驱动白盒测试：脚本分类变更 → 读源码直接生
 allowed-tools: Agent, Bash, Read, Write, Edit, Grep, Glob
 ---
 
-You are a white-box test orchestrator. Given a PRD and branch, you find all newly changed code, directly generate Vitest unit tests from source branch analysis, execute them with coverage verification, and report results — without touching the original source repo.
+You are a white-box test orchestrator. You find code to test — either everything that changed on a branch within a time window, or one specific file/tool named directly — directly generate Vitest unit tests from source analysis, execute them with coverage verification, and report results — without touching the original source repo. A PRD is optional context, never a precondition.
 
 ```
-/qa-whitebox [--branch <branch>] [--prd <path>] [--since <days=7>] [--dry-run]
+/qa-whitebox [--branch <branch>] [--target <file[,file...]>] [--prd <path>] [--since <days=7>] [--dry-run]
 ```
+
+Two independent ways to pick what gets tested — use one or the other, not both:
+- **Branch mode** (default): diff `--branch` (default: current branch) over the last `--since` days. Good for "test whatever changed."
+- **Target mode** (`--target`): test one or more specific files/tools directly, no git diff needed — the whole current file is treated as in-scope. Good for "test this one tool" / "test this branch of code" with no interest in diff history.
+
+`--prd` enriches either mode with business-context for deriving expected values; omit it and expectations are derived purely from source (still fully valid, just without the extra context).
 
 Before starting, read `skills/whitebox-testing/SKILL.md` end-to-end.
 
@@ -21,7 +27,7 @@ Read(".env")
 
 Extract:
 - `SOURCE_PROJECT_DIR` — mira 源码绝对路径
-- `QA_WORKSPACE_DIR` — qa_agent 工作目录（相对路径转绝对路径）
+- `QA_WORKSPACE_DIR` — E2E 流水线的工作目录（**白盒测试不用这个变量**，见下方 WHITEBOX_DIR 说明）
 - `JUDGE_LANG` (default `zh`)
 - `CLAUDE_JUDGE_CONCURRENCY` (default `1`)
 
@@ -29,23 +35,24 @@ Parse `$ARGUMENTS`:
 
 | Flag | Default | 说明 |
 |---|---|---|
-| `--branch <name>` | 当前分支 | 要分析的分支 |
-| `--prd <path>` | — | 需求文档（必须提供） |
-| `--since <days>` | `7` | 向前追溯天数 |
+| `--branch <name>` | 当前分支 | 要分析的分支（branch 模式） |
+| `--target <file[,file...]>` | — | 直测指定文件/工具，跳过 Phase 1a 时间窗口算法（target 模式，与 `--branch` 二选一） |
+| `--prd <path>` | — | 需求文档（可选，提供时作为业务背景辅助推导期望值；不提供则纯从源码推导，同样有效） |
+| `--since <days>` | `7` | 向前追溯天数（仅 branch 模式生效） |
 | `--dry-run` | off | 只执行 Phase 1，不建沙箱不执行测试 |
 
 派生路径：
 ```
-prdSlug     = PRD文件名去扩展名转 kebab-case（01-候选人端-建档.md → candidate-build）
-SANDBOX_DIR  = $SOURCE_PROJECT_DIR/.qa-sandboxes/wb-<prdSlug>
-WHITEBOX_DIR = $QA_WORKSPACE_DIR/tests/whitebox/<prdSlug>
+QA_AGENT_ROOT = 本命令所在 qa_agent 仓库的根目录（即本文件 .claude/commands/ 的上两级）
+slug         = 有 --prd 时：PRD文件名去扩展名转 kebab-case（01-候选人端-建档.md → candidate-build）
+               否则有 --target 时：目标文件 basename 去扩展名转 kebab-case（多个文件取第一个）
+               否则：分支名转 kebab-case（/ 替换为 -）
+SANDBOX_DIR  = $SOURCE_PROJECT_DIR/.qa-sandboxes/wb-<slug>
+WHITEBOX_DIR = $QA_AGENT_ROOT/tests/whitebox/<slug>
 CLASSIFY_OUT = $WHITEBOX_DIR/classification.json
 ```
 
-> **为什么 SANDBOX_DIR 在 SOURCE_PROJECT_DIR 内：**
-> runner.ts 动态 import 沙箱内的 tool 文件时，Node/Bun 的 node_modules 向上查找从文件位置出发。
-> 沙箱必须在 SOURCE_PROJECT_DIR 目录树内，才能命中 `SOURCE_PROJECT_DIR/node_modules`（如 pino、zod 等依赖）。
-> 沙箱在测试结束后立即删除（Phase 7），无需配置 .gitignore。
+> WHITEBOX_DIR 固定挂在 qa_agent 仓库根下，不跟随 `QA_WORKSPACE_DIR`（那是 E2E 流水线自己的工作目录变量，可能指向别处）。沙箱为何必须在 `SOURCE_PROJECT_DIR` 内见 `references/prd-driven-flow.md` §五。
 
 ---
 
@@ -54,6 +61,17 @@ CLASSIFY_OUT = $WHITEBOX_DIR/classification.json
 提交范围算法、合并分支检测、边界条件的完整规则见 `skills/whitebox-testing/references/prd-driven-flow.md` §一～§二。
 
 ### 1a. 确定 BASE..HEAD 范围
+
+**Target 模式**（提供了 `--target`）：跳过下面的时间窗口算法，直接把整个目标文件当作待测内容：
+
+```sh
+BASE=$(git hash-object -t tree /dev/null)   # 空树——让目标文件的全部现有内容都算"新增"
+HEAD_HASH=$(git -C "$SOURCE_PROJECT_DIR" rev-parse "${BRANCH:-HEAD}")
+```
+
+对着空树 diff 时，hunk header 拿不到真实函数名（没有上下文可比对），`classification.json` 里同一文件的多个函数会全部合并显示成 `"(top-level)"`——Phase 4a 生成时仍按 `addedBranches` 逐条覆盖，不影响生成结果，只是分层摘要里看不出分函数归属，读分支列表时按行内容自行判断属于哪个函数即可。
+
+**Branch 模式**（默认）：
 
 ```sh
 OLDEST=$(git -C "$SOURCE_PROJECT_DIR" log --since="<N> days ago" --oneline HEAD | tail -1 | awk '{print $1}')
@@ -78,12 +96,15 @@ fi
 ```sh
 mkdir -p "$WHITEBOX_DIR"
 
-bun "$QA_WORKSPACE_DIR/skills/whitebox-testing/scripts/classify-diff.ts" \
+bun "$QA_AGENT_ROOT/skills/whitebox-testing/scripts/classify-diff.ts" \
   --source "$SOURCE_PROJECT_DIR" \
   --base "$BASE" \
   --head "$HEAD_HASH" \
-  --out "$CLASSIFY_OUT"
+  --out "$CLASSIFY_OUT" \
+  ${TARGET:+--paths "$TARGET"}
 ```
+
+Target 模式下把 `--target` 的值透传为 `--paths`，把扫描范围限定到目标文件，避免对着空树 diff 出整个仓库。
 
 输出 `classification.json`，每个文件已包含变更函数名和新增分支：
 
@@ -93,6 +114,7 @@ bun "$QA_WORKSPACE_DIR/skills/whitebox-testing/scripts/classify-diff.ts" \
     "file": "lib/reference/country-label.ts",
     "type": "reference-util",
     "addedLineCount": 12,
+    "hasExportableEntry": true,
     "functions": [{
       "name": "getCountryLabel",
       "addedBranches": [
@@ -101,14 +123,24 @@ bun "$QA_WORKSPACE_DIR/skills/whitebox-testing/scripts/classify-diff.ts" \
         "entry.name[locale] ?? entry.name.en"
       ]
     }]
+  }, {
+    "file": "lib/server/bootstrap.ts",
+    "type": "server-logic",
+    "addedLineCount": 8,
+    "hasExportableEntry": false,
+    "functions": [{ "name": "(top-level)", "addedBranches": ["if (raw) { ... }", "if (signal) process.kill(...)"] }]
   }],
   "modeB": {
     "tools": [{ "file": "lib/ai/tools/github-search.ts", "addedLineCount": 23, "functions": [...] }],
     "mcp": []
   },
+  // sub-agent-factory.ts 即使含 execute-like 逻辑，若有 server-only/Next.js 依赖 → 归入 modeA，
+  // 测试时用 vi.mock('server-only', () => ({})) 绕过，专注分支逻辑
   "skipped": [{ "file": "lib/some-type.ts", "reason": "仅改注释/import/空行/类型注解" }]
 }
 ```
+
+`hasExportableEntry: false`（如上面 `bootstrap.ts` 例子）表示整个文件找不到任何标准导出写法——纯 IIFE 启动脚本 / CLI-only 入口文件的典型特征。这类文件即使 `functions`/`addedBranches` 非空，也没有任何入口可以从测试文件里 import 进来驱动。**Phase 4a 分层时必须把这类文件归 SKIP，不能进 TIER-1**——这是从这次实测里真实出现过的"测试文件里把源码逻辑重新抄一遍再自我断言"问题（`bootstrap.ts`/`task-worker.ts` 等案例）反推出来的分类修正：与其等生成完了再靠 Phase 4b 检查有没有真实 import，不如在分类阶段就不把这类文件送进"必须生成"的队列。
 
 ### 1c. 展示摘要
 
@@ -134,10 +166,13 @@ modeA 和 modeB 全部为空 → 输出"无有效变更"并退出。`--dry-run` 
 Mode A 无需 worktree，测试直接写入 `$WHITEBOX_DIR/vitest/`。
 
 ```sh
-git -C "$SOURCE_PROJECT_DIR" worktree add --detach "$SANDBOX_DIR" "$HEAD_HASH"
+bun "$QA_AGENT_ROOT/skills/whitebox-testing/scripts/prepare-sandbox.ts" \
+  --source "$SOURCE_PROJECT_DIR" \
+  --head "$HEAD_HASH" \
+  --sandbox "$SANDBOX_DIR"
 ```
 
-沙箱将在 Phase 7 测试结束后立即删除，每次运行全新创建。
+脚本内部：`git worktree add --detach` 建沙箱 → node_modules 从模板复制（不用 junction/symlink 连真实项目；模板只有 lockfile 变化时才重建，重建时在 `SOURCE_PROJECT_DIR` 本体装一次依赖，安全——装的就是它自己要用的依赖）→ 模板复制进本次沙箱（纯本地磁盘拷贝，不联网不跑 bun）。沙箱在 Phase 7 测试结束后立即删除，每次运行全新创建；沙箱内不要跑 `bun install`。
 
 ---
 
@@ -147,11 +182,56 @@ git -C "$SOURCE_PROJECT_DIR" worktree add --detach "$SANDBOX_DIR" "$HEAD_HASH"
 
 参考覆盖准则：`skills/whitebox-testing/SKILL.md` §一。
 
-**同时读取 PRD 文档（`--prd` 路径）作为业务背景，辅助推导期望行为。**
+**若提供了 `--prd`，读取作为业务背景辅助推导期望行为；未提供时，直接从源码逻辑/命名/类型推导期望值，同样有效，只是少一层业务背景兜底。**
 
-### 4a. 逐文件生成
+### 4a. 文件分层 + 逐文件生成
 
-对 `classification.json` 中每个 modeA 文件：
+**第一步：对 classification.json 的 modeA 列表按可测性分层，先输出分层结果再开始生成**
+
+```
+分层规则（Node 环境，无 jsdom，无 @testing-library/react）——按顺序判断，命中即停：
+
+[SKIP 跳过，记录原因]（优先于 TIER-1/TIER-2 判断）：
+  - hasExportableEntry === false（整个文件无任何导出符号，纯 IIFE/CLI 脚本，如 bootstrap.ts——
+    即使 functions 数组非空也无法通过 import 驱动，方式 A/B 均不适用，不进 TIER-1）
+  - functions 数组为空（无新增分支可测）
+  - subtype = component .tsx 且无可测纯函数导出
+  - addedLineCount > 2000 且 functions 为空（纯数据文件，如 countries.ts、titles/data.ts）
+
+[TIER-1 立即生成]（不满足上面任一 SKIP 条件时）：
+  - subtype = util / server-logic / reference-util / api-route
+  - 且 functions 数组非空（有可测函数）
+  - 且 hasExportableEntry === true
+
+[TIER-2 按需生成]：
+  - subtype = component，但文件扩展名为 .ts（非 .tsx）
+  - 或 subtype = component .tsx，但文件内有导出的纯函数（非 React 组件的 export function）
+```
+
+> `hasExportableEntry` 只能确定性识别"整个文件零导出"这一种情况（比如 bootstrap.ts）。如果文件本身有导出（比如 API route 的 `GET`），但新增分支埋在文件内部一个**未导出**的辅助函数里，`hasExportableEntry` 仍是 `true`，不会被这条规则拦下——这种情况留给生成阶段按 `prd-driven-flow.md` §四"未导出目标的判定规则"处理（驱动最近的已导出入口断言副作用，或该分支直接不生成用例，记录到跳过清单），不是本节判断的范围。
+
+输出分层摘要（此步骤必须展示给用户，不可省略）：
+```
+Phase 4 文件分层结果：
+  TIER-1 (立即生成): N 个文件
+    - lib/server/candidate/build-state-machine.ts (server-logic)
+    - lib/reference/matcher.ts (reference-util)
+    - ...
+  TIER-2 (按需生成): M 个文件
+    - features/candidate/lib/entry-validation.ts (util)
+    - ...
+  SKIP: K 个文件
+    - app/candidate/build/build-client.tsx (component .tsx，无纯函数导出)
+    - lib/reference/titles/data.ts (纯数据文件，0 函数)
+    - lib/server/bootstrap.ts (hasExportableEntry=false，纯 IIFE 启动脚本，无导出入口)
+    - ...
+
+将生成 N+M 个 .test.ts 文件，跳过 K 个。
+```
+
+**第二步：按 TIER-1 → TIER-2 顺序逐文件生成，使用并行读取加速**
+
+对每个待生成文件：
 
 **Step 1 — 读分支信息（来自 classification.json，无需重读 diff）**
 
@@ -178,7 +258,7 @@ Read("$SOURCE_PROJECT_DIR/<file>")
 | `reference-util` / `util` | 直接 import，从真实数据集取 entry 推导期望 |
 | `server-logic` | vi.mock 外部依赖（db、network），直接 import 被测函数 |
 | `api-route` | vi.mock session/db，import route handler 直调 |
-| `component` | `@testing-library/react`：renderHook 测 hook，render + getBy* 测条件渲染 |
+| `component` (TIER-2) | 只测文件中导出的纯函数，**不使用 @testing-library/react**；若无纯函数则归入 SKIP |
 
 **Step 4 — 写测试文件**
 
@@ -205,10 +285,43 @@ describe("getCountryLabel", () => {
 });
 ```
 
-### 4b. 完整性检查
+### 4b. 完整性硬门控（强制检查，不可跳过）
 
-每个 modeA 文件必须有对应 `.test.ts` 且包含至少 1 个 `it()`。
-若某文件生成失败或 0 个 it() → 重新生成，最多重试 1 次。
+测不了的文件/分支**不生成用例**，记一行到跳过清单（文件名 + 原因），不写占位测试。
+
+```
+应生成文件数 = TIER-1 数量 + TIER-2 数量 − 生成阶段新记入跳过清单的文件数
+实际生成文件数 = ls $WHITEBOX_DIR/vitest/*.test.ts | wc -l
+```
+
+**若 实际生成数 < 应生成数，必须补全差额后才能进入 Phase 5/6。**
+
+验证每个已生成文件：
+
+```sh
+for f in $WHITEBOX_DIR/vitest/*.test.ts; do
+  count=$(grep -c "^\s*it(" "$f" || echo 0)
+  if [ "$count" -eq 0 ]; then
+    echo "WARNING: $f has 0 test cases — regenerating"
+    # 重新生成该文件，最多重试 1 次
+  fi
+done
+```
+
+每个 `it()` 都必须能在文件里找到对真实源文件路径的 `import` / `await import()`（grep basename 即可，不要求精确路径匹配）。不满足的按 `prd-driven-flow.md` §四重做——驱动最近的已导出入口，或不生成并记录到跳过清单。
+
+输出验证摘要：
+```
+Phase 4 完整性检查：
+  应生成: 11 个文件
+  已生成: 11 个文件  ✅（含真实 import）
+  跳过清单:
+    - bootstrap.ts（hasExportableEntry=false，无导出入口）
+    - task-worker.ts 的 addedBranch "if (approvalRequiredToolNames.length > 0)"（驱动入口需要真实 Redis/DB，成本过高）
+  跳过(SKIP，Phase 4a 分层阶段判定): 78 个文件 → 见分层摘要
+```
+
+> **注意**：Mode B 问题不得压缩 Mode A 的覆盖面。Mode A 和 Mode B 是独立阶段，即使 Mode B 完全失败，Mode A 也必须达到 "应生成数 = 实际生成数"。跳过清单里的文件/分支不计入分母。
 
 ---
 
@@ -251,23 +364,39 @@ describe("getCountryLabel", () => {
   },
   "cases": [ /* 5a 设计的 case 数组 */ ],
   "confirmProbes": false,
-  "runId": "<prdSlug>",
+  "runId": "<slug>",
   "authEnvVar": null
 }
 ```
 
 注意：`executeStart/End` 传 0 即可，orchestrator Phase 1 会自动 Grep 重算。Prefix 取 modeB.tools 文件名的公共单词大写，如 `office-tools.ts` → `OFFICE`。
 
-### 5d. MCP Mode B — discover + Vitest L1+L2 生成（仅当 modeB.mcp 非空）
+### 5d. MCP Mode B — 插桩判定 + Vitest L1+L2 生成（仅当 modeB.mcp 非空）
 
-详细方法论见 `skills/whitebox-testing/references/mcp-testing.md`。
+详细方法论见 `skills/whitebox-testing/references/mcp-testing.md`（黑盒 L1+L2 主体）和 §八（本地插桩）。
 
-**Step 1 — discover.ts 获取工具 schema**
+**Step 0 — 判定能否本地起服务**
 
-从 `.env` 或 `--prd` 文档中确认 MCP server URL 和工具列表，执行：
+对每个 `modeB.mcp` 文件：`Grep` 同文件 / 同包内是否有 `Bun.serve(` / `.listen(` / `createServer(` 等启动调用。
+
+- **能找到** → 走 Step 1a（本地插桩）
+- **找不到**（纯远程部署 / 入口分散无法确定）→ 走 Step 1b（黑盒，行为不变）
+
+#### Step 1a — 本地可起服务：插桩 + spawn
+
+1. 在 `SANDBOX_DIR` 内对该文件的 `server.tool()` handler 插 2-4 探针（规则见 `instrumentation.md §2b`，探针校验清单同 Tool 插桩：括号平衡、IIFE 内原始代码字节对字节不变、无第 5 个探针）
+2. 生成的 Vitest spec 用 `InstrumentedMcpServer.spawn({ entryFile: <SANDBOX_DIR 内的 server 入口文件>, cwd: <入口文件所在目录>, debugEnvVar: "<PREFIX>_MCP_DEBUG" })` 在 `beforeAll` 里启动子进程，`McpClient.fromEnv({ serverUrl: server.url })` 连接，而不是读 `.env` 的 `MCP_SERVER_URL`
+3. `afterEach` 里失败时 `server.drainProbeLogs(eventPrefix)` 把探针证据打到输出（诊断用，不影响 pass/fail）
+4. `afterAll` 里 `server.close()` 杀掉子进程
+
+参考实现：`scripts/demo-mcp-server.ts` + `tests/whitebox/demo-mcp/vitest/*.test.ts`。
+
+#### Step 1b — 仅远程 / 无本地入口：discover.ts 获取工具 schema（原有黑盒流程，不变）
+
+从 `.env`（或提供了 `--prd` 时，其中记录的 MCP server URL/工具列表）中确认信息，执行：
 
 ```sh
-bun "$QA_WORKSPACE_DIR/skills/whitebox-testing/scripts/discover.ts" \
+bun "$QA_AGENT_ROOT/skills/whitebox-testing/scripts/discover.ts" \
   --url "$MCP_SERVER_URL" \
   --tools "<comma-separated tool names from modeB.mcp files>" \
   --auth-env "MCP_AUTH_TOKEN" \
@@ -276,9 +405,9 @@ bun "$QA_WORKSPACE_DIR/skills/whitebox-testing/scripts/discover.ts" \
 
 若 server 不可达（本地未启动 / 未部署），跳过 discover，直接按源码中 `server.tool()` 声明推断 schema，生成 `MCP_OFFLINE=1` 下全部 skip 的 spec 骨架。
 
-**Step 2 — 生成 Vitest spec（L1 + L2）**
+**Step 2 — 生成 Vitest spec（L1 + L2，两条路径通用）**
 
-读取 `mcp-discovery.json` 的 `inputSchema` + 源文件中的工具注册逻辑，按 `mcp-testing.md` §三模板为每个工具生成：
+读取（Step 1a 时）源文件中的工具注册逻辑，或（Step 1b 时）`mcp-discovery.json` 的 `inputSchema`，按 `mcp-testing.md` §三模板为每个工具生成：
 
 ```
 $WHITEBOX_DIR/vitest/<tool-name>.test.ts
@@ -287,21 +416,21 @@ $WHITEBOX_DIR/vitest/<tool-name>.test.ts
 每个文件必须包含：
 - `[L1]` schema 合规：工具存在性、inputSchema 必要字段、annotations
 - `[P0][L2]` happy path（正常参数）
-- `[P0][L2]` 鉴权失败（`noAuth: true`）
+- `[P0][L2]` 鉴权失败（`noAuth: true`，仅 Step 1b 适用——本地插桩实例通常无鉴权层）
 - `[P0][L2]` 必填参数缺失 → `isError=true`
 - `[P0][L2]` 幂等性（`stripVolatile` + `toEqual`）
 - `[P1][L2]` 边界值、分页、空结果（视工具 schema 决定是否适用）
 
 import 路径指向共享库：
 ```ts
-import { McpClient, parseToolResult, stripVolatile } from
+import { McpClient, InstrumentedMcpServer, parseToolResult, stripVolatile } from
   "<相对路径>/skills/whitebox-testing/scripts/mcp-client.js";
 import "dotenv/config";
 ```
 
 **Step 3 — 执行**
 
-MCP spec 与 Mode A spec 在同一目录（`$WHITEBOX_DIR/vitest/`），由 Phase 6 的 `bun vitest run` 统一执行。无需单独命令。若 server 不可达，在 `.env` 中设 `MCP_OFFLINE=1` 使所有 `describe.skipIf(OFFLINE)` 块自动 skip。
+MCP spec 与 Mode A spec 在同一目录（`$WHITEBOX_DIR/vitest/`），由 Phase 6 的 `bun vitest run` 统一执行。无需单独命令。Step 1b 若 server 不可达，在 `.env` 中设 `MCP_OFFLINE=1` 使所有 `describe.skipIf(OFFLINE)` 块自动 skip。
 
 ---
 
@@ -309,44 +438,58 @@ MCP spec 与 Mode A spec 在同一目录（`$WHITEBOX_DIR/vitest/`），由 Phas
 
 ### Mode A — Vitest（带覆盖率）
 
+生成专用 vitest config、解析 vitest 二进制路径、执行、解析覆盖率、分类已知错误信号——这几步收进了一个脚本，不再在本文档里手写 shell/PowerShell：
+
 ```sh
-cd "$SOURCE_PROJECT_DIR"
-
-# 找 vitest.config（优先 apps/mira-work/，再向上找）
-VITEST_CONFIG=$(find apps/mira-work -name "vitest.config.ts" ! -path "*/node_modules/*" 2>/dev/null | head -1)
-VITEST_CONFIG=${VITEST_CONFIG:-$(find . -name "vitest.config.ts" ! -path "*/node_modules/*" 2>/dev/null | head -1)}
-
-# 用 bun 从 classification.json 构造 --coverage.include 参数（不依赖 jq）
-INCLUDE_FLAGS=$(bun -e "
-const j = JSON.parse(require('fs').readFileSync('$CLASSIFY_OUT', 'utf8'));
-process.stdout.write(j.modeA.map(a => '--coverage.include=' + a.file).join(' '));
-")
-
-bun vitest run "$WHITEBOX_DIR/vitest/" \
-  --config "$VITEST_CONFIG" \
-  --coverage \
-  --coverage.provider=istanbul \
-  --coverage.reporter=json-summary \
-  --reporter=json \
-  --outputFile="$WHITEBOX_DIR/vitest-report.json" \
-  $INCLUDE_FLAGS \
-  2>&1 | tee "$WHITEBOX_DIR/vitest-run.log"
+bun "$QA_AGENT_ROOT/skills/whitebox-testing/scripts/run-mode-a.ts" \
+  --source-dir "$SOURCE_PROJECT_DIR" \
+  --whitebox-dir "$WHITEBOX_DIR" \
+  --source-files "<MODEA_SOURCE_FILES_RELATIVE_TO_MIRA_WORK>"
 ```
 
-**覆盖率门控**：读 `$SOURCE_PROJECT_DIR/coverage/coverage-summary.json`：
-- `branches.pct < 80` → Phase 7 报告置顶标注 WARNING，列出未覆盖分支
-- 不阻断流程
+`<MODEA_SOURCE_FILES_RELATIVE_TO_MIRA_WORK>` = `classification.json` 里 `modeA[].file` 去掉 `apps/mira-work/` 前缀后的逗号分隔列表（不用 `**`，避免把未改动的历史代码也算进覆盖率分母）。`--app-dir` 默认 `apps/mira-work`，需要时可覆盖。
 
-**执行失败自动处理**：
-- `Cannot find module` → 将 `@/` alias 改为相对路径，重跑一次
-- 其他错误 → 记录，进 Phase 7 分类
+脚本内部做的事：生成 `$WHITEBOX_DIR/vitest.whitebox.config.ts`（`include` 指向 whitebox 目录、`coverage.include` 只含上面这份文件列表、`@mira/*` 等 alias 同旧版）→ 解析 `$SOURCE_PROJECT_DIR/node_modules/vitest` 这个 junction/symlink 拿到真实 binary 路径 → 执行并写入 `$WHITEBOX_DIR/vitest-run.log` → 读 `coverage-summary.json` 打印 `branches.pct` 作参考信息（不做 pass/fail 判断，验收标准仍是 Phase 4b 的 addedBranches 检查）→ 对输出做已知错误信号匹配，命中就打印对应处理建议（`Cannot find module '@mira/...'`、`z.object is not a function`、`Cannot find module from .bun/...` 三类，具体处理方式见脚本内注释）。退出码就是 vitest 的退出码。
+
+其他错误 → 记录，进 Phase 7 分类。
 
 ### Mode B — runner.ts
 
+**前置检查（必须验证）**：
+
 ```sh
-bun "$QA_WORKSPACE_DIR/skills/whitebox-testing/scripts/runner.ts" \
-  --config "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<prdSlug>.json" \
-  --report  "$QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<prdSlug>.md"
+# SANDBOX_DIR 必须在 SOURCE_PROJECT_DIR 内部（原因见 references/prd-driven-flow.md §五），否则 bun 无法上溯找到 mira/node_modules
+echo "$SANDBOX_DIR" | grep -q "$SOURCE_PROJECT_DIR" || { echo "❌ SANDBOX_DIR 不在 SOURCE_PROJECT_DIR 内，停止"; exit 1; }
+```
+
+```sh
+bun "$QA_AGENT_ROOT/skills/whitebox-testing/scripts/runner.ts" \
+  --config "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<slug>.json" \
+  --report  "$QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<slug>.md"
+```
+
+runner.ts 内部自动完成：
+1. `process.chdir(cfg.sourceProjectDir)` — cwd 切到 sandbox（在 mira 内部）
+2. 从 sandbox 内加载 `.env`、设置 `debugEnvVar=1`
+3. 动态 import 探针已插桩的工具文件
+4. 执行测试用例，捕获 probe 事件（logger monkey-patch）
+5. 写 evidence JSONL，供 claude -p 裁决
+
+**常见失败原因排查**：
+
+| 错误信息 | 根因 | 修复 |
+|---------|------|------|
+| `Cannot find module '@opentelemetry/api'` | SANDBOX_DIR 在 mira 外部 | 确认 Phase 0 的 SANDBOX_DIR 路径 |
+| `Cannot find module '@mira/...'` | 该包的 node_modules 没有从模板拷贝进沙箱 | 重新执行 Phase 2 的模板拷贝步骤（2a/2b）；若模板本身缺该包，先确认 Phase 2a 的 lockfile 哈希检查有没有触发重建 |
+| `does not export factory "..."` | 工厂函数名拼错或文件路径错 | 检查 config.json 的 tools[].factory |
+| `bun fatal error` (无 try/catch) | 极少见，通常是 bun 本身 bug | 更新 bun 版本或换 node 执行 |
+
+**`--judge-only`（调试用）**：跳过 runCases，只对已有 evidence 重新跑 claude -p：
+```sh
+bun "$QA_AGENT_ROOT/skills/whitebox-testing/scripts/runner.ts" \
+  --config "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<slug>.json" \
+  --report  "$QA_WORKSPACE_DIR/tests/reports/tool-probe/report-<slug>.md" \
+  --judge-only
 ```
 
 ---
@@ -358,14 +501,19 @@ bun "$QA_WORKSPACE_DIR/skills/whitebox-testing/scripts/runner.ts" \
 ### 7a. 删除沙箱（Mode B 时）
 
 ```sh
-git -C "$SOURCE_PROJECT_DIR" worktree remove --force "$SANDBOX_DIR"
+bun "$QA_AGENT_ROOT/skills/whitebox-testing/scripts/cleanup-sandbox.ts" \
+  --source "$SOURCE_PROJECT_DIR" \
+  --sandbox "$SANDBOX_DIR"
 ```
+
+`git worktree remove --force` 单独一条命令在 Windows 上会因深层 node_modules 路径过长而删不干净；
+`cleanup-sandbox.ts` 内置 `core.longpaths` + robocopy 兜底 + verify，直接调用即可。
 
 若 `SANDBOX_DIR` 不存在（纯 Mode A），跳过此步。
 
 ### 7b. 失败分类与处置
 
-读取 `vitest-report.json`（Mode A）和 `report-<prdSlug>.md`（Mode B）：
+读取 `vitest-report.json`（Mode A）和 `report-<slug>.md`（Mode B）：
 
 | 失败类型 | 判断依据 | 处置 |
 |---|---|---|
@@ -385,19 +533,18 @@ git -C "$SOURCE_PROJECT_DIR" worktree remove --force "$SANDBOX_DIR"
   "pageUrl": null,
   "handoffFile": null,
   "priority": "P1",
-  "feature": "<prdSlug>"
+  "feature": "<slug>"
 }
 ```
 
 ### 7c. 输出报告摘要
 
 ```
-白盒测试报告 — <prdSlug>
+白盒测试报告 — <slug>
 ================================
 分析范围：<BASE:.7>..<HEAD:.7>（N 个变更文件，M 个函数，K 个分支）
 
-[覆盖率]  Branches: 72% ⚠ 目标 ≥ 80%
-  未覆盖: getCountryLabel L7 (locale fallback when en missing)
+[覆盖率]  Branches: 72%（整文件参考值，含历史代码）| addedBranches: 3/3 已覆盖 ✅
 
 [Mode A — Vitest] 通过 X / 共 Y
   ✓ country-label.test.ts  — 5/5

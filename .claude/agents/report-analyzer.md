@@ -354,7 +354,7 @@ When all tests pass (`allPassed: true`), the `failures` array is empty. The comm
 
 **Each processed report is appended to the summary report.**
 
-> **Cross-pipeline preservation rule (MANDATORY)**: `combined/summary.md` may already contain a tool-probe block delimited by these markers, written by `scripts/tool-probe/judge.ts`:
+> **Cross-pipeline preservation rule (MANDATORY)**: `combined/summary.md` may already contain a tool-probe block delimited by these markers, written by `runner.ts judge` subcommand:
 >
 > ```
 > <!-- tool-probe-runs:start -->
@@ -362,7 +362,7 @@ When all tests pass (`allPassed: true`), the `failures` array is empty. The comm
 > <!-- tool-probe-runs:end -->
 > ```
 >
-> Before rewriting `summary.md`, **read the existing file**, capture the entire `<!-- tool-probe-runs:start -->...<!-- tool-probe-runs:end -->` block verbatim (including both markers), and **re-emit it at the bottom of the new content**. Do NOT regenerate or modify rows inside the block — it's owned by judge.ts. If the markers are absent, nothing to preserve.
+> Before rewriting `summary.md`, **read the existing file**, capture the entire `<!-- tool-probe-runs:start -->...<!-- tool-probe-runs:end -->` block verbatim (including both markers), and **re-emit it at the bottom of the new content**. Do NOT regenerate or modify rows inside the block — it's owned by runner.ts judge. If the markers are absent, nothing to preserve.
 
 Write/update `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`:
 

@@ -11,6 +11,12 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { z } from "zod";
 
 const PORT = Number(process.env.PORT ?? 3100);
+const DEBUG = process.env.DEMO_MCP_DEBUG === "1";
+
+/** 探针门控日志：不开 DEMO_MCP_DEBUG 时零开销。参考 instrumentation.md §2b 的插桩规则。 */
+function probe(stage: string, data: Record<string, unknown>): void {
+  if (DEBUG) console.log(JSON.stringify({ event: `demo-debug.${stage}`, ...data }));
+}
 
 /** 每次调用返回一个全新的 McpServer 实例（stateless 模式必须）。 */
 function buildServer(): McpServer {
@@ -27,9 +33,14 @@ function buildServer(): McpServer {
       a: z.number().describe("First operand"),
       b: z.number().describe("Second operand"),
     },
-    async ({ a, b }) => ({
-      content: [{ type: "text" as const, text: JSON.stringify({ result: a + b }) }],
-    }),
+    async ({ a, b }) => {
+      probe("tool.input", { tool: "add", input: { a, b } });
+      const result = await (async () => ({
+        content: [{ type: "text" as const, text: JSON.stringify({ result: a + b }) }],
+      }))();
+      probe("tool.output", { tool: "add", result });
+      return result;
+    },
   );
 
   // 工具 2: greet — 含可选参数 + enum
@@ -41,8 +52,13 @@ function buildServer(): McpServer {
       lang: z.enum(["en", "zh"]).optional().describe("Language: 'en' (default) or 'zh'"),
     },
     async ({ name, lang = "en" }) => {
-      const message = lang === "zh" ? `你好，${name}！` : `Hello, ${name}!`;
-      return { content: [{ type: "text" as const, text: JSON.stringify({ message }) }] };
+      probe("tool.input", { tool: "greet", input: { name, lang } });
+      const result = await (async () => {
+        const message = lang === "zh" ? `你好，${name}！` : `Hello, ${name}!`;
+        return { content: [{ type: "text" as const, text: JSON.stringify({ message }) }] };
+      })();
+      probe("tool.output", { tool: "greet", result });
+      return result;
     },
   );
 

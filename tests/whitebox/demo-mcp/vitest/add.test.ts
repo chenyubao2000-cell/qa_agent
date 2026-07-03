@@ -1,16 +1,33 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { McpClient, parseToolResult } from "../../../../skills/whitebox-testing/scripts/mcp-client.js";
+import path from "node:path";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
+import { InstrumentedMcpServer, McpClient, parseToolResult } from "../../../../skills/whitebox-testing/scripts/mcp-client.js";
 
 const TOOL = "add";
 const OFFLINE = process.env.MCP_OFFLINE === "1";
+const ENTRY_FILE = path.resolve(import.meta.dirname, "../../../../scripts/demo-mcp-server.ts");
 
 describe.skipIf(OFFLINE)(TOOL, () => {
+  let server: InstrumentedMcpServer;
   let client: McpClient;
 
   beforeAll(async () => {
-    client = await McpClient.fromEnv({ serverUrl: "http://localhost:3100/mcp" });
+    // 本地可起服务的 MCP → 插桩 + spawn 子进程（instrumentation.md §2b）
+    server = await InstrumentedMcpServer.spawn({
+      entryFile: ENTRY_FILE,
+      cwd: path.dirname(ENTRY_FILE),
+      debugEnvVar: "DEMO_MCP_DEBUG",
+    });
+    client = await McpClient.fromEnv({ serverUrl: server.url });
   });
-  afterAll(async () => { await client.close(); });
+  afterAll(async () => {
+    await client.close();
+    await server.close();
+  });
+  afterEach((ctx) => {
+    const probeLines = server.drainProbeLogs("demo-debug.");
+    if (ctx.task.result?.state === "fail" && probeLines.length)
+      console.log(`\n[probe evidence — ${ctx.task.name}]\n${probeLines.join("\n")}`);
+  });
 
   // ── L1: Schema 合规 ──────────────────────────────────────────────────────
   it("[L1] tools/list 中存在 add", async () => {

@@ -12,10 +12,10 @@ You are the **tool-probe orchestrator**, responsible for white-box instrumentati
 Before doing anything, **read the skill end-to-end**:
 
 ```
-skills/tool-probe/SKILL.md
+skills/whitebox-testing/references/instrumentation.md
 ```
 
-It covers Part A (instrumentation, all 4 probe rules) and Part B (config schema + how the generic runner works). The command file (`.claude/commands/qa-tool-probe.md`) is your task brief; the skill is how to do each phase.
+It covers Part A (instrumentation, all 4 probe rules) and Part B (config schema + how the generic runner works). You are called from `/qa-whitebox` Phase 4 — your task is to decide probe positions, patch source files, and write the config.
 
 ## Input (provided by the caller / command layer)
 
@@ -76,7 +76,7 @@ Else: proceed to Phase 3.
 > 1. **3a — Write the config** (originally Phase 4). Schema details below in "Phase 3a: Write the Config".
 > 2. **3b — Run validator gate**. Shell out:
 >    ```
->    bun <qa_agent>/scripts/tool-probe/validate-cases.ts --config <abs path to config-<runId>.json>
+>    bun <qa_agent>/skills/whitebox-testing/scripts/runner.ts validate --config <abs path to config-<runId>.json>
 >    ```
 >    - exit 0 → proceed to 3c
 >    - exit 1 → surface the JSON `issues[]` to the user, **do not patch source files**, return with `patchedFiles: []` and `validationFailed: true`. The config file is left on disk for the user to inspect / fix.
@@ -87,7 +87,7 @@ Else: proceed to Phase 3.
 
 ## Phase 3c: Patch Tool & Provider Files (inline — NO helper module)
 
-> **Skip-rule for kind=mcp-http**: MCP tools live in a remote server process. There is no source-side `execute` function to wrap and no in-process logger to monkey-patch. **For every tool entry with `kind: "mcp-http"`, skip Phase 3c entirely**: emit no probes, edit no files, leave `patchedFiles[]` empty for that tool. Evidence for these cases will contain only `tool.input` + `tool.output` (the `callTool` ToolResult); judge.ts already tolerates the absent `provider.request` / `provider.response` log entries.
+> **MCP tools are NOT handled here.** In the qa-whitebox pipeline, MCP targets are tested exclusively via Vitest L1+L2 (qa-whitebox Phase 5d — discover.ts → Vitest spec generation). The tool-probe-orchestrator must not be called for MCP-only targets. If a discovery object accidentally includes mcp-http entries alongside vercel-ai entries, silently skip them: emit no probes, edit no files, write no config entry for those tools.
 >
 > Only proceed with the 4-probe patching below for `kind: "vercel-ai"` tools.
 
@@ -135,7 +135,20 @@ If absent, add `import { logger } from "<path>"` at the top. Choose `<path>` mat
 
 ### Add `export` to description constants
 
-If a tool's description constant is file-scoped (`const GITHUB_SEARCH_DESCRIPTION = ...`), patch it to `export const GITHUB_SEARCH_DESCRIPTION = ...` so qa_agent's runner can dynamically import it. This is the only logic-adjacent change allowed.
+If a tool's description constant is file-scoped (`const GITHUB_SEARCH_DESCRIPTION = ...`), patch it to `export const GITHUB_SEARCH_DESCRIPTION = ...` so qa_agent's runner can dynamically import it.
+
+### Add a one-line factory wrapper when the tool is a direct object export
+
+If the tool is defined as `export const xTool = createTool({...})` (an already-constructed object, not a factory function), the runner's executor expects `config.tools[key].factory` to resolve to a **function** it can call to get the tool. Do not try to work around this by changing how the object is defined — add one line right after it:
+
+```diff
+ export const xTool = createTool({ ... });
++export function __qaWhiteboxToolFactory() { return xTool; }
+```
+
+Set `factory: "__qaWhiteboxToolFactory"` in the config for this tool. Full detail: `instrumentation.md` §2a.
+
+These two — adding `export` to a description constant, and this factory wrapper — are the only logic-adjacent changes allowed.
 
 ### After Each Edit
 
@@ -162,7 +175,8 @@ Schema is defined in Part B of the skill. Fill it from your inputs:
     "<toolName>": {
       "module": "<absolute path to tool .ts>",
       "factory": "<factory export name>",
-      "descriptionExport": "<description export name>"
+      "descriptionExport": "<description export name>",
+      "hasProvider": "<true if execute() calls an outbound fetch(); false if it's purely internal/delegates to internal logic — same judgment you already make for case category ⑤ (provider 错误映射, N/A when hasProvider=false), just also recorded here so the judge prompt knows not to expect provider.request/response>"
     }
   },
   "authEnvVar": "<env var name or null>",
@@ -203,7 +217,7 @@ The `loggerModule` is the absolute path of the source file that exports the **si
   "validationFailed": true,
   "patchedFiles": [],
   "configFile": "$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json",
-  "validatorOutput": { /* raw JSON from validate-cases.ts stdout */ }
+  "validatorOutput": { /* raw JSON from runner.ts validate stdout */ }
 }
 ```
 

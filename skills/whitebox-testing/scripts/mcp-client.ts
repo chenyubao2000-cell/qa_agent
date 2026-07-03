@@ -17,6 +17,7 @@ import type {
   ListToolsResult,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
+import { spawn, type ChildProcess } from "node:child_process";
 
 export interface McpClientOptions {
   /** 跳过 Authorization header，用于 401 / 未鉴权测试 */
@@ -74,6 +75,87 @@ export class McpClient {
   getInstructions() { return this.client.getInstructions(); }
 
   async close(): Promise<void> { await this.client.close(); }
+}
+
+export interface InstrumentedMcpServerOptions {
+  /** 沙箱内已插桩的 server entry 文件绝对路径，用 `bun run <entryFile>` 启动 */
+  entryFile: string;
+  /** 子进程 cwd（entry 文件所在包目录） */
+  cwd: string;
+  /** 探针开关 env var 名，如 "DEMO_MCP_DEBUG" */
+  debugEnvVar: string;
+  /** 固定端口则传入；省略时随机挑一个空闲区间端口 */
+  port?: number;
+  /** MCP HTTP 端点路径，默认 "/mcp" */
+  mcpPath?: string;
+  /** 额外注入的环境变量 */
+  extraEnv?: Record<string, string>;
+  /** 等待 server 就绪的最长时间(ms)，默认 10000 */
+  readyTimeoutMs?: number;
+}
+
+/**
+ * 在沙箱内 spawn 一个已插桩的 MCP server 子进程，采集其 stdout/stderr 作为探针证据。
+ *
+ * 只在「能本地起服务」的 MCP 场景使用（见 instrumentation.md §2b）。证据只用于
+ * Vitest 用例失败时的诊断参考——判定 pass/fail 始终是 Vitest 断言本身，不读探针日志。
+ */
+export class InstrumentedMcpServer {
+  private readonly logs: string[] = [];
+
+  private constructor(
+    private readonly proc: ChildProcess,
+    readonly url: string,
+  ) {}
+
+  static async spawn(opts: InstrumentedMcpServerOptions): Promise<InstrumentedMcpServer> {
+    const port = opts.port ?? 20000 + Math.floor(Math.random() * 20000);
+    const mcpPath = opts.mcpPath ?? "/mcp";
+    const proc = spawn("bun", ["run", opts.entryFile], {
+      cwd: opts.cwd,
+      env: { ...process.env, PORT: String(port), [opts.debugEnvVar]: "1", ...opts.extraEnv },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    const server = new InstrumentedMcpServer(proc, `http://localhost:${port}${mcpPath}`);
+    const capture = (d: Buffer): void => {
+      for (const line of d.toString("utf-8").split(/\r?\n/)) if (line) server.logs.push(line);
+    };
+    proc.stdout?.on("data", capture);
+    proc.stderr?.on("data", capture);
+
+    await server.waitUntilReady(opts.readyTimeoutMs ?? 10000);
+    return server;
+  }
+
+  /** 只要端口能接受 HTTP 请求（不管响应状态码）就算就绪；握手细节交给 McpClient */
+  private async waitUntilReady(timeoutMs: number): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      try {
+        await fetch(this.url, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+        return;
+      } catch { /* port not listening yet */ }
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    throw new Error(`InstrumentedMcpServer did not become ready within ${timeoutMs}ms at ${this.url}`);
+  }
+
+  /** 取出自上次调用以来捕获的所有行（含探针日志），并清空缓冲 */
+  drainLogs(): string[] {
+    const out = this.logs.slice();
+    this.logs.length = 0;
+    return out;
+  }
+
+  /** 只取匹配探针 event 前缀的行（如 "demo-debug."），供失败诊断附加输出 */
+  drainProbeLogs(eventPrefix: string): string[] {
+    return this.drainLogs().filter((l) => l.includes(`"${eventPrefix}`));
+  }
+
+  async close(): Promise<void> {
+    this.proc.kill();
+  }
 }
 
 /**

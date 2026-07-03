@@ -16,6 +16,12 @@ playwright/.auth/
 test-results/
 screenshots/
 
+# 白盒测试运行时产物（每次 /qa-whitebox 跑不同目标都会生成一个目录，
+# 内含 classification.json / vitest.whitebox.config.ts / vitest-run.log / coverage 等，
+# 属于本地执行结果，不应提交；demo-mcp 是随 skill 一起维护的示例夹具，保留）
+tests/whitebox/*/
+!tests/whitebox/demo-mcp/
+
 # OS / IDE
 .DS_Store
 Thumbs.db

@@ -17,10 +17,10 @@ qa-platform/
 │   ├── 已有 5 个：e2e-orchestrator、test-executor、cdp-test-executor、report-analyzer、bug-reporter
 │   ├── 新增 4 个：unit-test-agent(opus)、api-orchestrator(sonnet)、eval-agent(sonnet)、sentinel-agent(haiku)
 │   └── i18n team 3 个：i18n-cdp-runner(sonnet)、i18n-issue-reviewer(sonnet)、i18n-html-reporter(haiku)
-├── .claude/commands/→ 15 个 Slash Command
+├── .claude/commands/→ 14 个 Slash Command
 │   ├── 已有 8 个：/qa-explore、qa-from-issue、qa-from-branch、qa-verify-fix、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
 │   ├── 新增 5 个：/qa-unit-test、/qa-api-test、/qa-perf-test、/qa-eval、/qa-sentinel
-│   ├── 白盒 1 个：/qa-tool-probe
+│   ├── 白盒 1 个：/qa-whitebox
 │   └── i18n 1 个：/qa-i18n-audit
 ├── .claude/references/ → 12 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
 ├── hooks/           → 2 个 Hook（session-start 校验、通知）
@@ -70,7 +70,7 @@ CI 增量测试（新增）：
   test-flow.yml             → PR affected 分析 → coverage gap → AI 测试建议 → 选择性执行
 
 SessionStart hook：
-  hooks/session-start.sh → 校验 .env 必需变量 → 输出 {"env":"ok"}
+  hooks/session-start.sh → 校验 .env 必需变量 → 输出 {"env":"ok"}；同时兜底清理白盒测试残留的沙箱（`$SOURCE_PROJECT_DIR/.qa-sandboxes/wb-*`，见 `.claude/settings.json` 注册）
 
 PR 监控（独立流程）：
   scripts/git-watcher.ts → 监听 PR 变更 → 评论同步
@@ -89,7 +89,7 @@ PR 监控（独立流程）：
 ├── /qa-perf-test  → 分析 endpoint → 生成 k6 性能测试 → 执行 → 基线对比
 ├── /qa-eval       → 构建 eval dataset → LLM-as-Judge 评分 → 趋势分析
 ├── /qa-sentinel   → 启动多平台质量守卫监控
-├── /qa-tool-probe → 4 桩注入 → tool.execute() 直调 → claude CLI 裁决 → Markdown 报告
+├── /qa-whitebox   → 分析分支最新提交 → 白盒测试（普通代码用 Vitest，Tool/MCP/Sub-agent 加插桩）→ 报告
 └── /qa-i18n-audit → CDP × (locale×viewport) 审查 → issues JSON → HTML 报告（带截图）
 ```
 
@@ -114,8 +114,8 @@ PR 监控（独立流程）：
 - `/qa-eval [--mode build|run|regression] [--project <langfuse-project>] [--days <N>]` — LLM Eval 评估流水线
 - `/qa-sentinel [--platforms sentry,langfuse,railway,db] [--interval 5m]` — 启动多平台质量守卫监控
 
-### 工具白盒探针（新增）
-- `/qa-tool-probe <tool1> [tool2 ...] [--prd <path>] [--source <dir>] [--extra-case "<desc>"] [--confirm-probes] [--dry-run]` — 在 `SOURCE_PROJECT_DIR` 的源码上插入 4 个可关断调试桩（位置由模型决定）→ 生成 `tool.execute()` 直调脚本 + claude CLI 裁决脚本 → 跑出 Markdown 报告（默认不询问、不清理、跑完所有用例）
+### 白盒测试（新增）
+- `/qa-whitebox [--branch <branch>] [--target <file[,file...]>] [--prd <path>] [--since <days=7>]` — 分析分支最新提交或直测指定文件/工具 → 普通代码生成 Vitest/pytest 用例；Tool/MCP/Sub-agent 额外插桩 → 执行 + LLM 裁决 → Markdown 报告（`--prd` 可选）
 
 ## 约定
 
