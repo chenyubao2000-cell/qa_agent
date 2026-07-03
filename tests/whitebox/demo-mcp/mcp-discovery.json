@@ -1,0 +1,59 @@
+{
+  "tools": [
+    {
+      "kind": "mcp-http",
+      "name": "add",
+      "description": "Add two numbers and return the result.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "number",
+            "description": "First operand"
+          },
+          "b": {
+            "type": "number",
+            "description": "Second operand"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "serverUrl": "http://localhost:3100/mcp",
+      "authTokenEnv": null
+    },
+    {
+      "kind": "mcp-http",
+      "name": "greet",
+      "description": "Greet someone by name in the chosen language.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Person's name (required)"
+          },
+          "lang": {
+            "description": "Language: 'en' (default) or 'zh'",
+            "type": "string",
+            "enum": [
+              "en",
+              "zh"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "serverUrl": "http://localhost:3100/mcp",
+      "authTokenEnv": null
+    }
+  ],
+  "prefix": "add"
+}
