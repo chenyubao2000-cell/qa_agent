@@ -6,7 +6,7 @@ playwright-report/
 *reports/
 
 # Env files (contain credentials)
-# .env
+.env
 
 # Playwright auth state (contains session tokens)
 playwright/.auth/
