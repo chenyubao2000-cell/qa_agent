@@ -1,0 +1,628 @@
+[
+  {
+    "id": "TC-PRD-CLA-001",
+    "storyId": "US-SOU-270-REGRESSION",
+    "criterionId": "AC-8",
+    "source": "prd",
+    "title": "纯英文合法公司名查询返回正常匹配结果（回归基线）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["无（可直连 Apollo 或使用录制的真实响应）"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Meituan", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了真实Apollo调用", "expected": true },
+      { "type": "count", "selector": "result.count", "name": "返回结果数量", "expected": ">0" },
+      { "type": "text", "selector": "result.companies", "name": "结果中包含Meituan", "expected": "Meituan" }
+    ],
+    "tags": ["@P0", "@regression", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-002",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "纯中文公司名\"南方基金\"应直接返回空结果，不查询Apollo（核心修复验证）",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "南方基金", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 },
+      { "type": "text", "selector": "result.companies", "name": "不应包含Google/Amazon/LinkedIn", "expected": "[]" }
+    ],
+    "tags": ["@P0", "@check1", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-003",
+    "storyId": "US-SOU-270-CHECK2",
+    "criterionId": "AC-2",
+    "source": "prd",
+    "title": "total_entries 远超真实量级（模拟失效场景 31,347,156）应被判定为未过滤并丢弃结果",
+    "priority": "P0",
+    "scenarioType": "boundary",
+    "preconditions": ["mock Apollo /mixed_companies/search 响应 total_entries=31347156，并夹带 Google/Amazon/LinkedIn 等公司条目"],
+    "setup": [
+      { "type": "code", "action": "mock Apollo provider 响应", "data": { "total_entries": 31347156, "companies": ["Google", "Amazon", "LinkedIn"] } },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Some Ascii Query", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": true },
+      { "type": "boolean", "selector": "discarded", "name": "是否因超阈值被丢弃", "expected": true },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P0", "@check2", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-004",
+    "storyId": "US-SOU-270-CONTRACT",
+    "criterionId": "AC-3",
+    "source": "prd",
+    "title": "Apollo 调用异常时应统一返回 count:0，不能返回原始 error 字符串（回归修复点）",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": ["mock Apollo /mixed_companies/search 请求抛出异常（网络超时或HTTP 500）"],
+    "setup": [
+      { "type": "code", "action": "mock Apollo provider 抛出异常", "data": { "errorType": "network_timeout" } },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Some Ascii Query", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 },
+      { "type": "boolean", "selector": "result.error", "name": "不应包含原始error字符串字段", "expected": false }
+    ],
+    "tags": ["@P0", "@contract", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-005",
+    "storyId": "US-SOU-270-BILLING",
+    "criterionId": "AC-4",
+    "source": "prd",
+    "title": "计费副作用——检查一拦截的调用不应产生 Apollo usage 记账",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["记录调用前 organization_search_apollo meter 在当前 userId+taskId 下的 usage 计数"],
+    "setup": [
+      { "type": "code", "action": "记录调用前usage计数N0", "data": {} },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "南方基金", "numResults": 5 } },
+      { "type": "code", "action": "记录调用后usage计数N1", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "usageDelta", "name": "usage计数变化(N1-N0)", "expected": 0 }
+    ],
+    "tags": ["@P1", "@billing", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-006",
+    "storyId": "US-SOU-270-BILLING",
+    "criterionId": "AC-4",
+    "source": "prd",
+    "title": "检查二丢弃结果的调用仍应正常产生 Apollo usage 记账（因为调用已实际发生）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["记录调用前usage计数；mock Apollo 返回 total_entries=31347156（超阈值）"],
+    "setup": [
+      { "type": "code", "action": "记录调用前usage计数N0", "data": {} },
+      { "type": "code", "action": "mock Apollo provider 响应", "data": { "total_entries": 31347156 } },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Some Ascii Query", "numResults": 5 } },
+      { "type": "code", "action": "记录调用后usage计数N1", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "usageDelta", "name": "usage计数变化(N1-N0)", "expected": 1 },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P1", "@billing", "@check2", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-007",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "纯中文公司名\"富国基金\"同样应直接返回空结果",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "富国基金", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P1", "@check1", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-008",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "纯中文公司名\"上海外服\"同样应直接返回空结果",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "上海外服", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P1", "@check1", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-009",
+    "storyId": "US-SOU-270-REGRESSION",
+    "criterionId": "AC-8",
+    "source": "prd",
+    "title": "英文查询\"Google\"命中\"Google\"公司本身属于合法结果，不能被误判为假命中丢弃",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Google", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": true },
+      { "type": "boolean", "selector": "discarded", "name": "是否被检查二误伤丢弃", "expected": false },
+      { "type": "text", "selector": "result.companies", "name": "结果中包含Google本身", "expected": "Google" }
+    ],
+    "tags": ["@P0", "@regression", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-010",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "混合中英文 query（如\"南方基金Fund\"）应被正确识别为含CJK字符并拦截",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "南方基金Fund", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P1", "@check1", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-011",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "非ASCII非CJK字符（日文公司名）应被检查一同样拦截",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "メルカリ", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P1", "@check1", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-012",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "纯数字字符串 query 属于 ASCII，不应被检查一误拦截",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "12345", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": true }
+    ],
+    "tags": ["@P1", "@check1", "@regression", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-013",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "纯符号/CJK标点字符串 query 应被判定为非ASCII并拦截",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "、。！", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P2", "@check1", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-014",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "空字符串 query 的处理不应崩溃，应得到 count:0 形态的结果",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "uncaughtException", "name": "是否抛出未捕获异常", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P2", "@boundary", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-015",
+    "storyId": "US-SOU-270-DOMAIN",
+    "criterionId": "AC-5",
+    "source": "prd",
+    "title": "域名字符串作为 query（szhuiwei.com）——验证其实际走名称匹配路径下的行为",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无（可选：mock Apollo 对该域名字符串返回真实量级的 total_entries）"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "szhuiwei.com", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用（ASCII不应被检查一拦截）", "expected": true },
+      { "type": "text", "selector": "apolloRequestParam", "name": "实际使用的请求参数", "expected": "q_organization_name" },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": ">=0" }
+    ],
+    "tags": ["@P1", "@domain", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-016",
+    "storyId": "US-SOU-270-CHECK2",
+    "criterionId": "AC-2",
+    "source": "prd",
+    "title": "total_entries 恰好等于阈值（10万）时的边界行为判定",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["mock Apollo 返回 total_entries=100000"],
+    "setup": [
+      { "type": "code", "action": "mock Apollo provider 响应", "data": { "total_entries": 100000 } },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Some Ascii Query", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "discarded", "name": "恰好等于阈值时是否丢弃（应有明确一致行为，推荐放行）", "expected": false }
+    ],
+    "tags": ["@P1", "@check2", "@boundary", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-017",
+    "storyId": "US-SOU-270-CHECK2",
+    "criterionId": "AC-2",
+    "source": "prd",
+    "title": "total_entries 略低于阈值（99,999）应放行，正常返回结果",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["mock Apollo 返回 total_entries=99999，携带正常公司条目"],
+    "setup": [
+      { "type": "code", "action": "mock Apollo provider 响应", "data": { "total_entries": 99999 } },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Some Ascii Query", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "discarded", "name": "是否被丢弃", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": ">0" }
+    ],
+    "tags": ["@P2", "@check2", "@boundary", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-018",
+    "storyId": "US-SOU-270-CHECK2",
+    "criterionId": "AC-2",
+    "source": "prd",
+    "title": "total_entries 略高于阈值（100,001）应判定为未过滤并丢弃结果",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["mock Apollo 返回 total_entries=100001"],
+    "setup": [
+      { "type": "code", "action": "mock Apollo provider 响应", "data": { "total_entries": 100001 } },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Some Ascii Query", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "discarded", "name": "是否被丢弃", "expected": true },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P1", "@check2", "@boundary", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-019",
+    "storyId": "US-SOU-270-CHECK2",
+    "criterionId": "AC-2",
+    "source": "prd",
+    "title": "total_entries 为真实场景值（几千量级，如2751）时应放行，不能被误伤",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["mock Apollo 返回 total_entries=2751（对应curl实测Google真实值量级），携带真实相关公司条目"],
+    "setup": [
+      { "type": "code", "action": "mock Apollo provider 响应", "data": { "total_entries": 2751 } },
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Some Ascii Query", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "discarded", "name": "是否被误伤丢弃", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": ">0" }
+    ],
+    "tags": ["@P1", "@check2", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-020",
+    "storyId": "US-SOU-270-TRADEOFF",
+    "criterionId": "AC-6",
+    "source": "prd",
+    "title": "知名中文公司名\"阿里巴巴\"仍被检查一拦截跳过Apollo——这是预期的取舍行为，不是bug",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "阿里巴巴", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用（预期不调用）", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 },
+      { "type": "text", "selector": "noteExpectedTradeoff", "name": "该结果为已知取舍而非bug（由 company_search 补齐）", "expected": "expected_tradeoff" }
+    ],
+    "tags": ["@P1", "@tradeoff", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-021",
+    "storyId": "US-SOU-270-NUMRESULTS",
+    "criterionId": "AC-7",
+    "source": "prd",
+    "title": "numResults 省略时应生效默认值3",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Meituan" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "result.count", "name": "返回结果数量", "expected": "<=3" }
+    ],
+    "tags": ["@P2", "@numResults", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-022",
+    "storyId": "US-SOU-270-NUMRESULTS",
+    "criterionId": "AC-7",
+    "source": "prd",
+    "title": "numResults=1（最小正常值）时返回数量不超过1",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Meituan", "numResults": 1 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "result.count", "name": "返回结果数量", "expected": "<=1" }
+    ],
+    "tags": ["@P2", "@numResults", "@boundary", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-023",
+    "storyId": "US-SOU-270-NUMRESULTS",
+    "criterionId": "AC-7",
+    "source": "prd",
+    "title": "numResults=10（schema最大值）时返回数量不超过10",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Meituan", "numResults": 10 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "result.count", "name": "返回结果数量", "expected": "<=10" },
+      { "type": "boolean", "selector": "uncaughtException", "name": "是否抛出异常", "expected": false }
+    ],
+    "tags": ["@P2", "@numResults", "@boundary", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-024",
+    "storyId": "US-SOU-270-NUMRESULTS",
+    "criterionId": "AC-7",
+    "source": "prd",
+    "title": "numResults=11（超过schema最大值10）的健壮性",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "Meituan", "numResults": 11 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "schemaRejectedOrClamped", "name": "被schema拒绝或clamp到10（需明确落地为其中一种）", "expected": true },
+      { "type": "boolean", "selector": "uncaughtException", "name": "是否抛出未处理异常", "expected": false }
+    ],
+    "tags": ["@P2", "@numResults", "@boundary", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-025",
+    "storyId": "US-SOU-270-CONTRACT",
+    "criterionId": "AC-3",
+    "source": "prd",
+    "title": "失败契约跨路径一致性——检查一拦截/检查二丢弃/Apollo报错三条路径的返回结构必须完全一致",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["分别准备三种触发条件：①query=\"南方基金\"（检查一）②mock total_entries=31347156（检查二）③mock Apollo 抛异常（catch块）"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具（检查一路径）", "data": { "query": "南方基金", "numResults": 3 } },
+      { "type": "code", "action": "mock Apollo 响应超阈值后调用（检查二路径）", "data": { "total_entries": 31347156, "query": "Some Ascii Query" } },
+      { "type": "code", "action": "mock Apollo 抛异常后调用（catch路径）", "data": { "errorType": "network_timeout", "query": "Some Ascii Query" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "shapeConsistentAcrossPaths", "name": "三次返回结构是否完全一致", "expected": true },
+      { "type": "boolean", "selector": "anyPathHasErrorField", "name": "三条路径中是否存在返回原始error字符串的路径", "expected": false }
+    ],
+    "tags": ["@P1", "@contract", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-026",
+    "storyId": "US-SOU-270-STATE",
+    "criterionId": "AC-9",
+    "source": "prd",
+    "title": "连续两次调用的独立性——中文查询被拦截后不应影响下一次英文查询",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "第一次调用 company_lookup 工具（预期被拦截）", "data": { "query": "南方基金", "numResults": 5 } },
+      { "type": "code", "action": "紧接着第二次调用 company_lookup 工具", "data": { "query": "Meituan", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "secondCallApolloCalled", "name": "第二次调用是否正常发起了Apollo请求", "expected": true },
+      { "type": "count", "selector": "secondCallResult.count", "name": "第二次调用返回结果数量", "expected": ">0" }
+    ],
+    "tags": ["@P1", "@state", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-027",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "超长中文query（500+字符）不应导致CJK检测异常、超时或崩溃",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "测试公司(重复125次,共500+字符)", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 },
+      { "type": "boolean", "selector": "responseTimeReasonable", "name": "响应时间是否在合理范围内（未出现超线性耗时）", "expected": true }
+    ],
+    "tags": ["@P2", "@check1", "@error-guessing", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-028",
+    "storyId": "US-SOU-270-CHECK1",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "query 含emoji等特殊非ASCII字符时应归类为\"非ASCII\"并拦截",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "🚀🎉", "numResults": 3 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "apolloCalled", "name": "是否发起了Apollo调用", "expected": false },
+      { "type": "count", "selector": "result.count", "name": "返回结果count", "expected": 0 }
+    ],
+    "tags": ["@P2", "@check1", "@error-guessing", "@company-lookup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CLA-029",
+    "storyId": "US-SOU-270-NUMRESULTS",
+    "criterionId": "AC-7",
+    "source": "prd",
+    "title": "numResults 传入非法类型/负数值时的输入校验健壮性",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具（负数）", "data": { "query": "Meituan", "numResults": -1 } },
+      { "type": "code", "action": "调用 company_lookup 工具（非数字类型）", "data": { "query": "Meituan", "numResults": "abc" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "boolean", "selector": "schemaRejected", "name": "是否被schema层校验拒绝", "expected": true },
+      { "type": "boolean", "selector": "rawApolloErrorLeaked", "name": "是否泄漏了底层Apollo原始报错信息", "expected": false }
+    ],
+    "tags": ["@P2", "@numResults", "@error-guessing", "@company-lookup"],
+    "timeout": null
+  }
+]

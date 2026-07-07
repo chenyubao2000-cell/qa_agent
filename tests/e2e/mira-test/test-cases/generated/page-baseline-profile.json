@@ -1,0 +1,202 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/profile",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "sourceComponents": [
+      { "name": "ProfilePage", "filePath": "apps/mira-work/app/(agent)/profile/page.tsx", "role": "page" },
+      { "name": "ProfilePageClient", "filePath": "apps/mira-work/app/(agent)/profile/profile-page-client.tsx", "role": "page" }
+    ],
+    "explorationStats": {
+      "statesDiscovered": 2,
+      "interactionsPerformed": 4,
+      "elementsFound": 61,
+      "duration": "~3m"
+    }
+  },
+
+  "sourceContext": {
+    "testIds": [],
+    "ariaAttributes": [
+      { "element": "switch", "label": "t('profile.visibility') -> 'Discoverable by employers'", "role": "switch" }
+    ],
+    "conditionalElements": [
+      { "element": "empty-state (h1 + body + CTA button)", "condition": "data?.profile == null", "description": "Renders emptyTitle/emptyBody/emptyCta instead of form when candidate has no saved profile" },
+      { "element": "loading skeleton", "condition": "isLoading", "description": "3 Skeleton blocks while useProfile() query is in flight" },
+      { "element": "TalentPortraitCardSkeleton", "condition": "recomputing === true (after Save, portrait recompute in flight)", "description": "Replaces TalentPortraitCard during post-save portrait recompute" },
+      { "element": "TalentPortraitCard", "condition": "data.portrait != null && !recomputing", "description": "'Mira's read on you' expandable summary card; only rendered when a portrait snapshot exists" },
+      { "element": "mobile SidebarTrigger (top-left, absolute)", "condition": "isMobile && data?.profile == null", "description": "Only in empty state on mobile; desktop has persistent sidebar" },
+      { "element": "Save button", "condition": "disabled = saving || !form || !dirty", "description": "Save stays disabled until the form is dirty" }
+    ],
+    "i18nKeys": [
+      { "element": "h1", "key": "candidate.profile.heading", "namespace": "candidate" },
+      { "element": "visibility label", "key": "candidate.profile.visibility", "namespace": "candidate" },
+      { "element": "rebuild button", "key": "candidate.confirm.rebuild", "namespace": "candidate" },
+      { "element": "save button", "key": "candidate.profile.save", "namespace": "candidate" },
+      { "element": "empty state heading", "key": "candidate.profile.emptyTitle", "namespace": "candidate" },
+      { "element": "empty state body", "key": "candidate.profile.emptyBody", "namespace": "candidate" },
+      { "element": "empty state CTA", "key": "candidate.profile.emptyCta", "namespace": "candidate" }
+    ],
+    "utilityClasses": ["flex", "gap-5", "p-5", "md:p-8", "rounded-[14px]", "rounded-[10px]"],
+    "note": "candidate.* namespace not found in D:\\code\\qa_agent\\tests\\e2e\\mira-test\\messages\\en.json — this QA workspace's local messages file appears to lag/differ from the source repo's i18n catalog for this route; use i18nRegex-tolerant matching, not exact key lookup, per e2e-flakiness-playbook Pattern 2."
+  },
+
+  "states": {
+    "S0": {
+      "name": "Profile page — filled state (candidate has saved profile + portrait)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "level": 1, "text": "Profile" },
+            { "level": 2, "text": "Basic info" },
+            { "level": 2, "text": "Contact & social" },
+            { "level": 2, "text": "Job preferences" },
+            { "level": 2, "text": "Experience & education" },
+            { "level": 2, "text": "Certifications / Licenses" }
+          ],
+          "interactives": [
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Discoverable by employers", "state": "checked", "locatorHint": "getByRole('switch', { name: 'Discoverable by employers' })" },
+            { "tag": "button", "role": "button", "text": "Mira11111's read on you", "ariaLabel": null, "state": "expanded", "locatorHint": "getByRole('button', { name: \"Mira11111's read on you\" })" },
+            { "tag": "textbox", "role": "textbox", "text": null, "ariaLabel": "Your name", "value": "蔡东琪", "locatorHint": "getByRole('textbox', { name: 'Your name' })" },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Current title", "value": "Advertising and Promotions Managers", "locatorHint": "getByRole('combobox').filter({ hasText: 'Advertising and Promotions Managers' })" },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Country/Region", "value": "China", "locatorHint": null },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "City/Region", "value": "Select city/region", "locatorHint": null },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Years of experience", "value": "10+ yrs", "locatorHint": null },
+            { "tag": "button", "role": "button", "text": "Remove 123123", "locatorHint": "getByRole('button', { name: 'Remove 123123' })" },
+            { "tag": "button", "role": "button", "text": "Add", "note": "Add core skill", "locatorHint": "getByRole('button', { name: 'Add' }).first()" },
+            { "tag": "textbox", "role": "textbox", "text": null, "ariaLabel": "name@example.com", "value": "caidonkey@gmail.com", "locatorHint": "getByRole('textbox', { name: 'name@example.com' })" },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Phone", "value": "CN +86", "locatorHint": null },
+            { "tag": "textbox", "role": "textbox", "text": null, "ariaLabel": "Phone number", "value": "15117936368", "locatorHint": "getByRole('textbox', { name: 'Phone number' })" },
+            { "tag": "textbox", "role": "textbox", "text": null, "ariaLabel": "linkedin.com/in/your-handle", "value": "", "locatorHint": "getByRole('textbox', { name: 'linkedin.com/in/your-handle' })" },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Target titles", "value": "Advertising and Promotions Managers Remove Advertising and Promotions Managers", "locatorHint": null },
+            { "tag": "button", "role": "button", "text": "Remove Advertising and Promotions Managers", "locatorHint": "getByRole('button', { name: 'Remove Advertising and Promotions Managers' })" },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Target industries", "value": "Select", "locatorHint": null },
+            { "tag": "textbox", "role": "textbox", "text": null, "ariaLabel": "Min salary", "value": "3000", "locatorHint": "getByRole('textbox', { name: 'Min salary' })" },
+            { "tag": "textbox", "role": "textbox", "text": null, "ariaLabel": "Max salary", "value": "", "locatorHint": "getByRole('textbox', { name: 'Max salary' })" },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": null, "value": "Per year", "locatorHint": null },
+            { "tag": "button", "role": "button", "text": "Full-time", "state": "pressed", "locatorHint": "getByRole('button', { name: 'Full-time' })" },
+            { "tag": "button", "role": "button", "text": "Part-time", "locatorHint": "getByRole('button', { name: 'Part-time' })" },
+            { "tag": "button", "role": "button", "text": "Contract", "locatorHint": "getByRole('button', { name: 'Contract' })" },
+            { "tag": "button", "role": "button", "text": "Freelance", "locatorHint": "getByRole('button', { name: 'Freelance' })" },
+            { "tag": "button", "role": "button", "text": "Internship", "locatorHint": "getByRole('button', { name: 'Internship' })" },
+            { "tag": "button", "role": "button", "text": "On-site", "state": "pressed", "locatorHint": "getByRole('button', { name: 'On-site' })" },
+            { "tag": "button", "role": "button", "text": "Hybrid", "locatorHint": "getByRole('button', { name: 'Hybrid' })" },
+            { "tag": "button", "role": "button", "text": "Remote", "locatorHint": "getByRole('button', { name: 'Remote' })" },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Availability", "value": "Select", "locatorHint": null },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Job-seeking status", "value": "Select", "locatorHint": null },
+            { "tag": "combobox", "role": "combobox", "text": null, "ariaLabel": "Preferred locations", "value": "City or Remote", "locatorHint": null },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Open to relocate", "state": "unchecked", "locatorHint": "getByRole('switch', { name: 'Open to relocate' })" },
+            { "tag": "button", "role": "button", "text": "Edit", "note": "Edit work experience entry", "locatorHint": "getByRole('button', { name: 'Edit' }).first()" },
+            { "tag": "button", "role": "button", "text": "Add work experience", "locatorHint": "getByRole('button', { name: 'Add work experience' })" },
+            { "tag": "button", "role": "button", "text": "Edit", "note": "Edit education entry", "locatorHint": "getByRole('button', { name: 'Edit' }).nth(1)" },
+            { "tag": "button", "role": "button", "text": "Add education", "locatorHint": "getByRole('button', { name: 'Add education' })" },
+            { "tag": "button", "role": "button", "text": "Add certification", "locatorHint": "getByRole('button', { name: 'Add certification' })" },
+            { "tag": "button", "role": "button", "text": "Rebuild", "locatorHint": "getByRole('button', { name: 'Rebuild' })" },
+            { "tag": "button", "role": "button", "text": "Save", "state": "disabled", "locatorHint": "getByRole('button', { name: 'Save' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Portrait card collapsed",
+      "sourceArea": null,
+      "trigger": { "action": "click", "element": "button:Mira11111's read on you", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Mira11111's read on you", "state": "collapsed/focused", "locatorHint": "getByRole('button', { name: \"Mira11111's read on you\" })" }
+          ],
+          "headings": [{ "level": 1, "text": "Profile" }]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "Clicking the portrait header collapses the 'Mira's read on you' summary; all portrait body content (meta line, core skills, job intent, sources, key strengths) unmounts. Form sections below are unaffected."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Mira11111's read on you", "to": "S1", "sourceArea": null },
+      { "from": "S1", "action": "click", "element": "button:Mira11111's read on you", "to": "S0", "sourceArea": null },
+      { "from": "S0", "action": "click", "element": "switch:Discoverable by employers", "to": "S0", "sourceArea": null, "note": "Toggles visibility switch via PUT /api/profile/visibility (profileService.putVisibility). Verified optimistic toggle checked->unchecked->checked; no visible DOM state besides switch aria-checked/data-state. Toggled back to restore original 'checked' state after verification." }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Save",
+      "initialState": "disabled",
+      "strategy": "not attempted (out of smoke scope)",
+      "result": "unactivated",
+      "context": "Per source: disabled = saving || !form || !dirty. Enabling requires editing any form field (dirty=true). Not exercised in this smoke pass to avoid mutating the fixture profile's saved data."
+    }
+  ],
+
+  "destructiveActions": [
+    { "element": "button:Rebuild", "reason": "Opens RebuildConfirmDialog whose onConfirm calls profileService.deleteProfile() then routes to /candidate/build?rebuild=1 — irreversibly deletes the saved candidate_profile + all builds", "context": "fixed bottom bar" }
+  ],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S0 (main, ProfileFormSections)",
+      "fields": [
+        { "name": "name", "type": "text", "required": true, "label": "Your name" },
+        { "name": "currentTitle", "type": "combobox", "required": false, "label": "Current title" },
+        { "name": "country", "type": "combobox (dialog picker)", "required": false, "label": "Country/Region" },
+        { "name": "city", "type": "combobox (dialog picker)", "required": false, "label": "City/Region" },
+        { "name": "yearsOfExperience", "type": "combobox", "required": false, "label": "Years of experience" },
+        { "name": "coreSkills", "type": "tag-list + add", "required": false, "label": "Core skills" },
+        { "name": "email", "type": "email", "required": true, "label": "Email" },
+        { "name": "phoneCountryCode", "type": "combobox (dialog picker)", "required": false, "label": "Phone" },
+        { "name": "phoneNumber", "type": "text", "required": false, "label": "Phone number" },
+        { "name": "linkedin", "type": "text", "required": false, "label": "LinkedIn" },
+        { "name": "targetTitles", "type": "combobox multi-select", "required": false, "label": "Target titles" },
+        { "name": "targetIndustries", "type": "combobox multi-select", "required": false, "label": "Target industries" },
+        { "name": "minSalary", "type": "number", "required": false, "label": "Min salary" },
+        { "name": "maxSalary", "type": "number", "required": false, "label": "Max salary" },
+        { "name": "salaryPeriod", "type": "combobox", "required": false, "label": "Per year/month toggle" },
+        { "name": "employmentType", "type": "toggle-button-group (multi)", "required": false, "options": ["Full-time", "Part-time", "Contract", "Freelance", "Internship"] },
+        { "name": "remotePreference", "type": "toggle-button-group (multi)", "required": false, "options": ["On-site", "Hybrid", "Remote"] },
+        { "name": "availability", "type": "combobox", "required": false, "label": "Availability" },
+        { "name": "jobSeekingStatus", "type": "combobox", "required": false, "label": "Job-seeking status" },
+        { "name": "preferredLocations", "type": "combobox multi-select", "required": false, "label": "Preferred locations" },
+        { "name": "openToRelocate", "type": "switch", "required": false, "label": "Open to relocate" }
+      ],
+      "submitButton": { "text": "Save", "disabled": true, "note": "Fixed footer bar; enabled only once form is dirty and valid" }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (getByRole with ariaLabel/text) — no data-testid found in page/child components inspected; NEVER use Tailwind utility classes as locators for this page"
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 61,
+    "totalForms": 1,
+    "totalDestructiveActions": 1,
+    "coveredPatterns": ["accordion (portrait expand/collapse)", "toggle-switch", "form"],
+    "scrollMode": "single-page-scroll (main content area overflow-y-auto, footer fixed)",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": "smoke (not exhaustive — full BFS of comboboxes/dialog-pickers/Edit modals/Add-certification not performed)"
+  }
+}

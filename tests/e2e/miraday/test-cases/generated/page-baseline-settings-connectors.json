@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "url": "https://www.mira.day/settings/connectors",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "adaptedFrom": {
+      "originalUrl": "https://mira-bff-preview.up.railway.app/settings/connectors",
+      "reason": "Spec/POM/baseline originally generated against a Railway preview deployment where the account had 4 connectors (Market Leads + Mira Voice, immutable 'Connected' native presets; Outlook + Gmail, 'Not Connected'). Live re-verification against production (same account, https://mira.day/settings/connectors) on 2026-07-03 found only 2 connectors — Outlook + Gmail, BOTH 'Not Connected' — no 'Connected' section and no Market Leads / Mira Voice preset exist in this account/environment. This baseline reflects the production reality; it is a genuine feature-scope difference, not a broken locator."
+    },
+    "sourceContext": {
+      "components": [
+        { "name": "ConnectorsPage", "filePath": "apps/mira-work/app/(agent)/settings/connectors/page.tsx", "role": "page" },
+        { "name": "ConnectorsClient", "filePath": "apps/mira-work/app/(agent)/settings/connectors/connectors-client.tsx", "role": "page" },
+        { "name": "ConnectorDetail", "filePath": "apps/mira-work/app/(agent)/settings/connectors/connectors-client.tsx", "role": "section" },
+        { "name": "ConnectorSection", "filePath": "apps/mira-work/app/(agent)/settings/connectors/connectors-client.tsx", "role": "section" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "back button (list + detail)", "label": "Back", "role": "button" },
+        { "element": "collapsible section trigger", "label": "{sectionTitle} e.g. 'Not Connected (2)'", "role": "button" },
+        { "element": "connect button (row action)", "label": "Connect {server.name}", "role": "button" },
+        { "element": "detail-view connect button", "label": "no aria-label override, uses visible text t('connect')", "role": "button" }
+      ],
+      "conditionalElements": [
+        { "element": "ConnectorListSkeleton", "condition": "loading === true", "description": "3-row skeleton shown while GET /api/mcp/servers is in flight" },
+        { "element": "loadError retry block", "condition": "loadError === true", "description": "shows t('loadFailed') text + Retry button, replaces list" },
+        { "element": "noConnectors message", "condition": "servers.length === 0", "description": "empty state text, no rows rendered (not applicable — this account has 2 servers)" },
+        { "element": "detail-view top-right action button", "condition": "server.needsAuth ? Connect button : (isImmutablePreset(server) ? null : Disconnect button)", "description": "3-way branch; both connectors in this account are needsAuth === true, so detail header always shows Connect" },
+        { "element": "renderToolsArea 5-state branch", "condition": "needsAuth > loadingTools(skeleton) > loadToolsError(retry) > tools.length===0(awaitingSync spinner or noTools) > list", "description": "priority-ordered conditional rendering; both connectors here hit the needsAuth branch, showing the connectFirst placeholder text instead of any tools list" },
+        { "element": "Connect button spinner", "condition": "authorizingId === server.id (list)", "description": "Loader2 spinner replaces button text, button disabled; cleared by BroadcastChannel auth-completed message, page reload, or 60s timeout fallback" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 (list)", "key": "title", "namespace": "settings.connectors" },
+        { "element": "not-connected section header", "key": "sectionNotConnected", "namespace": "settings.connectors" },
+        { "element": "connect button text", "key": "connect", "namespace": "settings.connectors" },
+        { "element": "connectFirst placeholder", "key": "connectFirst", "namespace": "settings.connectors" },
+        { "element": "loadFailed text", "key": "loadFailed", "namespace": "settings.connectors" },
+        { "element": "retry button", "key": "retry", "namespace": "settings.connectors" },
+        { "element": "authFailed toast", "key": "authFailed", "namespace": "settings.connectors" }
+      ],
+      "utilityClasses": ["flex", "h-full", "flex-col", "overflow-auto", "px-12", "py-8", "gap-3", "gap-5", "rounded-lg", "border", "hover:bg-accent/50", "cursor-pointer", "w-[90px]", "text-2xl", "leading-tight", "font-semibold"],
+      "i18nSourceNote": "QA project's local messages/en.json (D:\\code\\qa_agent\\tests\\e2e\\miraday\\messages\\en.json) does NOT contain the settings.connectors dictionary (only a bare 'connectors': 'Connectors' nav-label key exists). Real values were found in mira source at apps/mira-work/i18n/messages/en/agent.json. Per e2e-flakiness-playbook §2, downstream spec/POM generation MUST source i18n keys from the Mira repo (MIRA_I18N_SOURCE), not from this QA project's local messages dir, or locators will fail to match; POM uses t(key, fallback) with the source English literal as fallback."
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 3,
+      "elementsFound": 6,
+      "duration": "smoke (~5m, live production re-verification)"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Connectors list (initial) — production",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "text": "Connectors", "level": 1, "locatorHint": "getByRole('heading', { name: 'Connectors', level: 1 })" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Back", "testId": null, "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "button", "role": "button", "text": "Not Connected (2)", "ariaLabel": "Not Connected (2)", "testId": null, "expandable": true, "expanded": true, "locatorHint": "getByRole('button', { name: /Not Connected \\(\\d+\\)/ })", "note": "Collapsible section trigger; ONLY section present — no 'Connected' section exists in this account" },
+            { "tag": "div", "role": "button", "text": "Outlook Draft & summarize 0 Tools Connect Outlook", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: /^Outlook/ }).first()", "note": "row: role=button, tabIndex=0, onClick -> detail view; contains nested Connect button" },
+            { "tag": "button", "role": "button", "text": "Connect Outlook", "ariaLabel": "Connect Outlook", "testId": null, "disabled": false, "locatorHint": "getByRole('button', { name: 'Connect Outlook' })" },
+            { "tag": "div", "role": "button", "text": "Gmail Draft & summarize 0 Tools Connect Gmail", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: /^Gmail/ }).first()" },
+            { "tag": "button", "role": "button", "text": "Connect Gmail", "ariaLabel": "Connect Gmail", "testId": null, "disabled": false, "locatorHint": "getByRole('button', { name: 'Connect Gmail' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Connector Detail — Outlook (needsAuth)",
+      "sourceArea": "settings-connectors",
+      "trigger": { "action": "click", "element": "row:Outlook", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "text": "Outlook", "level": 1, "locatorHint": "getByRole('heading', { name: 'Outlook', level: 1 })" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Back", "testId": null, "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "button", "role": "button", "text": "Connect", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: 'Connect', exact: true })", "note": "needsAuth branch: bare-text detail header action button, no aria-label override" },
+            { "tag": "span", "role": null, "text": "Connect to see available tools", "testId": null, "locatorHint": "getByText('Connect to see available tools')", "note": "connectFirst placeholder replaces the tools list entirely; no switches rendered for an unauthorized connector" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "Confirms the needsAuth branch of the 3-way detail-header action button and the needsAuth branch of renderToolsArea. No 'Tools' label, no badge count, no switches — differs from the original preview deployment's immutable-preset detail view (8 checked/enabled switches, no header button)."
+    },
+    "S2": {
+      "name": "Connect entry point pending (Outlook)",
+      "sourceArea": "settings-connectors",
+      "trigger": { "action": "click", "element": "button:Connect Outlook", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Connect Outlook", "ariaLabel": "Connect Outlook", "disabled": true, "locatorHint": "getByRole('button', { name: 'Connect Outlook' })", "note": "disabled while authorizingId is set, pending the popup" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "Click fires POST /api/mcp/servers/{id}/authorize, then window.open() launches a genuine Microsoft OAuth consent popup (login.microsoftonline.com/.../oauth2/v2.0/authorize, redirect_uri -> backend.composio.dev, client_id visible in URL) as a SEPARATE browser page. Main /settings/connectors tab does NOT navigate away and stays functional with the button in a disabled+spinner pending state. Popup was closed without completing login (per task instructions: do not complete OAuth on production). Page was reloaded afterward to clear the pending spinner state and confirmed to return cleanly to S0."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "row:Outlook", "to": "S1", "sourceArea": "settings-connectors" },
+      { "from": "S1", "action": "click", "element": "button:Back", "to": "S0", "sourceArea": "settings-connectors" },
+      { "from": "S0", "action": "click", "element": "button:Connect Outlook", "to": "S2", "sourceArea": "settings-connectors" },
+      { "from": "S2", "action": "reload", "element": null, "to": "S0", "sourceArea": "settings-connectors" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [],
+
+  "externalLinks": [
+    { "text": "Connect Outlook -> OAuth consent screen", "href": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?redirect_uri=https%3A%2F%2Fbackend.composio.dev%2Fapi%2Fv1%2Fauth-apps%2Fadd&response_type=code&scope=Mail.Read+Mail.ReadWrite+Mail.Send+offline_access+User.Read&client_id=6285b5a2-4746-492e-b634-995680cde6d3" }
+  ],
+
+  "forms": [],
+
+  "shadowDom": [],
+
+  "iframes": [],
+
+  "keyboardShortcuts": [
+    { "key": "Enter / Space", "action": "activates focused connector row (role=button, tabIndex=0) -> opens detail view", "stateTransition": "S0 -> S1" }
+  ],
+
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "aria-label / role+name (no data-testid anywhere in this component tree); row containers themselves have no aria-label, only nested action buttons do — use getByRole('button', { name: /ServerName/ }) matching the composite accessible name for row-level clicks"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 6,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["list-detail-drill-down", "collapsible-section", "needs-auth-detail-branch", "oauth-popup-entry-point"],
+    "scrollMode": "none-observed",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0
+  },
+
+  "keyFindings": [
+    "Production account (same as preview) has only 2 connectors: Outlook + Gmail, BOTH 'Not Connected'. No 'Connected' section exists at all — this differs from the Railway preview deployment used for the original spec generation, which had 4 connectors including 2 immutable native presets (Market Leads, Mira Voice). Confirmed a genuine feature-scope difference via live CDP, not a locator regression.",
+    "Detail view (drill-down) for a needsAuth connector (Outlook) shows h1 + a bare-text 'Connect' header action button + a 'Connect to see available tools' (connectFirst) placeholder — no Tools label, no switches. This is a different detail-view branch than the immutable-preset branch documented in the original baseline.",
+    "Connect entry point (Outlook) verified functional end-to-end up to the OAuth handoff: POST /authorize succeeded, a real Microsoft OAuth consent popup opened as a separate page (login.microsoftonline.com, via backend.composio.dev redirect). Did NOT complete the OAuth flow — popup was closed and main page reloaded to reset pending spinner state.",
+    "NOTE for downstream test generation (not a bug): this QA workspace's local messages/en.json is missing the entire settings.connectors i18n dictionary (only a bare 'connectors' nav label exists). Real keys live in the Mira repo at apps/mira-work/i18n/messages/en/agent.json (settings.connectors namespace). Spec/POM generators must pull i18n text from there, not from this project's local messages dir, per e2e-flakiness-playbook.md §2.",
+    "No data-testid attributes exist anywhere in this component tree; locators must rely on aria-label (present on Back button, section trigger, and Connect action buttons) or composite accessible name matching for the clickable row containers themselves (which have no aria-label)."
+  ]
+}

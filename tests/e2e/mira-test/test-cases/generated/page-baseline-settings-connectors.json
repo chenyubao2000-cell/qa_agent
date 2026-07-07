@@ -1,0 +1,206 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/settings/connectors",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "sourceContext": {
+      "components": [
+        { "name": "ConnectorsPage", "filePath": "apps/mira-work/app/(agent)/settings/connectors/page.tsx", "role": "page" },
+        { "name": "ConnectorsClient", "filePath": "apps/mira-work/app/(agent)/settings/connectors/connectors-client.tsx", "role": "page" },
+        { "name": "ConnectorDetail", "filePath": "apps/mira-work/app/(agent)/settings/connectors/connectors-client.tsx", "role": "section" },
+        { "name": "ConnectorSection", "filePath": "apps/mira-work/app/(agent)/settings/connectors/connectors-client.tsx", "role": "section" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "back button (list + detail)", "label": "Back", "role": "button" },
+        { "element": "collapsible section trigger", "label": "{sectionTitle} e.g. 'Connected (2)'", "role": "button" },
+        { "element": "disconnect button (row action)", "label": "Disconnect {server.name}", "role": "button" },
+        { "element": "connect button (row action)", "label": "Connect {server.name}", "role": "button" },
+        { "element": "detail-view connect/disconnect button", "label": "no aria-label override, uses visible text t('connect')/t('disconnect')", "role": "button" },
+        { "element": "tool row switch", "label": "Toggle {tool.toolName}", "role": "switch" }
+      ],
+      "conditionalElements": [
+        { "element": "ConnectorListSkeleton", "condition": "loading === true", "description": "3-row skeleton shown while GET /api/mcp/servers is in flight" },
+        { "element": "loadError retry block", "condition": "loadError === true", "description": "shows t('loadFailed') text + Retry button, replaces list" },
+        { "element": "noConnectors message", "condition": "servers.length === 0", "description": "empty state text, no rows rendered" },
+        { "element": "Disconnect button (row, disabled)", "condition": "isImmutablePreset(server) === true (provider==='native' && authType!=='oauth')", "description": "native non-oauth presets always show Connected but Disconnect is disabled+opacity-50, no AlertDialog trigger" },
+        { "element": "AlertDialog (disconnect confirm)", "condition": "clicking enabled Disconnect button (non-immutable connected server)", "description": "row-level: e.stopPropagation() prevents opening detail; detail-view: same dialog, calls onBack() after onDisconnect() regardless of success/failure" },
+        { "element": "detail-view top-right action button", "condition": "server.needsAuth ? Connect button : (isImmutablePreset(server) ? null : Disconnect button)", "description": "3-way branch; immutable presets show no action button at all in detail header" },
+        { "element": "renderToolsArea 5-state branch", "condition": "needsAuth > loadingTools(skeleton) > loadToolsError(retry) > tools.length===0(awaitingSync spinner or noTools) > list", "description": "priority-ordered conditional rendering, awaitingSync polls every 2s up to 15 attempts (30s) then falls back to noTools text" },
+        { "element": "approval Badge on tool row", "condition": "isApprovalRequired(tool.annotations) === true", "description": "shows 'Approval' badge next to tool name" },
+        { "element": "approval legend line", "condition": "hasApprovalTool === true (any tool requires approval)", "description": "Info icon + approvalLegend text shown in tools header" },
+        { "element": "Connect/Authorize button spinner", "condition": "authorizingId === server.id (list) or authorizing === true (detail)", "description": "Loader2 spinner replaces button text, button disabled; cleared by BroadcastChannel auth-completed message or 60s timeout fallback" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 (list)", "key": "title", "namespace": "settings.connectors" },
+        { "element": "connected section header", "key": "sectionConnected", "namespace": "settings.connectors" },
+        { "element": "not-connected section header", "key": "sectionNotConnected", "namespace": "settings.connectors" },
+        { "element": "connect button text", "key": "connect", "namespace": "settings.connectors" },
+        { "element": "disconnect button text", "key": "disconnect", "namespace": "settings.connectors" },
+        { "element": "disconnect confirm dialog title", "key": "disconnectConfirmTitle", "namespace": "settings.connectors" },
+        { "element": "disconnect confirm dialog description", "key": "disconnectConfirmDescription", "namespace": "settings.connectors" },
+        { "element": "disconnect confirm action", "key": "disconnectConfirmAction", "namespace": "settings.connectors" },
+        { "element": "cancel button", "key": "cancel", "namespace": "settings.connectors" },
+        { "element": "tool count badge text", "key": "toolCount", "namespace": "settings.connectors" },
+        { "element": "connectFirst placeholder", "key": "connectFirst", "namespace": "settings.connectors" },
+        { "element": "syncingTools placeholder", "key": "syncingTools", "namespace": "settings.connectors" },
+        { "element": "noTools placeholder", "key": "noTools", "namespace": "settings.connectors" },
+        { "element": "noConnectors placeholder", "key": "noConnectors", "namespace": "settings.connectors" },
+        { "element": "loadFailed text", "key": "loadFailed", "namespace": "settings.connectors" },
+        { "element": "loadToolsFailed text", "key": "loadToolsFailed", "namespace": "settings.connectors" },
+        { "element": "retry button", "key": "retry", "namespace": "settings.connectors" },
+        { "element": "approval badge", "key": "approval", "namespace": "settings.connectors" },
+        { "element": "approval legend", "key": "approvalLegend", "namespace": "settings.connectors" },
+        { "element": "tools header label", "key": "tools", "namespace": "settings.connectors" },
+        { "element": "authFailed toast", "key": "authFailed", "namespace": "settings.connectors" },
+        { "element": "disconnectFailed toast", "key": "disconnectFailed", "namespace": "settings.connectors" },
+        { "element": "disconnectSuccess toast", "key": "disconnectSuccess", "namespace": "settings.connectors" },
+        { "element": "toolToggleSuccess toast", "key": "toolToggleSuccess", "namespace": "settings.connectors" }
+      ],
+      "utilityClasses": ["flex", "h-full", "flex-col", "overflow-auto", "px-12", "py-8", "gap-3", "gap-5", "rounded-lg", "border", "hover:bg-accent/50", "cursor-pointer", "w-[90px]", "text-2xl", "leading-tight", "font-semibold"],
+      "i18nSourceNote": "QA project's local messages/en.json (D:\\code\\qa_agent\\tests\\e2e\\mira-test\\messages\\en.json) does NOT contain the settings.connectors dictionary (only a bare 'connectors': 'Connectors' nav-label key exists). Real values were found in mira source at apps/mira-work/i18n/messages/en/agent.json lines 690-720. Per e2e-flakiness-playbook §2, downstream spec/POM generation MUST source i18n keys from the Mira repo (MIRA_I18N_SOURCE), not from this QA project's local messages dir, or locators will fail to match."
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 4,
+      "elementsFound": 14,
+      "duration": "smoke (~3m)"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Connectors list (initial)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "text": "Connectors", "level": 1, "locatorHint": "getByRole('heading', { name: 'Connectors', level: 1 })" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Back", "testId": null, "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "button", "role": "button", "text": "Connected (2)", "ariaLabel": "Connected (2)", "testId": null, "expandable": true, "expanded": true, "locatorHint": "getByRole('button', { name: /Connected \\(\\d+\\)/ })", "note": "Collapsible section trigger, aria-label = section title (i18n sectionConnected)" },
+            { "tag": "div", "role": "button", "text": "Market Leads 企业和职位 8 Tools Disconnect Market Leads", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: /Market Leads/ })", "note": "row: role=button, tabIndex=0, onClick -> detail view; contains nested Disconnect button" },
+            { "tag": "button", "role": "button", "text": "Disconnect Market Leads", "ariaLabel": "Disconnect Market Leads", "testId": null, "disabled": true, "locatorHint": "getByRole('button', { name: 'Disconnect Market Leads' })", "note": "disabled because isImmutablePreset (provider=native, authType!=oauth)" },
+            { "tag": "div", "role": "button", "text": "Mira Voice Screening & Notifications 10 Tools Disconnect Mira Voice", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: /Mira Voice/ })" },
+            { "tag": "button", "role": "button", "text": "Disconnect Mira Voice", "ariaLabel": "Disconnect Mira Voice", "testId": null, "disabled": true, "locatorHint": "getByRole('button', { name: 'Disconnect Mira Voice' })" },
+            { "tag": "button", "role": "button", "text": "Not Connected (2)", "ariaLabel": "Not Connected (2)", "testId": null, "expandable": true, "expanded": true, "locatorHint": "getByRole('button', { name: /Not Connected \\(\\d+\\)/ })" },
+            { "tag": "div", "role": "button", "text": "Outlook Draft & summarize 0 Tools Connect Outlook", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: /Outlook/ })" },
+            { "tag": "button", "role": "button", "text": "Connect Outlook", "ariaLabel": "Connect Outlook", "testId": null, "disabled": false, "locatorHint": "getByRole('button', { name: 'Connect Outlook' })" },
+            { "tag": "div", "role": "button", "text": "Gmail Draft & summarize 0 Tools Connect Gmail", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: /Gmail/ })" },
+            { "tag": "button", "role": "button", "text": "Connect Gmail", "ariaLabel": "Connect Gmail", "testId": null, "disabled": false, "locatorHint": "getByRole('button', { name: 'Connect Gmail' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Connector Detail — Market Leads (immutable native preset)",
+      "sourceArea": "settings-connectors",
+      "trigger": { "action": "click", "element": "row:Market Leads", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "text": "Market Leads", "level": 1, "locatorHint": "getByRole('heading', { name: 'Market Leads', level: 1 })" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Back", "testId": null, "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "span", "role": null, "text": "Tools", "testId": null, "locatorHint": "getByText('Tools')" },
+            { "tag": "badge", "role": null, "text": "8", "testId": null, "locatorHint": "getByText('8')" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle search_enterprises", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle search_enterprises' })" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle get_enterprise", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle get_enterprise' })" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle analyze_enterprises", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle analyze_enterprises' })" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle search_positions", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle search_positions' })" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle get_position", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle get_position' })" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle analyze_positions", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle analyze_positions' })" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle search_finances", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle search_finances' })" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Toggle get_schema", "checked": true, "locatorHint": "getByRole('switch', { name: 'Toggle get_schema' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "No Connect/Disconnect button rendered in header at all (isImmutablePreset(server) => null branch), matches source. No 'Approval' badges present on any of the 8 tools shown."
+    },
+    "S2": {
+      "name": "Connect entry point pending (Outlook)",
+      "sourceArea": "settings-connectors",
+      "trigger": { "action": "click", "element": "button:Connect Outlook", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Connect Outlook", "ariaLabel": "Connect Outlook", "disabled": true, "locatorHint": "getByRole('button', { name: 'Connect Outlook' })", "note": "shows Loader2 spinner, disabled while authorizingId is set" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "Click fires POST /api/mcp/servers/{id}/authorize (200 OK), then window.open() launches a genuine Microsoft OAuth consent popup (login.microsoftonline.com/.../oauth2/v2.0/authorize, redirect_uri -> backend.composio.dev, client_id visible in URL) as a SEPARATE browser page/tab, NOT tracked immediately by list_pages (only appeared after a subsequent page action). Main /settings/connectors tab does NOT navigate away and stays functional with the button in a disabled+spinner pending state. Popup was closed without completing login (per task instructions: do not complete OAuth). Page was reloaded afterward to clear the pending spinner state and confirmed to return cleanly to S0."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "row:Market Leads", "to": "S1", "sourceArea": "settings-connectors" },
+      { "from": "S1", "action": "click", "element": "button:Back", "to": "S0", "sourceArea": "settings-connectors" },
+      { "from": "S0", "action": "click", "element": "button:Connect Outlook", "to": "S2", "sourceArea": "settings-connectors" },
+      { "from": "S2", "action": "reload", "element": null, "to": "S0", "sourceArea": "settings-connectors" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [
+    { "element": "button:Disconnect Market Leads / Disconnect Mira Voice", "reason": "disabled (immutable preset) but conceptually revokes connector access; guarded by AlertDialog confirm when enabled on non-immutable connectors", "context": "row action + detail-view header action" }
+  ],
+
+  "externalLinks": [
+    { "text": "Connect Outlook -> OAuth consent screen", "href": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?redirect_uri=https%3A%2F%2Fbackend.composio.dev%2Fapi%2Fv1%2Fauth-apps%2Fadd&response_type=code&scope=Mail.Read+Mail.ReadWrite+Mail.Send+offline_access+User.Read&client_id=6285b5a2-4746-492e-b634-995680cde6d3" }
+  ],
+
+  "forms": [],
+
+  "shadowDom": [],
+
+  "iframes": [],
+
+  "keyboardShortcuts": [
+    { "key": "Enter / Space", "action": "activates focused connector row (role=button, tabIndex=0) -> opens detail view", "stateTransition": "S0 -> S1" }
+  ],
+
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "aria-label / role+name (no data-testid anywhere in this component tree); row containers themselves have no aria-label, only nested action buttons do — use getByRole('button', { name: /ServerName/ }) matching the composite accessible name for row-level clicks"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 27,
+    "totalForms": 0,
+    "totalDestructiveActions": 1,
+    "coveredPatterns": ["list-detail-drill-down", "collapsible-section", "disabled-button-guard", "confirm-dialog(not-triggered)", "oauth-popup-entry-point", "toggle-switch"],
+    "scrollMode": "none-observed",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0
+  },
+
+  "keyFindings": [
+    "Page loaded correctly, already authenticated, no login wall encountered.",
+    "4 connectors present: Market Leads + Mira Voice (Connected, both immutable native presets with Disconnect permanently disabled), Outlook + Gmail (Not Connected, Connect enabled).",
+    "Detail view (drill-down) works for immutable presets: shows full 8-tool list with all switches checked and enabled, no Connect/Disconnect button rendered in header at all (by design).",
+    "Connect entry point (Outlook) verified functional end-to-end up to the OAuth handoff: POST /authorize succeeded (200), a real Microsoft OAuth consent popup opened as a separate page (login.microsoftonline.com, via backend.composio.dev redirect). Did NOT complete the OAuth flow per instructions — popup was closed and main page reloaded to reset pending spinner state.",
+    "NOTE for downstream test generation (not a bug): this QA workspace's local messages/en.json is missing the entire settings.connectors i18n dictionary (only a bare 'connectors' nav label exists). Real keys live in the Mira repo at apps/mira-work/i18n/messages/en/agent.json (settings.connectors namespace, lines ~690-720). Spec/POM generators must pull i18n text from there, not from this project's local messages dir, per e2e-flakiness-playbook.md §2.",
+    "No data-testid attributes exist anywhere in this component tree; locators must rely on aria-label (present on Back button, section triggers, and Connect/Disconnect action buttons) or composite accessible name matching for the clickable row containers themselves (which have no aria-label)."
+  ]
+}

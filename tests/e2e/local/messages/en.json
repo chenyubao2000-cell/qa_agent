@@ -470,6 +470,26 @@
     }
   },
   "auth": {
+    "quickActivate": {
+      "title": "Welcome to Mira",
+      "description": "Your application has been approved. Set a password to complete registration and sign in.",
+      "emailLabel": "Email",
+      "codeLabel": "Invitation Code",
+      "passwordLabel": "Set Password",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "Password must be at least 8 characters and include letters, numbers, and symbols",
+      "continueButton": "Continue",
+      "footerText": "By clicking \"Continue\", you'll create an account with the email shown above, activate it, and sign in automatically.",
+      "hasAccount": "Already have an account? Sign in",
+      "missingParams": "Incomplete link parameters. Please reopen from the email.",
+      "activating": "Registering and activating...",
+      "codeInvalid": "Invitation code is invalid or expired",
+      "codeUsed": "This invitation code has already been used",
+      "emailExists": "This email is already registered. Please sign in instead.",
+      "serverError": "Server error. Please try again later.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "signOut": "Sign Out",

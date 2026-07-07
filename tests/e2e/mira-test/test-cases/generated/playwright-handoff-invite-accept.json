@@ -1,0 +1,76 @@
+[
+  {
+    "id": "TC-CDP-IA-001",
+    "storyId": "invite-accept",
+    "title": "无 token 裸访问 /invite/accept 直出、无登录墙、渲染 invalid 错误态",
+    "priority": "P0",
+    "source": "cdp",
+    "preconditions": [],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "/invite/accept", "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/invite/accept", "note": "pathname 停留在 /invite/accept，无 /sign-in 登录墙重定向" },
+      { "type": "visible", "target": "pageHeading", "expected": null, "note": "invalid/missing_token 相位的 h1 渲染（页面未卡在 verifying）" },
+      { "type": "text", "target": "pageHeading", "expected": "This invitation link is invalid", "note": "i18n key auth.inviteAccept.invalidTitle 当前不在 messages/en.json，断言实况英文字面量" },
+      { "type": "visible", "target": "invalidSubtitle", "expected": null, "note": "副标题 The link may be broken or already used..." },
+      { "type": "visible", "target": "goToMiraButton", "expected": null },
+      { "type": "enabled", "target": "goToMiraButton", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-IA-002",
+    "storyId": "invite-accept",
+    "title": "无 token 裸访问不触发 POST /api/invite/accept（fetch effect 短路）",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["在导航前注册网络请求监听"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "/invite/accept", "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "custom", "target": "network", "expected": 0, "note": "监听器捕获的命中 /api/invite/accept 的 POST 请求数应为 0" },
+      { "type": "visible", "target": "pageHeading", "expected": null, "note": "错误态仍正常渲染" }
+    ]
+  },
+  {
+    "id": "TC-CDP-IA-003",
+    "storyId": "invite-accept",
+    "title": "点击 Go to Mira 客户端跳转到营销首页 /",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["处于 /invite/accept 的 missing_token 错误态（无 token 裸访问）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "target": "/invite/accept" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "goToMiraButton", "locatorHint": "getByRole('button', { name: 'Go to Mira' })" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/", "note": "client-side router.push('/') 落到根路径" },
+      { "type": "hidden", "target": "pageHeading", "expected": null, "note": "invite 错误态 h1 消失" },
+      { "type": "visible", "target": "homepageHeading", "expected": null, "note": "营销首页标志 Work With You, Not For You 可见" }
+    ]
+  },
+  {
+    "id": "TC-CDP-IA-004",
+    "storyId": "invite-accept",
+    "title": "错误态下 (auth) layout 头部品牌链接与语言选择器正常渲染",
+    "priority": "P2",
+    "source": "cdp",
+    "preconditions": [],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "/invite/accept", "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "brandLink", "expected": null, "note": "头部 Mira 品牌链接可见" },
+      { "type": "attribute", "target": "brandLink", "attribute": "href", "expected": "/", "note": "品牌链接指向根路径" },
+      { "type": "visible", "target": "languageCombobox", "expected": null, "note": "语言选择 combobox 可见（默认 English）" }
+    ]
+  }
+]

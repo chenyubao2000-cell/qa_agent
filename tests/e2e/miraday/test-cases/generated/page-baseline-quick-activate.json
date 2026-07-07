@@ -1,0 +1,193 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/quick-activate",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        {
+          "name": "QuickActivatePage",
+          "filePath": "apps/mira-work/app/(auth)/quick-activate/page.tsx",
+          "role": "page"
+        },
+        {
+          "name": "QuickActivateForm",
+          "filePath": "apps/mira-work/features/auth/components/quick-activate-form.tsx",
+          "role": "section"
+        }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "password field", "label": null, "role": "textbox", "note": "aria-invalid toggled on validation failure" },
+        { "element": "password visibility toggle", "label": "t('showPassword')/t('hidePassword')", "role": "button" }
+      ],
+      "conditionalElements": [
+        {
+          "element": "redirect to /task",
+          "condition": "session?.user?.isActivated === true",
+          "description": "QuickActivatePage awaits getServerSession() server-side; if already-authenticated user is activated, redirect('/task') fires before any quick-activate UI renders. Not exercised in this anonymous crawl by design."
+        },
+        {
+          "element": "missing-params error view (title + description + 'hasAccount' link only)",
+          "condition": "!code || !email (query params absent)",
+          "description": "QuickActivateForm renders a minimal error state when the `code` or `email` search params are missing — NO code input field exists in this state, contradicting the crawl brief's assumption of an 'activation-code entry form'. Confirmed both via source (lines 50-60) and live CDP: bare navigation to /quick-activate produced exactly this state, no code field of any kind."
+        },
+        {
+          "element": "full activation form (email + code + password fields)",
+          "condition": "code && email both present as query params",
+          "description": "Renders read-only masked email + code fields (populated from URL, not user-typed) plus an editable password field. The 'Invitation Code' field is display-only (readOnly attribute) — there is no way for a user to type/submit an arbitrary code through the UI; code validity is only checked server-side against the code baked into the URL at POST time."
+        },
+        {
+          "element": "password field error message",
+          "condition": "password fails passwordStrengthSchema (min 8 chars + letter + number + symbol) on blur or re-validate-on-change",
+          "description": "FieldError shown below password input; Continue button stays disabled while error present"
+        }
+      ],
+      "i18nKeys": [
+        { "element": "heading", "key": "auth.quickActivate.title", "namespace": "auth" },
+        { "element": "missing-params body text", "key": "auth.quickActivate.missingParams", "namespace": "auth" },
+        { "element": "form description", "key": "auth.quickActivate.description", "namespace": "auth" },
+        { "element": "email field label", "key": "auth.quickActivate.emailLabel", "namespace": "auth" },
+        { "element": "code field label", "key": "auth.quickActivate.codeLabel", "namespace": "auth" },
+        { "element": "password field label", "key": "auth.quickActivate.passwordLabel", "namespace": "auth" },
+        { "element": "password placeholder", "key": "auth.quickActivate.passwordPlaceholder", "namespace": "auth" },
+        { "element": "continue button", "key": "auth.quickActivate.continueButton", "namespace": "auth" },
+        { "element": "sign-in link", "key": "auth.quickActivate.hasAccount", "namespace": "auth" },
+        { "element": "invalid-code toast", "key": "auth.quickActivate.codeInvalid", "namespace": "auth" }
+      ],
+      "utilityClasses": ["flex", "w-full", "max-w-[360px]", "flex-col", "gap-5", "space-y-3", "rounded", "pr-10"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 3,
+      "elementsFound": 18,
+      "duration": "~2m"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Anonymous visit, no query params -> missing-params error view",
+      "sourceArea": "quick-activate",
+      "trigger": null,
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "select", "role": "combobox", "text": "English", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('combobox')" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Already have an account? Sign in", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Already have an account? Sign in' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Welcome to Mira" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "alert", "text": "", "note": "empty live region present but not populated in this state" }
+      ]
+    },
+    "S1": {
+      "name": "code+email query params present -> full activation form",
+      "sourceArea": "quick-activate",
+      "trigger": { "action": "navigate", "element": "GET /quick-activate?code=000000&email=qa-explore-test%40example.com", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": null, "testId": null, "ariaLabel": null, "locatorHint": "getByRole('textbox').filter({ hasText: '' }).nth(0)", "note": "readOnly, value='qa-explore-test@example.com', pairs with label 'Email'" },
+            { "tag": "input", "role": "textbox", "text": null, "testId": null, "ariaLabel": null, "locatorHint": "getByDisplayValue('0000-00')", "note": "readOnly, value auto-formatted from raw code '000000' -> '0000-00' via regex grouping; pairs with label 'Invitation Code'" },
+            { "tag": "input", "role": "textbox", "text": "••••••••", "testId": null, "ariaLabel": null, "locatorHint": "getByPlaceholder('••••••••')", "note": "type=password, autoFocus=true, autoComplete='new-password', pairs with label 'Set Password'" },
+            { "tag": "button", "role": "button", "text": null, "testId": null, "ariaLabel": "Show password", "locatorHint": "getByRole('button', { name: 'Show password' })" },
+            { "tag": "button", "role": "button", "text": "Continue", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue' })", "note": "disabled until password is non-empty and passes schema" },
+            { "tag": "a", "role": "link", "text": "Already have an account? Sign in", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Already have an account? Sign in' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Welcome to Mira" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "alert", "text": "", "note": "empty live region present but not populated in this state" }
+      ]
+    },
+    "S2": {
+      "name": "Submitted with invalid code (000000) + valid-format password -> API rejects, error toast shown",
+      "sourceArea": "quick-activate",
+      "trigger": { "action": "click", "element": "button:Continue", "fromState": "S1" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Continue", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue' })", "note": "re-enabled after failed submit (isPending resets to false); form fields untouched, password retained" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Welcome to Mira" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "alert", "text": "Invitation code is invalid or expired", "note": "sonner toast rendered inside the live-region container; matches i18n key auth.quickActivate.codeInvalid; backed by POST /api/auth/quick-activate returning HTTP 400" }
+      ]
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "navigate:add code+email query params", "element": "GET /quick-activate?code=000000&email=qa-explore-test%40example.com", "to": "S1", "sourceArea": "quick-activate" },
+      { "from": "S1", "action": "fill:password then click:Continue", "element": "button:Continue", "to": "S2", "sourceArea": "quick-activate", "note": "Password filled with valid-format value 'TestPass123!' to pass client-side schema and enable the button; code param intentionally invalid (000000) per crawl brief — server correctly rejected with 400 + codeInvalid toast, no account created." }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [
+    {
+      "location": "S1/S2 (/quick-activate?code=...&email=...)",
+      "fields": [
+        { "name": "email", "type": "email", "required": true, "readOnly": true, "note": "sourced from URL query param, not user-editable" },
+        { "name": "code", "type": "text", "required": true, "readOnly": true, "note": "sourced from URL query param, auto-formatted with dashes every 4 chars for display; not user-editable" },
+        { "name": "password", "type": "password", "required": true, "minLength": 8, "pattern": "must include letter + number + symbol (zod chain: /[a-zA-Z]/, /[0-9]/, /[^a-zA-Z0-9]/)" }
+      ],
+      "submitButton": { "text": "Continue", "disabled": true, "enabledWhen": "password non-empty AND passes strength schema AND not pending" }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Enter", "action": "submits form if isPasswordValid (handleSubmit) while focus is in password field", "stateTransition": "S1 -> S2 (equivalent to clicking Continue)" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 10,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["query-param-gated-form", "client-side-validation", "server-error-toast", "read-only-prefilled-fields"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": null,
+    "keyBehavior": "No login wall and no redirect occurred for an anonymous visitor hitting bare /quick-activate. Contrary to the crawl brief's assumption, there is NO activation-code entry input anywhere on this route: bare access (no query params) shows a minimal 'Incomplete link parameters' error view with only a 'Sign in' link; the code only ever appears as a READ-ONLY, URL-sourced, dash-formatted display field once ?code=&email= are both supplied (as would happen from an email invite link) — a user can never type/paste a code through the UI. The only user-editable field is the password. Submitting with an intentionally-invalid code correctly round-trips through POST /api/auth/quick-activate (400) and surfaces the expected 'Invitation code is invalid or expired' toast (auth.quickActivate.codeInvalid), matching source and i18n dictionary exactly.",
+    "unexpectedObservations": [
+      "Crawl brief describes this page as having an 'activation-code entry form' to verify — that description does not match the actual implementation. The code is a URL-driven, read-only, pre-filled value (not a user-entry field); this is a spec/expectation mismatch worth flagging to whoever authored the crawl notes, not a product bug."
+    ]
+  }
+}

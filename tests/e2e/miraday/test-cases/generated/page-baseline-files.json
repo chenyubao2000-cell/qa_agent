@@ -1,0 +1,169 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/files",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        { "name": "FilesRoute", "filePath": "apps/mira-work/app/(agent)/files/page.tsx", "role": "page" },
+        { "name": "FilesPage", "filePath": "apps/mira-work/features/files/files-page.tsx", "role": "page" },
+        { "name": "FilesView", "filePath": "apps/mira-work/features/files/files-view.tsx", "role": "section" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "tablist (source filter)", "label": "t('files.tabs.aria_label')", "role": "tablist" },
+        { "element": "search input", "label": "t('files.search.placeholder') ('Search by file name')", "role": "textbox" },
+        { "element": "search clear button", "label": "t('files.search.clear')", "role": "button" },
+        { "element": "view mode group", "label": "List view / Grid view radios", "role": "radiogroup" }
+      ],
+      "conditionalElements": [
+        { "element": "FilesEmptyState variant=no-files", "condition": "isTrulyEmpty (data.total===0 && !hasQuery && !hasAnyUserFilter)", "description": "Hides header toolbar entirely, shows only h1 + centered empty card with Folder icon" },
+        { "element": "ListSkeleton", "condition": "showLoading (filesQuery.isLoading && !data)", "description": "First-load skeleton rows, only when no cached/initial data present" },
+        { "element": "FilesEmptyState variant=search-slow", "condition": "isRefetching (filesQuery.isFetching && hasClientFetched)", "description": "Shown during tab/sort/group/filter/search refetch when data already exists" },
+        { "element": "FilesEmptyState variant=list-slow", "condition": "isListSlow && !hasResults (fetch pending >5s)", "description": "Shows Refresh button" },
+        { "element": "FilesEmptyState variant=no-search-results", "condition": "!showLoading && !hasResults && (hasQuery || hasAnyUserFilter)", "description": "narrowReason derived: hasQuery->'keyword', else hasAnyUserFilter->'filter' (Clear filters button shown), else ->'tab'. NOTE: selecting a source tab (e.g. My Uploads) sets appliedFilters.sources, which counts as hasAnyUserFilter=true, so narrowReason resolves to 'filter' (not 'tab') even though the user only clicked a tab — Clear filters button appears in this case." },
+        { "element": "FileList", "condition": "hasResults (data.items.length>0)", "description": "Renders grouped-by-task or flat list/grid depending on groupBy/viewMode" },
+        { "element": "FilesMultiSelectBar", "condition": "selectionSize>0", "description": "Bottom floating bar; not triggered in this smoke pass" },
+        { "element": "GroupByPopover / task-filter section", "condition": "!isChannelScope", "description": "/files page (scope=all) always shows GroupBy popover; hidden only in channel-embedded Files tab" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 title", "key": "files.page.title", "namespace": "root" },
+        { "element": "tablist aria-label", "key": "files.tabs.aria_label", "namespace": "root" },
+        { "element": "tab All", "key": "files.tabs.all", "namespace": "root" },
+        { "element": "tab Mira Generated", "key": "files.tabs.mira", "namespace": "root", "note": "interpolated with {twinName}; on this account twinName renders as literal 'Mira11111' producing tab label 'Mira11111 Generated' — looks like leftover test-account naming, not necessarily an app defect" },
+        { "element": "tab My Uploads", "key": "files.tabs.user_upload", "namespace": "root" },
+        { "element": "search placeholder/aria-label", "key": "files.search.placeholder", "namespace": "root" },
+        { "element": "search clear button aria-label", "key": "files.search.clear", "namespace": "root" },
+        { "element": "empty no-files title/body", "key": "files.empty.no_files.{title,body}", "namespace": "root" },
+        { "element": "empty no-search-results title/body variants", "key": "files.empty.no_search_results.{title,body,body_tab,body_filter,clear_filters}", "namespace": "root" },
+        { "element": "slow-state title/body/refresh", "key": "files.slow.{list,search}.{title,body,refresh}", "namespace": "root" }
+      ],
+      "utilityClasses": ["flex", "flex-col", "gap-5", "gap-6", "px-4", "py-6", "sm:px-8", "overflow-y-auto", "min-h-0", "rounded-sm", "h-10"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 3,
+      "elementsFound": 45,
+      "duration": "smoke (~5m)"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page — populated file list, grouped by task (Channel), List view, All tab",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "role": "heading", "level": 1, "text": "Files" }
+          ],
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": null, "ariaLabel": "Search by file name", "placeholder": "Search by file name", "testId": null, "locatorHint": "getByRole('textbox', { name: 'Search by file name' })" },
+            { "tag": "button", "role": "button", "text": "Group files by", "expandable": true, "haspopup": "dialog", "locatorHint": "getByRole('button', { name: 'Group files by' })" },
+            { "tag": "button", "role": "button", "text": "Sort files by", "expandable": true, "haspopup": "dialog", "locatorHint": "getByRole('button', { name: 'Sort files by' })" },
+            { "tag": "button", "role": "button", "text": "Filter files", "expandable": true, "haspopup": "dialog", "locatorHint": "getByRole('button', { name: 'Filter files' })" },
+            { "tag": "input", "role": "radio", "text": "List view", "checked": true, "locatorHint": "getByRole('radio', { name: 'List view' })" },
+            { "tag": "input", "role": "radio", "text": "Grid view", "checked": false, "locatorHint": "getByRole('radio', { name: 'Grid view' })" },
+            { "tag": "div", "role": "tablist", "ariaLabel": "Filter by source", "locatorHint": "getByRole('tablist', { name: 'Filter by source' })" },
+            { "tag": "button", "role": "tab", "text": "All", "selected": true, "locatorHint": "getByRole('tab', { name: 'All' })" },
+            { "tag": "button", "role": "tab", "text": "Mira11111 Generated", "selected": false, "locatorHint": "getByRole('tab', { name: /Generated$/ })", "note": "twinName-interpolated label; use regex not literal string" },
+            { "tag": "button", "role": "tab", "text": "My Uploads", "selected": false, "locatorHint": "getByRole('tab', { name: 'My Uploads' })" },
+            { "tag": "button", "role": "button", "text": "Untitled channel (1 files) 6/23", "expandable": true, "expanded": true, "locatorHint": "getByRole('button', { name: /Untitled channel/ })" },
+            { "tag": "button", "role": "button", "text": "File row — 艾博特CTO寻访_汇总报告_含话术.md, Mira11111 Generated, Text · 12 KB · 6/23", "locatorHint": "getByRole('button', { name: /艾博特CTO寻访/ })" },
+            { "tag": "button", "role": "button", "text": "More actions", "haspopup": "menu", "locatorHint": "getByRole('button', { name: 'More actions' }).first()" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "My Uploads tab selected — no matching files (empty state, narrowReason=filter)",
+      "sourceArea": "source-tabs",
+      "trigger": { "action": "click", "element": "tab:My Uploads", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [],
+          "interactives": [
+            { "tag": "text", "role": "text", "text": "No matching files" },
+            { "tag": "text", "role": "text", "text": "No matches under the current filters." },
+            { "tag": "button", "role": "button", "text": "Clear filters", "locatorHint": "getByRole('button', { name: 'Clear filters' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "URL becomes ?sources=user_upload. Because sources filter is non-empty, hasAnyUserFilter=true so narrowReason resolves to 'filter' (body_filter copy + Clear filters button) even though this was a tab click, not the Filters popover. Matches source logic exactly — not a bug, just naming overlap between 'tab' and 'filter' concepts."
+    },
+    "S2": {
+      "name": "Grid view toggled — POTENTIAL BUG: main content scroll container gains persistent horizontal overflow/scroll offset",
+      "sourceArea": "view-toggle",
+      "trigger": { "action": "click", "element": "radio:Grid view", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "role": "heading", "level": 1, "text": "Files (partially scrolled out of view)" }
+          ],
+          "interactives": []
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "See keyFindings — confirmed via evaluate_script: the main scroll container (div.flex.min-h-0.flex-1.flex-col.gap-6.overflow-y-auto.px-4.py-6.sm:px-8) reported scrollWidth=1085 vs clientWidth=965 (120px horizontal overflow) at 1280px viewport, and scrollLeft was auto-set to 120 after clicking the Grid view radio (rightmost element in the toolbar row). Toggling back to List view did NOT reset scrollLeft — the shift persisted, clipping the search box/title/left column out of the viewport until manually scrolled back. Root cause candidate: Tailwind 'overflow-y-auto' implicitly makes overflow-x 'auto' too (CSS overflow shorthand quirk), and some row/header content (likely the grouped-section header with right-aligned date, e.g. '(8 files) ... 6/15') is ~120px wider than the container at this viewport width, which is not supposed to require horizontal scrolling for a file browser toolbar."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "tab:My Uploads", "to": "S1", "sourceArea": "source-tabs" },
+      { "from": "S1", "action": "click", "element": "tab:All", "to": "S0", "sourceArea": "source-tabs" },
+      { "from": "S0", "action": "click", "element": "radio:Grid view", "to": "S2", "sourceArea": "view-toggle" },
+      { "from": "S2", "action": "click", "element": "radio:List view", "to": "S0", "sourceArea": "view-toggle", "note": "Returns to list layout but horizontal scrollLeft offset from S2 was NOT reset — see S2 note" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [],
+
+  "shadowDom": [],
+
+  "iframes": [],
+
+  "keyboardShortcuts": [],
+
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (getByRole with i18n-derived name; data-testid exists elsewhere in file cards e.g. 'file-grid-card' per source grep but was not the dominant discovered pattern for toolbar/tab controls)"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 45,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["tabs", "empty-state", "view-toggle"],
+    "scrollMode": "vertical (overflow-y-auto) — unexpectedly also horizontally scrollable, see S2 finding",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": null,
+    "keyFindings": [
+      "No login wall encountered; session from prior authenticated tab carried over correctly.",
+      "Page has NO upload entry point / button on /files itself. 'My Uploads' is a source-filter TAB (sources=user_upload), not an upload action — confirmed via source grep (no upload button/dropzone in features/files/*). Page-specific note asking to explore 'upload entry point' does not apply to this route; uploading likely happens elsewhere (e.g. task/chat attach flow).",
+      "No folder/breadcrumb navigation exists on this page — files are grouped by task/channel (collapsible sections) or by type via the GroupBy popover, not a folder hierarchy. This is by design per source (FilesGroupBy = 'none'|'task'|'type').",
+      "POTENTIAL BUG: switching to Grid view (radio 'Grid view') causes the main content scroll container to overflow horizontally by ~120px at a standard 1280px desktop viewport and auto-scrolls right, clipping the page title/search box out of view. Switching back to List view does not restore scrollLeft to 0, leaving the misalignment persistent until the user manually scrolls left. Reproduced twice via evaluate_script measurement (scrollWidth 1085 vs clientWidth 965, scrollLeft stuck at 120). Recommend filing as a UI/layout bug against Files Grid view — verify with a real Playwright test asserting `mainScrollContainer.scrollWidth === mainScrollContainer.clientWidth` after toggling view modes.",
+      "Minor cosmetic observation (not filed as bug): the 'Mira Generated' source tab renders as 'Mira11111 Generated' on this test account — twinName interpolation is working as coded, but the literal value 'Mira11111' looks like test/seed data rather than a real twin name; flagging in case it surfaces in a shared/demo environment."
+    ]
+  }
+}

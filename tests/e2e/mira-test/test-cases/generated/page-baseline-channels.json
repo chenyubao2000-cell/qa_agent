@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/channels",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "pageSlug": "channels",
+    "sourceContext": {
+      "components": [
+        { "name": "ChannelsPage", "filePath": "apps/mira-work/app/(agent)/channels/page.tsx", "role": "page" },
+        { "name": "ChannelListClient", "filePath": "apps/mira-work/features/channels/components/channel-list-client.tsx", "role": "section" },
+        { "name": "ChannelListHeader", "filePath": "apps/mira-work/features/channels/components/channel-list-header.tsx", "role": "widget" },
+        { "name": "ChannelEmptyState", "filePath": "apps/mira-work/features/channels/components/channel-empty-state.tsx", "role": "widget" },
+        { "name": "ChannelRow", "filePath": "apps/mira-work/features/channels/components/channel-row.tsx", "role": "widget" },
+        { "name": "ChannelMultiSelectBar", "filePath": "apps/mira-work/features/channels/components/channel-multi-select-bar.tsx", "role": "widget" }
+      ],
+      "testIds": [],
+      "dataSlotAttributes": ["channel-empty-state", "channel-row"],
+      "otherStableAttributes": ["data-channel-id (on channel-row, value = task id)", "data-selected (on channel-row, boolean)"],
+      "ariaAttributes": [
+        { "element": "search toggle button (collapsed state)", "label": "t('channel.list.searchPlaceholder') = 'Search channels'", "role": "button" },
+        { "element": "clear search button", "label": "t('channel.list.clearSearch') = 'Clear search'", "role": "button" },
+        { "element": "row kebab menu trigger", "label": "t('channel.list.moreActions') = 'More actions'", "role": "button" },
+        { "element": "row checkbox", "label": "channel name (dynamic)", "role": "checkbox" }
+      ],
+      "conditionalElements": [
+        { "element": "ChannelMultiSelectBar vs ChannelListHeader", "condition": "selectedIds.size > 0", "description": "header swaps to multi-select bar when any row is selected" },
+        { "element": "ChannelListSkeleton", "condition": "isLoading", "description": "shown while history/search query is loading" },
+        { "element": "ChannelEmptyState variant=noMatch", "condition": "hasQuery && items.length === 0", "description": "shown when search yields no results" },
+        { "element": "ChannelEmptyState variant=initial", "condition": "!hasQuery && items.length === 0", "description": "shown when there are no channels at all (not observed live — account has 10 channels)" },
+        { "element": "search Input vs icon Button", "condition": "expanded || query.length > 0", "description": "search affordance expands from icon button to text input" },
+        { "element": "RenameTaskDialog", "condition": "renameTarget !== null", "description": "opened via row kebab menu 'Rename'" },
+        { "element": "AlertDialog (delete confirm)", "condition": "deleteDialogOpen", "description": "opened via row kebab menu 'Delete' or bulk delete" },
+        { "element": "infinite-scroll loading spinner", "condition": "isFetchingNextPage", "description": "role=status aria-live=polite at list bottom" }
+      ],
+      "i18nKeys": {
+        "namespace": "channel.list",
+        "keys": {
+          "title": "Channels",
+          "subtitleDefault": "{count} channels · sorted by recent update",
+          "subtitleResults": "Search 「{q}」· {count} matching channels",
+          "subtitleSearching": "Search 「{q}」· Searching…",
+          "subtitleNoMatch": "Search 「{q}」· No matching channels",
+          "searchPlaceholder": "Search channels",
+          "clearSearch": "Clear search",
+          "newButton": "New channel",
+          "moreActions": "More actions",
+          "selectAll": "Select all",
+          "emptyNoMatchTitle": "No matching channels",
+          "emptyNoMatchSubtitle": "Try other keywords, or just create a new channel",
+          "emptyInitialTitle": "No channels yet",
+          "today": "Today",
+          "yesterday": "Yesterday",
+          "menuShare": "Share",
+          "menuRename": "Rename",
+          "menuDelete": "Delete",
+          "selectedCount": "{count} selected",
+          "deleteTitle": "Delete selected",
+          "deleteConfirm": "Delete {count} channels? This action cannot be undone.",
+          "deleteCancel": "Cancel",
+          "deleteConfirmButton": "Delete",
+          "deleteTooMany": "You can delete at most {max} channels at once. Please select fewer."
+        },
+        "source": "apps/mira-work/i18n/messages/en/agent.json (line ~2777)"
+      },
+      "utilityClassesFlagged": ["px-10", "pt-8", "pb-3", "rounded-md", "rounded-xl", "size-9", "size-16", "size-20", "max-w-[400px]"]
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Channel list — populated (10 channels)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [{ "text": "Channels", "level": 1, "locatorHint": "getByRole('heading', { name: 'Channels', level: 1 })" }],
+          "interactives": [
+            { "tag": "StaticText", "role": "text", "text": "10 channels · sorted by recent update", "testId": null, "ariaLabel": null, "locatorHint": "getByText('10 channels · sorted by recent update')" },
+            { "tag": "button", "role": "button", "text": null, "testId": null, "ariaLabel": "Search channels", "locatorHint": "getByRole('button', { name: 'Search channels' })" },
+            { "tag": "button", "role": "button", "text": "New channel", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'New channel' })" },
+            { "tag": "div", "role": "button", "text": "苏州 AI Agent 开发工程师岗位搜索 June 30 More actions", "testId": null, "ariaLabel": null, "note": "data-slot=channel-row data-channel-id=<id>", "locatorHint": "locator('[data-slot=\"channel-row\"]').filter({ hasText: '苏州 AI Agent 开发工程师岗位搜索' })" },
+            { "tag": "button", "role": "button", "text": null, "testId": null, "ariaLabel": "More actions", "locatorHint": "getByRole('button', { name: 'More actions' }).first()" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Search input expanded (empty query)",
+      "sourceArea": "channel-search",
+      "trigger": { "action": "click", "element": "button:Search channels", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [{ "text": "Channels", "level": 1 }],
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": null, "testId": null, "ariaLabel": null, "placeholder": "Search channels", "locatorHint": "getByRole('textbox', { name: 'Search channels' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S2": {
+      "name": "Search — no matching channels (empty state, noMatch variant)",
+      "sourceArea": "channel-search",
+      "trigger": { "action": "fill", "element": "textbox:Search channels", "value": "zzznonexistentchannelxyz", "fromState": "S1" },
+      "regions": {
+        "main": {
+          "headings": [],
+          "interactives": [
+            { "tag": "StaticText", "role": "text", "text": "Search 「zzznonexistentchannelxyz」· No matching channels", "locatorHint": "getByText('No matching channels')" },
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Clear search", "locatorHint": "getByRole('button', { name: 'Clear search' })" },
+            { "tag": "p", "role": "text", "text": "No matching channels", "locatorHint": "getByText('No matching channels', { exact: true })" },
+            { "tag": "p", "role": "text", "text": "Try other keywords, or just create a new channel", "locatorHint": "getByText('Try other keywords, or just create a new channel')" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "data-slot=\"channel-empty-state\" wrapper confirmed present per source; matches ChannelEmptyState variant=noMatch exactly (icon SearchX, title+subtitle from i18n). No bug — behaves as coded."
+    },
+    "S3": {
+      "name": "Row kebab menu open (Share/Rename/Delete)",
+      "sourceArea": "channel-row-actions",
+      "trigger": { "action": "click", "element": "button:More actions (row 1)", "fromState": "S0" },
+      "regions": {
+        "dialog": {
+          "headings": [],
+          "interactives": [
+            { "tag": "div", "role": "menuitem", "text": "Share", "locatorHint": "getByRole('menuitem', { name: 'Share' })" },
+            { "tag": "div", "role": "menuitem", "text": "Rename", "locatorHint": "getByRole('menuitem', { name: 'Rename' })" },
+            { "tag": "div", "role": "menuitem", "text": "Delete", "locatorHint": "getByRole('menuitem', { name: 'Delete' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "Row checkbox also appears on hover/menu-open (uid pattern confirms showCheckbox = selected || selectionActive || hover). Delete menuitem not clicked (destructive, record only)."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Search channels", "to": "S1", "sourceArea": "channel-search" },
+      { "from": "S1", "action": "fill:zzznonexistentchannelxyz", "element": "textbox:Search channels", "to": "S2", "sourceArea": "channel-search" },
+      { "from": "S2", "action": "click", "element": "button:Clear search", "to": "S0", "sourceArea": "channel-search" },
+      { "from": "S0", "action": "click", "element": "button:New channel", "to": "EXTERNAL(/task)", "sourceArea": "channel-create" },
+      { "from": "S0", "action": "click", "element": "button:More actions (row)", "to": "S3", "sourceArea": "channel-row-actions" },
+      { "from": "S3", "action": "press:Escape", "element": null, "to": "S0", "sourceArea": "channel-row-actions" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [
+    { "element": "menuitem:Delete (row kebab menu)", "reason": "text matches 'Delete', opens AlertDialog confirming permanent deletion", "context": "row kebab menu" },
+    { "element": "menuitem:Delete (bulk, via ChannelMultiSelectBar)", "reason": "bulk delete, capped at MAX_BULK_DELETE_TASKS", "context": "multi-select bar" }
+  ],
+
+  "externalLinks": [],
+
+  "forms": [],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Escape", "action": "closes row kebab dropdown menu", "stateTransition": "S3 → S0" },
+    { "key": "Enter/Space", "action": "on focused channel row, opens the channel (or toggles selection if selectionActive)", "stateTransition": "N/A (not exercised, per source onKeyDown handler)" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "hasDataSlotAttributes": true,
+    "dominantStrategy": "aria-label / role+name; data-slot + data-channel-id available as stable fallback for row-level scoping"
+  },
+
+  "summary": {
+    "totalStates": 4,
+    "totalInteractives": 24,
+    "totalForms": 0,
+    "totalDestructiveActions": 2,
+    "coveredPatterns": ["search-filter", "empty-state (noMatch)", "dropdown-menu", "route-navigation-entry-point"],
+    "scrollMode": "infinite-scroll (virtualized, useVirtualizer + fetchNextPage near end)",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": "smoke — not exhaustive; empty-state 'initial' variant (zero channels) not observed live since account has 10 pre-existing channels",
+    "explorationStats": {
+      "terminationReason": "smoke_scope_complete",
+      "statesDiscovered": 4,
+      "interactionsPerformed": 6,
+      "elementsFound": 24,
+      "duration": "~3m"
+    }
+  },
+
+  "keyFindings": [
+    "Page loaded directly with no login wall — session from prior agent (Ktrieling777@gmail.com) still valid.",
+    "List is populated with 10 pre-existing channels (task history), so the 'initial' (zero-channel) empty-state variant could not be observed live; only source-verified (ChannelEmptyState variant='initial', title=t('emptyInitialTitle')='No channels yet').",
+    "Search with a non-matching query correctly renders the noMatch empty state ('No matching channels' / 'Try other keywords, or just create a new channel') with a working 'Clear search' affordance — matches source exactly, no bug.",
+    "'New channel' button is NOT an OAuth/connector flow — it is a plain client-side navigation to /task (new task creation page), confirmed both from source (router.push('/task')) and live click. No OAuth flow was triggered or needed to be avoided.",
+    "Row-level kebab menu ('More actions') correctly exposes Share / Rename / Delete, matching source. Delete was not clicked (destructive, record-only).",
+    "No data-testid attributes exist anywhere in the channels feature; stable fallback locators are data-slot='channel-row'/'channel-empty-state' plus data-channel-id, and aria-label-driven role locators (all i18n keys resolved from apps/mira-work/i18n/messages/en/agent.json, not from the QA workspace's messages/en.json which lacks a 'channel' namespace — worth flagging to whoever maintains i18nMessagesDir for this project, as an i18n audit against that file would show 100% missing keys)."
+  ]
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "id": "TC-CDP-TWIN-001",
+    "storyId": "STORY-TWIN-EDIT",
+    "title": "编辑页在 edit 模式正确加载且初始 Save changes 禁用",
+    "priority": "P0",
+    "preconditions": ["已登录", "账户已配置 AI Twin profile"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Edit your AI Twin", "i18nKey": "twin.hero.edit.title", "expected": null },
+      { "type": "visible", "selector": "textbox", "name": "AI Twin name", "i18nKey": "twin.fields.name.label", "expected": null },
+      { "type": "value-nonempty", "selector": "textbox", "name": "AI Twin name", "i18nKey": "twin.fields.name.label", "expected": null, "note": "编辑模式预填当前分身名，值应非空" },
+      { "type": "disabled", "selector": "button", "name": "Save changes", "i18nKey": "twin.cta.edit.desktop", "expected": null, "note": "初始无字段 diff → submitDisabled" }
+    ],
+    "teardown": []
+  },
+  {
+    "id": "TC-CDP-TWIN-002",
+    "storyId": "STORY-TWIN-EDIT",
+    "title": "修改名称为合法新值后 Save changes 由禁用变为启用",
+    "priority": "P0",
+    "preconditions": ["已登录", "账户已配置 AI Twin profile", "处于编辑页初始态"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "uiElements": [
+      { "role": "textbox", "name": "AI Twin name", "i18nKey": "twin.fields.name.label", "action": "fill", "dataType": "text", "dataVariant": "unique-valid-twin-name", "locatorHint": "getByLabel('AI Twin name')", "note": "合法且不同于当前名，≤20 codepoint，带时间戳保证唯一" }
+    ],
+    "assertions": [
+      { "type": "enabled", "selector": "button", "name": "Save changes", "i18nKey": "twin.cta.edit.desktop", "expected": null, "note": "名称产生 diff 且 nameValid → 启用（不提交）" }
+    ],
+    "teardown": []
+  },
+  {
+    "id": "TC-CDP-TWIN-003",
+    "storyId": "STORY-TWIN-EDIT",
+    "title": "选择不同个性单选项后该项被选中",
+    "priority": "P1",
+    "preconditions": ["已登录", "账户已配置 AI Twin profile", "处于编辑页"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "uiElements": [
+      { "role": "radio", "name": "Professional", "i18nKey": "twin.personality.professional", "action": "click", "locatorHint": "getByRole('radio', { name: 'Professional' })" }
+    ],
+    "assertions": [
+      { "type": "checked", "selector": "radio", "name": "Professional", "i18nKey": "twin.personality.professional", "expected": null, "note": "点击后该单选项 checked（与初始个性无关，恒定成立）" }
+    ],
+    "teardown": []
+  },
+  {
+    "id": "TC-CDP-TWIN-004",
+    "storyId": "STORY-TWIN-EDIT",
+    "title": "名称含非法字符时显示内联错误且 Save changes 保持禁用",
+    "priority": "P1",
+    "preconditions": ["已登录", "账户已配置 AI Twin profile", "处于编辑页"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "uiElements": [
+      { "role": "textbox", "name": "AI Twin name", "i18nKey": "twin.fields.name.label", "action": "fill", "value": "Mira@@", "locatorHint": "getByLabel('AI Twin name')" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "alert", "name": null, "i18nKey": "twin.errors.nameInvalidChars", "expected": null, "note": "#twin-name-hint 以 role=alert 渲染错误文案 'Only letters, numbers and spaces'" },
+      { "type": "attribute-aria-invalid", "selector": "textbox", "name": "AI Twin name", "i18nKey": "twin.fields.name.label", "expected": "true" },
+      { "type": "disabled", "selector": "button", "name": "Save changes", "i18nKey": "twin.cta.edit.desktop", "expected": null }
+    ],
+    "teardown": []
+  },
+  {
+    "id": "TC-CDP-TWIN-005",
+    "storyId": "STORY-TWIN-EDIT",
+    "title": "名称含品牌黑名单词时显示品牌错误且 Save changes 保持禁用",
+    "priority": "P1",
+    "preconditions": ["已登录", "账户已配置 AI Twin profile", "处于编辑页"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "uiElements": [
+      { "role": "textbox", "name": "AI Twin name", "i18nKey": "twin.fields.name.label", "action": "fill", "value": "claudeBot", "locatorHint": "getByLabel('AI Twin name')" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "alert", "name": null, "i18nKey": "twin.errors.nameBlockedBrand", "expected": null, "note": "品牌黑名单错误 'Name can't include other AI brand names'" },
+      { "type": "disabled", "selector": "button", "name": "Save changes", "i18nKey": "twin.cta.edit.desktop", "expected": null }
+    ],
+    "teardown": []
+  },
+  {
+    "id": "TC-CDP-TWIN-006",
+    "storyId": "STORY-TWIN-EDIT",
+    "title": "Cancel 丢弃修改并返回上一页且无挽留对话框",
+    "priority": "P2",
+    "preconditions": ["已登录", "账户已配置 AI Twin profile", "先访问 /task 以构造可预期的返回目标"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "gotoViaTask", "data": {}, "note": "先 /task 再进入编辑页，使 router.back() 目标确定为 /task" }
+    ],
+    "uiElements": [
+      { "role": "textbox", "name": "AI Twin name", "i18nKey": "twin.fields.name.label", "action": "fill", "dataType": "text", "dataVariant": "unique-valid-twin-name", "locatorHint": "getByLabel('AI Twin name')", "note": "制造 dirty 态" },
+      { "role": "button", "name": "Cancel", "i18nKey": "twin.cta.cancel", "action": "click", "locatorHint": "getByRole('button', { name: 'Cancel' })", "note": "desktop/mobile 两处渲染，取可见者" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "alertdialog", "name": null, "expected": "0", "note": "编辑模式无未保存挽留对话框" },
+      { "type": "url", "selector": null, "name": null, "expected": "/task", "note": "router.back() 回到 /task" }
+    ],
+    "teardown": []
+  }
+]

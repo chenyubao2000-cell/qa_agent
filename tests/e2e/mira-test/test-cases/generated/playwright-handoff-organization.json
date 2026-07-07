@@ -1,0 +1,94 @@
+[
+  {
+    "id": "TC-CDP-ORG-001",
+    "storyId": "ORG-OVERVIEW",
+    "title": "组织页加载并渲染就绪态仪表盘",
+    "priority": "P0",
+    "preconditions": ["已登录", "账户已归属某组织（Team 计划）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Organization", "i18nKey": "billing.org.title", "action": "none", "locatorHint": "getByRole('heading', { level: 1, name: 'Organization' })" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Organization", "expected": null, "i18nKey": "billing.org.title", "note": "h1 页面标题可见" },
+      { "type": "text", "selector": "heading", "name": "Organization", "expected": "Organization", "note": "标题文案" },
+      { "type": "visible", "selector": "heading", "name": "Profile", "expected": null, "note": "Profile 卡片标题" },
+      { "type": "visible", "selector": "heading", "name": "Current plan", "expected": null, "note": "Current plan 卡片标题" },
+      { "type": "visible", "selector": "heading", "name": "Members", "expected": null, "note": "Members 卡片标题" },
+      { "type": "text", "selector": "seatsText", "expected": "/\\d+\\s*\\/\\s*(\\d+|—)/", "note": "席位以 已用/总数 数值格式渲染" }
+    ]
+  },
+  {
+    "id": "TC-CDP-ORG-002",
+    "storyId": "ORG-PROFILE",
+    "title": "Profile 改名进入编辑态并可保存回退（未改动不写库）",
+    "priority": "P1",
+    "preconditions": ["已登录", "当前用户为组织 Owner"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Edit name", "i18nKey": "billing.org.editName", "action": "click", "locatorHint": "getByRole('button', { name: 'Edit name' })" },
+      { "role": "button", "name": "Save name", "i18nKey": "billing.org.saveName", "action": "click", "locatorHint": "getByRole('button', { name: 'Save name' })" }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "textbox", "name": "org-name", "expected": null, "note": "初始只读" },
+      { "type": "enabled", "selector": "textbox", "name": "org-name", "expected": null, "note": "点击 Edit 后可编辑" },
+      { "type": "visible", "selector": "button", "name": "Save name", "expected": null, "note": "编辑态显示保存按钮" },
+      { "type": "visible", "selector": "button", "name": "Edit name", "expected": null, "note": "未改动保存后回到查看态" }
+    ]
+  },
+  {
+    "id": "TC-CDP-ORG-003",
+    "storyId": "ORG-INVITE",
+    "title": "打开邀请成员弹窗且空输入时发送禁用，取消关闭返回列表",
+    "priority": "P1",
+    "preconditions": ["已登录", "账户已归属某组织"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Invite member", "i18nKey": "billing.org.inviteMember", "action": "click", "locatorHint": "getByRole('button', { name: 'Invite member', exact: true })" },
+      { "role": "button", "name": "Cancel", "i18nKey": "billing.org.inviteDialog.cancel", "action": "click", "locatorHint": "getByRole('dialog').getByRole('button', { name: 'Cancel' })" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "dialog", "name": "Invite members", "expected": null, "i18nKey": "billing.org.inviteDialog.title", "note": "弹窗打开" },
+      { "type": "disabled", "selector": "button", "name": "Send invitations", "expected": null, "note": "空输入 Send 禁用" },
+      { "type": "text", "selector": "inviteCounter", "expected": "/0\\s*\\/\\s*50/", "note": "计数 0 / 50" },
+      { "type": "hidden", "selector": "dialog", "name": "Invite members", "expected": null, "note": "Cancel 后动画卸载，等待 hidden" }
+    ]
+  },
+  {
+    "id": "TC-CDP-ORG-004",
+    "storyId": "ORG-INVITE",
+    "title": "邀请弹窗邮箱校验——非法保持禁用、合法启用发送",
+    "priority": "P1",
+    "preconditions": ["已登录", "账户已归属某组织", "邀请弹窗已打开"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "emails", "action": "fill", "value": "not-an-email", "locatorHint": "getByRole('dialog').getByRole('textbox')" }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Send invitations", "expected": null, "note": "非法邮箱 Send 禁用" },
+      { "type": "text", "selector": "inviteCounter", "expected": "/1\\s*\\/\\s*50/", "note": "计数 1 / 50" },
+      { "type": "enabled", "selector": "button", "name": "Send invitations", "expected": null, "note": "合法唯一邮箱 Send 启用" }
+    ]
+  },
+  {
+    "id": "TC-CDP-ORG-005",
+    "storyId": "ORG-MEMBERS-FILTER",
+    "title": "成员状态筛选切换到 Active，邀请行操作菜单消失",
+    "priority": "P2",
+    "preconditions": ["已登录", "账户已归属某组织且存在 Owner 成员"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "combobox", "name": null, "action": "click", "locatorHint": "getByRole('combobox')" },
+      { "role": "option", "name": "Active", "i18nKey": "billing.org.filter.active", "action": "click", "locatorHint": "getByRole('option', { name: 'Active' })" }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "actionMenuButtons", "expected": "0", "note": "Active 筛选后无邀请行，操作菜单按钮为 0（源码保证成员行无操作菜单）" },
+      { "type": "visible", "selector": "heading", "name": "Members", "expected": null, "note": "Members 头部保持可见" }
+    ]
+  }
+]

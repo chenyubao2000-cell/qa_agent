@@ -1,0 +1,111 @@
+[
+  {
+    "id": "TC-CDP-NAV-001",
+    "storyId": "US-NAV-HOME",
+    "criterionId": "AC-NAV-001",
+    "source": "cdp",
+    "title": "点击导航 Features 按钮同页滚动至 Features 区块",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已打开落地页首页 (/)，页面处于顶部"],
+    "setup": [{ "type": "navigate", "url": "/" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Features", "action": "click", "value": null, "locatorHint": "getByRole('navigation').getByRole('button', { name: 'Features' }).first()", "dataType": null, "dataVariant": null, "i18nKey": "homepage.nav.features" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "region", "name": "#features", "expected": null, "i18nKey": null },
+      { "type": "url", "selector": null, "name": null, "expected": "/", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-NAV-002",
+    "storyId": "US-NAV-HOME",
+    "criterionId": "AC-NAV-002",
+    "source": "cdp",
+    "title": "语言下拉展开并显示可选语言项，取消后不切换语言",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已打开落地页首页 (/)，当前语言为 English (html lang=en)"],
+    "setup": [{ "type": "navigate", "url": "/" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "combobox", "name": "English", "action": "click", "value": null, "locatorHint": "getByRole('navigation').getByRole('combobox').first()", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "option", "name": "English", "action": "press", "value": "Escape", "locatorHint": "getByRole('option', { name: 'English' })", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "option", "name": "English", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "option", "name": null, "expected": ">=2", "i18nKey": null },
+      { "type": "visible", "selector": "combobox", "name": "English", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-NAV-003",
+    "storyId": "US-NAV-HOME",
+    "criterionId": "AC-NAV-003",
+    "source": "cdp",
+    "title": "点击导航 Sign in 跳转至鉴权墙并渲染关键登录元素",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["未登录状态，已打开落地页首页 (/)"],
+    "setup": [{ "type": "navigate", "url": "/" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Sign in", "action": "click", "value": null, "locatorHint": "getByRole('navigation').getByRole('link', { name: 'Sign in' }).first()", "dataType": null, "dataVariant": null, "i18nKey": "homepage.nav.signIn" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Sign in or Sign up", "expected": null, "i18nKey": "auth.unifiedTitle" },
+      { "type": "visible", "selector": "button", "name": "Continue with Google", "expected": null, "i18nKey": "auth.continueWithGoogle" },
+      { "type": "visible", "selector": "button", "name": "Continue with Microsoft", "expected": null, "i18nKey": "auth.continueWithMicrosoft" },
+      { "type": "visible", "selector": "textbox", "name": "Enter your email address", "expected": null, "i18nKey": "auth.emailPlaceholder" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-NAV-004",
+    "storyId": "US-NAV-HOME",
+    "criterionId": "AC-NAV-004",
+    "source": "cdp",
+    "title": "点击导航 Join Waitlist 跳转至 /join-waitlist 并渲染工作邮箱字段",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已打开落地页首页 (/)"],
+    "setup": [{ "type": "navigate", "url": "/" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Join Waitlist", "action": "click", "value": null, "locatorHint": "getByRole('navigation').getByRole('link', { name: 'Join Waitlist' }).first()", "dataType": null, "dataVariant": null, "i18nKey": "homepage.nav.getStarted" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/join-waitlist", "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Join Waitlist", "expected": null, "i18nKey": "auth.joinWaitlist.title" },
+      { "type": "visible", "selector": "textbox", "name": "name@company.com", "expected": null, "i18nKey": "auth.joinWaitlist.emailPlaceholder" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-NAV-005",
+    "storyId": "US-NAV-HOME",
+    "criterionId": "AC-NAV-005",
+    "source": "cdp",
+    "title": "所有 Join Waitlist CTA（导航/hero/footer）目标一致指向 /join-waitlist",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已打开落地页首页 (/)"],
+    "setup": [{ "type": "navigate", "url": "/" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "link", "name": "join waitlist", "expected": ">=3", "i18nKey": null },
+      { "type": "attribute", "selector": "link", "name": "join waitlist", "expected": "/join-waitlist", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  }
+]

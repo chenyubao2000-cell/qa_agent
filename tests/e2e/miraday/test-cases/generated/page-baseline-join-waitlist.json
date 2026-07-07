@@ -1,0 +1,250 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/join-waitlist",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceComponents": [
+      {
+        "name": "JoinWaitlistPage",
+        "filePath": "apps/mira-work/app/(auth)/join-waitlist/page.tsx",
+        "role": "page"
+      },
+      {
+        "name": "JoinWaitlistForm",
+        "filePath": "apps/mira-work/features/auth/components/join-waitlist-form.tsx",
+        "role": "section"
+      }
+    ],
+    "sourceContext": {
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "email input", "attribute": "aria-invalid", "boundTo": "Boolean(emailError)" },
+        { "element": "firstName/lastName/company/role/useCase inputs", "attribute": "aria-invalid", "boundTo": "Boolean(fieldErrors[field])" }
+      ],
+      "conditionalElements": [
+        {
+          "element": "emailState === 'idle' branch: email input + Send Verify Code button",
+          "condition": "mode === 'anonymous' && emailState === 'idle' (default for anonymous visitors)",
+          "description": "Initial render branch for this crawl (anonymous, no ?email= query param)."
+        },
+        {
+          "element": "emailState === 'otp-sent' branch: readonly email + countdown + OTP input + Verify button",
+          "condition": "emailState transitions to 'otp-sent' only after a successful POST /api/waitlist/send-otp response",
+          "description": "NOT reached in this crawl — clicking Send Verify Code would send a real OTP email, so it was deliberately not clicked."
+        },
+        {
+          "element": "emailState === 'verified' branch: readonly email with check icon + Change email button",
+          "condition": "emailState transitions to 'verified' after successful POST /api/waitlist/verify-otp",
+          "description": "NOT reached in this crawl (depends on the otp-sent branch above)."
+        },
+        {
+          "element": "mode === 'authenticated' branch (readonly session email, optional Change email button hidden when from==='activate')",
+          "condition": "page component renders mode='authenticated' when a ?email= search param is present",
+          "description": "Not exercised — this crawl used the bare /join-waitlist URL (mode='anonymous')."
+        },
+        {
+          "element": "fieldErrors.submit paragraph below the form",
+          "condition": "set inside handleSubmit() when POST /api/waitlist responds non-OK with an unrecognized error code",
+          "description": "Not reached — handleSubmit short-circuits earlier (email not verified) in this crawl."
+        }
+      ],
+      "i18nKeys": [
+        { "element": "h1", "key": "title", "namespace": "auth.joinWaitlist" },
+        { "element": "description line 1", "key": "description", "namespace": "auth.joinWaitlist" },
+        { "element": "description line 2", "key": "descriptionHint", "namespace": "auth.joinWaitlist" },
+        { "element": "email field label", "key": "workEmail", "namespace": "auth.joinWaitlist" },
+        { "element": "email input placeholder", "key": "emailPlaceholder", "namespace": "auth.joinWaitlist" },
+        { "element": "send otp button", "key": "sendOtp", "namespace": "auth.joinWaitlist" },
+        { "element": "first name label", "key": "firstName", "namespace": "auth.joinWaitlist" },
+        { "element": "first name placeholder", "key": "firstNamePlaceholder", "namespace": "auth.joinWaitlist" },
+        { "element": "last name label", "key": "lastName", "namespace": "auth.joinWaitlist" },
+        { "element": "last name placeholder", "key": "lastNamePlaceholder", "namespace": "auth.joinWaitlist" },
+        { "element": "company label", "key": "company", "namespace": "auth.joinWaitlist" },
+        { "element": "company placeholder", "key": "companyPlaceholder", "namespace": "auth.joinWaitlist" },
+        { "element": "role label", "key": "role", "namespace": "auth.joinWaitlist" },
+        { "element": "role placeholder", "key": "rolePlaceholder", "namespace": "auth.joinWaitlist" },
+        { "element": "use case label", "key": "useCase", "namespace": "auth.joinWaitlist" },
+        { "element": "use case placeholder", "key": "useCasePlaceholder", "namespace": "auth.joinWaitlist" },
+        { "element": "submit button", "key": "submit", "namespace": "auth.joinWaitlist" },
+        { "element": "cancel button", "key": "cancel", "namespace": "auth.joinWaitlist" },
+        { "element": "email-not-verified toast", "key": "errors.emailNotVerified", "namespace": "auth.joinWaitlist" },
+        { "element": "email-invalid-format error", "key": "errors.emailInvalid", "namespace": "auth.joinWaitlist" }
+      ],
+      "utilityClasses": ["w-full", "max-w-[360px]", "mb-6", "space-y-3", "gap-5", "gap-2", "gap-3", "shrink-0", "rounded-md"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 5,
+      "elementsFound": 9,
+      "terminationReason": "smoke_scope_complete",
+      "duration": "~3m"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial waitlist form (anonymous, emailState=idle)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "ariaLabel": null, "testId": null, "href": "https://mira-bff-preview.up.railway.app/", "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "button", "role": "combobox", "text": "English", "ariaLabel": null, "testId": null, "haspopup": "listbox", "locatorHint": "getByRole('combobox')" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": null, "label": "Work Email", "type": "email", "placeholder": "name@company.com", "testId": null, "autoFocus": true, "locatorHint": "getByLabel('Work Email')" },
+            { "tag": "button", "role": "button", "text": "Send Verify Code", "type": "button", "disabled": true, "testId": null, "locatorHint": "getByRole('button', { name: 'Send Verify Code' })" },
+            { "tag": "input", "role": "textbox", "text": null, "label": "First name", "type": "text", "placeholder": "Enter your first name", "id": "wl-firstname", "testId": null, "locatorHint": "getByLabel('First name')" },
+            { "tag": "input", "role": "textbox", "text": null, "label": "Last name", "type": "text", "placeholder": "Enter your last name", "id": "wl-lastname", "testId": null, "locatorHint": "getByLabel('Last name')" },
+            { "tag": "input", "role": "textbox", "text": null, "label": "Company", "type": "text", "placeholder": "Enter your company name", "id": "wl-company", "testId": null, "locatorHint": "getByLabel('Company')" },
+            { "tag": "input", "role": "textbox", "text": null, "label": "Role / Position", "type": "text", "placeholder": "Enter your role", "id": "wl-role", "testId": null, "locatorHint": "getByLabel('Role / Position')" },
+            { "tag": "textarea", "role": "textbox", "text": null, "label": "How do you plan to use Mira", "placeholder": "Describe your use case", "id": "wl-usecase", "multiline": true, "testId": null, "locatorHint": "getByLabel('How do you plan to use Mira')" },
+            { "tag": "button", "role": "button", "text": "Submit Application", "type": "button", "disabled": false, "testId": null, "locatorHint": "getByRole('button', { name: 'Submit Application' })" },
+            { "tag": "button", "role": "button", "text": "Cancel", "type": "button", "disabled": false, "testId": null, "locatorHint": "getByRole('button', { name: 'Cancel' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Join Waitlist" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Non-empty email typed (any format) — Send Verify Code enabled",
+      "sourceArea": "join-waitlist-email-gate",
+      "trigger": { "action": "type", "element": "textbox:Work Email", "value": "notanemail", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "input", "role": "textbox", "label": "Work Email", "value": "notanemail", "testId": null, "locatorHint": "getByLabel('Work Email')" },
+            { "tag": "button", "role": "button", "text": "Send Verify Code", "disabled": false, "testId": null, "locatorHint": "getByRole('button', { name: 'Send Verify Code' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Join Waitlist" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S2": {
+      "name": "Submit Application clicked while email not verified",
+      "sourceArea": "join-waitlist-submit-gate",
+      "trigger": { "action": "click", "element": "button:Submit Application", "fromState": "S1" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Submit Application", "focused": true, "disabled": false, "testId": null, "locatorHint": "getByRole('button', { name: 'Submit Application' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Join Waitlist" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "text": "Please verify your email before submitting", "role": "toast", "i18nKey": "auth.joinWaitlist.errors.emailNotVerified" }
+      ]
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "type", "element": "textbox:Work Email", "to": "S1", "sourceArea": "join-waitlist-email-gate" },
+      { "from": "S1", "action": "click", "element": "button:Submit Application", "to": "S2", "sourceArea": "join-waitlist-submit-gate" },
+      { "from": "S0", "action": "click", "element": "button:Cancel", "to": "EXTERNAL(quick-activate)", "sourceArea": "join-waitlist-cancel" }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Send Verify Code",
+      "initialState": "disabled",
+      "strategy": "form-completion (type non-empty text into Work Email)",
+      "result": "activated",
+      "enablingCondition": "email.trim() is non-empty — NOT gated on valid email format. Typing 'notanemail' (no @, no domain) also enables the button; actual format validation (zod z.email()) only runs when the button is clicked, surfacing an inline FieldError instead.",
+      "newStateId": "S1"
+    },
+    {
+      "element": "button:Submit Application",
+      "initialState": "enabled",
+      "strategy": "n/a — button is enabled from initial render",
+      "result": "already-active",
+      "enablingCondition": "disabled only while isSubmitting (pending transition of the actual POST /api/waitlist call); NOT gated on required fields (firstName/lastName/company/role/useCase) or on emailState. Required-field validation (zod) and the email-verified check both run inside the onClick handler, not via a disabled attribute.",
+      "newStateId": null
+    }
+  ],
+
+  "destructiveActions": [
+    { "element": "button:Send Verify Code", "reason": "Triggers POST /api/waitlist/send-otp — sends a real OTP email to the address entered", "context": "Deliberately not clicked per crawl instructions" },
+    { "element": "button:Submit Application (full valid-data path)", "reason": "Triggers POST /api/waitlist which creates a real waitlist application record and redirects to /join-waitlist/success", "context": "Clicked once in this crawl, but with emailState !== 'verified' the handler short-circuits to a toast before any fetch call — no real submission occurred. The full submit-with-verified-email path was not exercised to avoid a real application record." }
+  ],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S0 (Join Waitlist form)",
+      "fields": [
+        { "name": "workEmail", "type": "email", "required": true, "validation": "zod z.email() — checked only inside handleSendOtp on click, NOT via input-level blur/change", "errorMessage": "Please enter a valid email address (approx.)", "i18nKey": "auth.joinWaitlist.errors.emailInvalid", "gatesButton": "Send Verify Code (disabled={isSendingOtp || !email.trim()} — presence-only check, not format)" },
+        { "name": "firstName", "type": "text", "required": true, "validation": "zod z.string().trim().min(1)", "i18nKey": "auth.joinWaitlist.errors.firstNameRequired" },
+        { "name": "lastName", "type": "text", "required": true, "validation": "zod z.string().trim().min(1)", "i18nKey": "auth.joinWaitlist.errors.lastNameRequired" },
+        { "name": "company", "type": "text", "required": true, "validation": "zod z.string().min(1)", "i18nKey": "auth.joinWaitlist.errors.companyRequired" },
+        { "name": "role", "type": "text", "required": true, "validation": "zod z.string().min(1)", "i18nKey": "auth.joinWaitlist.errors.roleRequired" },
+        { "name": "useCase", "type": "textarea", "required": true, "maxLength": 100, "validation": "zod z.string().min(1).max(100); client also hard-truncates via .slice(0,100) on change", "i18nKey": "auth.joinWaitlist.errors.useCaseRequired" }
+      ],
+      "submitButton": {
+        "text": "Submit Application",
+        "disabled": false,
+        "disabledWhen": "isSubmitting only (pending transition of POST /api/waitlist)",
+        "note": "All field-required validation + the email-verified gate run inside the onClick handler (validateForm() via zod, then emailState check), not as a disabled-attribute precondition. This differs from the typical 'disabled until valid' pattern — test cases should assert on the resulting toast/inline errors after click, not on button disabled state."
+      }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Enter", "action": "in Work Email input (idle state), with non-empty trimmed value: submits handleSendOtp() same as clicking Send Verify Code", "stateTransition": "S0/S1 -> otp-sent (not exercised)" },
+    { "key": "Enter", "action": "in OTP input (otp-sent state), when otp.length === 6: submits handleVerifyOtp()", "stateTransition": "not reached in this crawl" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "hasFormLabels": true,
+    "dominantStrategy": "role+label (i18n-sensitive, no data-testid found in source or DOM). First/Last name inputs additionally have stable id attributes (wl-firstname, wl-lastname, wl-company, wl-role, wl-usecase) usable as a fallback CSS locator."
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 10,
+    "totalForms": 1,
+    "totalDestructiveActions": 2,
+    "coveredPatterns": ["form", "button-gating", "toast-validation"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0,
+    "notes": [
+      "No login wall encountered; anonymous access works as expected (mode='anonymous', no ?email= param).",
+      "No unexpected redirect; URL stayed at /join-waitlist for the whole crawl.",
+      "No console errors or warnings observed during the crawl.",
+      "KEY FINDING: 'Send Verify Code' is gated only on the email field being non-empty after trim() — it does NOT check for a valid-looking email format. Typing 'notanemail' (no @ or domain) enables the button. Real format validation (zod z.email()) only runs at click-time inside handleSendOtp, surfacing an inline error. Test cases asserting 'button stays disabled for invalid-format email' would be WRONG for this component — only truly empty/whitespace-only input keeps it disabled.",
+      "KEY FINDING: 'Submit Application' is enabled from initial page load regardless of whether any required field (firstName/lastName/company/role/useCase) is filled, or whether the email has been OTP-verified. It is only disabled while isSubmitting (mid-request). All required-field and email-verification checks happen inside the onClick handler (validateForm() via zod, then emailState check) and surface as a toast ('Please verify your email before submitting') or inline FieldErrors — not as a disabled button. Verified by clicking Submit Application on an all-empty, unverified form: it safely short-circuited to the email-not-verified toast, with no field-level errors shown yet and no network call made.",
+      "Cancel button confirmed: calls resetAllState() (clears all fields/otp/countdown state) then router.back(), navigating away from /join-waitlist to whatever the browser history's previous entry was (in this crawl: back to /quick-activate, the page open before this crawl started). On a real user's first visit (e.g. arriving via direct link/ad with no prior history), router.back() could be a no-op or leave the SPA — worth a low-priority note for edge-case testing but not exercised further in this smoke scope.",
+      "TOOLING CAVEAT (not a page bug): the chrome-devtools MCP `fill` tool, when used to set a controlled React input to an empty string or whitespace-only string right after a prior non-empty fill, did not reliably re-trigger React's onChange/disabled recomputation (DOM value read back as '' but Send Verify Code stayed enabled). Re-tested with real keystroke simulation (type_text + Control+A + Backspace) and the disabled state correctly recomputed to true on true-empty input. Recommend using type_text/press_key (not fill) when testing empty/whitespace edge cases on controlled inputs in this codebase.",
+      "i18n data note: the local QA messages snapshot at tests/e2e/local/messages/en.json is missing 'firstName'/'lastName'/'firstNamePlaceholder'/'lastNamePlaceholder' keys (and likely other auth.joinWaitlist keys) that DO exist in the actual app source at apps/mira-work/i18n/messages/en/auth.json — the live page renders these labels correctly ('First name', 'Last name'), confirming the deployed app is fine; the local QA messages copy is just stale/incomplete relative to the real per-namespace i18n files and should not be used as the sole source of truth for i18nKey verification on this page.",
+      "Deep OTP-verified submit flow (otp-sent state, OTP verification, and the actual authenticated Submit Application success path to /join-waitlist/success) was intentionally NOT exercised — doing so requires sending/receiving a real OTP email, out of scope for this lightweight smoke crawl."
+    ]
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/invite/accept",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "sourceComponents": [
+      {
+        "name": "InviteAcceptPage",
+        "filePath": "apps/mira-work/app/(auth)/invite/accept/page.tsx",
+        "role": "page"
+      },
+      {
+        "name": "AuthLayout",
+        "filePath": "apps/mira-work/app/(auth)/layout.tsx",
+        "role": "layout"
+      }
+    ],
+    "sourceContext": {
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "Loader2 icon", "attribute": "aria-hidden", "value": "true" },
+        { "element": "phase icon (MailX/CircleAlert)", "attribute": "aria-hidden", "value": "true" }
+      ],
+      "conditionalElements": [
+        { "element": "verifying spinner block", "condition": "phase === 'verifying'", "description": "Shown briefly while POST /api/invite/accept is in flight; requires a token param to even attempt the fetch" },
+        { "element": "error/result block (heading+subtitle+Go to Mira button)", "condition": "phase !== 'verifying'", "description": "Rendered for expired | invalid | already_in_org | email_mismatch | missing_token phases; missing_token and invalid share identical copy (invalidTitle/invalidSubtitle)" },
+        { "element": "email_mismatch subtitle interpolation", "condition": "phase === 'email_mismatch'", "description": "Subtitle interpolates {email} = data.invitedEmail from API response" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 (missing_token/invalid)", "key": "inviteAccept.invalidTitle", "namespace": "auth" },
+        { "element": "subtitle (missing_token/invalid)", "key": "inviteAccept.invalidSubtitle", "namespace": "auth" },
+        { "element": "verifying h1", "key": "inviteAccept.verifyingTitle", "namespace": "auth" },
+        { "element": "expired h1/subtitle", "key": "inviteAccept.expiredTitle / inviteAccept.expiredSubtitle", "namespace": "auth" },
+        { "element": "already_in_org h1/subtitle", "key": "inviteAccept.alreadyTitle / inviteAccept.alreadySubtitle", "namespace": "auth" },
+        { "element": "email_mismatch h1/subtitle", "key": "inviteAccept.emailMismatchTitle / inviteAccept.emailMismatchSubtitle", "namespace": "auth" },
+        { "element": "action button", "key": "inviteAccept.goToApp", "namespace": "auth" }
+      ],
+      "utilityClasses": ["flex", "w-[420px]", "max-w-full", "flex-col", "items-center", "gap-5", "text-center", "rounded-full", "size-16", "size-8"],
+      "notes": "No data-testid anywhere in this component; locators must rely on role+name (heading/button) or i18n text. NOTE: message namespace passed by AuthLayout is [\"auth\",\"inviteAccept\",\"common\"] but the actual translation keys physically live under the 'inviteAccept' object inside en/auth.json (there is no separate inviteAccept.json file) — useTranslations('inviteAccept') resolves via next-intl's flattened namespace merge."
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Bare access, no ?token=/&email= — missing_token phase (renders identical copy to 'invalid' phase)",
+      "sourceArea": "invite-accept-bare",
+      "trigger": null,
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "button", "role": "combobox", "text": "English", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('combobox')", "state": { "expanded": false, "haspopup": "listbox" } }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Go to Mira", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: 'Go to Mira' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "This invitation link is invalid" }
+          ],
+          "staticText": [
+            "The link may be broken or already used. Ask the team Owner to send a new one."
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "alert", "note": "empty toast/alert live-region placeholder present in DOM (uid=58_9), no visible message rendered" }
+      ]
+    },
+    "S1": {
+      "name": "After clicking 'Go to Mira' — client-side navigation to marketing homepage '/'",
+      "sourceArea": "invite-accept-bare",
+      "trigger": { "action": "click", "element": "button:Go to Mira", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Join Waitlist", "locatorHint": "getByRole('link', { name: 'Join Waitlist' })" },
+            { "tag": "a", "role": "link", "text": "Sign in", "locatorHint": "getByRole('link', { name: 'Sign in' })" }
+          ],
+          "headings": [
+            { "level": 2, "text": "Work With You, Not For You" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Go to Mira", "to": "S1", "sourceArea": "invite-accept-bare" }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "dominantStrategy": "role+name (i18n text 'This invitation link is invalid' / 'Go to Mira' from auth.json:inviteAccept)"
+  },
+
+  "networkObservations": {
+    "apiInviteAcceptFetchAttempted": false,
+    "note": "Confirmed via network log that no POST to /api/invite/accept fired on bare access — component short-circuits to phase='missing_token' before the fetch effect body runs, matching source logic (if (!token) { setPhase('missing_token'); return; }).",
+    "consoleErrors": [],
+    "allRequestsStatus": "200 (Sentry envelope beacons + get-session + RSC navigation payloads only)"
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 4,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["error-state-render", "client-side-nav-button"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0,
+    "notes": "Smoke-scope: bare-access edge case only. Not covered here (out of scope for this pass): valid token happy-path (302→/task), expired/already_in_org/email_mismatch/401-redirect-to-sign-in phases — these require a live token and are noted as follow-up targeted-mode coverage via source read of page.tsx's Phase type."
+  }
+}

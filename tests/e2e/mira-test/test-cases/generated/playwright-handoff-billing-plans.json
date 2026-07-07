@@ -1,0 +1,114 @@
+[
+  {
+    "id": "TC-CDP-PLANS-001",
+    "storyId": "US-BILLING-PLANS",
+    "criterionId": "AC-PLANS-LOAD",
+    "source": "cdp",
+    "title": "定价页加载并渲染标题、四张套餐卡与积分包区块",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录（storageState 自动认证），免费账户"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/billing/plans" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Simple, transparent pricing", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Starter", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Individual", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Team", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Enterprise", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "region", "name": "Need more credits?", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Back", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-PLANS-002",
+    "storyId": "US-BILLING-PLANS",
+    "criterionId": "AC-PLANS-CTA-STATE",
+    "source": "cdp",
+    "title": "免费账户下三张付费卡显示 Upgrade、Team 显示 Most Popular、且无 Your Plan 徽标",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，免费账户 / 无有效订阅"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/billing/plans" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "button", "name": "Upgrade", "expected": null, "i18nKey": null },
+      { "type": "enabled", "selector": "button", "name": "Upgrade", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Contact us", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Most Popular", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "text", "name": "Your Plan", "expected": "0", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-PLANS-003",
+    "storyId": "US-BILLING-PACKS",
+    "criterionId": "AC-PACKS-BUY-ENABLE",
+    "source": "cdp",
+    "title": "积分包 Buy 按钮默认禁用，选中任一积分包 tile 后启用且 tile 置为选中态",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，定价页积分包区块可见"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/billing/plans" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "$199 6,000 Credits", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: /\\$199.*6,000 Credits/ })", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Buy", "expected": null, "i18nKey": null },
+      { "type": "attribute", "selector": "button", "name": "$199 6,000 Credits", "expected": "aria-pressed=true", "i18nKey": null },
+      { "type": "enabled", "selector": "button", "name": "Buy", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-PLANS-004",
+    "storyId": "US-BILLING-PLANS",
+    "criterionId": "AC-ENTERPRISE-CONTACT",
+    "source": "cdp",
+    "title": "点击 Enterprise Contact us 客户端导航至线索表单页（非支付流）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，定价页 Enterprise 卡可见"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/billing/plans" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Contact us", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'Contact us' })", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "**/billing/plans/contact", "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Contact Us For Enterprise Plan", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Submit", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-PLANS-005",
+    "storyId": "US-BILLING-PLANS",
+    "criterionId": "AC-PLANS-PRICE",
+    "source": "cdp",
+    "title": "各套餐价格与计费周期后缀正确展示",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已登录，定价页已加载"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/billing/plans" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "$20", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "$100", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "$200", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Custom", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "text", "name": "/person/month", "expected": "/person/month", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

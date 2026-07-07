@@ -214,6 +214,19 @@ retries: process.env.CI ? 1 : 2
 | Panel 打开/关闭等待 | 30_000（Framer Motion 抖动） |
 | file upload 完成 | 15_000 |
 
+## 19b. SSR 已可见 ≠ React 已 hydrate（点击/填写静默无效）
+
+**Symptom**: `heading.waitFor({ state: 'visible' })` 通过后立刻 `fill()`/`click()`，操作本身不报错，但受控输入的值被后续 re-render 清空，或按钮点击后什么也没发生（无 toast、无状态变化）。在 `/join-waitlist`、`/quick-activate` 等 auth 系列页面上均复现（同一 preview 部署，同一根因）。
+
+**Root Cause**: Next.js SSR 把静态骨架（heading/表单结构）先送达，`visible` 断言只证明 DOM 存在，不证明 React 事件监听器已挂载。Playwright 的 `fill()`/`click()` 在 hydration 完成前执行时，要么落在还没绑定 onChange 的原生 input 上（值被 hydration 后的受控组件重置为初始值），要么点在还没绑定 onClick 的按钮上。并发 workers 下更容易触发（CPU 竞争延长 hydration 时间）。
+
+**Fix**: 在 POM 的 `goto()`/`gotoWith*()` 里，等完 heading 之后再加一次 hydration 就绪代理：
+```ts
+await this._heading.waitFor({ state: "visible", timeout: 20_000 });
+await this.page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+```
+`networkidle` 不是精确的 hydration 信号，但对这批页面（无持续轮询请求）够用；如果页面有长连接/轮询，改用等待一个已知会在 hydration 后才出现的交互态（如按钮从 disabled 变 enabled）。**别把这类失败误判成应用 bug** —— 用真实 CDP 点击验证一遍：如果手动点击有效而 Playwright 点击无效，几乎总是这个时序问题，不是功能坏了。
+
 ## 19. 不该"改测试让它过"的场景（保留失败 = 真 bug）
 
 | 信号 | 分类 |
@@ -222,6 +235,74 @@ retries: process.env.CI ? 1 : 2
 | toHaveText 文案确实被开发改过（legit copy update） | UPDATE handoff + assertionsChanged:true |
 | 功能被 feature-flag 关掉 / 权限变更 | BUG or config issue |
 | 明确是回归（verify-fix 原 bug 再现） | BUG — 原断言不动 |
+
+## 20. role=button 容器聚合可访问名与内部按钮文案子串重叠
+
+**Symptom**: `getByRole('button', { name: 'Disconnect X' })` strict mode violation — resolved to 2 elements：一个是外层 `<div role="button" tabindex="0">` 行容器，一个是内层真正的 `<button aria-label="Disconnect X">`。
+
+**Root Cause**: 行容器 div 本身没有 `aria-label`，其可访问名按 ARIA "name from content" 规则聚合所有后代内容（服务名 + 描述 + 内层按钮的可访问名），例如 `"Market Leads 企业和职位 8 Tools Disconnect Market Leads"`。Playwright `getByRole(..., { name })` **不加 `exact`默认按大小写不敏感的子串匹配**，`"Disconnect Market Leads"` 恰好是行容器聚合名的子串，于是同时命中行容器与内层按钮。
+
+**Fix**: 内层按钮的可访问名是精确值（因为按钮自身 `aria-label` 就是这个短字符串），行容器的聚合名总是更长/不同。加 `{ exact: true }` 即可让匹配只落在内层按钮：
+```ts
+page.getByRole("button", { name: `${disconnect} ${serverName}`, exact: true })
+```
+用 CDP a11y snapshot 现场核对两者的可访问名是否确实不同（行容器名更长），确认后再下手改，避免误伤真正需要子串匹配的场景（如行容器本身用 `/^ServerName/` 前缀正则定位）。
+
+## 21. aria-label 模板注释 ≠ 渲染字面量 / 同名按钮跨区域碰撞
+
+**Symptom**: `getByLabel(/item\(s\)\s*pending/i)` element(s) not found；`getByRole('button', { name: 'More' }).first()` 点开的菜单没有期望的 menuitem（内容完全不对，如 Share/Rename/Delete 而非 Dismiss）。
+
+**Root Cause**:
+1. CDP baseline/源码注释里记的 `"{n} item(s) pending"` 是**模板占位符写法**，不是真实渲染文本。live DOM 实际 `aria-label="1 item pending"`（单数，没有字面 `"(s)"`）。正则不能照抄模板里的 `(s)`，要写成 `items?` 才能同时兼容单复数。
+2. 页面上存在**多个同名可访问名称**的按钮（本例：侧栏 "Recent" 任务列表每一项都有自己的 "More" 按钮，和主区 HITL 行的 "More" 按钮文案完全相同）。不加容器 scope 的 `getByRole('button', { name: 'More' }).first()` 按 DOM 顺序命中的是**侧栏**（nav 在 main 之前），点开后菜单项是 Share/Rename/Delete，和断言要找的 "Dismiss" 毫无关系 → `waitFor visible` 超时。
+
+**Fix**:
+1. aria-label/文案正则：永远按"字面渲染值"写，不按模板占位符抄。单复数用 `?`，不要抄 `(s)`：`/\d+\s*items?\s*pending/i`。
+2. 同名按钮先 scope 到语义容器再取 role+name，不要在全页面 `.first()`：
+   ```ts
+   this._moreButton = this._hitlRows.first().getByRole("button", { name: "More", exact: true });
+   ```
+3. 用真实 CDP 点击 + `take_snapshot`/`error-context.md` 验证点开的菜单内容是否是期望的那个，而不是只看按钮点击是否成功（点击成功 ≠ 点对了元素）。
+
+## 22. fullyParallel 下多个 test() 竞争同一账户的真实可变状态
+
+**Symptom**: 同一 spec 文件内彼此独立的 test()（各自 `page.goto()`，无显式依赖）里，某个断言初始状态的用例（如 "开关默认是 on"）偶发失败，收到的却是另一个用例改完还没改回来的中间值。
+
+**Root Cause**: `playwright.config.ts` 全局 `fullyParallel: true`，同文件内的 test() 默认也会被拆到不同 worker 并发跑。如果其中一个 test 会对**账户级别、服务端持久化**的资源做真实写入 + 回滚（如 `PUT /api/profile/visibility` 切换后再切回去），而另一个 test 只是读取"初始应为 X"的假设 —— 两者共用同一个已登录账户（同一条服务端记录），并发时读用例可能踩在写用例"已改、未回滚"的窗口期。这不是 UI 竞态，是**跨 worker 的共享后端状态竞态**。
+
+**Fix**: 给包含"真实写入+回滚"用例的整个 spec 文件顶部加：
+```ts
+test.describe.configure({ mode: "serial" });
+```
+放在所有 `test.describe` 之前（文件级别），让该文件内测试严格串行，不再和自己的兄弟用例抢同一账户的状态。不要试图给单个断言加 retry 掩盖 —— 断言本身没错，是并发调度让它看见了别人的中间态。
+
+**识别信号**：spec 里出现 `toggleXxx()` + "roll back" 注释 + 别的 test 在同文件里断言同一资源的初始值，就要主动检查是否需要 serial。
+
+## 23. Agent/Chat 产品里调用「不在当前 agent 可用工具集里」的工具会导致整轮对话静默回滚
+
+**Symptom**: 手动通过真实聊天 UI 驱动 Mira 的 AI agent 执行一个多步骤指令（每步显式要求调用某个工具）。live 流式渲染里能看到后续好几步的工具卡片（如 sb_xlsx_create、sb_pdf_create……）都正常渲染了，但过几分钟刷新页面重新拉取，对话记录**回退**到了远早于那些步骤的一条消息，后面那些"看起来已经跑完"的工具卡片全部消失，UI 提示又变回"Mira will continue after your response"，好像什么都没发生过。
+
+**Root Cause**: 该轮 assistant turn 里某一步调用了一个**不在这个 agent/账户实际可用工具集里**的工具（本次实测：`report_final_candidates`、`list_cities`、`search_jobs` 明明在系统提示词/工具 schema 里列出了，但这个聊天上下文实际拿不到）。工具调用失败后模型选择"记录错误、继续下一步"而不是中止，但后端在这次失败之后的整个 turn 可能没有被正确持久化/提交——本地浏览器的 SSE/live 视图仍然乐观渲染了后续（未持久化）的工具调用结果，但那只是"这次连接内的临时展示"，一旦刷新重新从服务端拉取真实存档，未提交的内容全部丢失，回滚到最后一个成功持久化的检查点（这里是那次失败调用之前）。
+
+**Fix**:
+1. **不要相信 live 流式视图作为"已完成"的证据** —— 每次要确认某一步真的发生过，必须 `navigate_page(type: 'reload')` 之后重新读 DOM，而不是只看 evaluate_script 抓到的当前内存态。
+2. 一旦发现某个工具报错"不在可用工具集"，立刻在下一条消息里明确告诉 agent"该工具确认不可用，永久跳过，不要重试"，防止它在后续 turn 里再次尝试触发同样的静默回滚。
+3. 这类"工具目录 vs 实际可调用工具集不一致"本身是产品侧的真实 bug，应该单独记录上报——不是测试脚本的问题。
+
+**识别信号**：live 视图里看到的进度在 reload 后"消失"、回到更早的消息，且消失的那段内容前一步正好有"该工具不在可用工具集"或类似的报错。
+
+## 24. 生产环境（miraday）一次成功的多步 turn，reload 后重建出的历史记录本身不确定——不只是回滚，是每次不一样
+
+**Symptom**: 在 miraday（生产）上手动驱动一个 27 步指令（每步都是真实可用、真实成功的工具：`infer_icp`、`people_search`、`evaluate_people`、`generate_people_data`、`sb_xlsx_create`/`sb_pdf_create`/`sb_pptx_create`/`sb_image_create`、`code_interpreter`、`sb_command_execute`、`sb_file_create`/`sb_file_edit`/`sb_file_rewrite`、`compose_email`+`confirm`、`team_create`+`task_create`/`task_list`）。Live 流式视图里全部步骤都正常跑完，最终看到 "Task completed"。**连续两次 reload 同一个 task URL，拿到两个互相矛盾的历史**：第一次 reload 只剩下第一条 assistant 消息（`write_todos` 那条）+ "Task completed" 徽标；第二次（约 90 秒后）reload 却重建出了到 step 23（`compose_email` 草稿，Cancel/Send 按钮仍然可点、尚未 confirm）为止的记录，且提示 "Mira will continue after your response"——意味着这次重建认为任务还卡在中途、`team_create`/`complete()` 根本没发生过。用 `evaluate_script` 直接数 `[role="log"]` 的 DOM 子节点数，两次 reload 分别是 2 个子节点（内容不同），确认不是懒加载/虚拟化渲染问题，是后端真的对"这个任务当前处于什么状态"给出了两个不同答案。
+
+**Root Cause**（推测，未深入产品源码验证）：与 §23 的场景不同——§23 是"调用了一个不可用工具 → 该 turn 未提交 → 回滚到最后一次成功持久化点"，触发条件明确、结果稳定（reload 多次得到同一个回滚后状态）。这里所有工具全部可用且执行成功（**证据**：Files 面板里 `notes.md`、`candidates_table.xlsx`、`search_summary.pdf`、`search_recap.pptx`、`match_tier_chart.png`、people-data JSON 全部真实生成并可下载，与聊天记录是否显示无关），但 reload 后 UI 重建的"聊天记录"版本本身不稳定——很可能是长 turn 的消息内容分片持久化到不同副本/缓存节点，读路径在不同时间点从不同副本拼出不一样的快照，属于最终一致性窗口内的读取，而不是简单的"提交或未提交"二元状态。
+
+**Fix / 应对方式**:
+1. **不要用聊天记录本身作为"某个工具是否真的执行过"的证据**——即使是生产环境、即使显示"Task completed"，也不能保证下一次 reload 还是同一个故事。判定某个工具是否真的跑了，必须去看**独立于聊天记录持久化路径的证据**：Files 面板里的产出文件、真实收到的邮件、真实产生的外部副作用（本次因为 CTS/cimail/voice 工具集根本没挂载而没有触发，但这条原则同样适用于将来任何真实副作用工具的验证）。
+2. 涉及"点 Send / 确认降级动作"类的验证時，如果一次 reload 后发现同一个 task 出现了"这个操作看起来还没被确认"的界面（如仍然可点的 Cancel/Send 按钮），**不要假设点击安全**——那可能是一个陈旧/不一致的重建视图，实际状态可能早已是别的样子；应先用 Files/其他独立信号交叉确认，不确定就换一个全新的 task 继续，不要在这个歧义状态的 task 里继续操作。
+3. 这是一个比 §23 更严重的产品 bug（真实成功的执行，产品自己的"完成"信号都靠不住），应单独作为高优先级 finding 上报，不要和 §23 的"工具不可用回滚"归并成一类。
+
+**识别信号**：同一个已经跑完的 task，连续两次 reload 得到的聊天记录长度/内容不一致（尤其是一次显示"已完成"，另一次显示"还在等你回复"）；DOM 子节点数每次 reload 后不同。
 
 ## 使用方式
 

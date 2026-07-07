@@ -1,0 +1,657 @@
+[
+  {
+    "id": "TC-PRD-PHTP-001",
+    "storyId": "US-PHTP-EQUIV",
+    "criterionId": "AC-PROPS-ASSEMBLY",
+    "source": "prd",
+    "title": "anchor_tool 单一命中场景下 people_task_matched_by 正确落地",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件，emit 函数可独立 mock 调用"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool"], "tools": ["people_search"], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "people_task_matched_by", "name": "task_finished 事件属性", "expected": ["anchor_tool"] }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@regression"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-002",
+    "storyId": "US-PHTP-EQUIV",
+    "criterionId": "AC-PROPS-ASSEMBLY",
+    "source": "prd",
+    "title": "bua_recruiting_site 命中场景",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["bua_recruiting_site"], "tools": [], "platforms": ["zhaopin"], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "people_task_matched_by", "name": "task_finished 事件属性", "expected": ["bua_recruiting_site"] },
+      { "type": "value", "selector": "people_task_platforms", "name": "task_finished 事件属性", "expected": ["zhaopin"] }
+    ],
+    "tags": ["@P2", "@backend", "@posthog"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-003",
+    "storyId": "US-PHTP-EQUIV",
+    "criterionId": "AC-FALLBACK",
+    "source": "prd",
+    "title": "platforms 平台名大小写不一致的落地基线",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool"], "tools": [], "platforms": ["BOSS"], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "people_task_platforms", "name": "大小写归一化基线", "expected": "record-actual-value-not-asserted-as-pass-fail" }
+    ],
+    "tags": ["@P2", "@backend", "@posthog", "@baseline"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-004",
+    "storyId": "US-PHTP-ISPEOPLETASK",
+    "criterionId": "AC-ISPEOPLETASK",
+    "source": "prd",
+    "title": "非找人任务（matched_by 空数组）下 6 个新属性的空值语义",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": [], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "is_people_task", "name": "task_finished/task_costed", "expected": false },
+      { "type": "value", "selector": "people_task_matched_by", "name": "task_finished/task_costed", "expected": [] },
+      { "type": "value", "selector": "people_task_file_created", "name": "task_finished/task_costed", "expected": false }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@contract"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-005",
+    "storyId": "US-PHTP-FALLBACK",
+    "criterionId": "AC-FALLBACK",
+    "source": "prd",
+    "title": "matched_by 出现未知枚举值时的兜底基线",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["unknown_source"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "emit_process", "name": "不崩溃", "expected": "no_uncaught_exception" },
+      { "type": "attribute", "selector": "people_task_matched_by", "name": "未知值兜底行为记录", "expected": "record-actual-behavior" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@error-handling"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-006",
+    "storyId": "US-PHTP-ISPEOPLETASK",
+    "criterionId": "AC-ISPEOPLETASK",
+    "source": "prd",
+    "title": "matched_by 空数组的数据类型边界",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": [], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "people_task_matched_by", "name": "类型校验", "expected": "Array, not null/undefined" }
+    ],
+    "tags": ["@P2", "@backend", "@posthog", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-007",
+    "storyId": "US-PHTP-EQUIV",
+    "criterionId": "AC-PROPS-ASSEMBLY",
+    "source": "prd",
+    "title": "matched_by 单元素边界",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "people_task_matched_by", "name": "数组长度", "expected": 1 }
+    ],
+    "tags": ["@P2", "@backend", "@posthog", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-008",
+    "storyId": "US-PHTP-EQUIV",
+    "criterionId": "AC-PROPS-ASSEMBLY",
+    "source": "prd",
+    "title": "matched_by 三元素全命中（已知枚举全集上边界）",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool", "sourcing_agent_delegated", "bua_recruiting_site"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "people_task_matched_by", "name": "数组长度", "expected": 3 },
+      { "type": "value", "selector": "people_task_matched_by", "name": "三值全保留", "expected": ["anchor_tool", "sourcing_agent_delegated", "bua_recruiting_site"] }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-009",
+    "storyId": "US-PHTP-DEDUP-TOOLS",
+    "criterionId": "AC-DEDUP",
+    "source": "prd",
+    "title": "people_task_tools 去重验证",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool"], "tools": ["people_search", "people_search", "linkedin_search"], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "people_task_tools", "name": "去重后长度", "expected": 2 },
+      { "type": "value", "selector": "people_task_tools", "name": "去重后值", "expected": ["people_search", "linkedin_search"] }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-010",
+    "storyId": "US-PHTP-EQUIV",
+    "criterionId": "AC-PROPS-ASSEMBLY",
+    "source": "prd",
+    "title": "platforms 七个已知平台全命中上边界",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool"], "tools": [], "platforms": ["boss", "maimai", "51job", "liepin", "zhaopin", "linkedin", "linkedin_recruiter"], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "people_task_platforms", "name": "数组长度", "expected": 7 }
+    ],
+    "tags": ["@P2", "@backend", "@posthog", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-011",
+    "storyId": "US-PHTP-FILECREATED",
+    "criterionId": "AC-FILECREATED",
+    "source": "prd",
+    "title": "fileCreated 判定候选工具数量歧义（6 个 _create 工具逐一验证）",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "对 6 个候选工具逐一单独触发并各自 mock task 内仅调用该工具一次", "data": { "candidateTools": ["sb_file_create", "sb_docx_create", "sb_pptx_create", "sb_xlsx_create", "sb_pdf_create", "sb_image_create"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "people_task_file_created", "name": "6 工具 x fileCreated 对照表", "expected": "record-per-tool-result-not-preassumed" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@ambiguity"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-012",
+    "storyId": "US-PHTP-ISPEOPLETASK",
+    "criterionId": "AC-CONFUSION-GUARD",
+    "source": "prd",
+    "title": "无team无找人行为的常规任务（决策表 R1）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock usedAgentTeam(chatId) 返回值", "data": { "usedAgentTeam": false } },
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": [], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "used_agent_team", "name": "task_finished/task_costed", "expected": false },
+      { "type": "value", "selector": "sourcing_agent_used", "name": "task_finished/task_costed", "expected": false },
+      { "type": "value", "selector": "is_people_task", "name": "task_finished/task_costed", "expected": false }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@decision-table"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-013",
+    "storyId": "US-PHTP-CONFUSION",
+    "criterionId": "AC-CONFUSION-GUARD",
+    "source": "prd",
+    "title": "建了team但team里不是sourcing角色（决策表 R2，混淆防御核心用例）",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock usedAgentTeam(chatId) 返回值", "data": { "usedAgentTeam": true } },
+      { "type": "code", "action": "mock classifySourcingTask 返回值（team内teammate角色非sourcing，因此未构成委派）", "data": { "matched_by": [], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "used_agent_team", "name": "混淆防御", "expected": true },
+      { "type": "value", "selector": "sourcing_agent_used", "name": "混淆防御", "expected": false },
+      { "type": "value", "selector": "is_people_task", "name": "混淆防御", "expected": false }
+    ],
+    "tags": ["@P0", "@backend", "@posthog", "@decision-table", "@critical"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-014",
+    "storyId": "US-PHTP-CONFUSION",
+    "criterionId": "AC-CONFUSION-GUARD",
+    "source": "prd",
+    "title": "建了sourcing team委派找人成功（决策表 R3）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock usedAgentTeam(chatId) 返回值", "data": { "usedAgentTeam": true } },
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["sourcing_agent_delegated"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "used_agent_team", "name": "决策表R3", "expected": true },
+      { "type": "value", "selector": "sourcing_agent_used", "name": "决策表R3", "expected": true },
+      { "type": "value", "selector": "is_people_task", "name": "决策表R3", "expected": true }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@decision-table"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-015",
+    "storyId": "US-PHTP-CONFUSION",
+    "criterionId": "AC-CONFUSION-GUARD",
+    "source": "prd",
+    "title": "未建team、Leader直接调用锚点工具找人（决策表 R4）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock usedAgentTeam(chatId) 返回值", "data": { "usedAgentTeam": false } },
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "used_agent_team", "name": "决策表R4", "expected": false },
+      { "type": "value", "selector": "sourcing_agent_used", "name": "决策表R4", "expected": false },
+      { "type": "value", "selector": "is_people_task", "name": "决策表R4", "expected": true }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@decision-table"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-016",
+    "storyId": "US-PHTP-ISPEOPLETASK",
+    "criterionId": "AC-ISPEOPLETASK",
+    "source": "prd",
+    "title": "is_people_task 契约测试——matched_by 为空必须是 false",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": [], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "is_people_task", "name": "契约测试", "expected": false }
+    ],
+    "tags": ["@P0", "@backend", "@posthog", "@contract", "@critical"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-017",
+    "storyId": "US-PHTP-ISPEOPLETASK",
+    "criterionId": "AC-ISPEOPLETASK",
+    "source": "prd",
+    "title": "is_people_task 契约测试——matched_by 非空必须是 true",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["bua_recruiting_site"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "is_people_task", "name": "契约测试", "expected": true }
+    ],
+    "tags": ["@P0", "@backend", "@posthog", "@contract", "@critical"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-018",
+    "storyId": "US-PHTP-CONSISTENCY",
+    "criterionId": "AC-CONSISTENCY",
+    "source": "prd",
+    "title": "task_finished 与 task_costed 两次快照必须完全一致",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["存在同一个 task_id 的 task，即将先经过 task_finished 再经过 cost 队列出队触发 task_costed"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 固定返回值（同一函数供两处emit调用）", "data": { "matched_by": ["anchor_tool"], "tools": ["people_search"], "platforms": ["boss"], "fileCreated": false } },
+      { "type": "code", "action": "触发 task_finished emit 并记录6个属性", "data": {} },
+      { "type": "code", "action": "模拟该task进入并经过cost计算队列出队", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "task_finished.properties == task_costed.properties", "name": "6字段逐字段一致", "expected": "identical" }
+    ],
+    "tags": ["@P0", "@backend", "@posthog", "@consistency", "@critical"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-019",
+    "storyId": "US-PHTP-CONSISTENCY",
+    "criterionId": "AC-CONSISTENCY",
+    "source": "prd",
+    "title": "cost队列等待期间底层team数据变化对两事件一致性的影响",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["task_finished 已发出，task 处于 cost 队列等待出队阶段"],
+    "setup": [
+      { "type": "code", "action": "触发task_finished（currentTeamId有值，记录快照A）", "data": { "currentTeamId": "team-001" } },
+      { "type": "code", "action": "修改mock使currentTeamId变为null（模拟team在等待期间被解散）", "data": { "currentTeamId": null } },
+      { "type": "code", "action": "触发task_costed（记录快照B）", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "used_agent_team / sourcing_agent_used", "name": "快照A与快照B对比", "expected": "record-drift-if-any" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@consistency", "@risk-finding"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-020",
+    "storyId": "US-PHTP-REGRESSION",
+    "criterionId": "AC-REGRESSION",
+    "source": "prd",
+    "title": "task_finished 重复触发时 uuidv5 去重生效（回归）",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "触发一次task_finished emit", "data": { "taskId": "task-dup-001" } },
+      { "type": "code", "action": "以相同task_id立即再触发一次task_finished emit（模拟重试/重发）", "data": { "taskId": "task-dup-001" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "PostHog task_finished events where task_id=task-dup-001", "name": "去重后事件条数", "expected": 1 }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@regression"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-021",
+    "storyId": "US-PHTP-E2E",
+    "criterionId": "AC-PROPS-ASSEMBLY",
+    "source": "prd",
+    "title": "基本流——委派找人全流程，两个事件属性齐全一致",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["team 已配置一个 sourcing 角色 agent"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值且task产生people_search_rendered", "data": { "matched_by": ["sourcing_agent_delegated"], "tools": ["people_search"], "platforms": ["boss", "maimai"], "fileCreated": false, "people_search_rendered": true } },
+      { "type": "code", "action": "依次触发task_finished与task_costed emit", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "is_people_task", "name": "端到端场景", "expected": true },
+      { "type": "value", "selector": "used_agent_team", "name": "端到端场景", "expected": true },
+      { "type": "value", "selector": "sourcing_agent_used", "name": "端到端场景", "expected": true },
+      { "type": "text", "selector": "event_name", "name": "事件名未变化", "expected": "task_finished / task_costed" },
+      { "type": "text", "selector": "distinct_id", "name": "distinct_id未变化", "expected": "userId" }
+    ],
+    "tags": ["@P0", "@backend", "@posthog", "@e2e", "@critical"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-022",
+    "storyId": "US-PHTP-FALLBACK",
+    "criterionId": "AC-FALLBACK",
+    "source": "prd",
+    "title": "备选流——分类器返回异常结构时 emit 层不崩溃",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回undefined或reject一个Error", "data": { "mockReturn": "undefined_or_rejected_error" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "emit_process", "name": "不整体崩溃", "expected": "no_uncaught_exception" },
+      { "type": "attribute", "selector": "people_task_*", "name": "6个新属性兜底值", "expected": "no_undefined_or_null_written" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@error-handling"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-023",
+    "storyId": "US-PHTP-FUNNEL",
+    "criterionId": "AC-FUNNEL",
+    "source": "prd",
+    "title": "备选流——无文件创建但有 people_search_rendered，漏斗判定为有交付",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值且task流程中产生people_search_rendered", "data": { "fileCreated": false, "people_search_rendered": true } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "people_task_file_created", "name": "本模块职责范围断言", "expected": false },
+      { "type": "attribute", "selector": "funnel.has_deliverable (OR逻辑)", "name": "判定层需标注", "expected": "true_if_evaluated_and_layer_noted" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@funnel"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-024",
+    "storyId": "US-PHTP-FUNNEL",
+    "criterionId": "AC-FUNNEL",
+    "source": "prd",
+    "title": "备选流——有文件创建但无 people_search_rendered，漏斗判定为有交付",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值且task全程未产生people_search_rendered", "data": { "fileCreated": true, "people_search_rendered": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "people_task_file_created", "name": "本模块职责范围断言", "expected": true },
+      { "type": "attribute", "selector": "funnel.has_deliverable (OR逻辑)", "name": "判定层需标注", "expected": "true_if_evaluated_and_layer_noted" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@funnel"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-025",
+    "storyId": "US-PHTP-FUNNEL",
+    "criterionId": "AC-FUNNEL",
+    "source": "prd",
+    "title": "备选流——无交付场景",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值且无people_search_rendered", "data": { "fileCreated": false, "people_search_rendered": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "value", "selector": "people_task_file_created", "name": "无交付场景", "expected": false }
+    ],
+    "tags": ["@P2", "@backend", "@posthog", "@funnel"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-026",
+    "storyId": "US-PHTP-FALLBACK",
+    "criterionId": "AC-FALLBACK",
+    "source": "prd",
+    "title": "分类器抛出异常时 emit 层降级处理（错误猜测）",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 同步抛出Error", "data": { "mockThrow": "Error('classifier crashed')" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "非people_task既有属性", "name": "仍正常上报", "expected": "not_blocked_by_classifier_error" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-027",
+    "storyId": "US-PHTP-FILECREATED",
+    "criterionId": "AC-FALLBACK",
+    "source": "prd",
+    "title": "分类器返回对象缺少 fileCreated 字段时的兜底",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值（无fileCreated字段）", "data": { "matched_by": ["anchor_tool"], "tools": ["people_search"], "platforms": [] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "people_task_file_created", "name": "字段缺失兜底", "expected": "not_undefined_or_null_literal" }
+    ],
+    "tags": ["@P1", "@backend", "@posthog", "@error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-028",
+    "storyId": "US-PHTP-FALLBACK",
+    "criterionId": "AC-FALLBACK",
+    "source": "prd",
+    "title": "matched_by 混合已知值与未知值的兜底",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "mock classifySourcingTask 返回值", "data": { "matched_by": ["anchor_tool", "unknown_source_x"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "people_task_matched_by", "name": "已知值必须保留", "expected": "contains anchor_tool" },
+      { "type": "attribute", "selector": "emit_process", "name": "不因未知值失败", "expected": "no_failure" }
+    ],
+    "tags": ["@P2", "@backend", "@posthog", "@error-guessing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-029",
+    "storyId": "US-PHTP-NAMING",
+    "criterionId": "AC-NAMING",
+    "source": "prd",
+    "title": "命名回归静态检查——新增属性不含 \"signal\"",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["无特殊前置条件，静态代码检查用例"],
+    "setup": [
+      { "type": "code", "action": "在D:\\code\\mira源码中检索task-finished-emit.ts/task-costed-emit-queue.ts/people-task-classifier.ts中的新增属性名字符串", "data": { "propertyNames": ["people_task_matched_by", "people_task_tools", "people_task_platforms", "sourcing_agent_used", "people_task_file_created", "is_people_task"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "property_names", "name": "大小写不敏感signal子串检查", "expected": "no_match_for_'signal'" }
+    ],
+    "tags": ["@P2", "@backend", "@static-check", "@naming"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-030",
+    "storyId": "US-PHTP-REGRESSION",
+    "criterionId": "AC-REGRESSION",
+    "source": "prd",
+    "title": "回归——事件名/distinct_id/uuidv5 去重键不因本次改动变化",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["有改造前后两个版本可对比（或改造前既有事件记录作为基线）"],
+    "setup": [
+      { "type": "code", "action": "记录改造前版本同一task的task_finished事件名/distinct_id/uuidv5去重输入构成", "data": {} },
+      { "type": "code", "action": "在改造后版本对同一task重复上报", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "event_name", "name": "事件名不变", "expected": "task_finished / task_costed" },
+      { "type": "text", "selector": "distinct_id", "name": "distinct_id不变", "expected": "userId" },
+      { "type": "attribute", "selector": "uuidv5_dedup_key_composition", "name": "去重键构成不变", "expected": "unchanged" }
+    ],
+    "tags": ["@P0", "@backend", "@posthog", "@regression", "@critical"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PHTP-031",
+    "storyId": "US-PHTP-CONCURRENCY",
+    "criterionId": "AC-FALLBACK",
+    "source": "prd",
+    "title": "并发场景——两个emit点几乎同时处理同一task",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无特殊前置条件"],
+    "setup": [
+      { "type": "code", "action": "模拟task_finished与task_costed几乎同时由不同worker触发，各自独立mock调用一次classifySourcingTask（输入相同）", "data": { "matched_by": ["anchor_tool"], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "attribute", "selector": "task_finished.properties vs task_costed.properties", "name": "并发下一致性", "expected": "should_be_identical_given_same_input" }
+    ],
+    "tags": ["@P2", "@backend", "@posthog", "@concurrency", "@risk-finding"],
+    "timeout": null
+  }
+]

@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/pulse",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T14:31:11Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "hasLoginWall": false,
+    "sourceContext": {
+      "components": [
+        { "name": "PulsePage", "filePath": "apps/mira-work/app/(agent)/pulse/page.tsx", "role": "page" },
+        { "name": "PulseClient", "filePath": "apps/mira-work/app/(agent)/pulse/pulse-client.tsx", "role": "page" },
+        { "name": "HitlSection", "filePath": "apps/mira-work/features/pulse/components/hitl-section.tsx", "role": "section" },
+        { "name": "ActivitySection", "filePath": "apps/mira-work/features/pulse/components/activity-section.tsx", "role": "section" },
+        { "name": "PulseEmptyState", "filePath": "apps/mira-work/components/pulse/empty-state.tsx", "role": "widget" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "HITL count badge", "label": "awaiting.count ({n} item(s) pending)", "role": "status/badge" },
+        { "element": "Activity icon / Hand icon", "label": null, "note": "aria-hidden=true, decorative" }
+      ],
+      "conditionalElements": [
+        { "element": "Full-page PulseEmptyState", "condition": "hasHitl=false AND hasActivity=false", "description": "Shown only when both HITL items and activities are empty" },
+        { "element": "HitlSection inline empty state ('Awaiting your reply' + check icon + empty text)", "condition": "items.length===0 AND showEmptyState=true (i.e. hasActivity=true)", "description": "Inline empty state instead of full-page empty when the other section has data" },
+        { "element": "ActivitySection inline empty state ('Recent activity' + empty text)", "condition": "groups.length===0 AND showEmptyState=true (i.e. hasHitl=true)", "description": "Confirmed live: this state is currently showing (HITL has 1 item, Activity empty)" },
+        { "element": "HITL row 'More' dropdown menu (Dismiss)", "condition": "click on per-row More button", "description": "Confirmed live: opens a menu with a single 'Dismiss' menuitem" },
+        { "element": "HITL row 'Approve' action", "condition": "item-type dependent (not rendered for the current live item, only Reply + More shown)", "description": "Present in i18n dict (awaiting.actions.approve/approved) but not observed on this item; likely conditional on HITL item type/subtype" },
+        { "element": "SidebarTrigger (mobile hamburger)", "condition": "isMobile===true", "description": "Only rendered on mobile viewport; not present in current desktop snapshot" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 page title", "key": "pulse.page.title", "text": "Pulse" },
+        { "element": "HITL section heading", "key": "pulse.awaiting.title", "text": "Awaiting your reply" },
+        { "element": "HITL count badge", "key": "pulse.awaiting.count", "text": "{n} item(s) pending" },
+        { "element": "HITL reply button", "key": "pulse.awaiting.actions.reply", "text": "Reply" },
+        { "element": "HITL more-menu dismiss item", "key": "pulse.awaiting.actions.dismiss", "text": "Dismiss" },
+        { "element": "HITL inline empty text", "key": "pulse.awaiting.empty", "text": "All clear. {twinName} will check in when something needs your input." },
+        { "element": "Activity section heading", "key": "pulse.activity.title", "text": "Recent activity" },
+        { "element": "Activity inline/full empty text", "key": "pulse.activity.empty", "text": "No recent activity. {twinName} will post here as your channel or agents move." },
+        { "element": "Full empty state title", "key": "pulse.empty.title", "text": "Nothing in your Pulse yet" },
+        { "element": "Full empty state description", "key": "pulse.empty.description", "text": "{twinName} shows what's happening across your channels and agents. Progress to know, decisions to make." },
+        { "element": "Full empty state CTA", "key": "pulse.empty.cta", "text": "New Channel (source) — was previously 'Start a new task' per stale code comment, dict now says 'New Channel'" }
+      ],
+      "utilityClasses": ["flex", "h-full", "min-h-0", "flex-col", "overflow-y-auto", "px-4", "py-6", "sm:px-8", "gap-5", "rounded-full", "bg-secondary"]
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page — HITL has 1 pending item, Activity feed empty (inline empty state)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Toggle Sidebar", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Toggle Sidebar' })" },
+            { "tag": "button", "role": "button", "text": "Pulse 1 item awaiting", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /Pulse/ })" },
+            { "tag": "button", "role": "button", "text": "Channel", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Channel' })" },
+            { "tag": "button", "role": "button", "text": "Contacts", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Contacts' })" },
+            { "tag": "button", "role": "button", "text": "Calendar", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Calendar' })" },
+            { "tag": "button", "role": "button", "text": "Files", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Files' })" },
+            { "tag": "button", "role": "button", "text": "Recent", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Recent' })", "expandable": true, "expanded": true }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "link", "role": "link", "text": "报告数据分析与行动建议 调研报告分析需求确认", "testId": null, "ariaLabel": null, "href": "https://mira-bff-preview.up.railway.app/task/QQESoLWIuYcUkAWX?focusMessageId=yzQgN9xSGOXLgqp6&focusToolCallId=toolu_015FGs6jSiqhZPiNZkkngWyd", "locatorHint": "getByRole('link', { name: /报告数据分析与行动建议/ })" },
+            { "tag": "button", "role": "button", "text": "Reply", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Reply' })" },
+            { "tag": "button", "role": "button", "text": "More", "testId": null, "ariaLabel": null, "expandable": true, "haspopup": "menu", "locatorHint": "getByRole('button', { name: 'More' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Pulse" },
+            { "level": 2, "text": "Awaiting your reply" },
+            { "level": 3, "text": "报告数据分析与行动建议" },
+            { "level": 2, "text": "Recent activity" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": [
+        "HITL badge text renders as '1' (count), item age shown as '197 hours ago' via awaiting.age i18n key",
+        "Activity section shows inline empty state text 'No recent activity. Mira11111 will post here as your channel or agents move.' — hasHitl=true & hasActivity=false branch confirmed matching source logic",
+        "twinName resolves to 'Mira11111' in this environment (test/demo data, not a bug)",
+        "No filter or tab controls found on this page, either in source or live DOM — page-specific-notes request to 'explore any filter/tab controls' found NONE to exist; HitlSection/ActivitySection are the only two content regions, always both rendered (or full-page empty state) with no user-toggleable view switch"
+      ]
+    },
+    "S1": {
+      "name": "HITL row 'More' dropdown menu open",
+      "sourceArea": "hitl-row-actions",
+      "trigger": { "action": "click", "element": "button:More (HITL row)", "fromState": "S0" },
+      "regions": {
+        "menu": {
+          "interactives": [
+            { "tag": "menuitem", "role": "menuitem", "text": "Dismiss", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('menuitem', { name: 'Dismiss' })" }
+          ],
+          "headings": []
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:More (HITL row)", "to": "S1", "sourceArea": "hitl-row-actions" },
+      { "from": "S1", "action": "press:Escape", "element": null, "to": "S0", "sourceArea": "hitl-row-actions" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [
+    { "element": "menuitem:Dismiss", "reason": "removes item from pending HITL list", "context": "HITL row More-menu; not executed, only opened and observed" }
+  ],
+
+  "externalLinks": [],
+
+  "forms": [],
+
+  "shadowDom": [],
+
+  "iframes": [],
+
+  "keyboardShortcuts": [
+    { "key": "Escape", "action": "closes the HITL row 'More' dropdown menu", "stateTransition": "S1 → S0" }
+  ],
+
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (i18n-backed text via next-intl `pulse.*` namespace)"
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 12,
+    "totalForms": 0,
+    "totalDestructiveActions": 1,
+    "coveredPatterns": ["list", "empty-state-inline", "dropdown-menu"],
+    "scrollMode": "single-page-overflow (inner overflow-y-auto container per pulse-client.tsx)",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": null,
+    "explorationStats": {
+      "terminationReason": "smoke_scope_complete",
+      "statesDiscovered": 2,
+      "interactionsPerformed": 2,
+      "elementsFound": 12,
+      "duration": "smoke"
+    },
+    "keyFindings": [
+      "Page loaded successfully, no login wall, already-authenticated session preserved",
+      "Live data state: HITL section has 1 pending item ('报告数据分析与行动建议'), Activity feed is empty — this exercises the 'HITL non-empty / Activity empty' inline-empty-state branch of pulse-client.tsx, matching source logic exactly",
+      "No filter/tab controls exist on this page (confirmed by both source read and live DOM) — page only has two fixed sections (HITL + Activity) with conditional empty states, no user-toggleable views",
+      "HITL row 'More' menu opens correctly and shows a single 'Dismiss' menuitem, matching pulse.awaiting.actions.dismiss i18n key; 'Approve' action from i18n dict was not observed on this particular item (likely item-type-dependent, not exercised in this smoke pass)",
+      "twinName placeholder resolves to 'Mira11111' — cosmetic/test-data artifact, not a functional bug",
+      "No console errors or crash/404/redirect-loop observed"
+    ]
+  }
+}

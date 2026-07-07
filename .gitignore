@@ -8,6 +8,9 @@ playwright-report/
 # Env files (contain credentials)
 .env
 
+# MCP server config (contains hardcoded API keys/secrets)
+.mcp.json
+
 # Playwright auth state (contains session tokens)
 playwright/.auth/
 .auth/
@@ -21,6 +24,18 @@ screenshots/
 # 属于本地执行结果，不应提交；demo-mcp 是随 skill 一起维护的示例夹具，保留）
 tests/whitebox/*/
 !tests/whitebox/demo-mcp/
+
+# Bug submit skill runtime state (last project/assignee cache)
+skills/bug-submit/state/*.json
+
+# AI-generated test case docs & Excel exports (derived output, not source —
+# regenerable from test-cases/generated/*.json handoff + baseline data, which
+# stays tracked). Per CLAUDE.md naming convention: test-cases/generated/*.md,
+# test-cases/excel/*.xlsx. `**/` prefix is required — each qa-platform project
+# lives nested under tests/e2e/<project>/, and a bare "test-cases/..." pattern
+# only anchors to the repo root, not to every nested project directory.
+**/test-cases/generated/*.md
+**/test-cases/excel/*.xlsx
 
 # OS / IDE
 .DS_Store

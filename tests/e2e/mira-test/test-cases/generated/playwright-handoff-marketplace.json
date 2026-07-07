@@ -1,0 +1,90 @@
+[
+  {
+    "id": "TC-CDP-MARKETPLACE-001",
+    "storyId": "marketplace-load",
+    "title": "技能广场加载并渲染标题、计数行、技能卡片与顶栏操作",
+    "priority": "P0",
+    "preconditions": ["已登录且当前会话通过技能访问网关（导航到 /marketplace 不重定向）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "target": "heading", "selector": "heading", "expected": null, "i18nKey": "skill.marketplace.title", "note": "h1 文案实况为 'Skill Marketplace'" },
+      { "type": "visible", "target": "counterLine", "selector": null, "expected": null, "note": "计数行匹配 /All skills \\(\\d+\\)/，N 为 ≥0 整数" },
+      { "type": "count", "target": "listingCards", "selector": null, "expected": ">=1", "note": "至少一张技能卡片 h2" },
+      { "type": "visible", "target": "publishedButton", "selector": "button", "expected": null, "i18nKey": "skill.marketplace.published" },
+      { "type": "enabled", "target": "publishNewButton", "selector": "button", "expected": null, "i18nKey": "skill.marketplace.publishNew" },
+      { "type": "visible", "target": "backButton", "selector": "button", "expected": null, "i18nKey": "skill.marketplace.back" }
+    ]
+  },
+  {
+    "id": "TC-CDP-MARKETPLACE-002",
+    "storyId": "marketplace-filter",
+    "title": "分类筛选 Recruit — 列表与计数响应式更新",
+    "priority": "P0",
+    "preconditions": ["已在 /marketplace，默认分类 All"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "categoryChip", "role": "button", "name": "Recruit", "locatorHint": "getByRole('button', { name: 'Recruit', exact: true })", "i18nKey": "skill.marketplace.categories.recruit" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "counterLine", "selector": null, "expected": null, "note": "计数行仍匹配 /All skills \\(\\d+\\)/" },
+      { "type": "custom", "target": "counterCount", "selector": null, "expected": "N_recruit <= N_all", "note": "子集：筛选后计数 ≤ 全量计数，且为 ≥0 整数" }
+    ]
+  },
+  {
+    "id": "TC-CDP-MARKETPLACE-003",
+    "storyId": "marketplace-sort",
+    "title": "排序下拉打开并切换为 Oldest first",
+    "priority": "P1",
+    "preconditions": ["已在 /marketplace，排序触发器初始为 Newest first"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "sortTrigger", "role": "button", "name": "Newest first", "locatorHint": "getByRole('button', { name: /Newest first|Oldest first/ })", "i18nKey": "skill.marketplace.sort.latest" },
+      { "action": "click", "target": "sortMenuItem", "role": "menuitem", "name": "Oldest first", "locatorHint": "getByRole('menu').getByRole('menuitem', { name: 'Oldest first' })", "i18nKey": "skill.marketplace.sort.oldest" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "sortMenu", "selector": "menu", "expected": null, "note": "菜单打开后 role=menu 可见" },
+      { "type": "visible", "target": "sortMenuItem:Newest first", "selector": "menuitem", "expected": null },
+      { "type": "visible", "target": "sortMenuItem:Oldest first", "selector": "menuitem", "expected": null },
+      { "type": "hidden", "target": "sortMenu", "selector": "menu", "expected": null, "note": "选择后菜单关闭" },
+      { "type": "visible", "target": "sortTrigger:Oldest first", "selector": "button", "expected": "Oldest first", "note": "触发器文案更新为 Oldest first" }
+    ]
+  },
+  {
+    "id": "TC-CDP-MARKETPLACE-004",
+    "storyId": "marketplace-pagination",
+    "title": "分页控件 — 首页 Previous 禁用，存在次页时可翻页",
+    "priority": "P1",
+    "preconditions": ["已在 /marketplace，默认 All 分类"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "pageButton", "role": "button", "name": "Page 2", "locatorHint": "getByRole('button', { name: 'Page 2', exact: true })", "conditional": "仅当存在第二页时" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "paginationNav", "selector": null, "expected": null, "note": "nav aria-label=Pagination" },
+      { "type": "disabled", "target": "prevButton", "selector": "button", "expected": null, "i18nKey": "skill.marketplace.pagination.prev", "note": "首页 Previous 禁用" },
+      { "type": "custom", "target": "pageChange", "selector": null, "expected": "存在第二页时点击后 Previous 变 enabled 且卡片仍渲染；单页时 Prev/Next 均禁用" }
+    ]
+  },
+  {
+    "id": "TC-CDP-MARKETPLACE-005",
+    "storyId": "marketplace-sort",
+    "title": "排序菜单按 Escape 关闭",
+    "priority": "P2",
+    "preconditions": ["已在 /marketplace"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "sortTrigger", "role": "button", "name": "Newest first", "locatorHint": "getByRole('button', { name: /Newest first|Oldest first/ })" },
+      { "action": "press", "target": "page", "value": "Escape" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "sortMenu", "selector": "menu", "expected": null, "note": "菜单打开后可见" },
+      { "type": "hidden", "target": "sortMenu", "selector": "menu", "expected": null, "note": "Escape 后 role=menu 隐藏（S2→S0）" }
+    ]
+  }
+]

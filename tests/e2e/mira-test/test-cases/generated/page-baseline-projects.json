@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/projects",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        {
+          "name": "ProjectsPage",
+          "filePath": "apps/mira-work/app/(sourcing)/projects/page.tsx",
+          "role": "page"
+        }
+      ],
+      "testIds": [],
+      "ariaAttributes": [],
+      "conditionalElements": [],
+      "i18nKeys": [
+        { "element": "h1", "key": "chatbot.projects", "namespace": "chatbot" }
+      ],
+      "utilityClasses": [
+        "mx-auto", "flex", "h-full", "w-full", "max-w-3xl", "flex-col",
+        "items-center", "justify-center", "p-6", "text-center", "mb-4",
+        "text-4xl", "font-bold", "text-muted-foreground", "text-xl"
+      ],
+      "note": "Route component is a static placeholder: renders a translated h1 (t('chatbot.projects') -> 'Projects') plus a hardcoded (non-i18n) 'Coming soon' paragraph. No testIds, no aria attributes, no conditional rendering, no forms or interactive elements owned by this page itself."
+    },
+    "explorationStats": {
+      "statesDiscovered": 1,
+      "interactionsPerformed": 0,
+      "elementsFound": 2,
+      "duration": "~1m",
+      "terminationReason": "smoke_scope_complete"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page - Projects placeholder",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Pulse 1 item awaiting", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Pulse 1 item awaiting' })" },
+            { "tag": "button", "role": "button", "text": "Channel", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Channel' })" },
+            { "tag": "button", "role": "button", "text": "Contacts", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Contacts' })" },
+            { "tag": "button", "role": "button", "text": "Calendar", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Calendar' })" },
+            { "tag": "button", "role": "button", "text": "Files", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Files' })" },
+            { "tag": "button", "role": "button", "text": "", "testId": null, "ariaLabel": null, "locatorHint": null, "note": "unlabeled icon button, top of nav rail" },
+            { "tag": "button", "role": "button", "text": "k", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'k' })", "expandable": true, "haspopup": "menu" },
+            { "tag": "button", "role": "button", "text": "Toggle Sidebar", "testId": null, "ariaLabel": "Toggle Sidebar", "locatorHint": "getByRole('button', { name: 'Toggle Sidebar' })", "note": "present in a11y tree and in shared app-shell layout, but click did not register within timeout during this crawl (see keyFindings) - likely offscreen/zero-size at this breakpoint, not a /projects-specific issue" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [],
+          "headings": [
+            { "text": "Projects", "level": 1, "locatorHint": "getByRole('heading', { name: 'Projects', level: 1 })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": []
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Toggle Sidebar",
+      "initialState": "present-in-a11y-tree",
+      "strategy": "direct-click",
+      "result": "unactivated",
+      "context": "Click timed out waiting for element to become interactive; element not visible in viewport screenshot. Belongs to shared app-shell layout (not owned by ProjectsPage component), so out of scope for this page's baseline. Not flagged as a bug against /projects."
+    }
+  ],
+
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 1,
+    "totalInteractives": 8,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": [],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0,
+    "notes": "Smoke-scope crawl only. Page content region (main) has no page-owned interactive elements - it is a static 'Coming soon' placeholder per route map. All interactive elements found belong to the shared authenticated app-shell (side nav rail), not to the /projects route component itself."
+  }
+}

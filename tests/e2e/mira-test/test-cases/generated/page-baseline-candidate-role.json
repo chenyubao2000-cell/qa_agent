@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/candidate/role",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        {
+          "name": "RolePage",
+          "filePath": "apps/mira-work/app/candidate/role/page.tsx",
+          "role": "page"
+        },
+        {
+          "name": "RoleSelectClient",
+          "filePath": "apps/mira-work/app/candidate/role/role-select-client.tsx",
+          "role": "section"
+        }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "mobile full-card overlay button (per non-disabled card)", "label": "t('role.<consultant|candidate>.title')", "role": "button", "note": "absolute inset-0 z-10, md:hidden — only rendered for non-disabled cards" },
+        { "element": "close (X) button", "label": "t('role.close')", "role": "button", "note": "only rendered when mode==='switch' (URL has ?switch=1); NOT present on bare /candidate/role visit (mode='welcome'). Confirmed present via CDP by navigating to ?switch=1 -- see state S1." },
+        { "element": "card icons", "label": null, "role": "img (aria-hidden)", "note": "lucide icons marked aria-hidden=true, purely decorative" }
+      ],
+      "conditionalElements": [
+        {
+          "element": "close (X) button in header",
+          "condition": "mode === 'switch' (i.e. URL query ?switch=1)",
+          "description": "RolePage derives mode from searchParams.switch; 'switch'=user actively switching role from sidebar (shows X, router.back() on click), 'welcome'=first-time onboarding-guard redirect (no X, no way back). Bare visit to /candidate/role with no query param -> mode='welcome' -> no close button. CDP-verified both branches: welcome mode (S0) has no Close button/heading 'Welcome to Mira'/subtitle 'Choose your role'; navigating to ?switch=1 (S1) shows Close button + heading 'Switch role' + subtitle 'Choose the role to switch to'. Clicking Close correctly called router.back() and returned to /candidate/role (S0)."
+        },
+        {
+          "element": "Employer card CTA + mobile overlay button",
+          "condition": "disabled=true hardcoded on RoleCard for the employer card (not yet launched this period)",
+          "description": "Employer RoleCard is rendered with disabled=true: no 'group' class (no hover icon/border highlight), no mobile full-card overlay button at all (source: `{!disabled ? <button.../> : null}`), opacity-50 + cursor-not-allowed on the whole card, and CTA button has native disabled attribute. Confirmed via CDP: clicking the Employer 'Get started' button (uid with disabled=true) failed to interact (timeout, not clickable) and location.href stayed unchanged -- correctly non-interactive, not a bug."
+        }
+      ],
+      "i18nKeys": [
+        { "element": "heading (welcome)", "key": "candidate.role.welcome", "namespace": "candidate" },
+        { "element": "heading (switch mode)", "key": "candidate.role.switchTitle", "namespace": "candidate" },
+        { "element": "subtitle (welcome)", "key": "candidate.role.subtitle", "namespace": "candidate" },
+        { "element": "subtitle (switch mode)", "key": "candidate.role.switchSubtitle", "namespace": "candidate" },
+        { "element": "close button aria-label", "key": "candidate.role.close", "namespace": "candidate" },
+        { "element": "Agency/Consultant card title", "key": "candidate.role.consultant.title", "namespace": "candidate" },
+        { "element": "Agency/Consultant card desc", "key": "candidate.role.consultant.desc", "namespace": "candidate" },
+        { "element": "Agency/Consultant card CTA", "key": "candidate.role.consultant.cta", "namespace": "candidate" },
+        { "element": "Job Seeker card title", "key": "candidate.role.candidate.title", "namespace": "candidate" },
+        { "element": "Job Seeker card desc", "key": "candidate.role.candidate.desc", "namespace": "candidate" },
+        { "element": "Job Seeker card CTA", "key": "candidate.role.candidate.cta", "namespace": "candidate" },
+        { "element": "Employer card title", "key": "candidate.role.employer.title", "namespace": "candidate" },
+        { "element": "Employer card desc", "key": "candidate.role.employer.desc", "namespace": "candidate" },
+        { "element": "Employer card CTA", "key": "candidate.role.employer.cta", "namespace": "candidate" },
+        { "element": "save-failure toast", "key": "candidate.errors.saveFailed", "namespace": "candidate" }
+      ],
+      "utilityClasses": ["flex", "h-svh", "flex-col", "rounded-[14px]", "px-4", "py-3.5", "md:h-80", "md:w-[280px]", "hover:border-foreground", "hover:shadow-lg", "opacity-50", "cursor-not-allowed"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 2,
+      "interactionsPerformed": 2,
+      "elementsFound": 6,
+      "duration": "~3m"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Bare anonymous-mode visit to /candidate/role (no ?switch=1) -> welcome onboarding state",
+      "sourceArea": "candidate-role",
+      "trigger": null,
+      "regions": {
+        "banner": {
+          "interactives": [],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "", "testId": null, "ariaLabel": "Agency", "locatorHint": "getByRole('button', { name: 'Agency' })", "note": "mobile full-card overlay button, md:hidden; desktop uses the CTA button below instead" },
+            { "tag": "button", "role": "button", "text": "Get started", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Get started' }).nth(0)", "note": "Agency/Consultant card desktop CTA; calls setCandidateRole('consultant') + hard navigate on click" },
+            { "tag": "button", "role": "button", "text": "", "testId": null, "ariaLabel": "Job Seeker", "locatorHint": "getByRole('button', { name: 'Job Seeker' })", "note": "mobile full-card overlay button, md:hidden" },
+            { "tag": "button", "role": "button", "text": "Get started", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Get started' }).nth(1)", "note": "Job Seeker/Candidate card desktop CTA; calls setCandidateRole('jobSeeker') + hard navigate on click" },
+            { "tag": "button", "role": "button", "text": "Get started", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Get started' }).nth(2)", "note": "Employer card CTA, disabled=true (confirmed via DOM query and failed click interaction); employer role not launched this period" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Welcome to Mira" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "alert", "text": "", "note": "empty sonner live-region container present, not populated in this state" }
+      ]
+    },
+    "S1": {
+      "name": "Switch-role mode (/candidate/role?switch=1) -> sidebar-initiated role switch",
+      "sourceArea": "candidate-role",
+      "trigger": { "action": "navigate", "element": "URL query param ?switch=1", "fromState": "S0" },
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "", "testId": null, "ariaLabel": "Close", "locatorHint": "getByRole('button', { name: 'Close' })", "note": "only rendered in switch mode; onClick calls router.back()" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "", "testId": null, "ariaLabel": "Agency", "locatorHint": "getByRole('button', { name: 'Agency' })", "note": "same as S0" },
+            { "tag": "button", "role": "button", "text": "Get started", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Get started' }).nth(0)", "note": "same as S0" },
+            { "tag": "button", "role": "button", "text": "", "testId": null, "ariaLabel": "Job Seeker", "locatorHint": "getByRole('button', { name: 'Job Seeker' })", "note": "same as S0" },
+            { "tag": "button", "role": "button", "text": "Get started", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Get started' }).nth(1)", "note": "same as S0" },
+            { "tag": "button", "role": "button", "text": "Get started", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Get started' }).nth(2)", "note": "Employer CTA, disabled=true, same as S0" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Switch role" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "alert", "text": "", "note": "empty sonner live-region container present, not populated in this state" }
+      ]
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "navigate:?switch=1", "element": "URL query param", "to": "S1", "sourceArea": "candidate-role" },
+      { "from": "S1", "action": "click", "element": "button:Close", "to": "S0", "sourceArea": "candidate-role" }
+    ]
+  },
+
+  "activationAttempts": [
+    { "element": "Employer 'Get started' button", "strategy": "direct click", "result": "not-activatable", "note": "Click tool reported 'element did not become interactive within timeout' -- correctly reflects native disabled attribute; location.href unchanged after attempt. This is a hardcoded, permanent gate (not a state-dependent activation), so no further activation strategy applies." }
+  ],
+  "destructiveActions": [
+    { "element": "Agency ('Get started' / 'Get started' CTA)", "action": "click", "reason": "Calls server action setCandidateRole('consultant') which writes role=consultant to DB, then does a hard window.location.href navigation to /task. Per crawl brief this multi-step flow was intentionally NOT executed to avoid mutating the shared session's role state." },
+    { "element": "Job Seeker ('Get started' / 'Get started' CTA)", "action": "click", "reason": "Calls server action setCandidateRole('jobSeeker') which writes role=jobSeeker to DB, then hard-navigates to /profile or /candidate/build depending on existing profile completeness. Not executed for the same reason as above." }
+  ],
+  "externalLinks": [],
+  "forms": [],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 6,
+    "totalForms": 0,
+    "totalDestructiveActions": 2,
+    "coveredPatterns": ["mode-driven-conditional-header (welcome vs switch)", "disabled-card-permanent-gate", "responsive-dual-cta (mobile overlay button vs desktop button)", "server-action-then-hard-navigate", "query-param-driven-state (?switch=1)"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": null,
+    "keyBehavior": "No login wall (session was already authenticated). Bare visit to /candidate/role with no query params lands directly on the role-selection screen in 'welcome' mode: heading 'Welcome to Mira', subtitle 'Choose your role', three role cards (Agency/Consultant, Job Seeker, Employer). No close (X) button is rendered in this mode, matching source (X only appears when mode='switch', i.e. ?switch=1). Navigating to /candidate/role?switch=1 (S1) confirms the alternate entry point: heading becomes 'Switch role', subtitle 'Choose the role to switch to', and a Close (X) button appears in the header; clicking Close correctly triggers router.back() and returns to S0 (/candidate/role, no query param) -- functions as designed. The Employer card is correctly and permanently disabled (opacity-50, no hover affordance, no mobile overlay button, native disabled attribute on its CTA) in both modes -- clicking it via CDP timed out as non-interactive and the URL never changed, confirming intended behavior, not a bug. Agency and Job Seeker cards are both fully interactive (mobile overlay button + desktop CTA button both present, disabled=false) but were NOT clicked through to completion because both trigger a real DB write (setCandidateRole) plus a hard full-page navigation, per the crawl brief's instruction not to complete the full onboarding flow.",
+    "unexpectedObservations": []
+  }
+}

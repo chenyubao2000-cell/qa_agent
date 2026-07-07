@@ -1,0 +1,133 @@
+[
+  {
+    "id": "TC-CDP-VE-001",
+    "storyId": "US-VE-ACCESS",
+    "criterionId": "AC-VE-001",
+    "source": "cdp",
+    "title": "无 email 参数直接访问 /verify-email 被服务端重定向到 /sign-in",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["匿名访问，无 storageState"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/verify-email" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-VE-002",
+    "storyId": "US-VE-ACCESS",
+    "criterionId": "AC-VE-002",
+    "source": "cdp",
+    "title": "携带 ?email= 参数访问时表单完整渲染且 Continue 初始禁用",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["匿名访问 /verify-email?email=test%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/verify-email?email=test%40example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Verify your email", "action": null, "value": null, "locatorHint": "getByRole('heading', { level: 1, name: 'Verify your email' })", "dataType": null, "dataVariant": null, "i18nKey": "auth.verifyEmail.title" },
+      { "role": "textbox", "name": "Verification code", "action": null, "value": null, "locatorHint": "getByLabel('Verification code')", "dataType": null, "dataVariant": null, "i18nKey": "auth.verifyEmail.otpLabel" },
+      { "role": "button", "name": "Back to Login", "action": null, "value": null, "locatorHint": "getByRole('button', { name: 'Back to Login' })", "dataType": null, "dataVariant": null, "i18nKey": "auth.backToLogin" },
+      { "role": "button", "name": "Continue", "action": null, "value": null, "locatorHint": "getByRole('button', { name: 'Continue' })", "dataType": null, "dataVariant": null, "i18nKey": "auth.continueTitle" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/verify-email", "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "Verify your email", "expected": "Verify your email", "i18nKey": "auth.verifyEmail.title" },
+      { "type": "visible", "selector": "textbox", "name": "Verification code", "expected": null, "i18nKey": "auth.verifyEmail.otpLabel" },
+      { "type": "visible", "selector": "button", "name": "Back to Login", "expected": null, "i18nKey": "auth.backToLogin" },
+      { "type": "disabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.continueTitle" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-VE-003",
+    "storyId": "US-VE-FORM",
+    "criterionId": "AC-VE-003",
+    "source": "cdp",
+    "title": "输入非空 OTP 后 Continue 按钮由禁用变为可用",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已打开 /verify-email?email=test%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/verify-email?email=test%40example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Verification code", "action": "fill", "value": "123456", "locatorHint": "getByLabel('Verification code')", "dataType": null, "dataVariant": null, "i18nKey": "auth.verifyEmail.otpLabel" },
+      { "role": "button", "name": "Continue", "action": null, "value": null, "locatorHint": "getByRole('button', { name: 'Continue' })", "dataType": null, "dataVariant": null, "i18nKey": "auth.continueTitle" }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.continueTitle" },
+      { "type": "enabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.continueTitle" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-VE-004",
+    "storyId": "US-VE-FORM",
+    "criterionId": "AC-VE-004",
+    "source": "cdp",
+    "title": "OTP 输入框过滤非数字并限制最多 6 位",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["已打开 /verify-email?email=test%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/verify-email?email=test%40example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Verification code", "action": "fill", "value": "12ab34", "locatorHint": "getByLabel('Verification code')", "dataType": null, "dataVariant": null, "i18nKey": "auth.verifyEmail.otpLabel" },
+      { "role": "textbox", "name": "Verification code", "action": "fill", "value": "1234567", "locatorHint": "getByLabel('Verification code')", "dataType": null, "dataVariant": null, "i18nKey": "auth.verifyEmail.otpLabel" }
+    ],
+    "assertions": [
+      { "type": "value", "selector": "textbox", "name": "Verification code", "expected": "1234", "i18nKey": null },
+      { "type": "value", "selector": "textbox", "name": "Verification code", "expected": "123456", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-VE-005",
+    "storyId": "US-VE-FORM",
+    "criterionId": "AC-VE-005",
+    "source": "cdp",
+    "title": "空 OTP 时回车提交展示必填校验错误且不发起请求",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已打开 /verify-email?email=test%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/verify-email?email=test%40example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Verification code", "action": "press", "value": "Enter", "locatorHint": "getByLabel('Verification code')", "dataType": null, "dataVariant": null, "i18nKey": "auth.verifyEmail.otpLabel" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "text", "name": "This field is required", "expected": "This field is required", "i18nKey": "auth.validation.fieldRequired" },
+      { "type": "attribute", "selector": "textbox", "name": "Verification code", "expected": "true", "i18nKey": null },
+      { "type": "url", "selector": null, "name": null, "expected": "/verify-email", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-VE-006",
+    "storyId": "US-VE-ACCESS",
+    "criterionId": "AC-VE-006",
+    "source": "cdp",
+    "title": "点击 Back to Login 硬跳转到 /sign-in",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已打开 /verify-email?email=test%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/verify-email?email=test%40example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Back to Login", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'Back to Login' })", "dataType": null, "dataVariant": null, "i18nKey": "auth.backToLogin" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

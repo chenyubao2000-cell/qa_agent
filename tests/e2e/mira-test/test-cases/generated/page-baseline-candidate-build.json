@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/candidate/build",
+    "finalUrl": "https://mira-bff-preview.up.railway.app/task",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "redirected": true,
+    "redirectReason": "Server-side role guard in apps/mira-work/app/candidate/build/page.tsx (lines 20-32): if session.user.role is 'consultant' or 'employer', redirect('/task') before BuildClient ever mounts. The authenticated session used for this crawl (Ktrieling777@gmail.com, shared with prior agent) resolves to a non-candidate role, so /candidate/build was never actually rendered.",
+    "sourceContext": {
+      "components": [
+        { "name": "BuildPage", "filePath": "apps/mira-work/app/candidate/build/page.tsx", "role": "page (server component)" },
+        { "name": "BuildClient", "filePath": "apps/mira-work/app/candidate/build/build-client.tsx", "role": "section (client state machine: empty|parsing|failed|confirm)" },
+        { "name": "BuildEmpty", "filePath": "apps/mira-work/app/candidate/build/build-empty.tsx", "role": "widget (empty-state UI: LinkedIn import + paste/upload/voice options)" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "LinkedIn URL input (BuildEmpty)", "label": "t('build.linkedin.title')", "role": "textbox (aria-label)" },
+        { "element": "CircleX icon in failed state", "label": null, "role": "aria-hidden decorative" },
+        { "element": "brand/lucide icons throughout", "label": null, "role": "aria-hidden decorative" }
+      ],
+      "conditionalElements": [
+        { "element": "BuildPage itself", "condition": "session.user.role in ('consultant','employer')", "description": "redirect('/task') — observed in this crawl" },
+        { "element": "BuildPage itself", "condition": "getProfile(userId) truthy AND searchParams.rebuild !== '1'", "description": "redirect('/profile') — candidate already has a saved profile" },
+        { "element": "BuildClient step='parsing'", "condition": "after createBuild() succeeds", "description": "renders ParsingProgress, polls useProfileBuild" },
+        { "element": "BuildClient step='failed'", "condition": "poll status==='failed' or query.isError or SAFETY_NET_MS timeout", "description": "renders CenteredState retry/change-method" },
+        { "element": "BuildClient step='confirm'", "condition": "poll status==='success'", "description": "renders ProfileConfirm + RebuildConfirmDialog" },
+        { "element": "Mobile full-page PastePage", "condition": "isMobile && pasteOpen", "description": "otherwise a centered Dialog is used on desktop" },
+        { "element": "Voice OptionCard", "condition": "always disabled", "description": "badge t('build.voice.comingSoon'), no onClick — feature not shipped yet" },
+        { "element": "LinkedIn submit Button (BuildEmpty)", "condition": "url.trim().length>0 && !busy", "description": "disabled otherwise" }
+      ],
+      "i18nKeys": [
+        { "element": "BuildEmpty heading/subtitle", "key": "build.title / build.subtitle", "namespace": "candidate" },
+        { "element": "Skip link", "key": "build.skip", "namespace": "candidate" },
+        { "element": "LinkedIn card", "key": "build.recommended / build.linkedin.title / build.linkedin.subtitle / build.linkedin.placeholder(Mobile) / build.cta", "namespace": "candidate" },
+        { "element": "Divider label", "key": "build.otherOptions", "namespace": "candidate" },
+        { "element": "Option cards", "key": "build.paste.title/desc, build.upload.title/desc, build.voice.title/desc/comingSoon", "namespace": "candidate" },
+        { "element": "Paste dialog", "key": "pasteDialog.title/subtitle/placeholder/submit", "namespace": "candidate" },
+        { "element": "Failed state", "key": "failed.title, failed.reason.{failReason}, failed.retry, failed.changeMethod", "namespace": "candidate" },
+        { "element": "Toast errors", "key": "errors.unsupportedFile, errors.uploadFailed, errors.rateLimited, errors.buildInProgress, errors.createFailed, errors.rebuildFailed", "namespace": "candidate" }
+      ],
+      "utilityClasses": ["rounded-[10px]", "flex", "gap-3", "px-4", "py-3.5", "bg-card", "border-border", "text-muted-foreground"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 1,
+      "interactionsPerformed": 0,
+      "elementsFound": 13,
+      "duration": "~1m",
+      "terminationReason": "redirect_before_target_render"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Redirected landing state: /task (chat home), NOT the intended /candidate/build wizard",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Pulse 1 item awaiting", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Pulse 1 item awaiting' })" },
+            { "tag": "button", "role": "button", "text": "Channel", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Channel' })" },
+            { "tag": "button", "role": "button", "text": "Contacts", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Contacts' })" },
+            { "tag": "button", "role": "button", "text": "Calendar", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Calendar' })" },
+            { "tag": "button", "role": "button", "text": "Files", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Files' })" },
+            { "tag": "button", "role": "button", "text": "", "testId": null, "ariaLabel": null, "locatorHint": null },
+            { "tag": "button", "role": "button", "text": "k", "testId": null, "ariaLabel": null, "expandable": true, "haspopup": "menu", "locatorHint": "getByRole('button', { name: 'k' })" },
+            { "tag": "button", "role": "button", "text": "Toggle Sidebar", "testId": null, "ariaLabel": "Toggle Sidebar", "locatorHint": "getByRole('button', { name: 'Toggle Sidebar' })" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "7588 Credits", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: '7588 Credits' })" },
+            { "tag": "textarea", "role": "textbox", "text": "", "testId": null, "ariaLabel": null, "multiline": true, "locatorHint": "getByRole('textbox')" },
+            { "tag": "button", "role": "button", "text": "Add", "testId": null, "ariaLabel": null, "expandable": true, "haspopup": "menu", "locatorHint": "getByRole('button', { name: 'Add' })" },
+            { "tag": "button", "role": "button", "text": "Browser extension not detected — click to install", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Browser extension not detected — click to install' })" },
+            { "tag": "button", "role": "button", "text": "Start voice input", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Start voice input' })" },
+            { "tag": "button", "role": "button", "text": "Submit", "testId": null, "ariaLabel": null, "disabled": true, "locatorHint": "getByRole('button', { name: 'Submit' })" },
+            { "tag": "button", "role": "button", "text": "Analyze key findings from a market research report ...", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /Analyze key findings/ })" },
+            { "tag": "button", "role": "button", "text": "Write a project progress update email ...", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /Write a project progress update email/ })" },
+            { "tag": "button", "role": "button", "text": "Design a user feedback collection workflow ...", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /Design a user feedback collection workflow/ })" },
+            { "tag": "button", "role": "button", "text": "Summarize this week's meeting highlights and action items ...", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /Summarize this week's meeting highlights/ })" }
+          ],
+          "headings": [
+            { "text": "What can I do for you?", "level": 1 }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": []
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+text"
+  },
+
+  "summary": {
+    "totalStates": 1,
+    "totalInteractives": 18,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": [],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": null,
+    "note": "Smoke-scope crawl could not reach the intended /candidate/build wizard: server-side role guard redirected to /task before any client render. sourceContext above documents the BuildClient/BuildEmpty structure from source code (empty/parsing/failed/confirm step machine, LinkedIn-import-first empty state, no data-testid attributes anywhere — locators should rely on i18n text via next-intl 'candidate' namespace + getByRole). To actually explore this page, retry with a session whose role is NOT consultant/employer and whose candidate profile does not already exist (or pass ?rebuild=1)."
+  }
+}

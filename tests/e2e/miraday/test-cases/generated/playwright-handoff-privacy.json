@@ -1,0 +1,81 @@
+[
+  {
+    "id": "TC-CDP-PRIVACY-001",
+    "storyId": "US-PRIVACY-LEGAL",
+    "criterionId": "AC-PRIVACY-001",
+    "source": "cdp",
+    "title": "匿名用户直接访问 /privacy 页面直出、无登录墙、主标题渲染",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["公开页面，未登录状态（清空 storageState）"],
+    "setup": [{ "type": "navigate", "url": "/privacy" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/privacy", "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Mira Privacy Policy", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "Mira Privacy Policy", "expected": "Mira Privacy Policy", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-PRIVACY-002",
+    "storyId": "US-PRIVACY-LEGAL",
+    "criterionId": "AC-PRIVACY-002",
+    "source": "cdp",
+    "title": "隐私政策 14 个顶级章节标题（1-14）完整渲染",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已打开 /privacy"],
+    "setup": [{ "type": "navigate", "url": "/privacy" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "count", "selector": "heading", "name": null, "expected": "14", "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "1. Overview", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "9. Your Rights", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "14. Contact Us", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-PRIVACY-003",
+    "storyId": "US-PRIVACY-LEGAL",
+    "criterionId": "AC-PRIVACY-003",
+    "source": "cdp",
+    "title": "页脚版权信息渲染（年份动态生成）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已打开 /privacy"],
+    "setup": [{ "type": "navigate", "url": "/privacy" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "contentinfo", "name": null, "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "contentinfo", "name": null, "expected": "/©\\s*20\\d{2}\\s+Mira\\. All rights reserved\\./", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-PRIVACY-005",
+    "storyId": "US-PRIVACY-LEGAL",
+    "criterionId": "AC-PRIVACY-005",
+    "source": "cdp",
+    "title": "页面文档元数据正确（title 与 html lang）",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已打开 /privacy"],
+    "setup": [{ "type": "navigate", "url": "/privacy" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": null, "name": "document.title", "expected": "Privacy Policy - Mira", "i18nKey": null },
+      { "type": "attribute", "selector": null, "name": "html.lang", "expected": "en", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

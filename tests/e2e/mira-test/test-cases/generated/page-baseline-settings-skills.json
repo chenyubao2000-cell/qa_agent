@@ -1,0 +1,170 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/settings/skills",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        { "name": "SkillsPage", "filePath": "apps/mira-work/app/(agent)/settings/skills/page.tsx", "role": "page" },
+        { "name": "SkillsClient", "filePath": "apps/mira-work/app/(agent)/settings/skills/skills-client.tsx", "role": "page" },
+        { "name": "NewSkillMenu", "filePath": "apps/mira-work/app/(agent)/settings/skills/new-skill-menu.tsx", "role": "widget" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "Back button", "label": "t('back') = 'Back'", "role": "button" },
+        { "element": "Skill row toggle switch", "label": "t('toggleAriaLabel', { name }) = 'Enable or disable {name}'", "role": "switch" },
+        { "element": "DrawerTitle (mobile New Skill sheet)", "label": "sr-only t('trigger') = 'New Skill'", "role": "n/a" }
+      ],
+      "conditionalElements": [
+        { "element": "SkillDetailView", "condition": "selectedSkillName !== null", "description": "Replaces the whole list view; only reachable for source='system' (official) skills via SkillRow onSelect — but SkillRow renders official rows as a plain non-interactive div (no onClick wiring), so in the current implementation this inline detail view is not actually reachable by clicking an official row. Personal/marketplace skills instead navigate to /settings/skills/[name] via router.push, bypassing this component. Not a bug — intentional per inline code comment '官方不可点击'." },
+        { "element": "Personal-tab CTA text ('New Skill' menu, header)", "condition": "activeTab === 'official' vs 'personal'", "description": "Header always shows compact '+ New Skill' trigger; personal-tab empty state additionally shows a full 'Create your first skill' Button using the same NewSkillMenu with a custom trigger prop" },
+        { "element": "SkillEmptyState (official)", "condition": "!loading && officialSkills.length === 0", "description": "Inbox icon + t('empty.official.title/description') — not observed live (5 official skills exist on this account)" },
+        { "element": "SkillEmptyState (personal)", "condition": "!loading && personalSkills.length === 0", "description": "No icon, t('empty.personal.title/description') + CTA button — observed live, this account has 0 personal skills" },
+        { "element": "SkillListSkeleton", "condition": "loading === true", "description": "4-row skeleton placeholder while GET /api/skills resolves — not captured (resolved before snapshot, page was already hydrated/idle)" },
+        { "element": "NewSkillMenu: Drawer vs DropdownMenu", "condition": "useIsMobile()", "description": "Mobile renders a bottom Drawer with the same 2 options; desktop renders a DropdownMenu. Explored desktop variant only (viewport was desktop-sized)" },
+        { "element": "Switch disabled state", "condition": "!skill.accessible", "description": "Toggle switch is disabled when skill.accessible is false; all 5 official skills observed were accessible/enabled" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 title", "key": "settings.skills.title", "namespace": "agent (en/agent.json)" },
+        { "element": "Back button aria-label", "key": "settings.skills.back", "namespace": "agent" },
+        { "element": "Tabs", "key": "settings.skills.tabs.{official,personal}", "namespace": "agent" },
+        { "element": "Row badge chip", "key": "settings.skills.{badgeOfficial,badgePersonal,badgeMarketplace}", "namespace": "agent" },
+        { "element": "Toggle switch aria-label", "key": "settings.skills.toggleAriaLabel", "namespace": "agent" },
+        { "element": "Toggle toast messages", "key": "settings.skills.{enableSuccess,disableSuccess,toggleFailed,loadFailed}", "namespace": "agent" },
+        { "element": "Personal empty state", "key": "settings.skills.empty.personal.{title,description,cta}", "namespace": "agent" },
+        { "element": "Official empty state", "key": "settings.skills.empty.official.{title,description}", "namespace": "agent" },
+        { "element": "New Skill menu", "key": "settings.skills.newSkill.{trigger,fromChat,fromChatHint,fromFile,fromFileHint}", "namespace": "agent" }
+      ],
+      "utilityClasses": ["flex", "flex-col", "gap-5", "px-4", "py-6", "rounded-lg", "border-border", "tabular-nums", "shrink-0"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 3,
+      "elementsFound": 15,
+      "duration": "smoke (~2m)"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page — Official tab selected, 5 official skills listed",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "role": "heading", "level": 1, "text": "All Skills" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Back", "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "button", "role": "button", "text": "+ New Skill", "expandable": true, "haspopup": "menu", "locatorHint": "getByRole('button', { name: 'New Skill' })" },
+            { "tag": "tab", "role": "tab", "text": "Official 5", "selected": true, "locatorHint": "getByRole('tab', { name: /Official/ })" },
+            { "tag": "tab", "role": "tab", "text": "Personal 0", "selected": false, "locatorHint": "getByRole('tab', { name: /Personal/ })" },
+            { "tag": "div", "role": "text", "text": "mira-candidate-profile", "note": "official skill name — plain StaticText, NOT a button/clickable element (see conditionalElements: SkillDetailView)" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Enable or disable mira-candidate-profile", "checked": true, "locatorHint": "getByRole('switch', { name: 'Enable or disable mira-candidate-profile' })" },
+            { "tag": "div", "role": "text", "text": "skill-creator", "note": "official skill name, non-clickable" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Enable or disable skill-creator", "checked": true },
+            { "tag": "div", "role": "text", "text": "mira-executive-talent-report", "note": "official skill name, non-clickable" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Enable or disable mira-executive-talent-report", "checked": true },
+            { "tag": "div", "role": "text", "text": "mira-candidate-intake", "note": "official skill name, non-clickable" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Enable or disable mira-candidate-intake", "checked": true },
+            { "tag": "div", "role": "text", "text": "mira-bd-playbook", "note": "official skill name, non-clickable" },
+            { "tag": "switch", "role": "switch", "text": null, "ariaLabel": "Enable or disable mira-bd-playbook", "checked": true }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "All 5 official skills observed enabled/accessible (switch checked=true, not disabled). No 'From marketplace' badge or 'Official' badge shown in this tab (showBadge=false for source='system' per source: 'official 不需要再标官方')."
+    },
+
+    "S1": {
+      "name": "Personal tab selected — empty state, 0 personal skills",
+      "sourceArea": "tab-switch",
+      "trigger": { "action": "click", "element": "tab:Personal", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "role": "heading", "level": 1, "text": "All Skills" }
+          ],
+          "interactives": [
+            { "tag": "tab", "role": "tab", "text": "Personal 0", "selected": true, "focused": true },
+            { "tag": "p", "role": "text", "text": "You haven't created any skills yet · Click the button below to get started", "locatorHint": "getByText(\"You haven't created any skills yet\")" },
+            { "tag": "button", "role": "button", "text": "Create your first skill", "expandable": true, "haspopup": "menu", "locatorHint": "getByRole('button', { name: 'Create your first skill' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "URL updated to ?tab=personal via history.replaceState (MIRA-2338: tab switches intentionally do NOT push a history entry, so browser Back skips over tab state and returns to the page visited before /settings/skills). No hydration issue: click took effect immediately, list content genuinely swapped (not an SSR/pre-hydration artifact) per e2e-flakiness-playbook §19b check."
+    },
+
+    "S2": {
+      "name": "New Skill dropdown menu open (from personal-tab empty-state CTA)",
+      "sourceArea": "new-skill-menu",
+      "trigger": { "action": "click", "element": "button:Create your first skill", "fromState": "S1" },
+      "regions": {
+        "dropdown": {
+          "headings": [],
+          "interactives": [
+            { "tag": "menuitem", "role": "menuitem", "text": "Create via Chat / Create skill in a new task", "locatorHint": "getByRole('menuitem', { name: /Create via Chat/ })", "note": "on select: sessionStorage.setItem(TASK_AUTO_SUBMIT_KEY, ...) then router.push('/task') — not exercised (would navigate away)" },
+            { "tag": "menuitem", "role": "menuitem", "text": "Import File / Supports SKILL.md / .skill / .zip import", "locatorHint": "getByRole('menuitem', { name: /Import File/ })", "note": "on select: router.push('/settings/skills/import') — import entry point identified but NOT clicked per task instructions (do not actually import)" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "Same NewSkillMenu component backs both the header '+ New Skill' button (S0) and this empty-state CTA (S1); only the trigger visual differs. Desktop renders DropdownMenu (viewport was desktop); mobile (useIsMobile) would render a bottom Drawer with identical 2 options — not verified in this pass. Menu closed via Escape, returning to S1 without navigating."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "tab:Personal", "to": "S1", "sourceArea": "tab-switch" },
+      { "from": "S1", "action": "click", "element": "tab:Official", "to": "S0", "sourceArea": "tab-switch" },
+      { "from": "S1", "action": "click", "element": "button:Create your first skill", "to": "S2", "sourceArea": "new-skill-menu" },
+      { "from": "S2", "action": "press:Escape", "element": null, "to": "S1", "sourceArea": "new-skill-menu" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Escape", "action": "closes New Skill dropdown/drawer menu", "stateTransition": "S2 → S1" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role + name (tabs, buttons, menuitems); aria-label for icon-only Back button and per-skill toggle switches; no data-testid found in settings/skills feature source"
+  },
+
+  "knownIssues": [
+    { "type": "design-confirmed-non-bug", "element": "Official skill row (name/description text)", "description": "Not clickable — renders as a plain div, not a button, for source='system' skills (see SkillRow in skills-client.tsx). SkillDetailView / onSelect logic exists in code for official skills but is unreachable via the current UI wiring since the click handler is only bound for non-official rows. Confirmed intentional via inline Chinese comment ('官方不可点击') — flagging for awareness only, not a functional bug." }
+  ],
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 15,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["tabs(official/personal)", "empty-state(personal)", "dropdown-menu(new-skill)", "toggle-switch(list)"],
+    "scrollMode": "page-level overflow-auto, list itself not paginated/virtualized (5 items)",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 0.35,
+    "coverageNote": "Smoke scope only, per task instructions. Not exercised: toggling a skill switch (enable/disable, would mutate real account state), navigating into a personal/marketplace skill detail route (/settings/skills/[name] — no personal skills exist on this account to test with), actually following the 'Import File' entry point into /settings/skills/import, mobile Drawer variant of NewSkillMenu, official-tab empty state (5 official skills exist, so state not observable live), loading skeleton (resolved before first snapshot)."
+  }
+}

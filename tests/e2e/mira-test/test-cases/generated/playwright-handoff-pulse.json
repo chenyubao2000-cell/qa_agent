@@ -1,0 +1,89 @@
+[
+  {
+    "id": "TC-CDP-PULSE-001",
+    "storyId": "US-PULSE-VIEW",
+    "title": "Pulse 页加载并渲染标题与两个内容分区",
+    "priority": "P0",
+    "preconditions": ["已登录（storageState 鉴权）", "可访问 /pulse"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/pulse" } }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Pulse", "action": "wait", "value": null, "i18nKey": null, "locatorHint": "getByRole('heading', { level: 1, name: 'Pulse' })" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "Pulse", "expected": "Pulse", "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "Awaiting your reply", "expected": "Awaiting your reply", "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "Recent activity", "expected": "Recent activity", "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-PULSE-002",
+    "storyId": "US-PULSE-VIEW",
+    "title": "HITL 待处理区展示待办项、计数徽标与 Reply/More 操作",
+    "priority": "P0",
+    "preconditions": ["已登录", "Pulse 页存在至少 1 条待处理 HITL 项（live 环境数据）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/pulse" } }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Awaiting your reply", "action": "wait", "value": null, "i18nKey": null, "locatorHint": "getByRole('heading', { level: 2, name: 'Awaiting your reply' })" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Awaiting your reply", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": null, "name": "awaiting count badge (aria-label ~ item(s) pending)", "expected": null, "i18nKey": null },
+      { "type": "custom", "selector": null, "name": "badge text is positive integer (>=1)", "expected": ">=1", "i18nKey": null },
+      { "type": "visible", "selector": "link", "name": "HITL item title link (href contains /task/)", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Reply", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "More", "expected": null, "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-PULSE-003",
+    "storyId": "US-PULSE-VIEW",
+    "title": "Activity 区在 HITL 有数据/Activity 无数据时展示行内空态文案",
+    "priority": "P1",
+    "preconditions": ["已登录", "live 状态为 HITL 有数据、Activity 无动态（决策表 R2）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/pulse" } }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Recent activity", "action": "wait", "value": null, "i18nKey": null, "locatorHint": "getByRole('heading', { level: 2, name: 'Recent activity' })" }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "Recent activity", "expected": "Recent activity", "i18nKey": null },
+      { "type": "visible", "selector": null, "name": "activity inline empty text (No recent activity ...)", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": null, "name": "activity empty contains post-here phrase", "expected": "will post here as your channel or agents move", "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-PULSE-004",
+    "storyId": "US-PULSE-VIEW",
+    "title": "HITL 行 More 下拉打开显示 Dismiss，Escape 关闭且不误触",
+    "priority": "P1",
+    "preconditions": ["已登录", "Pulse 页存在至少 1 条待处理 HITL 项"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/pulse" } }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "More", "action": "click", "value": null, "i18nKey": null, "locatorHint": "getByRole('button', { name: 'More' })" },
+      { "role": null, "name": "Escape", "action": "press", "value": "Escape", "i18nKey": null, "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "menuitem", "name": "Dismiss", "expected": "Dismiss", "i18nKey": null },
+      { "type": "hidden", "selector": "menuitem", "name": "Dismiss", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "link", "name": "HITL item link still present after Escape (no accidental dismiss)", "expected": null, "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-PULSE-005",
+    "storyId": "US-PULSE-VIEW",
+    "title": "HITL 待办项标题链接指向源任务 /task/",
+    "priority": "P2",
+    "preconditions": ["已登录", "Pulse 页存在至少 1 条待处理 HITL 项"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/pulse" } }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "HITL item title link", "action": "wait", "value": null, "i18nKey": null, "locatorHint": "locator('[data-slot=\"hitl-row\"] a[href*=\"/task/\"]').first()" }
+    ],
+    "assertions": [
+      { "type": "attribute", "selector": "link", "name": "HITL item link href", "attribute": "href", "expected": "/task/", "i18nKey": null }
+    ]
+  }
+]

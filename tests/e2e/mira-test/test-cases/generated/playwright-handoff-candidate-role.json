@@ -1,0 +1,106 @@
+[
+  {
+    "id": "TC-CDP-ROLE-001",
+    "storyId": "US-ROLE-SELECT",
+    "criterionId": "AC-ROLE-001",
+    "source": "cdp",
+    "title": "首次引导 welcome 态落地渲染欢迎标题、副标题与三张身份卡且无关闭按钮",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录会话（默认 storageState）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/candidate/role" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": "page", "name": null, "expected": "/candidate/role", "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "Welcome to Mira", "expected": "Welcome to Mira", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Choose your role", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Agency", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Job Seeker", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Employer", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "button", "name": "Close", "expected": "0", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-ROLE-002",
+    "storyId": "US-ROLE-SELECT",
+    "criterionId": "AC-ROLE-002",
+    "source": "cdp",
+    "title": "雇主卡永久禁用而顾问/求职者卡 CTA 可用",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录会话；处于 welcome 态角色选择页"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/candidate/role" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "enabled", "selector": "button", "name": "Get started (consultant, nth 0)", "expected": null, "i18nKey": null },
+      { "type": "enabled", "selector": "button", "name": "Get started (jobSeeker, nth 1)", "expected": null, "i18nKey": null },
+      { "type": "disabled", "selector": "button", "name": "Get started (employer, nth 2)", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-ROLE-003",
+    "storyId": "US-ROLE-SELECT",
+    "criterionId": "AC-ROLE-003",
+    "source": "cdp",
+    "title": "三张身份卡展示正确标题与各自 CTA",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录会话；处于 welcome 态角色选择页"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/candidate/role" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "text", "name": "Agency", "expected": "Agency", "i18nKey": null },
+      { "type": "text", "selector": "text", "name": "Job Seeker", "expected": "Job Seeker", "i18nKey": null },
+      { "type": "text", "selector": "text", "name": "Employer", "expected": "Employer", "i18nKey": null },
+      { "type": "count", "selector": "button", "name": "Get started", "expected": "3", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-ROLE-004",
+    "storyId": "US-ROLE-SELECT",
+    "criterionId": "AC-ROLE-004",
+    "source": "cdp",
+    "title": "switch 切换态渲染切换标题、切换副标题与关闭(X)按钮",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录会话"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/candidate/role?switch=1" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "Switch role", "expected": "Switch role", "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Choose the role to switch to", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "Close", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-ROLE-005",
+    "storyId": "US-ROLE-SELECT",
+    "criterionId": "AC-ROLE-005",
+    "source": "cdp",
+    "title": "非「1」的 switch query 回落为 welcome 态",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["已登录会话"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/candidate/role?switch=0" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "text", "selector": "heading", "name": "Welcome to Mira", "expected": "Welcome to Mira", "i18nKey": null },
+      { "type": "count", "selector": "button", "name": "Close", "expected": "0", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

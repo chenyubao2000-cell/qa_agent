@@ -1,0 +1,205 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/organization",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "pageSlug": "organization",
+    "sourceContext": {
+      "components": [
+        {
+          "name": "OrganizationPage",
+          "filePath": "apps/mira-work/app/(agent)/organization/page.tsx",
+          "role": "page"
+        },
+        {
+          "name": "OrganizationClient",
+          "filePath": "apps/mira-work/app/(agent)/organization/organization-client.tsx",
+          "role": "section"
+        }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "Edit name / Save name icon button", "label": "t('editName') / t('saveName')", "role": "button" },
+        { "element": "Invite row Action ellipsis button", "label": "t('col.action')", "role": "button" },
+        { "element": "Avatar fallback / invite placeholder circle", "label": "aria-hidden decorative", "role": null }
+      ],
+      "conditionalElements": [
+        { "element": "page root", "condition": "phase state machine: loading | ready | forbidden | error", "description": "OrgSkeleton shown while loading; ForbiddenState if GET /api/account/organization returns 403; ErrorState on non-ok/network error with Retry button; ready renders ProfileCard+PlanCard+MembersCard" },
+        { "element": "org-name input + edit/save icon button", "condition": "editing boolean state", "description": "editing=false: input disabled, pencil 'Edit name' icon shown. editing=true: input enabled (maxLength 60), check 'Save name' icon shown, Enter key also triggers save" },
+        { "element": "InviteDialog", "condition": "inviteOpen boolean, toggled by 'Invite member' button", "description": "Dialog with textarea for emails, live-parses on change (split by whitespace/,/;/newline, dedupe case-insensitive, validates each via isValidEmail); Send disabled unless count>0 && !hasInvalid && !overLimit(50)" },
+        { "element": "InviteRowActions dropdown (resend/revoke)", "condition": "rendered only for kind==='invite' rows", "description": "member rows show no action menu; invite rows show Ellipsis trigger -> Resend/Revoke menu items" },
+        { "element": "pagination Prev/Next buttons", "condition": "totalPages > 1 (PAGE_SIZE=8)", "description": "not rendered when <=8 rows after filter; only 2 rows in this account so not visible" },
+        { "element": "status filter Select", "condition": "value in all|active|pending|expired", "description": "filters allRows client-side; resets page to 0 on change" },
+        { "element": "sendFailed inline text next to invite status", "condition": "row.kind==='invite' && row.sendFailed", "description": "shows '· Send failed' suffix" },
+        { "element": "renewsOn paragraph under PlanCard", "condition": "org.currentPeriodEnd != null", "description": "hidden when null" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 page title", "key": "title", "namespace": "billing.org" },
+        { "element": "Profile card heading", "key": "profile", "namespace": "billing.org" },
+        { "element": "Name field label", "key": "nameLabel", "namespace": "billing.org" },
+        { "element": "edit/save icon buttons", "key": "editName / saveName", "namespace": "billing.org" },
+        { "element": "Current plan heading", "key": "currentPlan", "namespace": "billing.org" },
+        { "element": "plan badge text", "key": "team.name / enterprise.name", "namespace": "plans" },
+        { "element": "seats used label", "key": "seatsUsed", "namespace": "billing.org" },
+        { "element": "renews on text", "key": "renewsOn", "namespace": "billing.org" },
+        { "element": "Members heading", "key": "members", "namespace": "billing.org" },
+        { "element": "members summary text", "key": "membersSummary", "namespace": "billing.org" },
+        { "element": "Invite member button", "key": "inviteMember", "namespace": "billing.org" },
+        { "element": "status filter options", "key": "filter.all / filter.active / filter.pending / filter.expired", "namespace": "billing.org" },
+        { "element": "table header cells", "key": "col.member / col.email / col.role / col.status / col.action", "namespace": "billing.org" },
+        { "element": "empty state text", "key": "empty", "namespace": "billing.org" },
+        { "element": "showing X-Y of Z text", "key": "showing", "namespace": "billing.org" },
+        { "element": "pagination buttons", "key": "prev / next", "namespace": "billing.org" },
+        { "element": "invite dialog", "key": "inviteDialog.title / inviteDialog.description / inviteDialog.placeholder / inviteDialog.cancel / inviteDialog.send", "namespace": "billing.org" },
+        { "element": "invite error toasts", "key": "inviteError.<code> (invite_no_emails, invite_batch_too_large, invite_email_format_invalid, invite_email_self, invite_email_already_member_inline, invite_email_already_pending_inline, seats_exhausted, seat_limit_missing, not_org_owner, rate_limited, send_failed, invitation_not_found, invitation_invalid)", "namespace": "billing.org" },
+        { "element": "forbidden state", "key": "forbidden.title / forbidden.subtitle / forbidden.back", "namespace": "billing.org" },
+        { "element": "error state", "key": "loadError / retry", "namespace": "billing.org" }
+      ],
+      "utilityClasses": [
+        "bg-background", "bg-card", "border-border", "rounded-xl", "rounded-lg", "flex", "grid", "grid-cols-1", "md:grid-cols-2",
+        "px-8", "py-6", "gap-5", "p-6", "text-sm", "text-2xl", "font-semibold"
+      ],
+      "note": "No data-testid attributes exist anywhere in OrganizationClient. Locators must rely on i18n text via getByRole(name) / getByText, or aria-label for icon-only buttons (Edit name, Save name, Action). Row identity for member/invite rows has no stable non-text attribute either (no data-testid on row wrapper)."
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Organization page - ready, org already exists (Team plan, 1 owner + 1 expired invite)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "text": "Organization", "level": 1 },
+            { "text": "Profile", "level": 2 },
+            { "text": "Current plan", "level": 2 },
+            { "text": "Members", "level": 2 }
+          ],
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": "Name", "ariaLabel": "Name", "disabled": true, "value": "ktrieling7771231231123116161616161616's Team", "locatorHint": "getByLabel('Name')" },
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Edit name", "locatorHint": "getByRole('button', { name: 'Edit name' })" },
+            { "tag": "combobox", "role": "combobox", "text": "All", "ariaLabel": null, "locatorHint": "getByRole('combobox')" },
+            { "tag": "button", "role": "button", "text": "Invite member", "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Invite member' })" },
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Action", "context": "invite row (kyrieling888@gmail.com, Expired) ellipsis menu trigger", "locatorHint": "getByRole('button', { name: 'Action' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "observedData": {
+        "organization": { "type": "Team", "seatsUsed": 1, "seatLimit": 16, "currentPeriodEnd": "Jul 8, 2026" },
+        "members": [{ "name": "ktrieling777", "email": "ktrieling777@gmail.com", "role": "Owner", "status": "Active" }],
+        "invitations": [{ "email": "kyrieling888@gmail.com", "role": "Member (implicit)", "status": "Expired" }],
+        "membersSummaryText": "1 active · 0 pending invites",
+        "showingText": "Showing 1-2 of 2"
+      }
+    },
+    "S1": {
+      "name": "Profile name in edit mode",
+      "sourceArea": "org-profile-rename",
+      "trigger": { "action": "click", "element": "button:Edit name", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": "Name", "ariaLabel": "Name", "disabled": false, "locatorHint": "getByLabel('Name')" },
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Save name", "focused": true, "locatorHint": "getByRole('button', { name: 'Save name' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S2": {
+      "name": "Invite members dialog open",
+      "sourceArea": "org-invite-member",
+      "trigger": { "action": "click", "element": "button:Invite member", "fromState": "S0" },
+      "regions": {
+        "dialog": {
+          "headings": [{ "text": "Invite members", "level": 2 }],
+          "interactives": [
+            { "tag": "textarea", "role": "textbox", "text": null, "placeholder": "alex@example.com\nsam@example.com", "multiline": true, "locatorHint": "getByPlaceholder('alex@example.com')" },
+            { "tag": "button", "role": "button", "text": "Cancel", "locatorHint": "getByRole('button', { name: 'Cancel' })" },
+            { "tag": "button", "role": "button", "text": "Send invitations", "disabled": true, "locatorHint": "getByRole('button', { name: 'Send invitations' })" },
+            { "tag": "button", "role": "button", "text": null, "ariaLabel": "Close", "locatorHint": "getByRole('button', { name: 'Close' })" }
+          ]
+        }
+      },
+      "dialogs": [
+        { "role": "dialog", "name": "Invite members", "description": "Enter one or more email addresses, separated by spaces, commas, or new lines." }
+      ],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Edit name", "to": "S1", "sourceArea": "org-profile-rename" },
+      { "from": "S1", "action": "click", "element": "button:Save name (unchanged value)", "to": "S0", "sourceArea": "org-profile-rename", "note": "name unchanged so save() returns early without an API call per source (trimmed === org.name), just exits edit mode" },
+      { "from": "S0", "action": "click", "element": "button:Invite member", "to": "S2", "sourceArea": "org-invite-member" },
+      { "from": "S2", "action": "click", "element": "button:Cancel", "to": "S0", "sourceArea": "org-invite-member", "note": "dialog close is animated (Radix/Framer Motion) — element still in a11y tree ~500ms after click before fully unmounting; downstream specs must waitFor([role=dialog], { state: 'hidden' }) per flakiness-playbook #10, do not assert instantly" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [
+    { "element": "DropdownMenuItem: Revoke invitation", "reason": "text matches 'revoke', styled destructive (text-destructive class)", "context": "invite row Action menu, not opened during this smoke pass" }
+  ],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S1 (Profile - edit name)",
+      "fields": [
+        { "name": "org-name", "type": "text", "required": true, "maxLength": 60 }
+      ],
+      "submitButton": { "text": null, "ariaLabel": "Save name", "disabled": false }
+    },
+    {
+      "location": "S2 (Invite members dialog)",
+      "fields": [
+        { "name": "emails", "type": "textarea", "required": true, "constraint": "parsed by split(/[\\s,;]+/), case-insensitive de-dup, each validated by isValidEmail(); max 50 unique emails (INVITE_MAX)" }
+      ],
+      "submitButton": { "text": "Send invitations", "disabled": true, "enabledWhen": "count > 0 && !hasInvalid && !overLimit && !submitting" }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Enter", "action": "in org-name input while editing=true, triggers save()", "stateTransition": "S1 -> S0 (or stays S1 if API fails)" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (i18n text) / aria-label for icon buttons"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 12,
+    "totalForms": 2,
+    "totalDestructiveActions": 1,
+    "coveredPatterns": ["inline-edit", "modal-dialog-noSubmit"],
+    "scrollMode": "pagination",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": "smoke (not exhaustive — pagination, status filter switching, resend/revoke menu, and forbidden/error/loading phase states were NOT interactively verified, only inferred from source)",
+    "keyFindings": [
+      "Account already belongs to an organization ('ktrieling7771231231123116161616161616's Team', Team plan, 16 seats, 1 used) — the empty/setup-prompt state described in the task notes was NOT observed for this account; page rendered the full ready-state dashboard directly.",
+      "No data-testid attributes anywhere in OrganizationClient — all locators must use i18n role+name or aria-label; flag for playwright-script-generator.",
+      "Edit name -> Save name inline-edit flow works correctly: input toggles disabled/enabled, icon button swaps Pencil->Check, ariaLabel swaps 'Edit name'->'Save name'. No hydration issue observed (click had immediate effect).",
+      "Invite member dialog opens and closes correctly. NOTE: Cancel-click close is animated — dialog role element persists in DOM/a11y tree for ~500ms after the click before actually closing. Downstream specs must wait for '[role=dialog]' state:'hidden' rather than asserting immediately (see flakiness-playbook.md #10).",
+      "One invitation row present with status 'Expired' — Resend/Revoke dropdown for it was NOT opened during this smoke pass (would trigger network action); recorded as unexplored, revoke flagged as destructive.",
+      "Pagination controls did not render (only 2 rows total, PAGE_SIZE=8) — cannot confirm Prev/Next behavior from live CDP, only from source.",
+      "No errors, crashes, 404s, or redirects observed. hasLoginWall = false (session remained authenticated as ktrieling777@gmail.com throughout)."
+    ]
+  }
+}

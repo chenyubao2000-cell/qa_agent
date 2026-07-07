@@ -1,0 +1,110 @@
+[
+  {
+    "id": "TC-CDP-PROJECTS-001",
+    "storyId": "STORY-PROJECTS-PLACEHOLDER",
+    "title": "Projects 占位页加载并渲染标题与 \"Coming soon\" 文案",
+    "priority": "P0",
+    "preconditions": ["已认证会话（由 setup 项目 storageState 提供）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/projects" } }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "Projects",
+        "expected": null,
+        "i18nKey": "chatbot.projects",
+        "description": "h1 标题可见"
+      },
+      {
+        "type": "text",
+        "selector": "heading",
+        "name": "Projects",
+        "expected": "Projects",
+        "i18nKey": "chatbot.projects",
+        "description": "h1 标题文本为 Projects（i18n chatbot.projects）"
+      },
+      {
+        "type": "visible",
+        "selector": "text",
+        "name": "Coming soon",
+        "expected": null,
+        "i18nKey": null,
+        "description": "硬编码 Coming soon 占位文案可见（非 i18n）"
+      }
+    ]
+  },
+  {
+    "id": "TC-CDP-PROJECTS-002",
+    "storyId": "STORY-PROJECTS-PLACEHOLDER",
+    "title": "已认证直达 /projects 停留在目标路由且未被重定向到登录页",
+    "priority": "P1",
+    "preconditions": ["已认证会话（由 setup 项目 storageState 提供）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/projects" } }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "url",
+        "selector": null,
+        "name": null,
+        "expected": "/projects$",
+        "i18nKey": null,
+        "description": "当前 URL 以 /projects 结尾（未跳转到 /sign-in）"
+      },
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "Projects",
+        "expected": null,
+        "i18nKey": "chatbot.projects",
+        "description": "h1 Projects 可见，证明认证会话有效、无登录墙"
+      }
+    ]
+  },
+  {
+    "id": "TC-CDP-PROJECTS-003",
+    "storyId": "STORY-PROJECTS-PLACEHOLDER",
+    "title": "占位页渲染于共享 app-shell 内（左侧导航栏可见）",
+    "priority": "P1",
+    "preconditions": ["已认证会话（由 setup 项目 storageState 提供）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": { "path": "/projects" } }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      {
+        "type": "visible",
+        "selector": "heading",
+        "name": "Projects",
+        "expected": null,
+        "i18nKey": "chatbot.projects",
+        "description": "页面标题 Projects 可见"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Contacts",
+        "expected": null,
+        "i18nKey": null,
+        "description": "共享导航栏 Contacts 按钮可见"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Calendar",
+        "expected": null,
+        "i18nKey": null,
+        "description": "共享导航栏 Calendar 按钮可见"
+      },
+      {
+        "type": "visible",
+        "selector": "button",
+        "name": "Files",
+        "expected": null,
+        "i18nKey": null,
+        "description": "共享导航栏 Files 按钮可见"
+      }
+    ]
+  }
+]

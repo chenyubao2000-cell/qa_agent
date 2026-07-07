@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/marketplace",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "smoke",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "sourceComponents": [
+      { "name": "MarketplacePage", "filePath": "apps/mira-work/app/(agent)/marketplace/page.tsx", "role": "page" },
+      { "name": "MarketplaceHomeClient", "filePath": "apps/mira-work/app/(agent)/marketplace/marketplace-home-client.tsx", "role": "page" }
+    ],
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 3,
+      "elementsFound": 33,
+      "duration": "~4m"
+    }
+  },
+
+  "sourceContext": {
+    "testIds": [],
+    "ariaAttributes": [
+      { "element": "back button", "label": "t('back')", "role": "button" },
+      { "element": "pagination prev/next", "label": "t('pagination.prev')/t('pagination.next')", "role": "button" },
+      { "element": "pagination page N", "label": "Page N (hardcoded, not i18n)", "role": "button" },
+      { "element": "installed CTA button", "label": "t('card.installed')", "role": "button" }
+    ],
+    "conditionalElements": [
+      { "element": "server gate: redirect to /settings", "condition": "!isSkillEnabledForUser(session.user)", "description": "page.tsx server component redirects unauthorized users to /settings before MarketplaceHomeClient ever renders. CONFIRMED BUG — see keyFindings; /settings has no page.tsx (verified both by directory listing and live navigation → 404)." },
+      { "element": "server gate: redirect to /sign-in", "condition": "!session?.user?.id", "description": "Unauthenticated users redirected to /sign-in (not exercised — session already authenticated)." },
+      { "element": "counter line 'All skills (N)'", "condition": "!isLoading && !isError", "description": "Hidden during loading/error states" },
+      { "element": "GridSkeleton (6 skeleton cards)", "condition": "isLoading", "description": "Shown while useMarketplaceListings query is in flight" },
+      { "element": "EmptyState 'listLoadFailed'", "condition": "isError", "description": "Shown on query error" },
+      { "element": "EmptyState 'listEmpty'", "condition": "!isLoading && !isError && listings.length === 0", "description": "Shown when filtered result set is empty" },
+      { "element": "ListingCard CTA — owner variant", "condition": "listing.isOwn", "description": "outline button + ArrowUpRight icon, navigates to /marketplace/me instead of installing" },
+      { "element": "ListingCard CTA — installed variant", "condition": "listing.isInstalled && !listing.isOwn", "description": "disabled filled button with Check icon, text 'Installed'" },
+      { "element": "ListingCard CTA — default variant", "condition": "!listing.isOwn && !listing.isInstalled", "description": "outline button + Plus icon, POSTs /api/marketplace/{id}/install" },
+      { "element": "isOwn chip next to skill name", "condition": "listing.isOwn", "description": "small pill badge 'ownerChip'" },
+      { "element": "pagination Previous button", "condition": "page > 0", "description": "disabled when on first page" },
+      { "element": "pagination Next button", "condition": "page + 1 < totalPages", "description": "disabled when on last page" }
+    ],
+    "i18nKeys": [
+      { "element": "h1", "key": "skill.marketplace.title", "namespace": "skill.marketplace" },
+      { "element": "back button aria-label", "key": "skill.marketplace.back", "namespace": "skill.marketplace" },
+      { "element": "My Published button", "key": "skill.marketplace.published", "namespace": "skill.marketplace" },
+      { "element": "Publish new skill button", "key": "skill.marketplace.publishNew", "namespace": "skill.marketplace" },
+      { "element": "category chips", "key": "skill.marketplace.categories.{all|recruit|sourcing|interview|client|content|other}", "namespace": "skill.marketplace.categories" },
+      { "element": "sort dropdown items", "key": "skill.marketplace.sort.{latest|oldest}", "namespace": "skill.marketplace.sort" },
+      { "element": "counter line", "key": "skill.marketplace.totalCount", "namespace": "skill.marketplace" },
+      { "element": "error empty state", "key": "skill.marketplace.listLoadFailed", "namespace": "skill.marketplace" },
+      { "element": "empty state", "key": "skill.marketplace.listEmpty", "namespace": "skill.marketplace" },
+      { "element": "card meta line", "key": "skill.marketplace.card.meta", "namespace": "skill.marketplace.card" },
+      { "element": "card install/installed/gotoPublished/ownerChip buttons", "key": "skill.marketplace.card.{install|installed|gotoPublished|ownerChip}", "namespace": "skill.marketplace.card" },
+      { "element": "pagination summary/prev/next", "key": "skill.marketplace.pagination.{summary|prev|next}", "namespace": "skill.marketplace.pagination" }
+    ],
+    "utilityClasses": ["rounded-full", "px-3.5", "py-1.5", "bg-foreground", "text-background", "bg-secondary", "gap-2.5", "line-clamp-1", "tabular-nums"],
+    "note": "skill.marketplace.* namespace not found at all in D:\\code\\qa_agent\\tests\\e2e\\mira-test\\messages\\en.json (no top-level 'skill' key in that fixture). The live page still renders correct English text via the app's own bundled messages — this is a stale/incomplete local i18n fixture, not a live-page bug. Use i18nRegex-tolerant matching, not exact key lookup, per e2e-flakiness-playbook Pattern 2."
+  },
+
+  "states": {
+    "S0": {
+      "name": "Marketplace home — All category, page 1 of 2, 14 total skills",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Pulse 1 item awaiting", "locatorHint": "getByRole('button', { name: 'Pulse 1 item awaiting' })" },
+            { "tag": "button", "role": "button", "text": "Channel", "locatorHint": "getByRole('button', { name: 'Channel' })" },
+            { "tag": "button", "role": "button", "text": "Contacts", "locatorHint": "getByRole('button', { name: 'Contacts' })" },
+            { "tag": "button", "role": "button", "text": "Calendar", "locatorHint": "getByRole('button', { name: 'Calendar' })" },
+            { "tag": "button", "role": "button", "text": "Files", "locatorHint": "getByRole('button', { name: 'Files' })" },
+            { "tag": "button", "role": "button", "text": "k", "state": "haspopup=menu", "note": "command-palette trigger", "locatorHint": "getByRole('button', { name: 'k' })" },
+            { "tag": "button", "role": "button", "text": "Toggle Sidebar", "ariaLabel": "Toggle Sidebar", "locatorHint": "getByRole('button', { name: 'Toggle Sidebar' })" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "headings": [
+            { "level": 1, "text": "Skill Marketplace" },
+            { "level": 2, "text": "ppt-maker" },
+            { "level": 2, "text": "test-skill3" },
+            { "level": 2, "text": "xiao-chao-rou" },
+            { "level": 2, "text": "mira-test3" },
+            { "level": 2, "text": "smooth-talker" },
+            { "level": 2, "text": "test111" },
+            { "level": 2, "text": "test111", "note": "duplicate heading text — two distinct seed listings both titled 'test111'; not a UI bug but means getByRole('heading',{name:'test111'}) will match 2 elements" },
+            { "level": 2, "text": "mkmove1" },
+            { "level": 2, "text": "mira-skill-creator" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Back", "ariaLabel": "Back (i18n: skill.marketplace.back)", "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "button", "role": "button", "text": "My Published", "locatorHint": "getByRole('button', { name: 'My Published' })", "note": "router.push('/marketplace/me')" },
+            { "tag": "button", "role": "button", "text": "Publish new skill", "locatorHint": "getByRole('button', { name: 'Publish new skill' })", "note": "router.push('/settings/skills?tab=personal')" },
+            { "tag": "button", "role": "button", "text": "All", "state": "active", "locatorHint": "getByRole('button', { name: 'All' })" },
+            { "tag": "button", "role": "button", "text": "Recruit", "locatorHint": "getByRole('button', { name: 'Recruit' })" },
+            { "tag": "button", "role": "button", "text": "Sourcing", "locatorHint": "getByRole('button', { name: 'Sourcing' })" },
+            { "tag": "button", "role": "button", "text": "Interview", "locatorHint": "getByRole('button', { name: 'Interview' })" },
+            { "tag": "button", "role": "button", "text": "Client", "locatorHint": "getByRole('button', { name: 'Client' })" },
+            { "tag": "button", "role": "button", "text": "Content", "locatorHint": "getByRole('button', { name: 'Content' })" },
+            { "tag": "button", "role": "button", "text": "Other", "locatorHint": "getByRole('button', { name: 'Other' })" },
+            { "tag": "button", "role": "button", "text": "Newest first", "state": "haspopup=menu, not opened this pass", "locatorHint": "getByRole('button', { name: 'Newest first' })" },
+            { "tag": "text", "role": null, "text": "All skills (14)", "locatorHint": "getByText('All skills (14)')" },
+            { "tag": "button", "role": "button", "text": "Add to my skills", "note": "one per non-owned/non-installed ListingCard; 9 present on page 1 — NOT clicked (POST /api/marketplace/{id}/install would mutate shared test account)", "locatorHint": "getByRole('button', { name: 'Add to my skills' }).first()" },
+            { "tag": "text", "role": null, "text": "14 total" },
+            { "tag": "navigation", "role": "navigation", "text": "Pagination" },
+            { "tag": "button", "role": "button", "text": "Previous", "state": "disabled", "ariaLabel": "Previous (i18n: skill.marketplace.pagination.prev)", "locatorHint": "getByRole('button', { name: 'Previous' })" },
+            { "tag": "button", "role": "button", "text": "Page 1", "state": "current", "locatorHint": "getByRole('button', { name: 'Page 1' })" },
+            { "tag": "button", "role": "button", "text": "Page 2", "locatorHint": "getByRole('button', { name: 'Page 2' })" },
+            { "tag": "button", "role": "button", "text": "Next", "ariaLabel": "Next (i18n: skill.marketplace.pagination.next)", "locatorHint": "getByRole('button', { name: 'Next' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Category filter applied — Sourcing (1 of 14 skills)",
+      "sourceArea": null,
+      "trigger": { "action": "click", "element": "button:Sourcing", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "level": 2, "text": "xiao-chao-rou" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Sourcing", "state": "focused/active", "locatorHint": "getByRole('button', { name: 'Sourcing' })" },
+            { "tag": "text", "role": null, "text": "All skills (1)" },
+            { "tag": "button", "role": "button", "text": "Add to my skills", "locatorHint": "getByRole('button', { name: 'Add to my skills' })" },
+            { "tag": "text", "role": null, "text": "1 total" },
+            { "tag": "button", "role": "button", "text": "Previous", "state": "disabled" },
+            { "tag": "button", "role": "button", "text": "Page 1", "state": "current" },
+            { "tag": "button", "role": "button", "text": "Next", "state": "disabled" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "Category chip filtering works correctly: counter text, card list, and pagination all update reactively (client-side re-fetch via useMarketplaceListings with category param) — collapsed to a single disabled Previous/Next page. Clicking 'All' afterward correctly restored all 14 listings. No hydration lag observed (waited for text-change per e2e-flakiness-playbook §19b)."
+    },
+    "S2": {
+      "name": "Pagination — page 2 (remaining 5 of 14 skills)",
+      "sourceArea": null,
+      "trigger": { "action": "click", "element": "button:Page 2", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "level": 2, "text": "a-stock-analyst" },
+            { "level": 2, "text": "interview-tips" },
+            { "level": 2, "text": "mkmove" },
+            { "level": 2, "text": "hello-mira" },
+            { "level": 2, "text": "paper-write" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Previous", "state": "enabled", "locatorHint": "getByRole('button', { name: 'Previous' })" },
+            { "tag": "button", "role": "button", "text": "Page 1", "locatorHint": "getByRole('button', { name: 'Page 1' })" },
+            { "tag": "button", "role": "button", "text": "Page 2", "state": "current", "locatorHint": "getByRole('button', { name: 'Page 2' })" },
+            { "tag": "button", "role": "button", "text": "Next", "state": "disabled", "locatorHint": "getByRole('button', { name: 'Next' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "Page 2 correctly shows the remaining 5 of 14 listings (9 + 5 = 14). Next correctly disabled on last page, Previous correctly enabled. Counter still reads 'All skills (14)' (total across all pages, per t('totalCount',{total}) — expected, not a bug)."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Sourcing", "to": "S1", "sourceArea": null },
+      { "from": "S1", "action": "click", "element": "button:All", "to": "S0", "sourceArea": null },
+      { "from": "S0", "action": "click", "element": "button:Page 2", "to": "S2", "sourceArea": null }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (getByRole with text) — no data-testid found in page/child components inspected; never use Tailwind utility classes (rounded-full, bg-foreground, etc.) as locators. Card-level 'Add to my skills' buttons are not individually unique — disambiguate by scoping to the containing card via heading text (skill name). Two seed listings share the heading text 'test111' — heading-text scoping alone is insufficient for those two."
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 33,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["category-filter-chips", "pagination"],
+    "scrollMode": "single-page-scroll (main content area overflow-auto) + numbered pagination for the listing grid",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 0.35,
+    "scopeNote": "Lightweight smoke scope per task spec, not exhaustive BFS — did not open the sort dropdown menu, did not click 'Add to my skills' (side-effecting POST), did not exercise all 7 category chips, and did not click into a listing card's detail page."
+  },
+
+  "keyFindings": [
+    "No login wall encountered — hasLoginWall: false. The already-authenticated session (Ktrieling777@gmail.com) passed the isSkillEnabledForUser server gate and landed directly on /marketplace with no redirect.",
+    "CONFIRMED BUG (verified two ways this session): apps/mira-work/app/(agent)/marketplace/page.tsx redirects any user who fails isSkillEnabledForUser() to '/settings'. There is no app/(agent)/settings/page.tsx (only /settings/connectors/page.tsx and /settings/skills/... subpaths exist — confirmed via directory listing). Live navigation to https://mira-bff-preview.up.railway.app/settings was also performed directly and rendered the app's generic 'Page not found' / 'The page you are looking for does not exist or has been removed.' screen. Any user without skill access enabled who reaches /marketplace is bounced to a dead-end 404 instead of a meaningful settings/upsell page.",
+    "Category filter chips work correctly: clicking 'Sourcing' narrowed the grid to 1 matching listing, updated the counter to 'All skills (1)'/'1 total', and collapsed pagination to a single disabled Previous/Next; clicking 'All' correctly restored all 14 listings.",
+    "Pagination works correctly: page 1 shows 9 of 14 listings (Previous disabled, Next enabled); page 2 shows the remaining 5 listings (Previous enabled, Next disabled). Total counter correctly stays at 14 across both pages.",
+    "Minor data-quality note (not a UI bug): two seeded listings are both titled 'test111' with different descriptions/categories — headings are not unique, so getByRole('heading', { name: 'test111' }) will match 2 elements; downstream test/script generation should scope by description or install-count instead.",
+    "No data-testid attributes exist anywhere in marketplace-home-client.tsx; all locators must rely on getByRole+name or aria-label (pagination buttons and the installed-CTA carry aria-label from i18n; category chips/sort/install buttons rely on visible i18n text only).",
+    "i18n fixture gap (informational, not a live bug): the 'skill.marketplace' namespace used throughout this component does not exist in this QA workspace's messages/en.json — the live page still renders correct English text via its own bundled messages, so downstream scripts should use tolerant text/role matching rather than looking up skill.marketplace.* from the local fixture.",
+    "Not exercised (out of smoke scope): opening the sort dropdown, clicking 'Add to my skills' (avoided to prevent mutating shared test account state), and clicking into a listing card's detail page."
+  ],
+
+  "baselineWritten": true
+}

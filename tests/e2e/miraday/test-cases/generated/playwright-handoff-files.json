@@ -1,0 +1,106 @@
+[
+  {
+    "id": "TC-CDP-FILES-001",
+    "storyId": "files-load",
+    "title": "文件页加载并渲染已分组文件列表与完整工具栏",
+    "priority": "P0",
+    "preconditions": ["已登录（storageState）", "导航到 /files"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Files", "i18nKey": "files.page.title", "locatorHint": "getByRole('heading', { level: 1, name: 'Files' })", "action": null },
+      { "role": "textbox", "name": "Search by file name", "i18nKey": "files.search.placeholder", "locatorHint": "getByRole('textbox', { name: 'Search by file name' })", "action": null },
+      { "role": "button", "name": "Group files by", "locatorHint": "getByRole('button', { name: 'Group files by' })", "action": null },
+      { "role": "button", "name": "Sort files by", "locatorHint": "getByRole('button', { name: 'Sort files by' })", "action": null },
+      { "role": "button", "name": "Filter files", "locatorHint": "getByRole('button', { name: 'Filter files' })", "action": null },
+      { "role": "radio", "name": "List view", "locatorHint": "getByRole('radio', { name: 'List view' })", "action": null },
+      { "role": "radio", "name": "Grid view", "locatorHint": "getByRole('radio', { name: 'Grid view' })", "action": null },
+      { "role": "tablist", "name": "Filter by source", "locatorHint": "getByRole('tablist', { name: 'Filter by source' })", "action": null },
+      { "role": "tab", "name": "All", "i18nKey": "files.tabs.all", "locatorHint": "getByRole('tab', { name: 'All', exact: true })", "action": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Files", "expected": null },
+      { "type": "visible", "selector": "textbox", "name": "Search by file name", "expected": null },
+      { "type": "visible", "selector": "button", "name": "Group files by", "expected": null },
+      { "type": "visible", "selector": "button", "name": "Sort files by", "expected": null },
+      { "type": "visible", "selector": "button", "name": "Filter files", "expected": null },
+      { "type": "checked", "selector": "radio", "name": "List view", "expected": "true" },
+      { "type": "attribute", "selector": "tab", "name": "All", "expected": "aria-selected=true" },
+      { "type": "count", "selector": "file-rows", "expected": ">0" },
+      { "type": "hidden", "selector": "empty-state", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-FILES-002",
+    "storyId": "files-source-filter",
+    "title": "切到 My Uploads tab 显示无匹配空态并出现 Clear filters，URL 同步 sources=user_upload",
+    "priority": "P1",
+    "preconditions": ["已登录", "/files", "默认 All tab"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "tab", "name": "My Uploads", "i18nKey": "files.tabs.user_upload", "locatorHint": "getByRole('tab', { name: 'My Uploads' })", "action": "click" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "empty-title", "name": "No matching files", "expected": null },
+      { "type": "visible", "selector": "button", "name": "Clear filters", "expected": null },
+      { "type": "url", "selector": null, "expected": "sources=user_upload" },
+      { "type": "visible", "selector": "heading", "name": "Files", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-FILES-003",
+    "storyId": "files-source-filter",
+    "title": "空态点击 Clear filters 还原到有数据列表",
+    "priority": "P1",
+    "preconditions": ["已登录", "/files", "已切到 My Uploads 空态"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "click", "pomMethod": "selectMyUploadsTab" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Clear filters", "i18nKey": "files.empty.no_search_results.clear_filters", "locatorHint": "getByRole('button', { name: 'Clear filters' })", "action": "click" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "empty-title", "name": "No matching files", "expected": null },
+      { "type": "count", "selector": "file-rows", "expected": ">0" },
+      { "type": "url-not", "selector": null, "expected": "sources=user_upload" }
+    ]
+  },
+  {
+    "id": "TC-CDP-FILES-004",
+    "storyId": "files-view-toggle",
+    "title": "List↔Grid 视图切换后主内容无水平溢出（Grid 布局缺陷回归护栏）",
+    "priority": "P1",
+    "preconditions": ["已登录", "/files", "1280px 视口", "List 视图"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "radio", "name": "Grid view", "locatorHint": "getByRole('radio', { name: 'Grid view' })", "action": "click" },
+      { "role": "radio", "name": "List view", "locatorHint": "getByRole('radio', { name: 'List view' })", "action": "click" }
+    ],
+    "assertions": [
+      { "type": "custom", "selector": "main-scroll-metrics", "expected": "grid: scrollWidth<=clientWidth+1 && scrollLeft===0" },
+      { "type": "custom", "selector": "main-scroll-metrics", "expected": "list: scrollWidth<=clientWidth+1 && scrollLeft===0" }
+    ]
+  },
+  {
+    "id": "TC-CDP-FILES-005",
+    "storyId": "files-search",
+    "title": "按不存在的文件名搜索显示无结果空态，清空后还原",
+    "priority": "P2",
+    "preconditions": ["已登录", "/files"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Search by file name", "i18nKey": "files.search.placeholder", "locatorHint": "getByRole('textbox', { name: 'Search by file name' })", "action": "fill", "dataType": "text", "dataVariant": "no-match-keyword" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "empty-title", "name": "No matching files", "expected": null },
+      { "type": "hidden", "selector": "empty-title", "name": "No matching files", "expected": null },
+      { "type": "count", "selector": "file-rows", "expected": ">0" }
+    ],
+    "notes": "No URL-sync assertion: /files search is local React state only (files-view.tsx searchInput/debouncedQuery — never passed through updateUrl()/history.replaceState), unlike /contacts which does sync ?q=. Confirmed via source read + live CDP check on 2026-07-03: typing a query keeps window.location.href at exactly the page URL with no ?q= param, even though the debounced no-result empty state renders correctly."
+  }
+]

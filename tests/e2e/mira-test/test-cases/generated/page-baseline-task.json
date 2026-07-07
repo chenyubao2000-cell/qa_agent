@@ -1,0 +1,185 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/task",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        { "name": "TaskIndex (page.tsx)", "filePath": "apps/mira-work/app/(agent)/task/(index)/page.tsx", "role": "page" },
+        { "name": "TaskIndexContent", "filePath": "apps/mira-work/app/(agent)/task/task-index-content.tsx", "role": "section" },
+        { "name": "TaskIndexInput / TaskIndexCards", "filePath": "apps/mira-work/app/(agent)/task/task-index-client.tsx", "role": "widget" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "submit button (PromptInputSubmit)", "label": "Submit", "role": "button" },
+        { "element": "hidden file input (prompt-input.tsx)", "label": "Upload files", "role": null, "note": "hidden <input type=file>, not the visible Add button" }
+      ],
+      "conditionalElements": [
+        { "element": "TaskIndexCards scenario cards", "condition": "cards.length === 0 → renders null", "description": "Scenario cards only render if scenarioCards table has active rows (server-fetched); account currently has 4 cards" },
+        { "element": "Submit button disabled state", "condition": "empty textarea + no files", "description": "PromptInputSubmit disabled until message.text or files present" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 heading", "key": "dashboard.welcome", "namespace": "dashboard", "value": "What can I do for you?" },
+        { "element": "composer placeholder", "key": "chatbot.placeholder", "namespace": "chatbot", "value": "Please enter..." },
+        { "element": "add-attachments popover", "key": "chatbot.addAttachments", "namespace": "chatbot", "value": "Add photos or files" }
+      ],
+      "utilityClasses": ["px-6", "mt-8", "md:mt-16", "max-w-3xl"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 2,
+      "interactionsPerformed": 2,
+      "elementsFound": 33,
+      "duration": "n/a"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Task index — initial (authenticated, has existing tasks)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "img", "role": "image", "text": "Mira", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('img', { name: 'Mira' })" },
+            { "tag": "button", "role": "button", "text": "Toggle Sidebar", "testId": null, "locatorHint": "getByRole('button', { name: 'Toggle Sidebar' })" },
+            { "tag": "button", "role": "button", "text": "Pulse 1 item awaiting", "testId": null, "locatorHint": "getByRole('button', { name: /Pulse/ })" },
+            { "tag": "button", "role": "button", "text": "Channel", "testId": null, "locatorHint": "getByRole('button', { name: 'Channel' })" },
+            { "tag": "button", "role": "button", "text": "Contacts", "testId": null, "locatorHint": "getByRole('button', { name: 'Contacts' })" },
+            { "tag": "button", "role": "button", "text": "Calendar", "testId": null, "locatorHint": "getByRole('button', { name: 'Calendar' })" },
+            { "tag": "button", "role": "button", "text": "Files", "testId": null, "locatorHint": "getByRole('button', { name: 'Files' })" },
+            { "tag": "button", "role": "button", "text": "Recent", "expandable": true, "expanded": true, "testId": null, "locatorHint": "getByRole('button', { name: 'Recent' })" },
+            { "tag": "button", "role": "button", "text": "<recent task title, e.g. 苏州 AI Agent 开发工程师岗位搜索>", "location": "recent-task-list", "note": "9 recent task items found; 3 had empty/pending title (likely AI-title-generation in progress or long-running task, see Pattern 9 in flakiness playbook)", "testId": null, "locatorHint": null },
+            { "tag": "button", "role": "button", "text": "k ktrieling777 Local Dev · Team Plan", "expandable": true, "haspopup": "menu", "location": "user-menu", "testId": null, "locatorHint": "getByRole('button', { name: /ktrieling777/ })" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "7588 Credits", "testId": null, "locatorHint": "getByRole('button', { name: /Credits/ })" },
+            { "tag": "textbox", "role": "textbox", "text": "", "multiline": true, "placeholder": "Please enter...", "testId": null, "locatorHint": "getByRole('textbox')" },
+            { "tag": "button", "role": "button", "text": "Add", "expandable": true, "haspopup": "menu", "testId": null, "locatorHint": "getByRole('button', { name: 'Add' })" },
+            { "tag": "button", "role": "button", "text": "Browser extension not detected — click to install", "testId": null, "locatorHint": "getByRole('button', { name: /Browser extension not detected/ })" },
+            { "tag": "button", "role": "button", "text": "Start voice input", "testId": null, "locatorHint": "getByRole('button', { name: 'Start voice input' })" },
+            { "tag": "button", "role": "button", "text": "Submit", "disabled": true, "ariaLabel": "Submit", "testId": null, "locatorHint": "getByRole('button', { name: 'Submit' })" },
+            { "tag": "button", "role": "button", "text": "Analyze key findings from a market research report ...", "location": "scenario-card", "testId": null, "locatorHint": "getByRole('button', { name: /Analyze key findings from a market research report/ })" },
+            { "tag": "button", "role": "button", "text": "Write a project progress update email ...", "location": "scenario-card", "testId": null, "locatorHint": "getByRole('button', { name: /Write a project progress update email/ })" },
+            { "tag": "button", "role": "button", "text": "Design a user feedback collection workflow ...", "location": "scenario-card", "testId": null, "locatorHint": "getByRole('button', { name: /Design a user feedback collection workflow/ })" },
+            { "tag": "button", "role": "button", "text": "Summarize this week's meeting highlights and action items ...", "location": "scenario-card", "testId": null, "locatorHint": "getByRole('button', { name: /Summarize this week's meeting highlights/ })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "What can I do for you?" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "region": "region[aria-live=polite] 'Notifications alt+T'", "note": "empty live region present, no visible toast at S0" }
+      ]
+    },
+    "S1": {
+      "name": "Composer filled via free text + Submit enabled",
+      "sourceArea": "task-composer",
+      "trigger": { "action": "fill", "element": "textbox (composer)", "value": "This is a smoke test draft, not submitted.", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "textbox", "role": "textbox", "text": "This is a smoke test draft, not submitted.", "testId": null, "locatorHint": "getByRole('textbox')" },
+            { "tag": "button", "role": "button", "text": "Submit", "disabled": false, "ariaLabel": "Submit", "testId": null, "locatorHint": "getByRole('button', { name: 'Submit' })" }
+          ],
+          "headings": [ { "level": 1, "text": "What can I do for you?" } ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "Confirms hydration is complete and composer is interactive (Pattern 19b risk mitigated — fill() took effect, disabled attr correctly cleared). Task was NOT submitted (per instructions)."
+    },
+    "S2": {
+      "name": "Composer text replaced via scenario-card click (fillText)",
+      "sourceArea": "task-composer",
+      "trigger": { "action": "click", "element": "button:Analyze key findings from a market research report", "fromState": "S1" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "textbox", "role": "textbox", "text": "Upload your research report to automatically extract data trends, competitive comparisons, and user insights, generating a structured analysis summary with action items", "testId": null, "locatorHint": "getByRole('textbox')" },
+            { "tag": "button", "role": "button", "text": "Submit", "disabled": false, "ariaLabel": "Submit", "testId": null, "locatorHint": "getByRole('button', { name: 'Submit' })" }
+          ],
+          "headings": [ { "level": 1, "text": "What can I do for you?" } ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "Matches source: TaskIndexCards.handleCardSelect calls sharedTaskInputRef.current.fillText(text) — replaces composer content, does NOT navigate or auto-submit. URL remained /task throughout."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "fill", "element": "textbox (composer)", "to": "S1", "sourceArea": "task-composer" },
+      { "from": "S1", "action": "click", "element": "button:Analyze key findings from a market research report (scenario card)", "to": "S2", "sourceArea": "task-composer" }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Submit",
+      "initialState": "disabled",
+      "strategy": "form-completion",
+      "result": "activated",
+      "enablingCondition": "Fill textarea with non-empty text (or attach files)",
+      "newStateId": "S1"
+    }
+  ],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S0 (main composer)",
+      "fields": [
+        { "name": "message text", "type": "richtext/textarea", "required": true, "note": "ProseMirror-backed RichInput, not a plain textarea; role=textbox multiline" }
+      ],
+      "submitButton": { "text": "Submit", "disabled": true, "note": "Not clicked — per task instructions, do not actually submit an AI task" }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Alt+T", "action": "focuses Notifications live region (per aria-label 'Notifications alt+T')", "stateTransition": "not verified" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 33,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["form-fill", "button-enable-on-input", "card-select-fills-composer"],
+    "scrollMode": "n/a",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": "n/a (smoke scope, not exhaustive)"
+  },
+
+  "keyFindings": [
+    "Landed directly on /task (no login wall) — session is authenticated as Ktrieling777@gmail.com, confirming prior agent's auth persisted.",
+    "Account is in a NON-EMPTY data state: sidebar 'Recent' section shows 9 existing tasks (mostly Chinese-language titles e.g. '苏州 AI Agent 开发工程师岗位搜索', '海辰储能合作分析报告'), so the true empty-state UI for a brand-new account was NOT observed on this run.",
+    "3 of the 9 recent task sidebar items rendered with an EMPTY title (button text/description both blank, only a 'More' menu button next to them) — could be legitimate in-progress AI-title-generation tasks (see flakiness playbook Pattern 9), or could be a data/rendering issue. Flagging as POTENTIAL ISSUE for follow-up rather than a confirmed bug, since this is a smoke-scope pass with no deep-dive into those specific task records.",
+    "Composer (TaskInput) hydration and interactivity confirmed working: filling the textbox correctly flips the Submit button from disabled to enabled, and clicking a scenario card correctly replaces composer content via fillText() without navigating away — matches source code behavior in task-index-client.tsx exactly, no signs of the SSR/hydration-race flakiness described in playbook §19b.",
+    "4 scenario cards ('Try these scenarios') rendered, matching the server-fetched scenarioCards table content for this account.",
+    "No console errors observed during the scan.",
+    "AI task creation was intentionally NOT submitted, per task instructions — Submit button was verified reachable/enabled but not clicked through to completion."
+  ]
+}

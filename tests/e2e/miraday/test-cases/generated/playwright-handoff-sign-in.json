@@ -1,0 +1,94 @@
+[
+  {
+    "id": "TC-CDP-SIGNIN-001",
+    "storyId": "sign-in-email-step",
+    "title": "直接访问 /sign-in 直出统一登录表单并渲染全部关键元素",
+    "priority": "P0",
+    "source": "cdp",
+    "preconditions": ["公开页，无需登录"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "expected": "/sign-in", "match": "regex", "note": "无重定向、无登录墙" },
+      { "type": "visible", "target": "signInHeading", "expected": "Sign in or Sign up", "i18nKey": "auth.unifiedTitle" },
+      { "type": "visible", "target": "emailInput", "i18nKey": "auth.emailPlaceholder" },
+      { "type": "disabled", "target": "continueButton", "i18nKey": "auth.continueTitle", "note": "邮箱为空时禁用" },
+      { "type": "visible", "target": "googleButton", "expected": "Continue with Google", "i18nKey": "auth.continueWithGoogle" },
+      { "type": "enabled", "target": "googleButton" },
+      { "type": "visible", "target": "microsoftButton", "expected": "Continue with Microsoft", "i18nKey": "auth.continueWithMicrosoft" },
+      { "type": "enabled", "target": "microsoftButton" }
+    ]
+  },
+  {
+    "id": "TC-CDP-SIGNIN-002",
+    "storyId": "sign-in-email-step",
+    "title": "Continue 按钮随邮箱内容在禁用/启用间切换",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["位于 /sign-in 邮箱步骤"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "action": "fill", "value": "a@b.com", "pomMethod": "fillEmail", "i18nKey": "auth.emailPlaceholder", "note": "仅作非空文本，不提交" }
+    ],
+    "assertions": [
+      { "type": "disabled", "target": "continueButton", "note": "初始空态禁用" },
+      { "type": "enabled", "target": "continueButton", "note": "输入非空文本后启用" },
+      { "type": "disabled", "target": "continueButton", "note": "清空后重新禁用" }
+    ]
+  },
+  {
+    "id": "TC-CDP-SIGNIN-003",
+    "storyId": "sign-in-email-step",
+    "title": "纯空白邮箱保持 Continue 禁用（trim 边界）",
+    "priority": "P2",
+    "source": "cdp",
+    "preconditions": ["位于 /sign-in 邮箱步骤"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "action": "fill", "value": "   ", "pomMethod": "fillEmail", "i18nKey": "auth.emailPlaceholder" }
+    ],
+    "assertions": [
+      { "type": "disabled", "target": "continueButton", "note": "!email.trim() 判定为空，保持禁用" }
+    ]
+  },
+  {
+    "id": "TC-CDP-SIGNIN-004",
+    "storyId": "sign-in-email-step",
+    "title": "非法邮箱格式点击 Continue 触发内联校验错误",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["位于 /sign-in 邮箱步骤"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "action": "fill", "value": "not-an-email", "pomMethod": "fillEmail", "i18nKey": "auth.emailPlaceholder" },
+      { "role": "button", "action": "click", "pomMethod": "clickContinue", "i18nKey": "auth.continueTitle" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "emailError", "expected": "Please enter a valid email address", "i18nKey": "auth.validation.emailInvalid" },
+      { "type": "attribute", "target": "emailInput", "attr": "aria-invalid", "expected": "true" },
+      { "type": "url", "expected": "/sign-in", "match": "regex", "note": "未提交、未跳转" }
+    ]
+  },
+  {
+    "id": "TC-CDP-SIGNIN-005",
+    "storyId": "sign-in-email-step",
+    "title": "在邮箱框按 Enter 触发与点击 Continue 相同的校验",
+    "priority": "P2",
+    "source": "cdp",
+    "preconditions": ["位于 /sign-in 邮箱步骤"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "action": "fill", "value": "not-an-email", "pomMethod": "fillEmail", "i18nKey": "auth.emailPlaceholder" },
+      { "role": "textbox", "action": "press", "value": "Enter", "pomMethod": "pressEnterInEmail" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "emailError", "expected": "Please enter a valid email address", "i18nKey": "auth.validation.emailInvalid" },
+      { "type": "url", "expected": "/sign-in", "match": "regex", "note": "键盘 Enter 等价于点击 Continue" }
+    ]
+  }
+]

@@ -1,0 +1,89 @@
+[
+  {
+    "id": "TC-CDP-CONTACT-001",
+    "storyId": "contact-list-view",
+    "title": "联系人页加载并渲染全量列表",
+    "priority": "P0",
+    "preconditions": ["已登录（默认 storageState）", "导航至 /contacts"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "target": "h1 标题 Contacts", "selector": "heading", "name": "Contacts", "i18nKey": "contact.list.title" },
+      { "type": "visible", "target": "计数文本 N people", "expectedPattern": "\\d+ (people|person)", "i18nKey": "contact.list.count" },
+      { "type": "checked", "target": "All 分段项选中", "selector": "radio", "name": "All \\d+" },
+      { "type": "visible", "target": "表格列头 Name", "selector": "columnheader", "name": "Name" },
+      { "type": "count", "target": "联系人行按钮 (Open {name})", "expected": ">=1" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONTACT-002",
+    "storyId": "contact-filter",
+    "title": "切换到空类别 Clients tab 显示无数据提示且头部保留",
+    "priority": "P1",
+    "preconditions": ["已登录", "导航至 /contacts，处于 All tab 全量列表态"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "Clients 分段项", "selector": "radio", "name": "Clients \\d+", "locatorHint": "getByRole('radio', { name: /Clients \\d+/ })" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "空类别提示文案", "expected": "No contacts in this category yet.", "i18nKey": "contact.list.emptyCategory" },
+      { "type": "visible", "target": "计数文本 0 people", "expectedPattern": "0 (people|person)" },
+      { "type": "visible", "target": "h1 Contacts 仍可见（header 未消失）", "selector": "heading", "name": "Contacts" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONTACT-003",
+    "storyId": "contact-search",
+    "title": "搜索无匹配关键字显示无匹配态并同步 URL，清空后还原",
+    "priority": "P1",
+    "preconditions": ["已登录", "导航至 /contacts，处于全量列表态"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "fill", "target": "搜索框", "value": "zzzznonexistentquery", "selector": "textbox", "name": "Search contacts", "dataType": "text", "i18nKey": "contact.list.searchPlaceholder" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "无匹配提示文案", "expectedPattern": "No contacts match this search", "i18nKey": "contact.list.noMatch" },
+      { "type": "url", "target": "URL 同步查询参数", "expectedPattern": "q=zzzznonexistentquery" },
+      { "type": "count", "target": "清空后全量列表还原（行按钮）", "expected": ">=1" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONTACT-005",
+    "storyId": "contact-import",
+    "title": "打开导入联系人弹窗且未选文件时 Continue 禁用，关闭后返回列表",
+    "priority": "P1",
+    "preconditions": ["已登录", "导航至 /contacts"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "Import 按钮", "selector": "button", "name": "Import", "locatorHint": "getByRole('button', { name: 'Import' })", "i18nKey": "contact.list.importButton" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "导入弹窗标题 Import contacts", "selector": "heading", "name": "Import contacts" },
+      { "type": "visible", "target": "Select files 按钮", "selector": "button", "name": "Select files" },
+      { "type": "disabled", "target": "Continue 按钮（未选文件）", "selector": "button", "name": "Continue" },
+      { "type": "visible", "target": "关闭后 h1 Contacts 返回", "selector": "heading", "name": "Contacts" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONTACT-004",
+    "storyId": "contact-import",
+    "title": "导入弹窗 IMPORT AS 单选组默认无选中，需用户手动选择",
+    "priority": "P2",
+    "preconditions": ["已登录", "导航至 /contacts"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "Import 按钮", "selector": "button", "name": "Import", "locatorHint": "getByRole('button', { name: 'Import' })" }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "Candidate 单选项可见", "selector": "radio", "name": "Candidate" },
+      { "type": "not-checked", "target": "Candidate 单选项默认未选中（source: useState<ContactType|null>(null)，无默认值）", "selector": "radio", "name": "Candidate" },
+      { "type": "visible", "target": "Client 单选项可见", "selector": "radio", "name": "Client" },
+      { "type": "not-checked", "target": "Client 单选项默认未选中", "selector": "radio", "name": "Client" }
+    ]
+  }
+]

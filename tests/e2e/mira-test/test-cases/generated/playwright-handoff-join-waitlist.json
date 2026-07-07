@@ -1,0 +1,104 @@
+[
+  {
+    "id": "TC-CDP-JW-001",
+    "storyId": "join-waitlist-render",
+    "title": "匿名直达 /join-waitlist 直出完整申请表单并渲染全部关键元素",
+    "priority": "P0",
+    "source": "cdp",
+    "preconditions": ["公开页，清空 storageState 后以匿名态访问 /join-waitlist"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Join Waitlist heading", "role": "heading", "action": "verify", "locatorHint": "getByRole('heading', { name: 'Join Waitlist' })", "i18nKey": "auth.joinWaitlist.title" },
+      { "name": "Work Email input", "role": "textbox", "action": "verify", "locatorHint": "getByLabel('Work Email')", "i18nKey": "auth.joinWaitlist.workEmail" },
+      { "name": "First name input", "role": "textbox", "action": "verify", "locatorHint": "getByLabel('First name')" },
+      { "name": "Last name input", "role": "textbox", "action": "verify", "locatorHint": "getByLabel('Last name')" },
+      { "name": "Company input", "role": "textbox", "action": "verify", "locatorHint": "getByLabel('Company')", "i18nKey": "auth.joinWaitlist.company" },
+      { "name": "Role / Position input", "role": "textbox", "action": "verify", "locatorHint": "getByLabel('Role / Position')", "i18nKey": "auth.joinWaitlist.role" },
+      { "name": "Use case textarea", "role": "textbox", "action": "verify", "locatorHint": "getByLabel('How do you plan to use Mira')", "i18nKey": "auth.joinWaitlist.useCase" },
+      { "name": "Send Verify Code button", "role": "button", "action": "verify", "locatorHint": "getByRole('button', { name: 'Send Verify Code' })", "i18nKey": "auth.joinWaitlist.sendOtp" },
+      { "name": "Submit Application button", "role": "button", "action": "verify", "locatorHint": "getByRole('button', { name: 'Submit Application' })", "i18nKey": "auth.joinWaitlist.submit" },
+      { "name": "Cancel button", "role": "button", "action": "verify", "locatorHint": "getByRole('button', { name: 'Cancel' })", "i18nKey": "auth.joinWaitlist.cancel" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/join-waitlist", "description": "无登录墙、无重定向，URL 保持在 /join-waitlist" },
+      { "type": "visible", "selector": "heading", "expected": "Join Waitlist", "i18nKey": "auth.joinWaitlist.title", "description": "h1 显示 Join Waitlist" },
+      { "type": "visible", "description": "Work Email 输入框可见" },
+      { "type": "visible", "description": "First name / Last name / Company / Role / Use case 五个字段可见" },
+      { "type": "visible", "description": "Send Verify Code 按钮可见" },
+      { "type": "visible", "description": "Submit Application 按钮可见" },
+      { "type": "visible", "description": "Cancel 按钮可见" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JW-002",
+    "storyId": "join-waitlist-button-gating",
+    "title": "初始渲染时按钮门控状态正确（Send Verify Code 禁用、Submit Application 启用）",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist，表单全空"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Send Verify Code button", "role": "button", "action": "verify", "locatorHint": "getByRole('button', { name: 'Send Verify Code' })", "i18nKey": "auth.joinWaitlist.sendOtp" },
+      { "name": "Submit Application button", "role": "button", "action": "verify", "locatorHint": "getByRole('button', { name: 'Submit Application' })", "i18nKey": "auth.joinWaitlist.submit" }
+    ],
+    "assertions": [
+      { "type": "disabled", "description": "邮箱为空时 Send Verify Code 禁用" },
+      { "type": "enabled", "description": "必填项全空、邮箱未验证时 Submit Application 仍为启用（仅 isSubmitting 时禁用）" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JW-003",
+    "storyId": "join-waitlist-button-gating",
+    "title": "输入非空邮箱（含非法格式）即启用 Send Verify Code — 仅按非空判定、不校验格式",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Work Email input", "role": "textbox", "action": "fill", "value": "notanemail", "locatorHint": "getByLabel('Work Email')", "i18nKey": "auth.joinWaitlist.workEmail" },
+      { "name": "Send Verify Code button", "role": "button", "action": "verify", "locatorHint": "getByRole('button', { name: 'Send Verify Code' })", "i18nKey": "auth.joinWaitlist.sendOtp" }
+    ],
+    "assertions": [
+      { "type": "disabled", "description": "输入前 Send Verify Code 初始禁用" },
+      { "type": "enabled", "description": "输入非空文本 notanemail 后 Send Verify Code 变为启用（非法格式也启用，门控=email.trim()非空）" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JW-004",
+    "storyId": "join-waitlist-button-gating",
+    "title": "纯空白邮箱保持 Send Verify Code 禁用（trim 边界）",
+    "priority": "P2",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist，邮箱框初始为空"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Work Email input", "role": "textbox", "action": "fill", "value": "   ", "locatorHint": "getByLabel('Work Email')", "i18nKey": "auth.joinWaitlist.workEmail" },
+      { "name": "Send Verify Code button", "role": "button", "action": "verify", "locatorHint": "getByRole('button', { name: 'Send Verify Code' })", "i18nKey": "auth.joinWaitlist.sendOtp" }
+    ],
+    "assertions": [
+      { "type": "disabled", "description": "纯空白（trim 后为空）不启用 Send Verify Code，按钮保持禁用" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JW-005",
+    "storyId": "join-waitlist-submit-gate",
+    "title": "邮箱未验证时点击 Submit Application 触发「请先验证邮箱」toast 且不离开页面",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist，邮箱未验证"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Submit Application button", "role": "button", "action": "click", "locatorHint": "getByRole('button', { name: 'Submit Application' })", "i18nKey": "auth.joinWaitlist.submit" },
+      { "name": "email-not-verified toast", "role": "status", "action": "verify", "locatorHint": "getByText('Please verify your email before submitting')", "i18nKey": "auth.joinWaitlist.errors.emailNotVerified" }
+    ],
+    "assertions": [
+      { "type": "visible", "expected": "Please verify your email before submitting", "i18nKey": "auth.joinWaitlist.errors.emailNotVerified", "description": "出现邮箱未验证 toast" },
+      { "type": "url", "expected": "/join-waitlist", "description": "URL 仍停留在 /join-waitlist（短路，无网络请求、无跳转）" }
+    ]
+  }
+]

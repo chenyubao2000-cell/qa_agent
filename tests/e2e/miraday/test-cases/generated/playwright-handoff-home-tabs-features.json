@@ -1,0 +1,118 @@
+[
+  {
+    "id": "TC-CDP-TABS-001",
+    "storyId": "US-HOME-TABS",
+    "criterionId": "AC-TABS-001",
+    "source": "cdp",
+    "title": "默认落地页展示 Core 标签面板内容",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["打开首页 /（无需登录）"],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Core", "action": null, "value": null, "locatorHint": "locator('#features').getByRole('button', { name: 'Core' })", "dataType": null, "dataVariant": null, "i18nKey": "homepage.features.core" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Work With You, Not For You", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" },
+      { "type": "hidden", "selector": "heading", "name": "Candidate Data", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.candidateData.title" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-TABS-002",
+    "storyId": "US-HOME-TABS",
+    "criterionId": "AC-TABS-002",
+    "source": "cdp",
+    "title": "点击 Recruiting 切换到招聘功能面板",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["打开首页 /，默认 Core 面板"],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Recruiting", "action": "click", "value": null, "locatorHint": "locator('#features').getByRole('button', { name: 'Recruiting' })", "dataType": null, "dataVariant": null, "i18nKey": "homepage.features.recruiting" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Candidate Data", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.candidateData.title" },
+      { "type": "hidden", "selector": "heading", "name": "Work With You, Not For You", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-TABS-003",
+    "storyId": "US-HOME-TABS",
+    "criterionId": "AC-TABS-003",
+    "source": "cdp",
+    "title": "从 Recruiting 切回 Core（往返一致性）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["打开首页 /"],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Recruiting", "action": "click", "value": null, "locatorHint": "locator('#features').getByRole('button', { name: 'Recruiting' })", "dataType": null, "dataVariant": null, "i18nKey": "homepage.features.recruiting" },
+      { "role": "button", "name": "Core", "action": "click", "value": null, "locatorHint": "locator('#features').getByRole('button', { name: 'Core' })", "dataType": null, "dataVariant": null, "i18nKey": "homepage.features.core" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Work With You, Not For You", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" },
+      { "type": "hidden", "selector": "heading", "name": "Candidate Data", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.candidateData.title" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-TABS-004",
+    "storyId": "US-HOME-TABS",
+    "criterionId": "AC-TABS-004",
+    "source": "cdp",
+    "title": "重复点击已激活的 Core 标签保持幂等",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["打开首页 /，Core 默认激活"],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Core", "action": "click", "value": null, "locatorHint": "locator('#features').getByRole('button', { name: 'Core' })", "dataType": null, "dataVariant": null, "i18nKey": "homepage.features.core" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Work With You, Not For You", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-TABS-005",
+    "storyId": "US-HOME-TABS",
+    "criterionId": "AC-TABS-005",
+    "source": "cdp",
+    "title": "快速双击 Recruiting 标签不导致面板错乱",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["打开首页 /"],
+    "setup": [
+      { "type": "navigate", "url": "/" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Recruiting", "action": "click", "value": null, "locatorHint": "locator('#features').getByRole('button', { name: 'Recruiting' })", "dataType": null, "dataVariant": null, "i18nKey": "homepage.features.recruiting" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Candidate Data", "expected": null, "i18nKey": "homepage.features.recruitingFeatures.candidateData.title" },
+      { "type": "count", "selector": "heading", "name": "Candidate Data", "expected": 1, "i18nKey": "homepage.features.recruitingFeatures.candidateData.title" },
+      { "type": "hidden", "selector": "heading", "name": "Work With You, Not For You", "expected": null, "i18nKey": "homepage.features.coreFeatures.workWithYou.title" }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

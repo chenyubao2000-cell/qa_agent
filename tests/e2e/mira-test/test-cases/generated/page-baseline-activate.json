@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/activate",
+    "redirectsTo": "https://mira-bff-preview.up.railway.app/sign-in",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        {
+          "name": "ActivatePage",
+          "filePath": "apps/mira-work/app/(auth)/activate/page.tsx",
+          "role": "page"
+        },
+        {
+          "name": "ActivateLoading",
+          "filePath": "apps/mira-work/app/(auth)/activate/loading.tsx",
+          "role": "skeleton"
+        },
+        {
+          "name": "SignInPage (redirect target)",
+          "filePath": "apps/mira-work/app/(auth)/sign-in/page.tsx",
+          "role": "page"
+        }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "back/edit buttons on sign-in-form", "label": "t('backToLogin')", "role": "button" },
+        { "element": "password visibility toggle", "label": "t('showPassword')/t('hidePassword')", "role": "button" }
+      ],
+      "conditionalElements": [
+        {
+          "element": "redirect to /sign-in",
+          "condition": "!session (anonymous visitor)",
+          "description": "ActivatePage awaits getServerSession(); if no session, calls redirect('/sign-in') before rendering any activate-specific UI"
+        },
+        {
+          "element": "redirect to /task",
+          "condition": "session.user.isActivated === true",
+          "description": "Already-activated authenticated users are redirected away from /activate to /task"
+        },
+        {
+          "element": "ActivationForm",
+          "condition": "hasCode=true query param, OR waitlist entry.status === 'approved' (or other/unknown status)",
+          "description": "Renders invite-code entry form"
+        },
+        {
+          "element": "WaitlistApplyForm",
+          "condition": "authenticated, not activated, no waitlist row exists for session.user.email",
+          "description": "Renders waitlist application form"
+        },
+        {
+          "element": "WaitlistPendingForm",
+          "condition": "authenticated, not activated, waitlist entry.status is 'pending' or 'rejected'",
+          "description": "Renders pending/rejected waitlist status view (rejected users can reapply)"
+        }
+      ],
+      "i18nKeys": [
+        { "element": "sign-in heading/body", "key": "auth.* (e.g. unifiedTitle, unifiedSubtitle, continueTitle)", "namespace": "auth" }
+      ],
+      "utilityClasses": ["flex", "w-full", "max-w-md", "flex-col", "items-center", "gap-6", "rounded-md"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 1,
+      "interactionsPerformed": 1,
+      "elementsFound": 8,
+      "duration": "~1m"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Anonymous visit to /activate -> hard-redirected to /sign-in",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "select", "role": "combobox", "text": "English", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('combobox')" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Continue with Google", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue with Google' })" },
+            { "tag": "button", "role": "button", "text": "Continue with Microsoft", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue with Microsoft' })" },
+            { "tag": "input", "role": "textbox", "text": null, "placeholder": "Enter your email address", "testId": null, "ariaLabel": null, "locatorHint": "getByPlaceholder('Enter your email address')", "note": "observed pre-populated with stale value 'not-an-email' and auto-focused on landing — likely leftover browser autofill from a prior session on this tab, not app-injected; worth re-checking with a clean profile/incognito context" },
+            { "tag": "button", "role": "button", "text": "Continue", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Sign in or Sign up" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "alert", "text": "", "note": "empty live region, present for future toast/error messages (no error shown)" }
+      ]
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0-pre", "action": "navigate", "element": "GET /activate (anonymous, no query params)", "to": "S0", "sourceArea": "activate", "note": "Server-side redirect() to /sign-in fires before any /activate UI renders; confirmed via source read (page.tsx line 20-22: if (!session) redirect('/sign-in')) and live CDP navigation (final URL = /sign-in)." }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [
+    {
+      "location": "S0 (/sign-in, landed after /activate redirect)",
+      "fields": [
+        { "name": "email", "type": "email", "required": true, "placeholder": "Enter your email address" }
+      ],
+      "submitButton": { "text": "Continue", "disabled": false }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 1,
+    "totalInteractives": 6,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["server-redirect-guard"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": null,
+    "keyBehavior": "GET /activate with no session and no query params does NOT render any activate/waitlist UI directly — it 302s server-side to /sign-in before the client ever sees /activate content. This matches source: ActivatePage awaits getServerSession() and calls redirect('/sign-in') immediately when session is absent. Full /activate behavior (ActivationForm / WaitlistApplyForm / WaitlistPendingForm) is only reachable post-authentication and depends on ?hasCode= and the caller's waitlist row status — none of that was exercised in this anonymous smoke pass by design.",
+    "unexpectedObservations": [
+      "Email input on the landed /sign-in page was pre-filled with 'not-an-email' and auto-focused on arrival, despite this being a fresh navigation — likely stale browser autofill carried over from a prior test on the same tab/profile rather than an app bug, but flagged for re-verification in a clean context."
+    ]
+  }
+}

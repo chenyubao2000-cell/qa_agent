@@ -1,0 +1,70 @@
+[
+  {
+    "id": "TC-CDP-BUILD-001",
+    "storyId": "candidate-build-guard",
+    "title": "顾问/雇主会话裸访问 /candidate/build 被服务端角色守卫重定向至 /task 且落地首页欢迎标题可见",
+    "priority": "P0",
+    "preconditions": ["已认证会话且角色为 consultant 或 employer（默认 storageState）"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "/candidate/build", "pomMethod": "goto", "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/task", "i18nKey": null,
+        "note": "最终 URL 匹配 /task，不停留于 /candidate/build" },
+      { "type": "visible", "selector": "heading", "name": "What can I do for you?", "expected": null, "i18nKey": "dashboard.welcome",
+        "note": "落地页 h1 欢迎标题可见，证明守卫落点为可用首页" }
+    ]
+  },
+  {
+    "id": "TC-CDP-BUILD-002",
+    "storyId": "candidate-build-guard",
+    "title": "携带 ?rebuild=1 的重建深链仍被角色守卫拦截并重定向至 /task",
+    "priority": "P1",
+    "preconditions": ["已认证会话且角色为 consultant 或 employer"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "/candidate/build?rebuild=1", "pomMethod": "gotoRebuild", "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/task", "i18nKey": null,
+        "note": "角色检查先于 profile/rebuild 分支执行，rebuild 无法绕过守卫" }
+    ]
+  },
+  {
+    "id": "TC-CDP-BUILD-003",
+    "storyId": "candidate-build-guard",
+    "title": "BuildEmpty 向导在非候选人会话下未渲染（守卫在 BuildClient 挂载前生效）",
+    "priority": "P1",
+    "preconditions": ["已认证会话且角色为 consultant 或 employer"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "/candidate/build", "pomMethod": "goto", "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "url-not", "selector": null, "name": null, "expected": "/candidate/build", "i18nKey": null,
+        "note": "最终 URL 绝不停留于 /candidate/build" },
+      { "type": "text", "selector": "heading", "name": null, "expected": "What can I do for you?", "i18nKey": "dashboard.welcome",
+        "note": "h1 精确等于 /task 欢迎标题，即 build 页专属标题缺席，BuildClient/BuildEmpty 未挂载" }
+    ]
+  },
+  {
+    "id": "TC-CDP-BUILD-004",
+    "storyId": "candidate-build-guard",
+    "title": "携带任意非 rebuild 查询参数访问 /candidate/build 仍重定向至 /task",
+    "priority": "P2",
+    "preconditions": ["已认证会话且角色为 consultant 或 employer"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "/candidate/build?foo=bar", "pomMethod": "gotoWithQuery", "locatorHint": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/task", "i18nKey": null,
+        "note": "守卫对该角色无条件生效，附加查询参数不改变结果" }
+    ]
+  }
+]

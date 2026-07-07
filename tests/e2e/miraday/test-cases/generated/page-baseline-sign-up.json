@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/sign-up",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "redirectsTo": {
+      "condition": "no ?email= query param",
+      "from": "/sign-up",
+      "to": "/sign-in",
+      "verified": true
+    },
+    "sourceContext": {
+      "components": [
+        {
+          "name": "SignUpPage",
+          "filePath": "apps/mira-work/app/(auth)/sign-up/page.tsx",
+          "role": "page"
+        },
+        {
+          "name": "SignUpForm",
+          "filePath": "apps/mira-work/features/auth/components/sign-up-form.tsx",
+          "role": "section"
+        }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "show/hide password toggle button", "label": "t('showPassword') / t('hidePassword')", "role": "button" }
+      ],
+      "conditionalElements": [
+        { "element": "password error text", "condition": "passwordError state is non-empty (fails zod passwordStrengthSchema)", "description": "Rendered via FieldError below password input" },
+        { "element": "Continue button", "condition": "isPending || !password || Boolean(passwordError)", "description": "Disabled unless password non-empty and passes strength validation" },
+        { "element": "SignUpForm itself", "condition": "searchParams.email is truthy, else redirect('/sign-in') server-side", "description": "Page-level gate in page.tsx" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 title", "key": "auth.createPasswordTitle", "namespace": "auth" },
+        { "element": "email field label", "key": "auth.emailLabel", "namespace": "auth" },
+        { "element": "edit email link button", "key": "auth.editLink", "namespace": "auth" },
+        { "element": "password field label", "key": "auth.password", "namespace": "auth" },
+        { "element": "show password toggle aria-label", "key": "auth.showPassword / auth.hidePassword", "namespace": "auth" },
+        { "element": "password validation error text", "key": "auth.validation.passwordStrength", "namespace": "auth" },
+        { "element": "Continue button", "key": "auth.continueTitle", "namespace": "auth" },
+        { "element": "Back to Login button", "key": "auth.backToLogin", "namespace": "auth" },
+        { "element": "sign-up success toast", "key": "auth.signUpSuccess", "namespace": "auth" }
+      ],
+      "utilityClasses": ["w-full", "max-w-[360px]", "mb-6", "mb-5", "gap-5", "pr-16", "pr-10", "text-sm", "relative", "absolute"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 2,
+      "elementsFound": 9,
+      "duration": "smoke"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Bare /sign-up (no email param) -> redirected to /sign-in",
+      "sourceArea": "sign-up",
+      "trigger": null,
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "button", "role": "combobox", "text": "English", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('combobox')" },
+            { "tag": "button", "role": "button", "text": "Continue with Google", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue with Google' })" },
+            { "tag": "button", "role": "button", "text": "Continue with Microsoft", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue with Microsoft' })" },
+            { "tag": "input", "role": "textbox", "text": "Enter your email address", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('textbox', { name: 'Enter your email address' })", "note": "Pre-existing browser value 'not-an-email' observed on load — leftover autofill/state from a prior session in this shared browser tab, not caused by this crawl; not part of sign-up scope, flagged only as an observation." },
+            { "tag": "button", "role": "button", "text": "Continue", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Continue' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Sign in or Sign up" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "/sign-up?email=test%40example.com — Create Password form, initial (Continue disabled, password empty)",
+      "sourceArea": "sign-up",
+      "trigger": { "action": "navigate", "element": "/sign-up?email=test%40example.com", "fromState": null },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "button", "role": "combobox", "text": "English", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('combobox')" },
+            { "tag": "input", "id": "email-display", "role": "textbox", "text": "Email", "testId": null, "ariaLabel": null, "readonly": true, "value": "test@example.com", "locatorHint": "getByRole('textbox', { name: 'Email' })" },
+            { "tag": "button", "role": "button", "text": "Edit", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Edit' })", "note": "i18n key auth.editLink; onClick navigates to /sign-in (window.location.href), not an in-app route change" },
+            { "tag": "input", "id": "password", "role": "textbox", "text": "Password", "testId": null, "ariaLabel": null, "focused": true, "autoFocus": true, "locatorHint": "getByLabel('Password')" },
+            { "tag": "button", "role": "button", "text": "Show password", "testId": null, "ariaLabel": "Show password", "locatorHint": "getByRole('button', { name: 'Show password' })" },
+            { "tag": "button", "role": "button", "text": "Continue", "testId": null, "ariaLabel": null, "disabled": true, "locatorHint": "getByRole('button', { name: 'Continue' })" },
+            { "tag": "button", "role": "button", "text": "Back to Login", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Back to Login' })", "note": "onClick navigates to /sign-in (window.location.href)" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Create password" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S2": {
+      "name": "Password invalid (too short) — inline validation error shown, Continue still disabled",
+      "sourceArea": "sign-up",
+      "trigger": { "action": "fill+blur", "element": "input#password value='abc'", "fromState": "S1" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "input", "id": "password", "role": "textbox", "invalid": true, "value": "abc", "locatorHint": "getByLabel('Password')" },
+            { "tag": "button", "role": "button", "text": "Continue", "disabled": true, "locatorHint": "getByRole('button', { name: 'Continue' })" }
+          ],
+          "headings": [{ "level": 1, "text": "Create password" }]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "text": "Password must be at least 8 characters and include letters, numbers, and symbols", "i18nKey": "auth.validation.passwordStrength" }
+      ]
+    },
+    "S3": {
+      "name": "Password valid — Continue button becomes enabled",
+      "sourceArea": "sign-up",
+      "trigger": { "action": "fill", "element": "input#password value='Abcd1234!'", "fromState": "S2" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "input", "id": "password", "role": "textbox", "focused": true, "value": "Abcd1234!(masked)", "locatorHint": "getByLabel('Password')" },
+            { "tag": "button", "role": "button", "text": "Continue", "disabled": false, "locatorHint": "getByRole('button', { name: 'Continue' })", "note": "NOT clicked — would trigger real signUp.email() API call; recorded per Explore+Backtrack rule for submit/create actions" }
+          ],
+          "headings": [{ "level": 1, "text": "Create password" }]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": null, "action": "navigate", "element": "https://mira-bff-preview.up.railway.app/sign-up (no query)", "to": "S0", "sourceArea": "sign-up", "note": "server-side redirect: page.tsx redirects to /sign-in when searchParams.email is falsy" },
+      { "from": null, "action": "navigate", "element": "https://mira-bff-preview.up.railway.app/sign-up?email=test%40example.com", "to": "S1", "sourceArea": "sign-up" },
+      { "from": "S1", "action": "fill+blur", "element": "input#password (value='abc')", "to": "S2", "sourceArea": "sign-up" },
+      { "from": "S2", "action": "fill", "element": "input#password (value='Abcd1234!')", "to": "S3", "sourceArea": "sign-up" }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Continue",
+      "initialState": "disabled",
+      "strategy": "form-completion",
+      "result": "activated",
+      "enablingCondition": "Fill password with a value passing zod schema: min 8 chars, contains letter, number, and symbol",
+      "newStateId": "S3"
+    }
+  ],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S1 (Create password form, /sign-up?email=...)",
+      "fields": [
+        { "name": "email", "type": "email", "required": true, "readonly": true, "note": "pre-filled from ?email= query param, edit link redirects to /sign-in instead of allowing inline edit" },
+        { "name": "password", "type": "password", "required": true, "minLength": 8, "pattern": "must include letter, number, and symbol (zod: /[a-zA-Z]/, /[0-9]/, /[^a-zA-Z0-9]/)" }
+      ],
+      "submitButton": { "text": "Continue", "i18nKey": "auth.continueTitle", "disabled": true, "enabledWhen": "password non-empty AND passes passwordStrengthSchema AND !isPending" },
+      "submitBehavior": "calls signUp.email({email, password, name: email-prefix}); on success sends OTP and routes to /verify-email?email=...&sent=1; on USER_ALREADY_EXISTS error also sends OTP and routes to /verify-email (silently treats existing user as re-verify flow); invite-token deep-link path (callbackUrl matching /invite/accept?token=...) instead POSTs to /api/invite/quick-accept and hard-redirects to /task on success — NOT exercised in this smoke crawl (would require a real invite token / real email)."
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Enter", "action": "submits form (calls handleSubmit) when password is valid", "stateTransition": "S3 -> (would submit, not executed)" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (getByRole/getByLabel) — no data-testid in source; ids 'email-display' and 'password' exist but are only used for label association, not as CSS locator targets"
+  },
+
+  "summary": {
+    "totalStates": 4,
+    "totalInteractives": 15,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["redirect-guard", "form", "inline-validation", "conditional-disable"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": "smoke (not exhaustive — Google/Microsoft OAuth buttons on the /sign-in redirect target and the invite-token quick-accept branch were not exercised)"
+  }
+}

@@ -1,0 +1,105 @@
+[
+  {
+    "id": "TC-CDP-JWS-001",
+    "storyId": "join-waitlist-success-render",
+    "title": "带合法 email 参数访问成功页正确渲染确认内容",
+    "priority": "P0",
+    "source": "cdp",
+    "preconditions": ["公开页，清空 storageState 后以匿名态访问 /join-waitlist/success?email=qa-test%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "gotoWithEmail", "data": { "email": "qa-test@example.com" } }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Application Submitted heading", "role": "heading", "action": "verify", "locatorHint": "getByRole('heading', { name: 'Application Submitted' })", "i18nKey": "auth.joinWaitlist.successTitle" },
+      { "name": "success description paragraph", "role": "paragraph", "action": "verify", "locatorHint": "getByText('Once approved, we\\'ll send your invitation code to:')", "i18nKey": "auth.joinWaitlist.successDescription" },
+      { "name": "Back to Homepage link", "role": "link", "action": "verify", "locatorHint": "getByRole('link', { name: 'Back to Homepage' })", "i18nKey": "auth.joinWaitlist.backToHome" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/join-waitlist/success", "description": "带合法 email 参数不重定向，URL 停留在 /join-waitlist/success" },
+      { "type": "visible", "selector": "heading", "expected": "Application Submitted", "i18nKey": "auth.joinWaitlist.successTitle", "description": "h1 显示 Application Submitted" },
+      { "type": "visible", "expected": "Once approved, we'll send your invitation code to:", "i18nKey": "auth.joinWaitlist.successDescription", "description": "描述段落可见" },
+      { "type": "visible", "selector": "link", "expected": "Back to Homepage", "i18nKey": "auth.joinWaitlist.backToHome", "description": "Back to Homepage 链接可见" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JWS-002",
+    "storyId": "join-waitlist-success-render",
+    "title": "成功页原样回显传入的 email 值",
+    "priority": "P0",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist/success?email=qa-test%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "gotoWithEmail", "data": { "email": "qa-test@example.com" } }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "echoed email span", "role": "text", "action": "verify", "locatorHint": "getByText('qa-test@example.com')" }
+    ],
+    "assertions": [
+      { "type": "text", "expected": "qa-test@example.com", "description": "高亮 span 回显的邮箱与传入参数逐字符一致" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JWS-003",
+    "storyId": "join-waitlist-success-redirect",
+    "title": "无 email 参数裸访问触发服务端重定向到申请表单",
+    "priority": "P0",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist/success（不带任何查询参数）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "gotoBare" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Join Waitlist form heading (redirect target)", "role": "heading", "action": "verify", "locatorHint": "getByRole('heading', { name: 'Join Waitlist' })", "i18nKey": "auth.joinWaitlist.title" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/join-waitlist", "description": "服务端 redirect 到 /join-waitlist，最终 URL 不含 /success" },
+      { "type": "visible", "selector": "heading", "expected": "Join Waitlist", "i18nKey": "auth.joinWaitlist.title", "description": "落地页显示 Join Waitlist 表单标题" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JWS-004",
+    "storyId": "join-waitlist-success-redirect",
+    "title": "空 email 参数（?email=）被视为缺失并重定向",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist/success?email=（email 值为空串）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "gotoWithEmptyEmail" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Join Waitlist form heading (redirect target)", "role": "heading", "action": "verify", "locatorHint": "getByRole('heading', { name: 'Join Waitlist' })", "i18nKey": "auth.joinWaitlist.title" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/join-waitlist", "description": "空串为 falsy，触发 redirect，最终 URL 不含 /success" },
+      { "type": "visible", "selector": "heading", "expected": "Join Waitlist", "i18nKey": "auth.joinWaitlist.title", "description": "落地页显示 Join Waitlist 表单标题" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JWS-005",
+    "storyId": "join-waitlist-success-nav",
+    "title": "点击 Back to Homepage 跳转到站点根首页",
+    "priority": "P1",
+    "source": "cdp",
+    "preconditions": ["已处于成功页（访问 /join-waitlist/success?email=qa-test%40example.com）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "gotoWithEmail", "data": { "email": "qa-test@example.com" } }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Back to Homepage link", "role": "link", "action": "click", "locatorHint": "getByRole('link', { name: 'Back to Homepage' })", "i18nKey": "auth.joinWaitlist.backToHome" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/", "description": "同源导航到站点根 /，URL 不再包含 /join-waitlist/success" }
+    ]
+  },
+  {
+    "id": "TC-CDP-JWS-006",
+    "storyId": "join-waitlist-success-render",
+    "title": "URL 编码的特殊字符邮箱正确解码并原样回显",
+    "priority": "P2",
+    "source": "cdp",
+    "preconditions": ["匿名访问 /join-waitlist/success?email=qa%2Btag%40example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "gotoWithEmail", "data": { "email": "qa+tag@example.com" } }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "echoed special-char email span", "role": "text", "action": "verify", "locatorHint": "getByText('qa+tag@example.com')" }
+    ],
+    "assertions": [
+      { "type": "text", "expected": "qa+tag@example.com", "description": "高亮 span 回显解码后的 qa+tag@example.com（+ 未被误解析为空格、@ 正确还原）" }
+    ]
+  }
+]

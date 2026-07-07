@@ -1,0 +1,112 @@
+[
+  {
+    "id": "TC-CDP-SKILL-001",
+    "storyId": "settings-skills-official-list",
+    "title": "技能页默认加载，Official tab 渲染官方技能列表及启用开关（数量与 tab 计数徽标一致）",
+    "priority": "P0",
+    "preconditions": ["已登录（storageState）"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "teardown": [],
+    "notes": "官方技能数量属环境相关的内容/配置差异（非 locator 问题）：生产环境（https://mira.day/settings/skills）实测为 4 个（skill-creator, talent-mapping, salary-report, candidate-summary），原 Railway preview 环境为 5 个。断言改为读取 tab 计数徽标（'Official {N}'）与实际渲染行数做一致性校验，不再硬编码具体数量或技能名列表。",
+    "uiElements": [
+      { "role": "heading", "name": "All Skills", "i18nKey": "settings.skills.title", "locatorHint": "getByRole('heading', { level: 1, name: 'All Skills' })", "action": null },
+      { "role": "tab", "name": "Official", "i18nKey": "settings.skills.tabs.official", "locatorHint": "getByRole('tab', { name: /Official/ })", "action": null },
+      { "role": "switch", "name": "Enable or disable {first rendered official skill}", "i18nKey": "settings.skills.toggleAriaLabel", "locatorHint": "skillsPage.skillSwitch(await skillsPage.firstOfficialSkillName())", "action": null }
+    ],
+    "assertions": [
+      { "type": "text", "target": "h1 heading", "selector": "heading", "name": "All Skills", "expected": "All Skills", "i18nKey": "settings.skills.title" },
+      { "type": "visible", "target": "Official tab selected", "selector": "tab", "expected": null, "i18nKey": "settings.skills.tabs.official" },
+      { "type": "count", "target": "skill toggle switches matches Official tab count badge", "selector": "switch", "expected": "dynamic: parsed from Official tab accessible name (prod = 4)", "i18nKey": null },
+      { "type": "visible", "target": "first official skill switch checked+enabled", "selector": "switch", "expected": null, "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-SKILL-002",
+    "storyId": "settings-skills-personal-empty",
+    "title": "切换到 Personal tab 显示空状态与创建引导，URL 同步 tab=personal",
+    "priority": "P1",
+    "preconditions": ["已登录", "本账户 0 个个人技能"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "tab", "name": "Personal", "i18nKey": "settings.skills.tabs.personal", "locatorHint": "getByRole('tab', { name: /Personal/ })", "action": "click" },
+      { "role": "text", "name": "You haven't created any skills yet", "i18nKey": "settings.skills.empty.personal.title", "locatorHint": "getByText(/You haven't created any skills yet/)", "action": null },
+      { "role": "button", "name": "Create your first skill", "i18nKey": "settings.skills.empty.personal.cta", "locatorHint": "getByRole('button', { name: 'Create your first skill' })", "action": null }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "Personal empty-state title", "selector": "text", "expected": null, "i18nKey": "settings.skills.empty.personal.title" },
+      { "type": "visible", "target": "Create your first skill CTA", "selector": "button", "expected": null, "i18nKey": "settings.skills.empty.personal.cta" },
+      { "type": "url", "target": "URL reflects personal tab", "selector": null, "expected": "/tab=personal/", "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-SKILL-003",
+    "storyId": "settings-skills-new-menu",
+    "title": "空状态 CTA 打开 New Skill 下拉，展示两个创建入口，Escape 关闭返回空状态",
+    "priority": "P1",
+    "preconditions": ["已登录", "已切到 Personal tab 空状态"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "navigate", "pomMethod": "switchToPersonalTab" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Create your first skill", "i18nKey": "settings.skills.empty.personal.cta", "locatorHint": "getByRole('button', { name: 'Create your first skill' })", "action": "click" },
+      { "role": "menuitem", "name": "Create via Chat", "i18nKey": "settings.skills.newSkill.fromChat", "locatorHint": "getByRole('menuitem', { name: /Create via Chat/ })", "action": null },
+      { "role": "menuitem", "name": "Import File", "i18nKey": "settings.skills.newSkill.fromFile", "locatorHint": "getByRole('menuitem', { name: /Import File/ })", "action": null }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "Create via Chat menuitem", "selector": "menuitem", "expected": null, "i18nKey": "settings.skills.newSkill.fromChat" },
+      { "type": "visible", "target": "Import File menuitem", "selector": "menuitem", "expected": null, "i18nKey": "settings.skills.newSkill.fromFile" },
+      { "type": "hidden", "target": "menu closed after Escape", "selector": "menu", "expected": null, "i18nKey": null },
+      { "type": "url", "target": "still on skills page (no navigation)", "selector": null, "expected": "/settings/skills", "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-SKILL-004",
+    "storyId": "settings-skills-new-menu",
+    "title": "Header + New Skill 触发器打开与 CTA 相同的两个选项菜单，Escape 关闭",
+    "priority": "P2",
+    "preconditions": ["已登录", "Official tab"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "New Skill", "i18nKey": "settings.skills.newSkill.trigger", "locatorHint": "getByRole('button', { name: /New Skill/ })", "action": "click" },
+      { "role": "menuitem", "name": "Create via Chat", "i18nKey": "settings.skills.newSkill.fromChat", "locatorHint": "getByRole('menuitem', { name: /Create via Chat/ })", "action": null },
+      { "role": "menuitem", "name": "Import File", "i18nKey": "settings.skills.newSkill.fromFile", "locatorHint": "getByRole('menuitem', { name: /Import File/ })", "action": null }
+    ],
+    "assertions": [
+      { "type": "visible", "target": "Create via Chat menuitem", "selector": "menuitem", "expected": null, "i18nKey": "settings.skills.newSkill.fromChat" },
+      { "type": "visible", "target": "Import File menuitem", "selector": "menuitem", "expected": null, "i18nKey": "settings.skills.newSkill.fromFile" },
+      { "type": "hidden", "target": "menu closed after Escape", "selector": "menu", "expected": null, "i18nKey": null },
+      { "type": "url", "target": "still on skills page", "selector": null, "expected": "/settings/skills", "i18nKey": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-SKILL-005",
+    "storyId": "settings-skills-official-list",
+    "title": "官方技能行不可点击（渲染为文本而非按钮），开关可用",
+    "priority": "P2",
+    "preconditions": ["已登录", "Official tab"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" }
+    ],
+    "teardown": [],
+    "notes": "改用 skillsPage.firstOfficialSkillName() 动态获取当前渲染的第一个官方技能名（从其 switch 的 aria-label 反解），不再硬编码 'mira-candidate-profile'（该技能在生产环境不存在）。生产环境实测第一个官方技能为 skill-creator。",
+    "uiElements": [
+      { "role": "text", "name": "{first rendered official skill}", "i18nKey": null, "locatorHint": "getByText(await skillsPage.firstOfficialSkillName(), { exact: true })", "action": null },
+      { "role": "switch", "name": "Enable or disable {first rendered official skill}", "i18nKey": "settings.skills.toggleAriaLabel", "locatorHint": "skillsPage.skillSwitch(await skillsPage.firstOfficialSkillName())", "action": null }
+    ],
+    "assertions": [
+      { "type": "count", "target": "no button named after official skill (source='system' non-clickable branch)", "selector": "button", "name": "{first rendered official skill}", "expected": 0, "i18nKey": null },
+      { "type": "visible", "target": "official skill name text", "selector": "text", "expected": null, "i18nKey": null },
+      { "type": "enabled", "target": "official skill toggle enabled", "selector": "switch", "expected": null, "i18nKey": null }
+    ]
+  }
+]

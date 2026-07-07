@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/privacy",
+    "title": "Privacy Policy - Mira",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "full",
+    "scope": "smoke",
+    "sourceComponent": "apps/mira-work/app/(legal)/privacy/page.tsx (+ ../legal-content.tsx, ../layout.tsx)",
+    "explorationStats": {
+      "statesDiscovered": 1,
+      "interactionsPerformed": 1,
+      "elementsFound": 20,
+      "duration": "n/a"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page (static privacy policy markdown)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "support@mira.day", "testId": null, "note": "Streamdown data-streamdown=\"link\" markdown-link rendered as inert <button type=\"button\">, styled as underlined link but has no href/mailto and click produces no observable effect (verified: no navigation, no new tab, no mailto, no clipboard toast)", "locatorHint": "getByRole('button', { name: 'support@mira.day' }).first()" },
+            { "tag": "button", "role": "button", "text": "apollo.io/privacy-policy", "testId": null, "note": "same inert-link pattern as support@mira.day", "locatorHint": "getByRole('button', { name: 'apollo.io/privacy-policy' })" },
+            { "tag": "button", "role": "button", "text": "exa.ai/privacy", "testId": null, "note": "same inert-link pattern as support@mira.day", "locatorHint": "getByRole('button', { name: 'exa.ai/privacy' })" },
+            { "tag": "button", "role": "button", "text": "edpb.europa.eu", "testId": null, "note": "same inert-link pattern; this is the EU GDPR complaint-authority link", "locatorHint": "getByRole('button', { name: 'edpb.europa.eu' })" },
+            { "tag": "button", "role": "button", "text": "ico.org.uk", "testId": null, "note": "same inert-link pattern; this is the UK ICO complaint-authority link", "locatorHint": "getByRole('button', { name: 'ico.org.uk' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Mira Privacy Policy" },
+            { "level": 2, "text": "1. Overview" },
+            { "level": 2, "text": "2. What We Collect" },
+            { "level": 3, "text": "2.1 Information About You (Users)" },
+            { "level": 3, "text": "2.2 Information About Candidates" },
+            { "level": 3, "text": "2.3 Technical and Device Data" },
+            { "level": 3, "text": "2.4 Mira Chrome Extension Data Collection" },
+            { "level": 2, "text": "3. Sources of Information" },
+            { "level": 2, "text": "4. How We Use Your Data" },
+            { "level": 2, "text": "5. Our Use of AI" },
+            { "level": 2, "text": "6. How We Share Your Data" },
+            { "level": 2, "text": "7. Data Retention" },
+            { "level": 2, "text": "8. International Data Transfers" },
+            { "level": 2, "text": "9. Your Rights" },
+            { "level": 3, "text": "9.1 Rights for All Individuals (Including Candidates)" },
+            { "level": 3, "text": "9.2 EU / EEA / UK Users" },
+            { "level": 3, "text": "9.3 US State Privacy Laws" },
+            { "level": 2, "text": "10. Data Security" },
+            { "level": 2, "text": "11. Cookies and Tracking" },
+            { "level": 2, "text": "12. Children" },
+            { "level": 2, "text": "13. Changes to This Policy" },
+            { "level": 2, "text": "14. Contact Us" }
+          ]
+        },
+        "footer": {
+          "interactives": [],
+          "headings": [],
+          "note": "contentinfo footer renders '© 2026 Mira. All rights reserved.' only; no back/home link exists in source (LegalLayout has no nav/back link) or DOM"
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:support@mira.day", "to": "S0", "sourceArea": null, "note": "click produced no state change / no navigation — element is a dead/inert pseudo-link" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [],
+
+  "shadowDom": [],
+
+  "iframes": [],
+
+  "keyboardShortcuts": [],
+
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 1,
+    "totalInteractives": 20,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["static-content"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0,
+    "notableFindings": [
+      "No back/home link present on page (confirmed absent both in source LegalLayout and rendered DOM) — matches page having no such element to test",
+      "BUG CANDIDATE: All markdown links in the privacy policy body (support@mira.day email link x8 occurrences, apollo.io/privacy-policy, exa.ai/privacy, edpb.europa.eu GDPR complaint link, ico.org.uk ICO complaint link) render via Streamdown as data-streamdown=\"link\" <button type=\"button\"> elements styled to look like clickable underlined links, but have no href/mailto and clicking them produces no observable effect (no navigation, no new tab, no mailto compose, no clipboard toast). This affects GDPR/CCPA-relevant compliance links (EU DPA complaint, UK ICO complaint) as well as the support contact email across the whole document. Likely caused by <LegalContent> using <Streamdown controls={false} mode=\"static\">, which appears to strip link functionality while keeping link-like styling. No console errors were thrown.",
+      "Page loads directly with no redirect and no login wall for anonymous visitors, consistent with page-specific notes.",
+      "H1 'Mira Privacy Policy' present; 21 additional headings (h2/h3) render correctly and match source markdown section structure 1-14."
+    ]
+  }
+}

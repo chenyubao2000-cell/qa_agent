@@ -1,0 +1,122 @@
+[
+  {
+    "id": "TC-CDP-QACTIVATE-001",
+    "storyId": "US-QACTIVATE-PARAMS",
+    "criterionId": "AC-001",
+    "source": "cdp",
+    "title": "无 code/email 参数直达渲染缺参错误视图且无任何输入框",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": [],
+    "setup": [
+      { "type": "navigate", "url": "/quick-activate" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Welcome to Mira", "expected": null, "i18nKey": "auth.quickActivate.title" },
+      { "type": "visible", "selector": "text", "name": "Incomplete link parameters. Please reopen from the email.", "expected": null, "i18nKey": "auth.quickActivate.missingParams" },
+      { "type": "visible", "selector": "link", "name": "Already have an account? Sign in", "expected": null, "i18nKey": "auth.quickActivate.hasAccount" },
+      { "type": "count", "selector": "textbox", "name": "password", "expected": "0", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-QACTIVATE-002",
+    "storyId": "US-QACTIVATE-PARAMS",
+    "criterionId": "AC-002",
+    "source": "cdp",
+    "title": "携带 code+email 参数渲染完整表单且邮箱/邀请码为只读预填",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["URL 同时携带 code 与 email 查询参数"],
+    "setup": [
+      { "type": "navigate", "url": "/quick-activate?code=000000&email=qa-explore-test@example.com" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Welcome to Mira", "expected": null, "i18nKey": "auth.quickActivate.title" },
+      { "type": "value", "selector": "textbox", "name": "Email", "expected": "qa-explore-test@example.com", "i18nKey": null },
+      { "type": "value", "selector": "textbox", "name": "Invitation Code", "expected": "0000-00", "i18nKey": null },
+      { "type": "visible", "selector": "textbox", "name": "Set Password", "expected": null, "i18nKey": "auth.quickActivate.passwordLabel" },
+      { "type": "disabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.quickActivate.continueButton" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-QACTIVATE-003",
+    "storyId": "US-QACTIVATE-PASSWORD",
+    "criterionId": "AC-003",
+    "source": "cdp",
+    "title": "密码校验——弱密码内联报错并禁用 Continue，合法密码清除错误并启用",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["已进入完整激活表单（携带 code+email 参数）"],
+    "setup": [
+      { "type": "navigate", "url": "/quick-activate?code=000000&email=qa-explore-test@example.com" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Set Password", "action": "fill", "value": null, "locatorHint": "getByPlaceholder('••••••••')", "dataType": "account.password", "dataVariant": "weak", "i18nKey": "auth.quickActivate.passwordLabel" },
+      { "role": "textbox", "name": "Set Password", "action": "fill", "value": null, "locatorHint": "getByPlaceholder('••••••••')", "dataType": "account.password", "dataVariant": "strong", "i18nKey": "auth.quickActivate.passwordLabel" }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.quickActivate.continueButton" },
+      { "type": "visible", "selector": "text", "name": "Password must be at least 8 characters and include letters, numbers, and symbols", "expected": null, "i18nKey": "auth.quickActivate.passwordHint" },
+      { "type": "enabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.quickActivate.continueButton" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-QACTIVATE-004",
+    "storyId": "US-QACTIVATE-PASSWORD",
+    "criterionId": "AC-004",
+    "source": "cdp",
+    "title": "显示/隐藏密码切换正确改变输入框 type 与 aria-label",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已进入完整激活表单（携带 code+email 参数）"],
+    "setup": [
+      { "type": "navigate", "url": "/quick-activate?code=000000&email=qa-explore-test@example.com" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Show password", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: /show password|hide password/i })", "dataType": null, "dataVariant": null, "i18nKey": "auth.quickActivate.showPassword" }
+    ],
+    "assertions": [
+      { "type": "attribute", "selector": "textbox", "name": "Set Password", "expected": "password", "i18nKey": null },
+      { "type": "attribute", "selector": "textbox", "name": "Set Password", "expected": "text", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-QACTIVATE-005",
+    "storyId": "US-QACTIVATE-SUBMIT",
+    "criterionId": "AC-005",
+    "source": "cdp",
+    "title": "无效邀请码提交触发错误 toast 且停留在页面",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["已进入完整激活表单（携带无效 code=000000 + email 参数）"],
+    "setup": [
+      { "type": "navigate", "url": "/quick-activate?code=000000&email=qa-explore-test@example.com" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Set Password", "action": "fill", "value": null, "locatorHint": "getByPlaceholder('••••••••')", "dataType": "account.password", "dataVariant": "strong", "i18nKey": "auth.quickActivate.passwordLabel" },
+      { "role": "button", "name": "Continue", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'Continue', exact: true })", "dataType": null, "dataVariant": null, "i18nKey": "auth.quickActivate.continueButton" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "Invitation code is invalid or expired", "expected": null, "i18nKey": "auth.quickActivate.codeInvalid" },
+      { "type": "url", "selector": null, "name": null, "expected": "/quick-activate", "i18nKey": null },
+      { "type": "enabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.quickActivate.continueButton" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  }
+]

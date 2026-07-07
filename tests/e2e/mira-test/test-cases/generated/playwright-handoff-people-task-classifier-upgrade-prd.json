@@ -1,0 +1,643 @@
+[
+  {
+    "id": "TC-PRD-PTC-001",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "仅条件1命中（委派后零工具调用）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["mira_teammate 记录 source='preset'，经 mira_team→mira_agent_definition 两段 join 得到 agentType='sourcing'；该 chat 无任何工具调用、无任何 BUA 记录"],
+    "setup": [
+      { "type": "code", "action": "构造 chatId 并插入 preset sourcing teammate 委派记录", "data": { "source": "preset", "agentType": "sourcing" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [1] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).tools", "expected": [] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).platforms", "expected": [] }
+    ],
+    "tags": ["@P0", "@decision-table", "@delegation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-002",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "仅条件2命中（Leader 直接调用旧锚点工具）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["chat 内无委派记录、无 BUA 记录"],
+    "setup": [
+      { "type": "code", "action": "插入 Leader 消息，parts 含锚点工具调用", "data": { "toolName": "evaluate_people", "role": "assistant" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [2] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).tools", "expected": ["evaluate_people"] }
+    ],
+    "tags": ["@P0", "@decision-table", "@anchor-tool"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-003",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "仅条件3命中（BUA 招聘站点访问）",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["chat 内无委派记录、无锚点工具调用"],
+    "setup": [
+      { "type": "code", "action": "插入 bua_tab 工具调用 part", "data": { "op": "goto", "url": "https://www.zhipin.com/xxx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [3] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).platforms", "expected": ["boss"] }
+    ],
+    "tags": ["@P0", "@decision-table", "@bua"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-004",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "条件1+条件2组合命中",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["同时具备 preset sourcing teammate 委派记录与 Leader 消息中的锚点工具调用"],
+    "setup": [
+      { "type": "code", "action": "插入委派记录", "data": { "source": "preset", "agentType": "sourcing" } },
+      { "type": "code", "action": "插入含锚点工具调用的消息", "data": { "toolName": "contact_lookup" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [1, 2] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).tools", "expected": ["contact_lookup"] }
+    ],
+    "tags": ["@P1", "@decision-table", "@combo"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-005",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "条件1+条件3组合命中——验证全部检查全部记录不是命中即停",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["同时具备委派记录与 bua_tab(op=goto) 招聘站点记录；不插入任何锚点工具调用以避免条件2干扰观察"],
+    "setup": [
+      { "type": "code", "action": "插入委派记录", "data": { "source": "preset", "agentType": "sourcing" } },
+      { "type": "code", "action": "插入 bua_tab 招聘站点记录", "data": { "op": "goto", "url": "https://www.maimai.cn/xxx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContainsAll", "target": "classifySourcingTask(chatId).matched_by", "expected": [1, 3] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).platforms", "expected": ["脉脉"] }
+    ],
+    "tags": ["@P0", "@decision-table", "@no-short-circuit"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-006",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "条件2+条件3组合命中",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Leader 消息含锚点工具调用与 bua_tab(op=new) 招聘站点记录，不插入委派记录"],
+    "setup": [
+      { "type": "code", "action": "插入含锚点工具调用的消息", "data": { "toolName": "github_search" } },
+      { "type": "code", "action": "插入 bua_tab 招聘站点记录", "data": { "op": "new", "url": "https://www.51job.com/xxx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [2, 3] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).tools", "expected": ["github_search"] },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).platforms", "expected": ["51job"] }
+    ],
+    "tags": ["@P1", "@decision-table", "@combo"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-007",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "三条件全命中",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["委派记录、锚点工具调用、bua_tab(op=goto) 招聘站点记录三者同时具备"],
+    "setup": [
+      { "type": "code", "action": "插入委派记录", "data": { "source": "preset", "agentType": "sourcing" } },
+      { "type": "code", "action": "插入锚点工具调用", "data": { "toolName": "liepin_sourcing" } },
+      { "type": "code", "action": "插入 bua_tab 招聘站点记录", "data": { "op": "goto", "url": "https://www.zhaopin.com/xxx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [1, 2, 3] },
+      { "type": "nonEmpty", "target": "classifySourcingTask(chatId).tools", "expected": true },
+      { "type": "nonEmpty", "target": "classifySourcingTask(chatId).platforms", "expected": true }
+    ],
+    "tags": ["@P0", "@decision-table", "@full-hit"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-008",
+    "storyId": "SOU-282",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "三条件全不命中",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": ["chat 内无委派记录、无锚点工具调用、无任何 BUA 记录"],
+    "setup": [
+      { "type": "code", "action": "构造仅含普通聊天消息的 chat", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [] },
+      { "type": "fieldPresent", "target": "classifySourcingTask(chatId)", "expected": "fileCreated" }
+    ],
+    "tags": ["@P0", "@decision-table", "@all-miss"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-009",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-leaderScopeOnly-regression",
+    "source": "prd",
+    "title": "回归防御：仅子 agent 发出锚点工具调用，条件2仍须命中",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["子 agent 消息经 persistSubAgentMessage 与主对话共享同一 chatId，contextScope='sub_agent_internal'；Leader 自己不调用任何工具"],
+    "setup": [
+      { "type": "code", "action": "通过 persistSubAgentMessage 插入子 agent 消息，parts 含锚点工具调用", "data": { "contextScope": "sub_agent_internal", "toolName": "generate_people_data" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 2 },
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).tools", "expected": "generate_people_data" },
+      { "type": "queryDoesNotUse", "target": "classifier query path", "expected": "getMessagesByTaskId with leaderScopeOnly filter" }
+    ],
+    "tags": ["@P0", "@regression", "@leaderScopeOnly"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-010",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-leaderScopeOnly-regression",
+    "source": "prd",
+    "title": "回归防御：仅子 agent 发出 BUA 招聘站点访问，条件3仍须命中",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["子 agent 消息 contextScope='sub_agent_internal'；Leader 自己无任何 BUA 记录"],
+    "setup": [
+      { "type": "code", "action": "通过 persistSubAgentMessage 插入子 agent 消息，parts 含 bua_tab 招聘站点记录", "data": { "contextScope": "sub_agent_internal", "op": "goto", "url": "https://www.zhaopin.com/xxx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 3 },
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).platforms", "expected": "zhaopin" }
+    ],
+    "tags": ["@P1", "@regression", "@leaderScopeOnly", "@bua"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-011",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-temp-teammate-blindspot",
+    "source": "prd",
+    "title": "委派条件真实漏判：temp/inline sourcing teammate（已知盲区）",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["mira_teammate 记录 source='temp'，inlineDefinition.agentType='sourcing'，agentDefinitionId=NULL（check constraint 强制二选一）"],
+    "setup": [
+      { "type": "code", "action": "插入 temp/inline sourcing teammate 记录", "data": { "source": "temp", "inlineDefinition": { "agentType": "sourcing" }, "agentDefinitionId": null } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayNotContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 1 },
+      { "type": "knownBlindSpotDocumented", "target": "condition1 join path + fixed UUID fallback", "expected": "both miss temp/inline teammate, not a bug per current PRD scope" }
+    ],
+    "tags": ["@P1", "@blindspot", "@delegation"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-012",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-uuid-fallback-equivalence",
+    "source": "prd",
+    "title": "委派条件两条命中路径等价性确认",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["mira_teammate 记录 source='preset'，agentDefinitionId 等于固定 UUID 00000000-0000-4000-8000-00000000ad08"],
+    "setup": [
+      { "type": "code", "action": "插入 preset teammate 记录，agentDefinitionId 指向固定 sourcing UUID", "data": { "source": "preset", "agentDefinitionId": "00000000-0000-4000-8000-00000000ad08" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 1 },
+      { "type": "pathEquivalence", "target": "two-stage join path vs fixed UUID comparison path", "expected": "both resolve to the same hit for this record" }
+    ],
+    "tags": ["@P2", "@delegation", "@equivalence"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-013",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-usedAgentTeam-decouple",
+    "source": "prd",
+    "title": "usedAgentTeam 与条件1语义解耦",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["miraChats.currentTeamId 指向一个真实存在的 team，team 内唯一 teammate 的 agentType 为非 sourcing（如 explore）"],
+    "setup": [
+      { "type": "code", "action": "构造非 sourcing team 并关联到 chat", "data": { "currentTeamId": "<team-id>", "teammateAgentType": "explore" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "valueEquals", "target": "usedAgentTeam(chatId)", "expected": true },
+      { "type": "arrayNotContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 1 }
+    ],
+    "tags": ["@P1", "@delegation", "@semantic-decouple"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-014",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-bua-url-blindspot",
+    "source": "prd",
+    "title": "BUA 覆盖盲区：只有 bua_interact/bua_observe，无 bua_tab",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["bua_interact/bua_observe 的 inputSchema 完全没有 url 字段"],
+    "setup": [
+      { "type": "code", "action": "插入 bua_interact 和/或 bua_observe 工具调用记录，不插入 bua_tab", "data": { "tools": ["bua_interact", "bua_observe"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayNotContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 3 },
+      { "type": "knownBlindSpotDocumented", "target": "bua_interact/bua_observe url extraction", "expected": "no url field available, not a bug" }
+    ],
+    "tags": ["@P2", "@blindspot", "@bua"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-015",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-bua-op-ignore",
+    "source": "prd",
+    "title": "bua_tab 非 goto/new 时 url 被忽略",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["bua_tab 的 url 仅在 op∈{goto,new} 时语义有效"],
+    "setup": [
+      { "type": "code", "action": "插入 bua_tab 记录，op=click，input 中意外附带招聘网站 url", "data": { "op": "click", "url": "https://www.zhipin.com/xxx" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayNotContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 3 }
+    ],
+    "tags": ["@P2", "@bua", "@op-filter"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-016",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-bua-domain-not-listed",
+    "source": "prd",
+    "title": "bua_tab 命中候选池但域名不在 7 平台清单内",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["域名表仅覆盖 7 个平台"],
+    "setup": [
+      { "type": "code", "action": "插入 bua_tab(op=goto) 记录，url 指向非招聘网站", "data": { "op": "goto", "url": "https://www.baidu.com" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayNotContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 3 },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).platforms", "expected": [] }
+    ],
+    "tags": ["@P2", "@bua", "@domain-mapping"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-017",
+    "storyId": "SOU-282",
+    "criterionId": "EPIC-AC1-superset",
+    "source": "prd",
+    "title": "锚点表扩容前后对比——超集保证",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["构造一批 parts 命中新增 6 个工具之一（person_enrich），旧锚点表（9工具）不含它"],
+    "setup": [
+      { "type": "code", "action": "用扩容前 SOURCING_ANCHOR_TOOLS(9工具) 跑一次分类", "data": { "toolName": "person_enrich", "anchorTableVersion": "before(9)" } },
+      { "type": "code", "action": "用扩容后 SOURCING_ANCHOR_TOOLS(15工具) 对同一批数据再跑一次", "data": { "toolName": "person_enrich", "anchorTableVersion": "after(15)" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayNotContains", "target": "classifySourcingTask(chatId,before).matched_by", "expected": 2 },
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId,after).matched_by", "expected": 2 },
+      { "type": "supersetOf", "target": "after.matched_by ∪ after.tools", "expected": "before.matched_by ∪ before.tools" }
+    ],
+    "tags": ["@P0", "@boundary", "@anchor-expansion", "@epic-ac1"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-018",
+    "storyId": "SOU-282",
+    "criterionId": "EPIC-AC4-ci-pin",
+    "source": "prd",
+    "title": "CI 回归：锚点表扩容后必须同步更新 pin 测试",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": ["SOURCING_ANCHOR_TOOLS 已扩容为 15 个工具；sourcing-anchors.test.ts 现状 pin 死原有 9 个工具名"],
+    "setup": [
+      { "type": "code", "action": "读取扩容后的 SOURCING_ANCHOR_TOOLS 与 sourcing-anchors.test.ts 断言内容", "data": { "file1": "packages/shared/src/sourcing-anchors.ts", "file2": "packages/shared/src/__tests__/sourcing-anchors.test.ts" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "vitestFailsIfStale", "target": "sourcing-anchors.test.ts", "expected": "must fail CI if tool name list not synced to 15 tools" }
+    ],
+    "tags": ["@P0", "@ci-regression", "@anchor-expansion"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-019",
+    "storyId": "SOU-282",
+    "criterionId": "EPIC-AC2-sql-consistency",
+    "source": "prd",
+    "title": "SQL 口径与 TS 锚点表口径一致性核查",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": ["people-task-cost.sql 排除清单为 linkedin_sourcing/zhaopin_sourcing/cts_search_candidates/person_enrich/liepin_get_candidate_detail/github_lookup；扩容后新增锚点工具为 zhaopin_sourcing/linkedin_sourcing/recruiter_sourcing/liepin_get_candidate_detail/person_enrich/infer_icp"],
+    "setup": [
+      { "type": "code", "action": "逐项比对 SQL 排除清单与扩容后新增锚点工具清单", "data": { "sqlFile": "scripts/people-task-cost.sql", "lines": "64-79" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "listMismatchFlagged", "target": "SQL exclusion list vs new anchor tools", "expected": "cts_search_candidates/github_lookup absent from anchor table; recruiter_sourcing/infer_icp missing from SQL exclusion" },
+      { "type": "nameCollisionFlagged", "target": "github_lookup vs github_search", "expected": "confirm typo or distinct tool" }
+    ],
+    "tags": ["@P0", "@sql-consistency", "@epic-ac2"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-020",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-platform-attribution",
+    "source": "prd",
+    "title": "平台归因：API 聚合源工具不计入 platforms",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["Leader 消息含 people_search 调用，无任何 BUA 记录"],
+    "setup": [
+      { "type": "code", "action": "插入含 people_search 调用的消息", "data": { "toolName": "people_search" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 2 },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).platforms", "expected": [] }
+    ],
+    "tags": ["@P1", "@platform-attribution"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-021",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-platform-attribution",
+    "source": "prd",
+    "title": "平台归因：新增平台专用工具应计入 platforms",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Leader 消息含新增锚点工具 zhaopin_sourcing 调用，无任何 BUA 记录"],
+    "setup": [
+      { "type": "code", "action": "插入含 zhaopin_sourcing 调用的消息", "data": { "toolName": "zhaopin_sourcing" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 2 },
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).platforms", "expected": "zhaopin" }
+    ],
+    "tags": ["@P1", "@platform-attribution", "@anchor-expansion"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-022",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-platform-domain-mapping",
+    "source": "prd",
+    "title": "条件3域名到7平台名的映射覆盖（含linkedin/linkedin_recruiter歧义核实）",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["新增招聘站点域名表覆盖 7 个平台"],
+    "setup": [
+      { "type": "code", "action": "依次构造 7 条独立 chat 各含 1 条 bua_tab(op=goto) 记录", "data": { "urls": ["zhipin.com", "maimai.cn", "51job.com", "liepin.com", "zhaopin.com", "linkedin.com", "linkedin recruiter-specific domain/path"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "domainToPlatformMapEquals", "target": "7 chats' platforms", "expected": ["boss", "脉脉", "51job", "liepin", "zhaopin", "linkedin", "linkedin_recruiter"] },
+      { "type": "ambiguityFlagged", "target": "linkedin vs linkedin_recruiter domain disambiguation", "expected": "flag if mapping table cannot distinguish by subdomain/path" }
+    ],
+    "tags": ["@P2", "@platform-attribution", "@domain-mapping"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-023",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-fileCreated-independence",
+    "source": "prd",
+    "title": "fileCreated 字段与分类结果彼此独立",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["三条件全不命中，但该 chat 对应任务已产出交付文件"],
+    "setup": [
+      { "type": "code", "action": "构造无判定证据但已产出文件的任务", "data": { "matched_by": [], "fileDelivered": true } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "valueEquals", "target": "classifySourcingTask(chatId).fileCreated", "expected": true },
+      { "type": "arrayEquals", "target": "classifySourcingTask(chatId).matched_by", "expected": [] }
+    ],
+    "tags": ["@P2", "@fileCreated", "@independence"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-024",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-isPeopleTask-compat",
+    "source": "prd",
+    "title": "isPeopleTask 向后兼容包装行为一致",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["分别构造 matched_by 非空与 matched_by=[] 两种 chat"],
+    "setup": [
+      { "type": "code", "action": "构造一个至少命中1个条件的chat与一个三条件全不命中的chat", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "valueEquals", "target": "isPeopleTask(chatId) when matched_by.length>0", "expected": true },
+      { "type": "valueEquals", "target": "isPeopleTask(chatId) when matched_by=[]", "expected": false }
+    ],
+    "tags": ["@P1", "@backward-compat"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-025",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-boundary-empty",
+    "source": "prd",
+    "title": "边界：chatId 不存在或无消息时不抛异常",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["新建 chat 不插入任何消息，或传入不存在的 chatId"],
+    "setup": [
+      { "type": "code", "action": "构造空 chat 或不存在的 chatId", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "noCrash", "target": "classifySourcingTask(chatId)", "expected": "no exception thrown" },
+      { "type": "valueEquals", "target": "classifySourcingTask(chatId)", "expected": { "matched_by": [], "tools": [], "platforms": [], "fileCreated": false } }
+    ],
+    "tags": ["@P1", "@boundary", "@empty-state"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-026",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-boundary-multi-tool",
+    "source": "prd",
+    "title": "边界：同消息内多个不同锚点工具全部记录",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["单条消息 parts 中含 3 个不同锚点工具调用"],
+    "setup": [
+      { "type": "code", "action": "插入1条消息，parts含3个不同锚点工具调用", "data": { "tools": ["liepin_sourcing", "contact_lookup", "zhaopin_sourcing"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContainsAll", "target": "classifySourcingTask(chatId).tools", "expected": ["liepin_sourcing", "contact_lookup", "zhaopin_sourcing"] }
+    ],
+    "tags": ["@P2", "@boundary", "@multi-tool"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-027",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-boundary-dedup",
+    "source": "prd",
+    "title": "边界：同一锚点工具重复调用去重",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["同一 chat 内对同一锚点工具调用 5 次"],
+    "setup": [
+      { "type": "code", "action": "插入5条消息，每条各含1次liepin_sourcing调用", "data": { "toolName": "liepin_sourcing", "callCount": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "countEquals", "target": "occurrences of 'liepin_sourcing' in classifySourcingTask(chatId).tools", "expected": 1 },
+      { "type": "arrayContains", "target": "classifySourcingTask(chatId).matched_by", "expected": 2 }
+    ],
+    "tags": ["@P2", "@boundary", "@dedup"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-028",
+    "storyId": "SOU-282",
+    "criterionId": "SUPP-large-volume-scan",
+    "source": "prd",
+    "title": "大批量消息下分类器完整扫描不因旧实现思路截断",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["单个chat内100+条子agent消息，第87条含锚点工具调用，第95条含BUA招聘站点记录"],
+    "setup": [
+      { "type": "code", "action": "构造100+条子agent消息", "data": { "messageCount": 100, "contextScope": "sub_agent_internal" } },
+      { "type": "code", "action": "在第87条插入锚点工具调用，第95条插入bua_tab招聘站点记录", "data": { "anchorAtIndex": 87, "buaAtIndex": 95 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContainsAll", "target": "classifySourcingTask(chatId).matched_by", "expected": [2, 3] },
+      { "type": "queryDoesNotUse", "target": "classifier query implementation", "expected": "EXISTS(...) LIMIT 1 boolean-only pattern" }
+    ],
+    "tags": ["@P1", "@error-guessing", "@large-volume"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-029",
+    "storyId": "SOU-282",
+    "criterionId": "EPIC-AC1-monotonic-state",
+    "source": "prd",
+    "title": "证据单调累积不回退（跨调用状态一致性）",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["同一chatId按 S0(无证据)→S1(仅条件1)→S2(条件1+2)→S3(条件1+2+3) 顺序依次追加证据"],
+    "setup": [
+      { "type": "code", "action": "对空chat调用一次分类器", "data": { "state": "S0" } },
+      { "type": "code", "action": "插入委派记录后再调用一次", "data": { "state": "S1" } },
+      { "type": "code", "action": "追加锚点工具调用后再调用一次", "data": { "state": "S2" } },
+      { "type": "code", "action": "追加bua_tab招聘站点记录后再调用一次", "data": { "state": "S3" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "sequenceEquals", "target": "matched_by across 4 calls", "expected": [[], [1], [1, 2], [1, 2, 3]] },
+      { "type": "idempotent", "target": "repeated call at same state without new evidence", "expected": "identical result across repeated calls" }
+    ],
+    "tags": ["@P1", "@state-transition", "@epic-ac1"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PTC-030",
+    "storyId": "SOU-282",
+    "criterionId": "EPIC-AC5-no-tightening",
+    "source": "prd",
+    "title": "不收紧回归：旧锚点工具（含github_search）扩容后保留",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["扩容后 SOURCING_ANCHOR_TOOLS 应为15个工具（原9个+新增6个）"],
+    "setup": [
+      { "type": "code", "action": "读取扩容后的锚点表内容", "data": { "file": "packages/shared/src/sourcing-anchors.ts" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContainsAll", "target": "SOURCING_ANCHOR_TOOLS (after expansion)", "expected": ["people_search", "global_people_search", "linkedin_people_search", "liepin_sourcing", "generate_people_data", "report_final_candidates", "evaluate_people", "contact_lookup", "github_search"] }
+    ],
+    "tags": ["@P2", "@no-tightening", "@epic-ac5"],
+    "timeout": null
+  }
+]

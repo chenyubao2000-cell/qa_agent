@@ -1,0 +1,72 @@
+[
+  {
+    "id": "TC-CDP-CONN-001",
+    "storyId": "connectors-list",
+    "title": "连接器设置页加载并渲染 Not Connected 分段与两个连接器行",
+    "priority": "P0",
+    "preconditions": ["已登录（storageState 自动注入）"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Connectors", "action": "wait", "locatorHint": "getByRole('heading', { name: 'Connectors', level: 1 })", "i18nKey": "settings.connectors.title" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "target": "h1 Connectors", "expected": null, "i18nKey": "settings.connectors.title" },
+      { "type": "visible", "selector": "button", "target": "Not Connected (n) section header", "expected": null, "i18nKey": "settings.connectors.sectionNotConnected" },
+      { "type": "visible", "selector": "button", "target": "Outlook row", "expected": null },
+      { "type": "visible", "selector": "button", "target": "Gmail row", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONN-002",
+    "storyId": "connectors-list",
+    "title": "两个未连接连接器的 Connect 按钮均可见且可用",
+    "priority": "P1",
+    "preconditions": ["已登录", "已打开 /settings/connectors 列表"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Connect Outlook", "action": "none", "locatorHint": "getByRole('button', { name: 'Connect Outlook' })", "i18nKey": "settings.connectors.connect" },
+      { "role": "button", "name": "Connect Gmail", "action": "none", "locatorHint": "getByRole('button', { name: 'Connect Gmail' })", "i18nKey": "settings.connectors.connect" }
+    ],
+    "assertions": [
+      { "type": "enabled", "selector": "button", "target": "Connect Outlook", "expected": null },
+      { "type": "enabled", "selector": "button", "target": "Connect Gmail", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONN-003",
+    "storyId": "connectors-detail",
+    "title": "点击 Outlook 行下钻至详情（未授权态）并可 Back 返回列表",
+    "priority": "P1",
+    "preconditions": ["已登录", "已打开 /settings/connectors 列表 (S0)"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Outlook", "action": "click", "locatorHint": "getByRole('button', { name: /^Outlook/ }).first()" },
+      { "role": "button", "name": "Back", "action": "click", "locatorHint": "getByRole('button', { name: 'Back' })" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "target": "detail h1 Outlook", "expected": "Outlook" },
+      { "type": "visible", "selector": "button", "target": "detail-header Connect button (needsAuth branch)", "expected": null, "i18nKey": "settings.connectors.connect" },
+      { "type": "visible", "selector": "text", "target": "connectFirst placeholder ('Connect to see available tools')", "expected": null, "i18nKey": "settings.connectors.connectFirst" },
+      { "type": "visible", "selector": "heading", "target": "back to list h1 Connectors", "expected": null, "i18nKey": "settings.connectors.title" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONN-004",
+    "storyId": "connectors-list",
+    "title": "点击 Connect Outlook 打开真实 OAuth 弹窗但不完成登录",
+    "priority": "P2",
+    "preconditions": ["已登录", "已打开 /settings/connectors 列表"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [{ "type": "cleanup", "action": "close popup + reload list", "reason": "reset pending/disabled Connect button state without completing OAuth" }],
+    "uiElements": [
+      { "role": "button", "name": "Connect Outlook", "action": "click+capture-popup", "locatorHint": "getByRole('button', { name: 'Connect Outlook' })", "i18nKey": "settings.connectors.connect" }
+    ],
+    "assertions": [
+      { "type": "matches", "selector": "popup url", "target": "OAuth popup host", "expected": "login.microsoftonline.com or composio.dev" },
+      { "type": "visible", "selector": "url", "target": "main tab stays on /settings/connectors", "expected": null }
+    ]
+  }
+]

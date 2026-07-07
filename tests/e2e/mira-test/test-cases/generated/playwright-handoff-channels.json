@@ -1,0 +1,108 @@
+[
+  {
+    "id": "TC-CDP-CHANNEL-001",
+    "storyId": "US-CHANNEL-LIST",
+    "criterionId": "AC-CHANNEL-001",
+    "source": "cdp",
+    "title": "频道列表页加载并渲染标题、计数副标题与频道列表",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已登录（storageState）", "账户存在预置频道"],
+    "setup": [{ "type": "navigate", "url": "/channels" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Channels", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "channels · sorted by recent update", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "New channel", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-CHANNEL-002",
+    "storyId": "US-CHANNEL-SEARCH",
+    "criterionId": "AC-CHANNEL-002",
+    "source": "cdp",
+    "title": "搜索无匹配关键词展示 noMatch 空态，清除后还原列表",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已登录", "频道页已加载且列表非空"],
+    "setup": [{ "type": "navigate", "url": "/channels" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Search channels", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'Search channels' })", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "textbox", "name": "Search channels", "action": "fill", "value": "zzznonexistentchannelxyz", "locatorHint": "getByRole('textbox', { name: 'Search channels' })", "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "Clear search", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'Clear search' })", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "No matching channels", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "Try other keywords, or just create a new channel", "expected": null, "i18nKey": null },
+      { "type": "hidden", "selector": "text", "name": "No matching channels", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-CHANNEL-003",
+    "storyId": "US-CHANNEL-ROW-ACTIONS",
+    "criterionId": "AC-CHANNEL-003",
+    "source": "cdp",
+    "title": "行 More actions 菜单暴露 Share/Rename/Delete，Escape 关闭",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "频道页已加载且至少存在一个频道行"],
+    "setup": [{ "type": "navigate", "url": "/channels" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "More actions", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'More actions' }).first()", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "menuitem", "name": "Share", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "menuitem", "name": "Rename", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "menuitem", "name": "Delete", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-CHANNEL-004",
+    "storyId": "US-CHANNEL-CREATE",
+    "criterionId": "AC-CHANNEL-004",
+    "source": "cdp",
+    "title": "New channel 按钮客户端跳转到 /task 新建页",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "频道页已加载"],
+    "setup": [{ "type": "navigate", "url": "/channels" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "New channel", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'New channel' })", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/task", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-CHANNEL-005",
+    "storyId": "US-CHANNEL-SEARCH",
+    "criterionId": "AC-CHANNEL-005",
+    "source": "cdp",
+    "title": "点击搜索图标将搜索入口从图标展开为文本输入框",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已登录", "频道页已加载（默认折叠态，仅显示搜索图标按钮）"],
+    "setup": [{ "type": "navigate", "url": "/channels" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Search channels", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'Search channels' })", "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "textbox", "name": "Search channels", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

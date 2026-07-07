@@ -1,0 +1,56 @@
+[
+  {
+    "id": "TC-CDP-TERMS-001",
+    "storyId": "terms-page",
+    "title": "直接访问 /terms 正常加载且停留在公开页，标题与主标题正确",
+    "priority": "P0",
+    "preconditions": "无",
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "heading",
+        "name": "Mira Terms of Service",
+        "action": "none",
+        "locatorHint": "getByRole('heading', { level: 1, name: 'Mira Terms of Service' })",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/terms", "selector": null, "i18nKey": null, "note": "无登录墙重定向，路径保持 /terms" },
+      { "type": "title", "expected": "Terms of Service - Mira", "selector": null, "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "Mira Terms of Service", "expected": "Mira Terms of Service", "i18nKey": null, "note": "H1 文本" }
+    ]
+  },
+  {
+    "id": "TC-CDP-TERMS-002",
+    "storyId": "terms-page",
+    "title": "全部 16 个章节标题完整渲染，正文结构完整",
+    "priority": "P1",
+    "preconditions": "已加载 /terms 页面",
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "heading",
+        "name": "1. Acceptance of Terms",
+        "action": "none",
+        "locatorHint": "getByRole('heading', { name: '1. Acceptance of Terms' })",
+        "i18nKey": null
+      },
+      {
+        "role": "heading",
+        "name": "14. General Provisions",
+        "action": "none",
+        "locatorHint": "getByRole('heading', { name: '14. General Provisions' })",
+        "i18nKey": null
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Mira Terms of Service", "expected": null, "i18nKey": null },
+      { "type": "count", "selector": "heading-level-2", "expected": ">=15", "i18nKey": null, "note": "至少 15 个 H2 章节标题" },
+      { "type": "visible", "selector": "heading", "name": "1. Acceptance of Terms", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "14. General Provisions", "expected": null, "i18nKey": null }
+    ]
+  }
+]

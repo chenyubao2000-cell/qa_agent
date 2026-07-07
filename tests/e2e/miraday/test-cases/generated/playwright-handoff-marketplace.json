@@ -1,0 +1,34 @@
+[
+  {
+    "id": "TC-CDP-MARKETPLACE-001",
+    "storyId": "marketplace-gate-redirect",
+    "title": "无技能访问权限的账户访问 /marketplace 被重定向到 /settings/skills 且落地页正常渲染",
+    "priority": "P0",
+    "preconditions": ["已登录，当前会话未通过技能访问网关 isSkillEnabledForUser（生产账号 Ktrieling777@gmail.com 实测如此）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "target": "page", "selector": null, "expected": "/settings/skills", "note": "网关重定向目标，非死链（对比预览环境曾是 404 的 /settings，本环境为正常页面）" },
+      { "type": "visible", "target": "redirectHeading", "selector": "heading", "expected": "All Skills", "note": "落地页真实渲染，确认不是错误页/空白页" }
+    ]
+  },
+  {
+    "id": "TC-CDP-MARKETPLACE-002",
+    "storyId": "marketplace-gate-redirect",
+    "title": "重复访问 /marketplace 的重定向行为保持一致（非偶发）",
+    "priority": "P2",
+    "preconditions": ["已登录，同上"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "navigate", "target": "page", "value": "/task" },
+      { "action": "navigate", "target": "page", "value": "/marketplace (via goto)" }
+    ],
+    "assertions": [
+      { "type": "url", "target": "page", "selector": null, "expected": "/settings/skills", "note": "第一次重定向" },
+      { "type": "url", "target": "page", "selector": null, "expected": "/settings/skills", "note": "离开再回来后重定向依然稳定触发" },
+      { "type": "visible", "target": "redirectHeading", "selector": "heading", "expected": "All Skills" }
+    ]
+  }
+]

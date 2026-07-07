@@ -1,0 +1,109 @@
+[
+  {
+    "id": "TC-CDP-SIGNUP-001",
+    "storyId": "US-SIGNUP-GUARD",
+    "criterionId": "AC-SIGNUP-001",
+    "source": "cdp",
+    "title": "无 email 参数直达 /sign-up 被重定向到 /sign-in",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["公开页，全新浏览器上下文（无 storageState）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/sign-up" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNUP-002",
+    "storyId": "US-SIGNUP-FORM",
+    "criterionId": "AC-SIGNUP-002",
+    "source": "cdp",
+    "title": "带合法 email 进入渲染 Create password 表单且邮箱只读预填",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["导航到 /sign-up?email=test@example.com"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/sign-up?email=test@example.com" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Create password", "expected": null, "i18nKey": "auth.createPasswordTitle" },
+      { "type": "value", "selector": "textbox", "name": "Email", "expected": "test@example.com", "i18nKey": null },
+      { "type": "attribute", "selector": "textbox", "name": "Email", "expected": "readonly", "i18nKey": null },
+      { "type": "visible", "selector": "textbox", "name": "Password", "expected": null, "i18nKey": "auth.password" },
+      { "type": "visible", "selector": "button", "name": "Back to Login", "expected": null, "i18nKey": "auth.backToLogin" },
+      { "type": "disabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.continueTitle" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNUP-003",
+    "storyId": "US-SIGNUP-VALIDATION",
+    "criterionId": "AC-SIGNUP-003",
+    "source": "cdp",
+    "title": "弱密码经校验触发内联强度错误且 Continue 保持禁用",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["已在 /sign-up?email=test@example.com 的 Create password 表单"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/sign-up?email=test@example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Password", "action": "fill", "value": "abc", "locatorHint": "getByLabel('Password')", "dataType": "account.password", "dataVariant": "weak", "i18nKey": "auth.password" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "passwordStrength error", "expected": null, "i18nKey": "auth.validation.passwordStrength" },
+      { "type": "attribute", "selector": "textbox", "name": "Password", "expected": "aria-invalid=true", "i18nKey": null },
+      { "type": "disabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.continueTitle" },
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-up", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNUP-004",
+    "storyId": "US-SIGNUP-VALIDATION",
+    "criterionId": "AC-SIGNUP-004",
+    "source": "cdp",
+    "title": "强密码使校验通过并启用 Continue 按钮",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已在 Create password 表单，且此前处于弱密码错误态"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/sign-up?email=test@example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "Password", "action": "fill", "value": "abc", "locatorHint": "getByLabel('Password')", "dataType": "account.password", "dataVariant": "weak", "i18nKey": "auth.password" },
+      { "role": "textbox", "name": "Password", "action": "fill", "value": "Abcd1234!", "locatorHint": "getByLabel('Password')", "dataType": "account.password", "dataVariant": "strong", "i18nKey": "auth.password" }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "text", "name": "passwordStrength error", "expected": null, "i18nKey": "auth.validation.passwordStrength" },
+      { "type": "attribute", "selector": "textbox", "name": "Password", "expected": "aria-invalid!=true", "i18nKey": null },
+      { "type": "enabled", "selector": "button", "name": "Continue", "expected": null, "i18nKey": "auth.continueTitle" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-SIGNUP-005",
+    "storyId": "US-SIGNUP-FORM",
+    "criterionId": "AC-SIGNUP-005",
+    "source": "cdp",
+    "title": "点击 Back to Login 返回 /sign-in",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["已在 /sign-up?email=test@example.com 的 Create password 表单"],
+    "setup": [{ "type": "navigate", "action": "navigate", "url": "/sign-up?email=test@example.com" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Back to Login", "action": "click", "value": null, "locatorHint": "getByRole('button', { name: 'Back to Login' })", "dataType": null, "dataVariant": null, "i18nKey": "auth.backToLogin" }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

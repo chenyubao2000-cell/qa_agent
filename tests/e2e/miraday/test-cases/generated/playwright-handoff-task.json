@@ -1,0 +1,170 @@
+[
+  {
+    "id": "TC-CDP-TASK-001",
+    "storyId": "task-index-load",
+    "title": "已登录用户打开 Task 首页看到欢迎语与输入框",
+    "priority": "P0",
+    "preconditions": ["已登录（默认 storageState）"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      {
+        "element": "welcome heading (h1)",
+        "role": "heading",
+        "name": "What can I do for you?",
+        "i18nKey": "dashboard.welcome",
+        "locatorHint": "getByRole('heading', { name: 'What can I do for you?', level: 1 })",
+        "action": null
+      },
+      {
+        "element": "composer textbox (RichInput)",
+        "role": "textbox",
+        "name": null,
+        "locatorHint": "getByRole('textbox')",
+        "action": null
+      },
+      {
+        "element": "submit button (PromptInputSubmit)",
+        "role": "button",
+        "name": "Submit",
+        "locatorHint": "getByRole('button', { name: 'Submit' })",
+        "action": null
+      }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "expected": "/task", "note": "not redirected to /sign-in" },
+      { "type": "text", "selector": "heading", "expected": "What can I do for you?", "i18nKey": "dashboard.welcome" },
+      { "type": "visible", "selector": "textbox", "expected": null, "note": "composer visible" },
+      { "type": "disabled", "selector": "button", "expected": null, "note": "Submit disabled on empty composer" }
+    ]
+  },
+  {
+    "id": "TC-CDP-TASK-002",
+    "storyId": "task-index-composer",
+    "title": "输入文本使 Submit 按钮启用",
+    "priority": "P0",
+    "preconditions": ["已登录，导航到 /task"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      {
+        "element": "composer textbox (RichInput)",
+        "role": "textbox",
+        "name": null,
+        "locatorHint": "getByRole('textbox')",
+        "action": "fill",
+        "value": "This is a smoke test draft."
+      },
+      {
+        "element": "submit button (PromptInputSubmit)",
+        "role": "button",
+        "name": "Submit",
+        "locatorHint": "getByRole('button', { name: 'Submit' })",
+        "action": null
+      }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "expected": null, "note": "Submit disabled before typing" },
+      { "type": "text", "selector": "textbox", "expected": "This is a smoke test draft.", "note": "composer shows typed text (contains)" },
+      { "type": "enabled", "selector": "button", "expected": null, "note": "Submit enabled after non-empty text" }
+    ]
+  },
+  {
+    "id": "TC-CDP-TASK-003",
+    "storyId": "task-index-composer",
+    "title": "输入框空/非空边界切换 Submit 启用态",
+    "priority": "P1",
+    "preconditions": ["已登录，导航到 /task，输入框初始为空"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      {
+        "element": "composer textbox (RichInput)",
+        "role": "textbox",
+        "name": null,
+        "locatorHint": "getByRole('textbox')",
+        "action": "fill",
+        "value": "x"
+      },
+      {
+        "element": "submit button (PromptInputSubmit)",
+        "role": "button",
+        "name": "Submit",
+        "locatorHint": "getByRole('button', { name: 'Submit' })",
+        "action": null
+      }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "expected": null, "note": "empty (0 chars) → disabled" },
+      { "type": "enabled", "selector": "button", "expected": null, "note": "non-empty (>=1 char) → enabled" },
+      { "type": "disabled", "selector": "button", "expected": null, "note": "cleared back to empty → disabled again" }
+    ]
+  },
+  {
+    "id": "TC-CDP-TASK-004",
+    "storyId": "task-index-scenario-cards",
+    "title": "点击场景卡填充输入框且不导航",
+    "priority": "P1",
+    "preconditions": ["已登录，导航到 /task，页面渲染出场景卡"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      {
+        "element": "first scenario card button",
+        "role": "button",
+        "name": null,
+        "locatorHint": "scenario grid ([class*='grid-cols-2']) > button, first",
+        "action": "click"
+      },
+      {
+        "element": "composer textbox (RichInput)",
+        "role": "textbox",
+        "name": null,
+        "locatorHint": "getByRole('textbox')",
+        "action": null
+      },
+      {
+        "element": "submit button (PromptInputSubmit)",
+        "role": "button",
+        "name": "Submit",
+        "locatorHint": "getByRole('button', { name: 'Submit' })",
+        "action": null
+      }
+    ],
+    "assertions": [
+      { "type": "custom", "selector": "textbox", "expected": null, "note": "composer text length > 0 after card click (filled with card description)" },
+      { "type": "enabled", "selector": "button", "expected": null, "note": "Submit enabled after card fills composer" },
+      { "type": "url", "selector": null, "expected": "/task", "note": "URL unchanged — no navigation, no auto-submit (source: handleCardSelect only calls fillText)" }
+    ]
+  },
+  {
+    "id": "TC-CDP-TASK-005",
+    "storyId": "task-index-scenario-cards",
+    "title": "场景卡区正确渲染",
+    "priority": "P2",
+    "preconditions": ["已登录，导航到 /task"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }],
+    "teardown": [],
+    "uiElements": [
+      {
+        "element": "try scenarios label",
+        "role": "text",
+        "name": "Try these scenarios",
+        "i18nKey": "dashboard.tryScenarios",
+        "locatorHint": "getByText('Try these scenarios', { exact: true })",
+        "action": null
+      },
+      {
+        "element": "scenario card buttons",
+        "role": "button",
+        "name": null,
+        "locatorHint": "scenario grid ([class*='grid-cols-2']) > button",
+        "action": null
+      }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "text", "expected": null, "i18nKey": "dashboard.tryScenarios", "note": "Try these scenarios label visible" },
+      { "type": "custom", "selector": "button", "expected": null, "note": "scenario card count >= 1" }
+    ]
+  }
+]

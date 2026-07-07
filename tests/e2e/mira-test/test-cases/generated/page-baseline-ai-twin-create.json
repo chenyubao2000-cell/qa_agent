@@ -1,0 +1,208 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/ai-twin/create",
+    "landedUrl": "https://mira-bff-preview.up.railway.app/ai-twin/create?mode=edit",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "sourceComponents": [
+      { "name": "TwinCreatePage", "filePath": "apps/mira-work/app/(twin)/ai-twin/create/page.tsx", "role": "page" },
+      { "name": "TwinCreateClient", "filePath": "apps/mira-work/app/(twin)/ai-twin/create/twin-create-client.tsx", "role": "wrapper" },
+      { "name": "TwinSetupForm", "filePath": "apps/mira-work/features/twin/components/twin-setup-form.tsx", "role": "section" }
+    ],
+    "sourceContext": {
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "top bar close button", "label": "t('exit.close') -> 'Close'", "role": "button" },
+        { "element": "logo link", "label": "'Mira' (hardcoded, not i18n)", "role": "link" },
+        { "element": "name input", "label": "aria-describedby=twin-name-hint, aria-invalid conditional", "role": "textbox" },
+        { "element": "name hint paragraph", "label": "role='alert' only when invalid", "role": "alert (conditional)" }
+      ],
+      "conditionalElements": [
+        { "element": "U1TopBar close (X) button", "condition": "mode === 'edit'", "description": "onboarding/migration render no close control (forced path)" },
+        { "element": "U1CTA Cancel button", "condition": "mode === 'edit' && onCancel provided", "description": "onboarding/migration show only primary CTA" },
+        { "element": "Save changes / Continue button enabled state", "condition": "nameValid && (mode !== 'edit' || hasChanges)", "description": "edit mode requires a real diff vs initialProfile to enable submit" },
+        { "element": "name hint text swap", "condition": "validateTwinName(value) fails", "description": "hint paragraph switches from muted hint to destructive error + role=alert" },
+        { "element": "AvatarPicker dialog", "condition": "user clicks 'Change'", "description": "opens modal with preset grid + upload dropzone" }
+      ],
+      "i18nKeys": [
+        { "element": "heading", "key": "twin.hero.edit.title", "namespace": "twin" },
+        { "element": "sub text", "key": "twin.hero.edit.sub", "namespace": "twin" },
+        { "element": "name label", "key": "twin.fields.name.label", "namespace": "twin" },
+        { "element": "name placeholder", "key": "twin.fields.name.placeholder", "namespace": "twin" },
+        { "element": "name hint", "key": "twin.fields.name.hint", "namespace": "twin" },
+        { "element": "personality label", "key": "twin.fields.personality.label", "namespace": "twin" },
+        { "element": "personality options", "key": "twin.personality.{default|professional|friendly|concise}", "namespace": "twin" },
+        { "element": "CTA primary", "key": "twin.cta.{mode}.desktop", "namespace": "twin" },
+        { "element": "CTA saving", "key": "twin.cta.saving", "namespace": "twin" },
+        { "element": "CTA cancel", "key": "twin.cta.cancel", "namespace": "twin" },
+        { "element": "avatar dialog title", "key": "twin.avatarPicker.title", "namespace": "twin" }
+      ],
+      "utilityClasses": ["flex", "min-h-svh", "rounded-2xl", "border", "p-5", "md:p-6", "sticky", "bottom-0"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 4,
+      "elementsFound": 21,
+      "duration": "smoke"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Edit mode initial (prefilled, no changes)",
+      "sourceArea": "ai-twin-create",
+      "trigger": null,
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "ariaLabel": "Mira", "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "button", "role": "button", "text": "Close", "ariaLabel": "Close", "locatorHint": "getByRole('button', { name: 'Close' })" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Change", "locatorHint": "getByRole('button', { name: 'Change' })", "note": "opens avatar picker dialog, see S1" },
+            { "tag": "input", "role": "textbox", "text": "AI Twin name", "id": "twin-name-input", "value": "Mira11111", "constraints": "Letters, digits, and . - _ (1-20 characters)", "locatorHint": "getByRole('textbox', { name: 'AI Twin name' })" },
+            { "tag": "input", "role": "radio", "text": "Default", "checked": true, "locatorHint": "getByRole('radio', { name: 'Default' })" },
+            { "tag": "input", "role": "radio", "text": "Professional", "checked": false, "locatorHint": "getByRole('radio', { name: 'Professional' })" },
+            { "tag": "input", "role": "radio", "text": "Friendly", "checked": false, "locatorHint": "getByRole('radio', { name: 'Friendly' })" },
+            { "tag": "input", "role": "radio", "text": "Concise", "checked": false, "locatorHint": "getByRole('radio', { name: 'Concise' })" },
+            { "tag": "button", "role": "button", "text": "Cancel", "locatorHint": "getByRole('button', { name: 'Cancel' })" },
+            { "tag": "button", "role": "button", "text": "Save changes", "disabled": true, "locatorHint": "getByRole('button', { name: 'Save changes' })", "note": "disabled when mode='edit' and no field diverges from initialProfile (source: hasChanges/submitDisabled in twin-setup-form.tsx)" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Edit your AI Twin" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Avatar picker dialog open",
+      "sourceArea": "ai-twin-create",
+      "trigger": { "action": "click", "element": "button:Change", "fromState": "S0" },
+      "regions": {
+        "dialog": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Mira default", "state": "pressed/focused", "locatorHint": "getByRole('button', { name: 'Mira default' })" },
+            { "tag": "button", "role": "button", "text": "Preset 1", "locatorHint": "getByRole('button', { name: 'Preset 1' })" },
+            { "tag": "button", "role": "button", "text": "Preset 2", "locatorHint": "getByRole('button', { name: 'Preset 2' })" },
+            { "tag": "button", "role": "button", "text": "Preset 3", "locatorHint": "getByRole('button', { name: 'Preset 3' })" },
+            { "tag": "button", "role": "button", "text": "Click or drag to upload JPG / PNG / WebP up to 5MB", "locatorHint": "getByRole('button', { name: /Click or drag to upload/ })" },
+            { "tag": "button", "role": "button", "text": "Cancel", "locatorHint": "getByRole('dialog').getByRole('button', { name: 'Cancel' })" },
+            { "tag": "button", "role": "button", "text": "Save", "locatorHint": "getByRole('button', { name: 'Save' })" },
+            { "tag": "button", "role": "button", "text": "Close", "locatorHint": "getByRole('dialog').getByRole('button', { name: 'Close' })" }
+          ],
+          "headings": [
+            { "level": 2, "text": "Choose avatar" },
+            { "level": 3, "text": "Use a preset" },
+            { "level": 3, "text": "Upload your own" }
+          ]
+        }
+      },
+      "dialogs": [
+        { "role": "dialog", "name": "Choose avatar", "description": "Pick a preset or upload your own" }
+      ],
+      "alerts": []
+    },
+    "S2": {
+      "name": "Personality changed to Professional -> Save changes enabled",
+      "sourceArea": "ai-twin-create",
+      "trigger": { "action": "click", "element": "radio:Professional", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "input", "role": "radio", "text": "Professional", "checked": true, "locatorHint": "getByRole('radio', { name: 'Professional' })" },
+            { "tag": "button", "role": "button", "text": "Save changes", "disabled": false, "locatorHint": "getByRole('button', { name: 'Save changes' })", "note": "enabled once personality diverges from initialProfile.twinPersonality (hasChanges becomes true)" }
+          ],
+          "headings": []
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Change", "to": "S1", "sourceArea": "ai-twin-create" },
+      { "from": "S1", "action": "press:Escape", "element": null, "to": "S0", "sourceArea": "ai-twin-create", "note": "dialog dismissed without selecting/saving; avatar unchanged" },
+      { "from": "S0", "action": "click", "element": "radio:Professional", "to": "S2", "sourceArea": "ai-twin-create" },
+      { "from": "S2", "action": "click", "element": "radio:Default", "to": "S0", "sourceArea": "ai-twin-create", "note": "manually reverted to original value; Save changes never clicked, profile left unmutated" }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Save changes",
+      "initialState": "disabled",
+      "strategy": "toggle-sequence",
+      "result": "activated",
+      "enablingCondition": "change personality radio away from profile's current value",
+      "newStateId": "S2"
+    }
+  ],
+
+  "destructiveActions": [
+    {
+      "element": "button:Save changes",
+      "reason": "submits POST /api/twin/edit, persists a real profile mutation",
+      "context": "S0/S2 main form — intentionally NOT clicked per task instructions"
+    }
+  ],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S0 (Edit your AI Twin)",
+      "fields": [
+        { "name": "twinName", "type": "text", "required": true, "maxLength": 20, "pattern": "Letters, digits, and . - _ (1-20 characters)", "defaultValue": "Mira11111" },
+        { "name": "twinAvatarSource", "type": "picker (dialog)", "required": true, "options": ["mira-preset", "preset-1", "preset-2", "preset-3", "custom-upload"] },
+        { "name": "twinPersonality", "type": "radio", "required": true, "options": ["Default", "Professional", "Friendly", "Concise"], "defaultValue": "Default" }
+      ],
+      "submitButton": { "text": "Save changes", "disabled": true, "enabledCondition": "nameValid && any field diverges from initialProfile (edit mode) — see twin-setup-form.tsx hasChanges" }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Escape", "action": "closes avatar picker dialog without saving", "stateTransition": "S1 -> S0" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (i18n-driven text); id present only on name field (#twin-name-input, #twin-name-hint)"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 21,
+    "totalForms": 1,
+    "totalDestructiveActions": 1,
+    "coveredPatterns": ["modal", "form", "radio-group", "conditional-cta-enable", "keyboard-escape"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": "smoke-scope, not exhaustive"
+  },
+
+  "keyFindings": [
+    "Direct navigation to /ai-twin/create with NO query param (an existing user's most likely deep-link) redirects server-side to /task. This is INTENDED behavior confirmed by source (page.tsx: if profile exists and mode !== 'edit', redirect('/task')) — NOT a bug.",
+    "The only reachable interactive state of this route for an existing-profile account is /ai-twin/create?mode=edit. Onboarding/migration modes are unreachable for this test account (profile already exists) and were not explored live — recorded from source-code conditionals only (U1TopBar/U1CTA), not CDP-verified.",
+    "'Save changes' correctly starts disabled (no diff) and becomes enabled after changing the personality radio, confirming the hasChanges diff logic in twin-setup-form.tsx works as coded. Verified with real CDP click, not just source reading.",
+    "Avatar picker opens as a real modal dialog (role=dialog, name='Choose avatar') with preset grid ('Mira default'/'Preset 1-3') + upload dropzone; closed via Escape without saving — avatar left unchanged.",
+    "No hydration-lag false negative observed: disabled/enabled toggling on 'Save changes' happened immediately on click and matched source logic exactly (matches playbook §19b guidance — waited for hydration-ready signal via wait_for before first interaction).",
+    "No data-testid attributes found anywhere in the component tree (page, client wrapper, form, or child components in features/twin/components) — locators should rely on getByRole with i18n-sourced names, or the two stable DOM ids (#twin-name-input, #twin-name-hint) for the name field.",
+    "No console errors observed during this crawl. Personality radio was reverted back to 'Default' and avatar dialog closed unsaved before ending the session — profile was NOT mutated."
+  ]
+}

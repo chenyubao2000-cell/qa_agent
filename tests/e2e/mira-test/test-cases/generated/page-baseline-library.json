@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/library",
+    "finalUrl": "https://mira-bff-preview.up.railway.app/library",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "hasLoginWall": false,
+    "sourceContext": {
+      "components": [
+        {
+          "name": "LibraryPage",
+          "filePath": "apps/mira-work/app/(sourcing)/library/page.tsx",
+          "role": "page"
+        },
+        {
+          "name": "Canvas",
+          "filePath": "@mira/canvas/client (external package, not inlined)",
+          "role": "widget"
+        }
+      ],
+      "testIds": [],
+      "ariaAttributes": [],
+      "conditionalElements": [],
+      "i18nKeys": [
+        { "element": "h1", "key": "library", "namespace": "chatbot", "resolvedEn": "Library" }
+      ],
+      "utilityClasses": [
+        "mx-auto", "flex", "h-full", "w-full", "max-w-3xl", "flex-col", "gap-6", "p-6",
+        "text-center", "mb-2", "text-4xl", "font-bold", "text-muted-foreground", "text-xl",
+        "h-96", "space-y-3", "text-sm", "list-disc", "pl-5", "bg-muted", "rounded", "px-1", "py-0.5"
+      ],
+      "notes": "Page is a static client component (\"use client\") with no state/props/conditionals. All body content (h1 via t('chatbot.library'), hardcoded 'Coming soon' text, and the Canvas placeholder body) renders unconditionally. Canvas is a shared external component (@mira/canvas/client) invoked with a static SCENE object (id: 'sourcing-library', mode: 'viewer', title: 'Talent Library') — its internal markup (h2 'Talent Library', description paragraph, scene.id/scene.mode list) was not source-read (out of scope, external package) but was cross-validated 1:1 against the live CDP snapshot below."
+    },
+    "explorationStats": {
+      "statesDiscovered": 2,
+      "interactionsPerformed": 1,
+      "elementsFound": 10,
+      "duration": "~1m"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page — Talent Library placeholder",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Toggle Sidebar", "testId": null, "ariaLabel": "Toggle Sidebar", "locatorHint": "getByRole('button', { name: 'Toggle Sidebar' })" },
+            { "tag": "button", "role": "button", "text": "Pulse 1 item awaiting", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Pulse 1 item awaiting' })" },
+            { "tag": "button", "role": "button", "text": "Channel", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Channel' })" },
+            { "tag": "button", "role": "button", "text": "Contacts", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Contacts' })" },
+            { "tag": "button", "role": "button", "text": "Calendar", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Calendar' })" },
+            { "tag": "button", "role": "button", "text": "Files", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Files' })" },
+            { "tag": "button", "role": "button", "text": "Recent", "testId": null, "ariaLabel": null, "state": "expanded", "locatorHint": "getByRole('button', { name: 'Recent' })" },
+            { "tag": "button", "role": "button", "text": "k ktrieling777 Local Dev · Team Plan", "testId": null, "ariaLabel": null, "haspopup": "menu", "locatorHint": "getByRole('button', { name: /ktrieling777/ })" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [],
+          "headings": [
+            { "level": 1, "text": "Library", "locatorHint": "getByRole('heading', { level: 1, name: 'Library' })" },
+            { "level": 2, "text": "Talent Library", "locatorHint": "getByRole('heading', { level: 2, name: 'Talent Library' })" }
+          ]
+        }
+      },
+      "staticText": [
+        "Coming soon",
+        "Phase 3 Task 3.7 MVP: sourcing-library Canvas placeholder. The container ships as @mira/canvas/client; B4 will replace the body with real candidate cards in a later phase.",
+        "scene.id — sourcing-library",
+        "scene.mode — viewer"
+      ],
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Sidebar collapsed (rail mode) — global layout toggle, main content unchanged",
+      "sourceArea": null,
+      "trigger": { "action": "click", "element": "button:Toggle Sidebar", "fromState": "S0" },
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Pulse 1 item awaiting", "locatorHint": "getByRole('button', { name: 'Pulse 1 item awaiting' })" },
+            { "tag": "button", "role": "button", "text": "Channel" },
+            { "tag": "button", "role": "button", "text": "Contacts" },
+            { "tag": "button", "role": "button", "text": "Calendar" },
+            { "tag": "button", "role": "button", "text": "Files" },
+            { "tag": "button", "role": "button", "text": "k", "haspopup": "menu" },
+            { "tag": "button", "role": "button", "text": "Toggle Sidebar" }
+          ],
+          "headings": [],
+          "notes": "Sidebar 'Recent' task list and labels collapse to icon-only rail — this is shared app-shell layout behavior, not specific to the library page. Confirms React hydration/click-handlers are live on this route (click had visible effect, ruling out SSR-not-hydrated false negatives per flakiness playbook §19b)."
+        },
+        "main": {
+          "interactives": [],
+          "headings": [
+            { "level": 1, "text": "Library" },
+            { "level": 2, "text": "Talent Library" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Toggle Sidebar", "to": "S1", "sourceArea": null }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name (headings/buttons); no data-testid present on this page — sidebar nav items and page heading/subheading are all locatable via getByRole"
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 8,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["static-placeholder", "sidebar-toggle"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0,
+    "keyFindings": [
+      "Page renders exactly as source + route map describe: a static 'Talent Library' placeholder — h1 'Library' (i18n key chatbot.library), subheading 'Coming soon', and a card containing a Canvas placeholder (h2 'Talent Library', explanatory MVP text, scene.id=sourcing-library, scene.mode=viewer). No crash, no error boundary, no 404.",
+      "No login wall encountered — session remained authenticated (sidebar shows ktrieling777 / Local Dev · Team Plan) throughout.",
+      "Page has zero page-specific interactive elements in <main> — no buttons, links, or forms within the Talent Library card itself, consistent with it being an intentional MVP placeholder ('B4 will replace the body with real candidate cards in a later phase').",
+      "Sidebar 'Toggle Sidebar' click correctly collapsed the nav to rail mode without affecting main content, confirming the route is fully hydrated (not a stale SSR shell) — no flakiness pattern §19b concerns for this page.",
+      "No data-testid attributes present anywhere in the page source — future test authors should rely on getByRole/getByText locators (heading level 1 'Library', heading level 2 'Talent Library')."
+    ]
+  }
+}

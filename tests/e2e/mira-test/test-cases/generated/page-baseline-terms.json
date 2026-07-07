@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/terms",
+    "title": "Terms of Service - Mira",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "sourceComponents": [
+      { "name": "TermsOfServicePage", "filePath": "apps/mira-work/app/(legal)/terms/page.tsx", "role": "page" },
+      { "name": "LegalContent", "filePath": "apps/mira-work/app/(legal)/legal-content.tsx", "role": "section" }
+    ],
+    "explorationStats": {
+      "statesDiscovered": 1,
+      "interactionsPerformed": 1,
+      "elementsFound": 8,
+      "duration": "smoke"
+    }
+  },
+
+  "sourceContext": {
+    "components": [
+      { "name": "TermsOfServicePage", "filePath": "apps/mira-work/app/(legal)/terms/page.tsx", "role": "page" },
+      { "name": "LegalContent", "filePath": "apps/mira-work/app/(legal)/legal-content.tsx", "role": "section" }
+    ],
+    "testIds": [],
+    "ariaAttributes": [],
+    "conditionalElements": [],
+    "i18nKeys": [],
+    "utilityClasses": ["wrap-anywhere", "appearance-none", "text-left", "font-medium", "text-primary", "underline"],
+    "notes": "Content is a hardcoded English markdown string rendered via Streamdown (mode=\"static\", controls=false, plugins={cjk}). No t()/useTranslations calls — page is not i18n-wired. Markdown links (mailto: and internal [Privacy Policy](/privacy)) are rendered by Streamdown as <button type=\"button\" data-streamdown=\"link\"> elements with NO href attribute and no click handler."
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page - Terms of Service static content",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "interactives": [
+            {
+              "tag": "BUTTON",
+              "role": "button",
+              "text": "support@mira.day",
+              "testId": null,
+              "ariaLabel": null,
+              "href": null,
+              "locatorHint": "getByRole('button', { name: 'support@mira.day' })",
+              "note": "Rendered from mailto:support@mira.day markdown link; occurrences at Sec.1, 3.2, 5.2, 12.2, 14.5 (5 total). No href — clicking does nothing."
+            },
+            {
+              "tag": "BUTTON",
+              "role": "button",
+              "text": "Privacy Policy",
+              "testId": null,
+              "ariaLabel": null,
+              "href": null,
+              "locatorHint": "getByRole('button', { name: 'Privacy Policy' })",
+              "note": "Rendered from [Privacy Policy](/privacy) markdown link; occurrences at Sec.1 and 9.1 (2 total). No href — clicking does not navigate to /privacy."
+            }
+          ],
+          "headings": [
+            { "level": 1, "text": "Mira Terms of Service" },
+            { "level": 2, "text": "1. Acceptance of Terms" },
+            { "level": 2, "text": "2. Services Description" },
+            { "level": 2, "text": "2.2 Mira Chrome Extension Consent" },
+            { "level": 2, "text": "3. Account Registration and Security" },
+            { "level": 2, "text": "4. Acceptable Use" },
+            { "level": 2, "text": "5. Candidate Data and Outreach Compliance" },
+            { "level": 2, "text": "6. AI Disclaimer and Limitations" },
+            { "level": 2, "text": "7. Intellectual Property" },
+            { "level": 2, "text": "8. Fees and Billing" },
+            { "level": 2, "text": "9. Termination" },
+            { "level": 2, "text": "10. Disclaimer of Warranties" },
+            { "level": 2, "text": "11. Limitation of Liability" },
+            { "level": 2, "text": "12. Governing Law and Dispute Resolution" },
+            { "level": 2, "text": "13. Changes to These Terms" },
+            { "level": 2, "text": "14. General Provisions" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Privacy Policy (uid=27_12, Sec.1 cross-reference)", "to": "S0", "sourceArea": null, "note": "No-op: click produced no navigation, no console error, no DOM change. Confirms dead link." }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [],
+
+  "shadowDom": [],
+
+  "iframes": [],
+
+  "keyboardShortcuts": [],
+
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "dominantStrategy": "role+text (getByRole('button', { name }))"
+  },
+
+  "bugFindings": [
+    {
+      "severity": "medium",
+      "title": "Markdown links render as inert <button> with no href/handler",
+      "description": "Streamdown (mode=\"static\", controls=false) renders both the internal cross-reference link '[Privacy Policy](/privacy)' (Sec.1, Sec.9.1) and the 'mailto:support@mira.day' links (Sec.1, 3.2, 5.2, 12.2, 14.5) as <button type=\"button\" data-streamdown=\"link\"> elements with no href attribute. Verified by DOM query: href=null on all 8 occurrences, and by direct click on the Sec.1 'Privacy Policy' button — no navigation occurred (URL unchanged), no console errors/warnings logged. Users cannot click through to the Privacy Policy or open their mail client to email support@mira.day from this static legal page.",
+      "reproduction": [
+        "Navigate to https://mira-bff-preview.up.railway.app/terms",
+        "Click the 'Privacy Policy' text in section 1 ('These Terms should be read together with our Privacy Policy...')",
+        "Observe: no navigation to /privacy, no visual feedback"
+      ],
+      "impact": "Legal/compliance page cross-references and support contact are unusable by real users (keyboard and mouse) — same defect pattern expected on /privacy given identical LegalContent/Streamdown wiring.",
+      "affectedComponent": "apps/mira-work/app/(legal)/legal-content.tsx (Streamdown controls={false} config, or missing custom `a` component override)"
+    }
+  ],
+
+  "summary": {
+    "totalStates": 1,
+    "totalInteractives": 8,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["static-content", "dead-link-check"],
+    "scrollMode": "static-page",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0,
+    "notes": "Smoke-scope baseline. Page renders correctly (all 16 headings present, matches source content 1:1, no crash/500). One functional defect found: markdown-rendered links (Privacy Policy cross-ref + mailto support links) are non-interactive buttons with no href — see bugFindings."
+  }
+}

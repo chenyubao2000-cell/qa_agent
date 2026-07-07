@@ -1,0 +1,76 @@
+[
+  {
+    "id": "TC-CDP-ACT-001",
+    "storyId": "US-ACT-GUARD",
+    "criterionId": "AC-ACT-001",
+    "source": "cdp",
+    "title": "匿名访问 /activate 被重定向到 /sign-in 并渲染统一登录表单",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": [
+      "未登录（测试内 storageState 置空）",
+      "已打开公共落地页 /"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/", "note": "public landing origin; ActivatePage POM then client-navigates to /activate" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null },
+      { "type": "text", "selector": "heading", "name": "Sign in or Sign up", "expected": "Sign in or Sign up", "i18nKey": "auth.unifiedTitle" },
+      { "type": "visible", "selector": "textbox", "name": "Enter your email address", "expected": null, "i18nKey": "auth.emailPlaceholder" }
+    ],
+    "tags": ["@P0", "@smoke", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-ACT-002",
+    "storyId": "US-ACT-GUARD",
+    "criterionId": "AC-ACT-002",
+    "source": "cdp",
+    "title": "匿名携带 ?hasCode=true 访问 /activate 仍被重定向到 /sign-in（查询参数不绕过鉴权）",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": [
+      "未登录（测试内 storageState 置空）",
+      "已打开公共落地页 /"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/", "note": "then client-navigate to /activate?hasCode=true" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Sign in or Sign up", "expected": null, "i18nKey": "auth.unifiedTitle" },
+      { "type": "visible", "selector": "textbox", "name": "Enter your email address", "expected": null, "i18nKey": "auth.emailPlaceholder" }
+    ],
+    "tags": ["@P1", "@regression", "@full"],
+    "timeout": null
+  },
+  {
+    "id": "TC-CDP-ACT-003",
+    "storyId": "US-ACT-GUARD",
+    "criterionId": "AC-ACT-003",
+    "source": "cdp",
+    "title": "匿名携带未知/异常查询参数访问 /activate 仍干净重定向到 /sign-in（无报错）",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": [
+      "未登录（测试内 storageState 置空）",
+      "已打开公共落地页 /"
+    ],
+    "setup": [
+      { "type": "navigate", "url": "/", "note": "then client-navigate to /activate?foo=bar&x=%20" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "url", "selector": null, "name": null, "expected": "/sign-in", "i18nKey": null },
+      { "type": "visible", "selector": "heading", "name": "Sign in or Sign up", "expected": null, "i18nKey": "auth.unifiedTitle" }
+    ],
+    "tags": ["@P2", "@full"],
+    "timeout": null
+  }
+]

@@ -1,0 +1,223 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/sign-in",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceProjectDir": "D:\\code\\mira",
+    "sourceComponents": [
+      { "name": "SignInPage", "filePath": "apps/mira-work/app/(auth)/sign-in/page.tsx", "role": "page" },
+      { "name": "SignInForm", "filePath": "apps/mira-work/features/auth/components/sign-in-form.tsx", "role": "section" },
+      { "name": "SocialButtons", "filePath": "apps/mira-work/features/auth/components/social-buttons.tsx", "role": "widget" }
+    ],
+    "explorationStats": {
+      "statesDiscovered": 2,
+      "interactionsPerformed": 2,
+      "elementsFound": 6,
+      "duration": "smoke-scope, not timed"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial email step",
+      "sourceArea": "sign-in",
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "text": "Sign in or Sign up", "level": 1 }
+          ],
+          "interactives": [
+            {
+              "tag": "button",
+              "role": "button",
+              "text": "Continue with Google",
+              "testId": null,
+              "ariaLabel": null,
+              "disabled": false,
+              "locatorHint": "getByRole('button', { name: 'Continue with Google' })",
+              "i18nKey": "auth.continueWithGoogle"
+            },
+            {
+              "tag": "button",
+              "role": "button",
+              "text": "Continue with Microsoft",
+              "testId": null,
+              "ariaLabel": null,
+              "disabled": false,
+              "locatorHint": "getByRole('button', { name: 'Continue with Microsoft' })",
+              "i18nKey": "auth.continueWithMicrosoft"
+            },
+            {
+              "tag": "input",
+              "role": "textbox",
+              "text": null,
+              "placeholder": "Enter your email address",
+              "testId": null,
+              "ariaLabel": null,
+              "type": "email",
+              "disabled": false,
+              "locatorHint": "getByPlaceholder('Enter your email address')",
+              "i18nKey": "auth.emailPlaceholder",
+              "note": "id=\"email\", autoComplete=email, readOnly when prefillEmail query param is set (invitation flow)"
+            },
+            {
+              "tag": "button",
+              "role": "button",
+              "text": "Continue",
+              "testId": null,
+              "ariaLabel": null,
+              "disabled": true,
+              "disabledCondition": "disabled while email input is empty (or while isPending / authingStatus !== 'idle')",
+              "locatorHint": "getByRole('button', { name: 'Continue' })",
+              "i18nKey": "auth.continueTitle"
+            },
+            {
+              "tag": "combobox",
+              "role": "combobox",
+              "text": "English",
+              "testId": null,
+              "ariaLabel": null,
+              "expandable": true,
+              "haspopup": "listbox",
+              "locatorHint": "getByRole('combobox')",
+              "note": "language switcher in banner, not part of the sign-in form itself"
+            }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Email step with invalid-email validation error",
+      "sourceArea": "sign-in",
+      "trigger": { "action": "fill+click", "element": "textbox:Enter your email address -> 'not-an-email'; button:Continue", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "text": "Sign in or Sign up", "level": 1 }
+          ],
+          "interactives": [
+            {
+              "tag": "input",
+              "role": "textbox",
+              "value": "not-an-email",
+              "invalid": true,
+              "locatorHint": "getByPlaceholder('Enter your email address')",
+              "i18nKey": "auth.emailPlaceholder"
+            },
+            {
+              "tag": "text",
+              "role": "text",
+              "text": "Please enter a valid email address",
+              "locatorHint": "getByText('Please enter a valid email address')",
+              "i18nKey": "auth.validation.emailInvalid",
+              "note": "client-side zod validation (z.email), no network call made"
+            },
+            {
+              "tag": "button",
+              "role": "button",
+              "text": "Continue",
+              "disabled": false,
+              "locatorHint": "getByRole('button', { name: 'Continue' })"
+            }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      {
+        "from": "S0",
+        "action": "fill",
+        "element": "textbox:Enter your email address = 'not-an-email'",
+        "to": "S0",
+        "sourceArea": "sign-in",
+        "note": "Continue button becomes enabled once email input is non-empty"
+      },
+      {
+        "from": "S0",
+        "action": "click",
+        "element": "button:Continue",
+        "to": "S1",
+        "sourceArea": "sign-in",
+        "note": "invalid email format -> inline validation error, no submission"
+      }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Continue",
+      "initialState": "disabled",
+      "strategy": "form-completion",
+      "result": "activated",
+      "enablingCondition": "email input non-empty (trim().length > 0)",
+      "newStateId": "S0"
+    }
+  ],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S0 (Initial email step)",
+      "fields": [
+        { "name": "email", "type": "email", "required": true, "validation": "zod z.email()", "placeholder": "Enter your email address" }
+      ],
+      "submitButton": { "text": "Continue", "disabled": "true when email is empty" },
+      "note": "Not submitted with real credentials. Valid-existing-email path routes to password step ('password' internal state); valid-new-email path client-redirects to /sign-up; enterprise-SSO email routes to 'authing' internal state. None of these were exercised in this smoke run to avoid any backend auth call."
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Enter", "action": "triggers handleEmailContinue() while focused in email input", "stateTransition": "S0 -> S0/S1 depending on validity" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "dominantStrategy": "role+name / placeholder (no data-testid found on this page; source confirms no data-testid attributes in SignInForm/SocialButtons)"
+  },
+
+  "sourceContextNotes": {
+    "conditionalElements": [
+      { "element": "forgot-password link", "condition": "only rendered in step === 'password' (after a known-existing-email + Continue)", "description": "NOT present on the initial email step; page-specific-notes requirement to 'verify forgot-password link if present' does not apply to S0" },
+      { "element": "sign-up link", "condition": "no static link; router.push('/sign-up?...') fired programmatically only when checkEmail() determines the email does not exist", "description": "no visible sign-up link/anchor on this page at any reachable client-only state" },
+      { "element": "enterprise SSO ('authing') step", "condition": "checkEmail() returns authProvider !== 'default'", "description": "requires backend response, not exercised" }
+    ],
+    "i18nMismatch": [
+      {
+        "field": "unifiedSubtitle",
+        "expectedFromMessagesDir": "Start your next sourcing (messages/en.json auth.unifiedSubtitle)",
+        "actualOnPage": "Wake your Mira · The global AI recruiting platform",
+        "note": "Possible drift between local messages/en.json snapshot and the deployed preview build's translation content for this key. Not a functional bug, flagged for translation-source review."
+      }
+    ]
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 6,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["form", "inline-validation"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": "smoke-scope (not exhaustive by design)"
+  }
+}

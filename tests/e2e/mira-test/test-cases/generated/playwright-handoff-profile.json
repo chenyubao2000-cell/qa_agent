@@ -1,0 +1,74 @@
+[
+  {
+    "id": "TC-CDP-PROFILE-001",
+    "storyId": "profile-load",
+    "title": "个人资料页加载并渲染已填充资料表单",
+    "priority": "P0",
+    "preconditions": ["已登录（默认 storageState）", "测试账户已有完整候选人资料", "导航至 /profile"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "target": "h1 标题 Profile", "selector": "heading", "name": "Profile", "i18nKey": "candidate.profile.heading" },
+      { "type": "visible", "target": "分区标题 Basic info", "selector": "heading", "name": "Basic info" },
+      { "type": "visible", "target": "分区标题 Contact & social", "selector": "heading", "name": "Contact & social" },
+      { "type": "visible", "target": "分区标题 Job preferences", "selector": "heading", "name": "Job preferences" },
+      { "type": "visible", "target": "分区标题 Experience & education", "selector": "heading", "name": "Experience & education" },
+      { "type": "visible", "target": "分区标题 Certifications / Licenses", "selector": "heading", "name": "Certifications / Licenses" },
+      { "type": "visible", "target": "Your name 文本框（值非空，已填充资料）", "selector": "textbox", "name": "Your name" },
+      { "type": "checked", "target": "Discoverable by employers 开关默认选中", "selector": "switch", "name": "Discoverable by employers", "i18nKey": "candidate.profile.visibility" },
+      { "type": "disabled", "target": "Save 按钮默认禁用（表单未变更）", "selector": "button", "name": "Save", "i18nKey": "candidate.profile.save" },
+      { "type": "visible", "target": "Rebuild 按钮可见（破坏性入口，不点击）", "selector": "button", "name": "Rebuild", "i18nKey": "candidate.confirm.rebuild" }
+    ]
+  },
+  {
+    "id": "TC-CDP-PROFILE-002",
+    "storyId": "profile-portrait-card",
+    "title": "Mira 人像卡点击可折叠再展开",
+    "priority": "P1",
+    "preconditions": ["已登录", "导航至 /profile，人像卡处于展开态 S0"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "action": "click", "target": "人像卡标题按钮 （…'s read on you）", "selector": "button", "name": "read on you", "locatorHint": "getByRole('button', { name: /read on you/i })" }
+    ],
+    "assertions": [
+      { "type": "attribute", "target": "初始 aria-expanded=true（展开）", "selector": "button", "name": "read on you", "attribute": "aria-expanded", "expected": "true" },
+      { "type": "attribute", "target": "折叠后 aria-expanded=false", "selector": "button", "name": "read on you", "attribute": "aria-expanded", "expected": "false" },
+      { "type": "attribute", "target": "再展开后 aria-expanded=true", "selector": "button", "name": "read on you", "attribute": "aria-expanded", "expected": "true" }
+    ]
+  },
+  {
+    "id": "TC-CDP-PROFILE-003",
+    "storyId": "profile-save-gating",
+    "title": "Save 按钮默认禁用，编辑表单字段后变为可用",
+    "priority": "P1",
+    "preconditions": ["已登录", "导航至 /profile，表单处于未变更 not-dirty 态"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [{ "type": "ui", "action": "restore", "pomMethod": "setName", "note": "还原 name 原值，不点击 Save，无持久化写入" }],
+    "uiElements": [
+      { "action": "fill", "target": "Your name 文本框（填入新值使 dirty）", "selector": "textbox", "name": "Your name", "value": "{originalName}-QA{timestamp}", "dataType": "text" }
+    ],
+    "assertions": [
+      { "type": "disabled", "target": "初始 Save 禁用", "selector": "button", "name": "Save" },
+      { "type": "enabled", "target": "编辑后 Save 可用（dirty gating）", "selector": "button", "name": "Save" }
+    ]
+  },
+  {
+    "id": "TC-CDP-PROFILE-004",
+    "storyId": "profile-visibility-switch",
+    "title": "Discoverable by employers 可见性开关可切换并回滚",
+    "priority": "P2",
+    "preconditions": ["已登录", "导航至 /profile，可见性开关初始 checked"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [{ "type": "ui", "action": "restore", "pomMethod": "toggleVisibility", "note": "回滚开关至原始 checked 态，避免持久副作用" }],
+    "uiElements": [
+      { "action": "click", "target": "Discoverable by employers 开关", "selector": "switch", "name": "Discoverable by employers", "locatorHint": "getByRole('switch', { name: 'Discoverable by employers' })", "i18nKey": "candidate.profile.visibility" }
+    ],
+    "assertions": [
+      { "type": "checked", "target": "初始开关 checked", "selector": "switch", "name": "Discoverable by employers" },
+      { "type": "unchecked", "target": "首次点击后 unchecked", "selector": "switch", "name": "Discoverable by employers" },
+      { "type": "checked", "target": "回滚点击后恢复 checked", "selector": "switch", "name": "Discoverable by employers" }
+    ]
+  }
+]

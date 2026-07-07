@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/billing/plans",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "reverifiedTimestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "explorationStats": {
+      "statesDiscovered": 3,
+      "interactionsPerformed": 3,
+      "elementsFound": 13,
+      "duration": "~3m"
+    }
+  },
+
+  "sourceContext": {
+    "components": [
+      { "name": "PlansPage", "filePath": "apps/mira-work/app/(billing)/billing/plans/page.tsx", "role": "page" },
+      { "name": "EnterpriseCard", "filePath": "apps/mira-work/features/billing/components/enterprise-card.tsx", "role": "widget" },
+      { "name": "CreditPackSection", "filePath": "apps/mira-work/features/billing/components/credit-pack-section.tsx", "role": "section" }
+    ],
+    "testIds": [],
+    "ariaAttributes": [
+      { "element": "PackTile button", "role": "button", "attr": "aria-pressed={selected}" },
+      { "element": "CreditPackSection section", "role": "region", "attr": "aria-labelledby=credit-pack-title" },
+      { "element": "ArrowLeft/Check icons", "attr": "aria-hidden=true" }
+    ],
+    "conditionalElements": [
+      { "element": "Alert (past due)", "condition": "subscription.inGracePeriod === true", "description": "destructive Alert with pastDueTitle/pastDueDescription + 'pastDueAction' button -> redirectToPortal('payment_method_update'). NOT triggerable by a free-tier test account; not observed in this run." },
+      { "element": "Badge 'Your plan' (yourPlan)", "condition": "isCurrent = subscription.planCode === card.code && subscription.isActive", "description": "not shown for the tested account (free/no active subscription) -- all 3 paid cards showed 'Upgrade'" },
+      { "element": "Badge 'Most Popular' (mostPopular)", "condition": "config.popular (team card) && !isCurrent", "description": "observed on Team card in S0" },
+      { "element": "Skeleton loading button", "condition": "isLoading from useBillingSubscription()", "description": "not observed post-hydration; only visible during initial fetch" },
+      { "element": "Plan CTA button label/variant/onClick", "condition": "resolveButton(): isCurrent -> cta.viewCurrent (redirectToPortal('home')); !isSubscribed -> cta.upgrade (handleSubscribe, POST /api/billing/checkout -> Stripe redirect); isHigher -> cta.upgrade (redirectToPortal('subscription_update', code)); isLower -> cta.downgrade (redirectToPortal('subscription_update', code))" },
+      { "element": "CreditPackSection 'Buy' button", "condition": "disabled unless selectedSku is set; enabled by selecting any pack tile", "description": "verified live: initial disabled -> enabled after clicking a tile (see stateGraph S0->S2)" },
+      { "element": "Pack tile 'Popular' pill", "condition": "tile.popular (pack_m, $199) only", "description": "observed" }
+    ],
+    "i18nKeys": [
+      { "namespace": "plans", "keys": ["back", "title", "subtitleDefault", "subtitlePastDue", "subtitleStarter", "subtitleIndividual", "subtitleTeam", "yourPlan", "mostPopular", "includes", "cta.viewCurrent", "cta.upgrade", "cta.downgrade", "starter.name/tagline/price", "individual.name/tagline/price", "team.name/tagline/price", "perMonth", "perSeatPerMonth", "enterprise.name/price/tagline/cta", "feature.*"] },
+      { "namespace": "billing", "keys": ["pastDueTitle", "pastDueDescription", "pastDueAction", "portalError", "redirecting", "checkoutCanceled", "packCanceled", "checkoutSuccess", "verifyError", "verifyTimeout", "verifyingPayment"] },
+      { "namespace": "packs", "keys": ["sectionTitle", "sectionSubtitle", "cta", "loading", "priceLabel", "creditsLabel", "popularBadge", "verifyingPayment", "successTitle", "successDescription", "verifyError"] }
+    ],
+    "utilityClasses": ["rounded-xl", "p-6", "shadow-sm", "grid-cols-1", "md:grid-cols-2", "lg:grid-cols-4", "border-2 border-primary", "bg-card"]
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page (free-tier / no active subscription)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "level": 1, "text": "Simple, transparent pricing" },
+            { "level": 2, "text": "Starter" },
+            { "level": 2, "text": "Individual" },
+            { "level": 2, "text": "Team" },
+            { "level": 2, "text": "Enterprise" },
+            { "level": 2, "text": "Need more credits?" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Back", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "button", "role": "button", "text": "Upgrade", "context": "Starter card ($20/month)", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('article').filter({ hasText: 'Starter' }).getByRole('button', { name: 'Upgrade' })" },
+            { "tag": "button", "role": "button", "text": "Upgrade", "context": "Individual card ($100/month)", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('article').filter({ hasText: 'Individual' }).getByRole('button', { name: 'Upgrade' })" },
+            { "tag": "button", "role": "button", "text": "Upgrade", "context": "Team card ($200/person/month, Most Popular badge)", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('article').filter({ hasText: 'Team' }).getByRole('button', { name: 'Upgrade' })" },
+            { "tag": "button", "role": "button", "text": "Contact us", "context": "Enterprise card (Custom price)", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Contact us' })" },
+            { "tag": "button", "role": "button", "text": "Buy", "state": "disabled", "context": "Credit pack section header CTA", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('region', { name: 'Need more credits?' }).getByRole('button', { name: 'Buy' })" },
+            { "tag": "button", "role": "button", "text": "$99 3,000 Credits", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /\\$99.*3,000 Credits/ })" },
+            { "tag": "button", "role": "button", "text": "$199 Popular 6,000 Credits", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /\\$199.*6,000 Credits/ })" },
+            { "tag": "button", "role": "button", "text": "$399 12,000 Credits", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: /\\$399.*12,000 Credits/ })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Enterprise contact page (navigated away)",
+      "sourceArea": "enterprise-contact",
+      "trigger": { "action": "click", "element": "button:Contact us", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [
+            { "level": 1, "text": "Contact Us For Enterprise Plan" }
+          ],
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Back", "locatorHint": "getByRole('button', { name: 'Back' })" },
+            { "tag": "input", "role": "textbox", "text": "First name", "required": true },
+            { "tag": "input", "role": "textbox", "text": "Last name", "required": true },
+            { "tag": "input", "role": "textbox", "text": "Company", "required": true },
+            { "tag": "input", "role": "textbox", "text": "Work email", "required": true },
+            { "tag": "input", "role": "textbox", "text": "Phone number", "required": true },
+            { "tag": "select", "role": "combobox", "text": "Role", "required": true, "options": ["HR Director", "Talent Acquisition Lead", "Procurement", "IT", "CEO / Founder", "Other"] },
+            { "tag": "button", "role": "button", "text": "Submit" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "Full URL landed: https://mira-bff-preview.up.railway.app/billing/plans/contact. This is an internal lead-capture form, NOT a payment/checkout flow -- safe to click in smoke exploration. Submit button was NOT clicked (would be a form submission side effect, out of smoke scope)."
+    },
+    "S2": {
+      "name": "Credit pack tile selected (pack_m / $199)",
+      "sourceArea": "credit-pack",
+      "trigger": { "action": "click", "element": "button:$199 Popular 6,000 Credits", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "$199 Popular 6,000 Credits", "state": "pressed,focused", "ariaAttr": "aria-pressed=true", "locatorHint": "getByRole('button', { name: /\\$199.*6,000 Credits/ })" },
+            { "tag": "button", "role": "button", "text": "Buy", "state": "enabled (was disabled in S0)", "locatorHint": "getByRole('region', { name: 'Need more credits?' }).getByRole('button', { name: 'Buy' })" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "note": "Confirms CreditPackSection selection logic from source: selecting any of the 3 pack tiles toggles aria-pressed and enables the 'Buy' button. Buy was NOT clicked (would POST /api/billing/pack/checkout and redirect to a real Stripe checkout URL -- out of smoke scope per instructions)."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Contact us", "to": "S1", "sourceArea": "enterprise-contact" },
+      { "from": "S1", "action": "navigate:back", "element": null, "to": "S0", "sourceArea": "enterprise-contact" },
+      { "from": "S0", "action": "click", "element": "button:$199 Popular 6,000 Credits", "to": "S2", "sourceArea": "credit-pack" }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Buy (credit pack)",
+      "initialState": "disabled",
+      "strategy": "toggle-sequence (select a pack tile)",
+      "result": "activated",
+      "enablingCondition": "selectedSku is non-null (click any of the 3 pack tile buttons)",
+      "newStateId": "S2"
+    }
+  ],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S1 (/billing/plans/contact -- out of primary smoke scope, recorded for reference only)",
+      "fields": [
+        { "name": "firstName", "type": "text", "required": true },
+        { "name": "lastName", "type": "text", "required": true },
+        { "name": "company", "type": "text", "required": true },
+        { "name": "workEmail", "type": "email", "required": true },
+        { "name": "phoneNumber", "type": "tel", "required": true },
+        { "name": "role", "type": "select", "required": true, "options": ["HR Director", "Talent Acquisition Lead", "Procurement", "IT", "CEO / Founder", "Other"] }
+      ],
+      "submitButton": { "text": "Submit", "disabled": false }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "ariaLabelNote": "aria-pressed on pack tiles, aria-labelledby on CreditPackSection, aria-hidden on decorative icons -- no aria-label attributes on primary CTA buttons",
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 3,
+    "totalInteractives": 13,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["navigation-link", "toggle-selection", "disabled-activation"],
+    "scrollMode": "static",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": null,
+    "note": "Smoke scope only -- Upgrade/Manage buttons on the 3 paid plan cards were NOT clicked (would POST to /api/billing/checkout and redirect to a real Stripe-hosted checkout page); their navigation targets are documented via source-code read in conditionalElements above, not verified live."
+  },
+
+  "keyFindings": [
+    "No login wall encountered; page rendered fully server-authenticated as expected.",
+    "Tested account is free-tier / no active subscription: all 3 paid plan cards (Starter/Individual/Team) render 'Upgrade' CTA; none show the 'Your plan' current-plan badge. Team card correctly shows 'Most Popular' badge.",
+    "Enterprise 'Contact us' button correctly navigates (client-side router.push) to /billing/plans/contact, which renders a lead-capture form (first/last name, company, work email, phone, role dropdown, Submit) -- NOT a payment flow, confirmed safe.",
+    "Per source (handleSubscribe in page.tsx): clicking 'Upgrade' on a paid plan card POSTs to /api/billing/checkout and, on success, does `window.location.href = <Stripe checkout URL>` (external redirect) -- NOT clicked live per task instructions to avoid a real checkout flow. On a 409 (already subscribed) it instead calls redirectToPortal('home').",
+    "CreditPackSection 'Buy' button is correctly disabled until a pack tile ($99/$199/$399) is selected; selecting a tile live-toggled aria-pressed and enabled 'Buy' as expected from source. 'Buy' was not clicked (would POST /api/billing/pack/checkout -> real Stripe redirect).",
+    "No data-testid attributes exist anywhere in PlansPage / EnterpriseCard / CreditPackSection source -- downstream Playwright locators should use getByRole+name scoped by nearest heading/article/region text, not CSS classes (all decorative classes are Tailwind utility classes per source read).",
+    "No bugs, crashes, dead redirects, or error states observed. Page is stable and matches source-code-derived expectations exactly.",
+    "Re-verified live via a second CDP pass: navigated fresh, confirmed S0 (Starter/Individual/Team all 'Upgrade', Team 'Most Popular', no 'Your plan' badge, no past-due Alert), clicked '$199 Popular 6,000 Credits' pack tile -> Buy button enabled (S2), clicked Enterprise 'Contact us' -> landed on /billing/plans/contact lead-capture form (S1), navigated back -> page reset cleanly to S0 (Buy disabled again). All results identical to the prior run; no drift or regressions found."
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "full",
+    "scope": "smoke",
+    "areasCompleted": ["tabs-features", "nav-top", "cta-join-waitlist"],
+    "explorationStats": {
+      "statesDiscovered": 4,
+      "interactionsPerformed": 10,
+      "elementsFound": 31,
+      "duration": "n/a"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial landing page",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "", "ariaLabel": "Go to homepage", "testId": null, "locatorHint": "getByRole('button', { name: 'Go to homepage' })" },
+            { "tag": "button", "role": "button", "text": "Features", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: 'Features' })" },
+            { "tag": "a", "role": "link", "text": "Blog", "href": "https://blog.mira.day/", "sameOrigin": false, "testId": null, "locatorHint": "getByRole('link', { name: 'Blog' })" },
+            { "tag": "select/combobox", "role": "combobox", "text": "English", "expandable": true, "haspopup": "listbox", "testId": null, "locatorHint": "getByRole('combobox')" },
+            { "tag": "a", "role": "link", "text": "Sign in", "href": "/task", "sameOrigin": true, "testId": null, "locatorHint": "getByRole('link', { name: 'Sign in' })" },
+            { "tag": "a", "role": "link", "text": "Join Waitlist", "href": "/join-waitlist", "sameOrigin": true, "testId": null, "locatorHint": "getByRole('link', { name: 'Join Waitlist' }).first()" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Join Waitlist", "href": "/join-waitlist", "sameOrigin": true, "location": "hero", "testId": null, "locatorHint": "getByRole('link', { name: 'Join Waitlist' })" },
+            { "tag": "button", "role": "tab", "text": "Core", "selected": true, "testId": null, "locatorHint": "getByRole('button', { name: 'Core' })" },
+            { "tag": "button", "role": "tab", "text": "Recruiting", "selected": false, "testId": null, "locatorHint": "getByRole('button', { name: 'Recruiting' })" },
+            { "tag": "a", "role": "link", "text": "Join waitlist", "href": "/join-waitlist", "sameOrigin": true, "location": "footer-cta", "testId": null, "locatorHint": "getByRole('link', { name: 'Join waitlist' })" }
+          ],
+          "headings": [
+            { "level": 2, "text": "Work With You, Not For You" },
+            { "level": 2, "text": "Trained by You — Or Learns From You" },
+            { "level": 2, "text": "Built on Top-Tier Models, Engineered for Reality" },
+            { "level": 2, "text": "Integrated Into Your Existing Tools" },
+            { "level": 2, "text": "Request Early Access" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Feature Tab: Recruiting panel",
+      "sourceArea": "tabs-features",
+      "trigger": { "action": "click", "element": "button:Recruiting", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Join Waitlist", "href": "/join-waitlist", "sameOrigin": true, "location": "hero", "testId": null, "locatorHint": "getByRole('link', { name: 'Join Waitlist' })" },
+            { "tag": "button", "role": "tab", "text": "Core", "selected": false, "testId": null, "locatorHint": "getByRole('button', { name: 'Core' })" },
+            { "tag": "button", "role": "tab", "text": "Recruiting", "selected": true, "testId": null, "locatorHint": "getByRole('button', { name: 'Recruiting' })" },
+            { "tag": "a", "role": "link", "text": "Join waitlist", "href": "/join-waitlist", "sameOrigin": true, "location": "footer-cta", "testId": null, "locatorHint": "getByRole('link', { name: 'Join waitlist' })" }
+          ],
+          "headings": [
+            { "level": 2, "text": "Candidate Data" },
+            { "level": 2, "text": "Communication & Follow-up" },
+            { "level": 2, "text": "Recruiting Skills" },
+            { "level": 2, "text": "Security & Trust" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S2": {
+      "name": "Sign in / Sign up page (redirected from /task)",
+      "sourceArea": "nav-top",
+      "trigger": { "action": "click", "element": "link:Sign in", "fromState": "S0" },
+      "note": "Clicking nav 'Sign in' (href=/task) redirects unauthenticated users to /sign-in (auth wall), not to /task directly.",
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "href": "/", "sameOrigin": true, "testId": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "select/combobox", "role": "combobox", "text": "English", "expandable": true, "haspopup": "listbox", "testId": null, "locatorHint": "getByRole('combobox')" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "button", "role": "button", "text": "Continue with Google", "testId": null, "locatorHint": "getByRole('button', { name: 'Continue with Google' })" },
+            { "tag": "button", "role": "button", "text": "Continue with Microsoft", "testId": null, "locatorHint": "getByRole('button', { name: 'Continue with Microsoft' })" },
+            { "tag": "input", "role": "textbox", "text": "", "placeholder": "Enter your email address", "testId": null, "locatorHint": "getByPlaceholder('Enter your email address')" },
+            { "tag": "button", "role": "button", "text": "Continue", "disabled": true, "testId": null, "locatorHint": "getByRole('button', { name: 'Continue' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Sign in or Sign up" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S3": {
+      "name": "Join Waitlist page",
+      "sourceArea": "nav-top",
+      "trigger": { "action": "click", "element": "link:Join Waitlist (nav)", "fromState": "S0" },
+      "regions": {
+        "banner": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "href": "/", "sameOrigin": true, "testId": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "select/combobox", "role": "combobox", "text": "English", "expandable": true, "haspopup": "listbox", "testId": null, "locatorHint": "getByRole('combobox')" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": "", "placeholder": "name@company.com", "name": "workEmail", "required": true, "testId": null, "locatorHint": "getByPlaceholder('name@company.com')" },
+            { "tag": "button", "role": "button", "text": "Send Verify Code", "disabled": true, "testId": null, "locatorHint": "getByRole('button', { name: 'Send Verify Code' })" },
+            { "tag": "input", "role": "textbox", "text": "", "placeholder": "First name", "name": "firstName", "testId": null, "locatorHint": "getByPlaceholder('First name')" },
+            { "tag": "input", "role": "textbox", "text": "", "placeholder": "Last name", "name": "lastName", "testId": null, "locatorHint": "getByPlaceholder('Last name')" },
+            { "tag": "input", "role": "textbox", "text": "", "placeholder": "Company", "name": "company", "testId": null, "locatorHint": "getByPlaceholder('Company')" },
+            { "tag": "input", "role": "textbox", "text": "", "placeholder": "Role / Position", "name": "rolePosition", "testId": null, "locatorHint": "getByPlaceholder('Role / Position')" },
+            { "tag": "textarea", "role": "textbox", "text": "", "placeholder": "How do you plan to use Mira", "name": "usagePlan", "multiline": true, "testId": null, "locatorHint": "getByPlaceholder('How do you plan to use Mira')" },
+            { "tag": "button", "role": "button", "text": "Submit Application", "disabled": false, "testId": null, "locatorHint": "getByRole('button', { name: 'Submit Application' })" },
+            { "tag": "button", "role": "button", "text": "Cancel", "testId": null, "locatorHint": "getByRole('button', { name: 'Cancel' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Join Waitlist" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "button:Recruiting", "to": "S1", "sourceArea": "tabs-features" },
+      { "from": "S1", "action": "click", "element": "button:Core", "to": "S0", "sourceArea": "tabs-features" },
+      { "from": "S0", "action": "click", "element": "link:Sign in", "to": "S2", "sourceArea": "nav-top" },
+      { "from": "S2", "action": "navigate:back", "element": null, "to": "S0", "sourceArea": "nav-top" },
+      { "from": "S0", "action": "click", "element": "link:Join Waitlist (nav)", "to": "S3", "sourceArea": "nav-top" },
+      { "from": "S3", "action": "navigate:back", "element": null, "to": "S0", "sourceArea": "nav-top" }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [
+    { "text": "Blog", "href": "https://blog.mira.day/" }
+  ],
+  "forms": [
+    {
+      "location": "S2 (Sign in / Sign up page)",
+      "fields": [
+        { "name": "email", "type": "email", "required": true, "placeholder": "Enter your email address" }
+      ],
+      "submitButton": { "text": "Continue", "disabled": true },
+      "notes": "Also offers OAuth: 'Continue with Google' and 'Continue with Microsoft' buttons above the email field. Continue button is disabled until a valid email is entered (not verified in this smoke pass — no submission attempted)."
+    },
+    {
+      "location": "S3 (Join Waitlist page)",
+      "fields": [
+        { "name": "workEmail", "type": "email", "required": true, "placeholder": "name@company.com" },
+        { "name": "firstName", "type": "text", "required": false, "placeholder": "First name" },
+        { "name": "lastName", "type": "text", "required": false, "placeholder": "Last name" },
+        { "name": "company", "type": "text", "required": false, "placeholder": "Company" },
+        { "name": "rolePosition", "type": "text", "required": false, "placeholder": "Role / Position" },
+        { "name": "usagePlan", "type": "textarea", "required": false, "placeholder": "How do you plan to use Mira" }
+      ],
+      "submitButton": { "text": "Submit Application", "disabled": false },
+      "notes": "Work Email has an adjacent 'Send Verify Code' button (disabled until a value is entered) — likely gates the rest of the form behind email verification. 'Cancel' button also present. No submission attempted in this smoke pass."
+    }
+  ],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+name"
+  },
+
+  "areas": {
+    "tabs-features": { "status": "completed", "stateIds": ["S0", "S1"], "priority": 1 },
+    "nav-top": { "status": "completed", "stateIds": ["S0", "S2", "S3"], "priority": 2 },
+    "cta-join-waitlist": { "status": "completed", "stateIds": ["S0", "S3"], "priority": 3, "note": "hero + footer 'Join Waitlist' CTAs share the same target (/join-waitlist) already captured as S3 by nav-top; no separate exploration needed." }
+  },
+
+  "summary": {
+    "totalStates": 4,
+    "totalInteractives": 31,
+    "totalForms": 2,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["tabs", "navigation", "form", "dropdown"],
+    "scrollMode": "single-page",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 0.67
+  }
+}

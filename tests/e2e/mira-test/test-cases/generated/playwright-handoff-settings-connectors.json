@@ -1,0 +1,80 @@
+[
+  {
+    "id": "TC-CDP-CONN-001",
+    "storyId": "connectors-list",
+    "title": "连接器设置页加载并渲染分段与全部连接器行",
+    "priority": "P0",
+    "preconditions": ["已登录（storageState 自动注入）"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "role": "heading", "name": "Connectors", "action": "wait", "locatorHint": "getByRole('heading', { name: 'Connectors', level: 1 })", "i18nKey": "settings.connectors.title" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "target": "h1 Connectors", "expected": null, "i18nKey": "settings.connectors.title" },
+      { "type": "visible", "selector": "button", "target": "Connected (n) section header", "expected": null, "i18nKey": "settings.connectors.sectionConnected" },
+      { "type": "visible", "selector": "button", "target": "Not Connected (n) section header", "expected": null, "i18nKey": "settings.connectors.sectionNotConnected" },
+      { "type": "visible", "selector": "button", "target": "Market Leads row", "expected": null },
+      { "type": "visible", "selector": "button", "target": "Mira Voice row", "expected": null },
+      { "type": "visible", "selector": "button", "target": "Outlook row", "expected": null },
+      { "type": "visible", "selector": "button", "target": "Gmail row", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONN-002",
+    "storyId": "connectors-detail",
+    "title": "点击 Market Leads 行下钻至详情并可 Back 返回列表",
+    "priority": "P1",
+    "preconditions": ["已登录", "已打开 /settings/connectors 列表 (S0)"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Market Leads", "action": "click", "locatorHint": "getByRole('button', { name: /^Market Leads/ }).first()" },
+      { "role": "button", "name": "Back", "action": "click", "locatorHint": "getByRole('button', { name: 'Back' })" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "target": "detail h1 Market Leads", "expected": "Market Leads" },
+      { "type": "visible", "selector": "text", "target": "Tools label", "expected": null, "i18nKey": "settings.connectors.tools" },
+      { "type": "count", "selector": "switch", "target": "8 tool switches", "expected": 8 },
+      { "type": "visible", "selector": "heading", "target": "back to list h1 Connectors", "expected": null, "i18nKey": "settings.connectors.title" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONN-003",
+    "storyId": "connectors-list",
+    "title": "连接状态决定动作按钮状态（预置 Disconnect 禁用 / 未连接 Connect 可用）",
+    "priority": "P1",
+    "preconditions": ["已登录", "已打开 /settings/connectors 列表"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Disconnect Market Leads", "action": "none", "locatorHint": "getByRole('button', { name: 'Disconnect Market Leads' })", "i18nKey": "settings.connectors.disconnect" },
+      { "role": "button", "name": "Disconnect Mira Voice", "action": "none", "locatorHint": "getByRole('button', { name: 'Disconnect Mira Voice' })", "i18nKey": "settings.connectors.disconnect" },
+      { "role": "button", "name": "Connect Outlook", "action": "none", "locatorHint": "getByRole('button', { name: 'Connect Outlook' })", "i18nKey": "settings.connectors.connect" },
+      { "role": "button", "name": "Connect Gmail", "action": "none", "locatorHint": "getByRole('button', { name: 'Connect Gmail' })", "i18nKey": "settings.connectors.connect" }
+    ],
+    "assertions": [
+      { "type": "disabled", "selector": "button", "target": "Disconnect Market Leads", "expected": null },
+      { "type": "disabled", "selector": "button", "target": "Disconnect Mira Voice", "expected": null },
+      { "type": "enabled", "selector": "button", "target": "Connect Outlook", "expected": null },
+      { "type": "enabled", "selector": "button", "target": "Connect Gmail", "expected": null }
+    ]
+  },
+  {
+    "id": "TC-CDP-CONN-004",
+    "storyId": "connectors-detail",
+    "title": "不可变预置详情页头部不渲染任何 Connect/Disconnect 动作按钮",
+    "priority": "P2",
+    "preconditions": ["已登录", "已打开 /settings/connectors 列表"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Market Leads", "action": "click", "locatorHint": "getByRole('button', { name: /^Market Leads/ }).first()" }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "target": "detail h1 Market Leads", "expected": "Market Leads" },
+      { "type": "hidden", "selector": "button", "target": "detail-header Connect button absent", "expected": null },
+      { "type": "hidden", "selector": "button", "target": "detail-header Disconnect button absent", "expected": null }
+    ]
+  }
+]

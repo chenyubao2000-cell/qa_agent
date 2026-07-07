@@ -1,0 +1,99 @@
+[
+  {
+    "id": "TC-CDP-CAL-001",
+    "storyId": "calendar-load",
+    "title": "已登录用户打开日历页默认展示当前月视图",
+    "priority": "P0",
+    "testType": "场景法",
+    "preconditions": ["已登录（storageState 认证态）"],
+    "setup": [],
+    "teardown": [],
+    "uiElements": [
+      { "name": "navigate", "action": "navigate", "role": "n/a", "locatorHint": "goto('/calendar')" }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/calendar", "selector": "n/a", "note": "未被重定向到 /sign-in" },
+      { "type": "text", "target": "h1 title", "expected": "Calendar", "i18nKey": "calendar.title", "selector": "heading" },
+      { "type": "attribute", "target": "Month toggle", "attribute": "aria-pressed", "expected": "true", "selector": "button" },
+      { "type": "attribute", "target": "Today button", "attribute": "aria-pressed", "expected": "true", "selector": "button", "note": "默认位于真实当前月" },
+      { "type": "text", "target": "month heading (h2)", "expected": null, "note": "运行时 Intl 计算当前真实月标签，如 'July 2026'" },
+      { "type": "visible", "target": "subtitle", "expected": null, "note": "匹配 /\\d+ tasks? · \\d+ sources?/" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CAL-002",
+    "storyId": "calendar-month-nav",
+    "title": "点击下一月前进到下个月且 Today 取消高亮",
+    "priority": "P0",
+    "testType": "状态迁移",
+    "preconditions": ["打开 /calendar，默认在当前月"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Next month", "action": "click", "role": "button", "ariaLabel": "Previous/Next month", "locatorHint": "getByRole('button', { name: 'Next month' })" }
+    ],
+    "assertions": [
+      { "type": "text", "target": "month heading (h2)", "expected": null, "note": "运行时按当前月 +1 计算，如 'August 2026'" },
+      { "type": "attribute", "target": "Today button", "attribute": "aria-pressed", "expected": "false", "selector": "button", "note": "游标离开真实当前月" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CAL-003",
+    "storyId": "calendar-month-nav",
+    "title": "从非当前月点击 Today 回到当前月并重新高亮",
+    "priority": "P1",
+    "testType": "状态迁移",
+    "preconditions": ["用例内先点击 Next month 离开当前月"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "click", "pomMethod": "clickNextMonth" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Today", "action": "click", "role": "button", "locatorHint": "getByRole('button', { name: 'Today' })" }
+    ],
+    "assertions": [
+      { "type": "text", "target": "month heading (h2)", "expected": null, "note": "回到运行时计算的当前真实月标签" },
+      { "type": "attribute", "target": "Today button", "attribute": "aria-pressed", "expected": "true", "selector": "button" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CAL-004",
+    "storyId": "calendar-view-toggle",
+    "title": "切换到 Agenda 视图显示空状态并重置游标到当前月",
+    "priority": "P0",
+    "testType": "等价类划分",
+    "preconditions": ["测试账号当前议程窗口内 0 事件"],
+    "setup": [{ "type": "navigate", "action": "navigate", "pomMethod": "goto" }],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Agenda", "action": "click", "role": "button", "locatorHint": "getByRole('button', { name: 'Agenda' })" }
+    ],
+    "assertions": [
+      { "type": "attribute", "target": "Agenda toggle", "attribute": "aria-pressed", "expected": "true", "selector": "button" },
+      { "type": "visible", "target": "agenda empty state", "expected": "No agenda yet", "i18nKey": "calendar.agenda.empty", "selector": "text" },
+      { "type": "text", "target": "month heading (h2)", "expected": null, "note": "游标重置为当前真实月" }
+    ]
+  },
+  {
+    "id": "TC-CDP-CAL-005",
+    "storyId": "calendar-view-toggle",
+    "title": "从 Agenda 视图切回 Month 视图恢复月网格",
+    "priority": "P1",
+    "testType": "状态迁移",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto" },
+      { "type": "ui", "action": "click", "pomMethod": "showAgenda" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "name": "Month", "action": "click", "role": "button", "locatorHint": "getByRole('button', { name: 'Month' })" }
+    ],
+    "assertions": [
+      { "type": "attribute", "target": "Month toggle", "attribute": "aria-pressed", "expected": "true", "selector": "button" },
+      { "type": "hidden", "target": "agenda empty state", "expected": null, "note": "月网格恢复，'No agenda yet' 不可见" },
+      { "type": "visible", "target": "subtitle", "expected": null }
+    ]
+  }
+]

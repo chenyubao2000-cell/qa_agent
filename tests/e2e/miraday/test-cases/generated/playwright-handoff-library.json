@@ -1,0 +1,73 @@
+[
+  {
+    "id": "TC-CDP-LIB-001",
+    "storyId": "library-load",
+    "title": "已登录用户打开 Library 页正常加载占位内容且未被登录墙拦截",
+    "priority": "P0",
+    "testType": "场景法",
+    "preconditions": "已登录（默认 storageState 生效）",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "heading",
+        "name": "Library",
+        "action": "wait",
+        "i18nKey": "chatbot.library",
+        "locatorHint": "getByRole('heading', { level: 1, name: 'Library' })"
+      }
+    ],
+    "assertions": [
+      { "type": "url", "expected": "/library", "description": "URL 仍为 /library（未被重定向到 /sign-in）" },
+      { "type": "text", "selector": "heading", "name": "Library", "expected": "Library", "i18nKey": "chatbot.library", "description": "h1 标题文本为 Library" }
+    ]
+  },
+  {
+    "id": "TC-CDP-LIB-002",
+    "storyId": "library-load",
+    "title": "Library 占位内容完整渲染（Coming soon + Talent Library Canvas 占位）",
+    "priority": "P0",
+    "testType": "等价类划分",
+    "preconditions": "已登录，位于 /library",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "visible", "expected": null, "description": "\"Coming soon\" 副标题可见" },
+      { "type": "text", "selector": "heading", "name": "Talent Library", "expected": "Talent Library", "description": "Canvas 卡片 h2 标题为 Talent Library" },
+      { "type": "visible", "expected": null, "description": "MVP 说明文本（candidate cards in a later phase）可见" },
+      { "type": "visible", "expected": null, "description": "场景元数据 scene.id — sourcing-library 可见" },
+      { "type": "visible", "expected": null, "description": "场景元数据 scene.mode — viewer 可见" }
+    ]
+  },
+  {
+    "id": "TC-CDP-LIB-003",
+    "storyId": "library-shell",
+    "title": "点击 Toggle Sidebar 折叠侧栏且主内容保持不变",
+    "priority": "P1",
+    "testType": "状态迁移",
+    "preconditions": "已登录，位于 /library，侧栏处于展开态（data-state=\"expanded\"）",
+    "setup": [
+      { "type": "navigate", "action": "navigate", "pomMethod": "goto", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [
+      {
+        "role": "button",
+        "name": "Toggle Sidebar",
+        "action": "click",
+        "locatorHint": "getByRole('button', { name: 'Toggle Sidebar' })"
+      }
+    ],
+    "assertions": [
+      { "type": "text", "selector": null, "expected": "expanded", "description": "点击前侧栏 data-state=\"expanded\"" },
+      { "type": "text", "selector": null, "expected": "collapsed", "description": "点击后侧栏 data-state 变为 collapsed（证明路由已 hydrate、点击生效）" },
+      { "type": "visible", "expected": null, "description": "主内容 h1 Library 仍可见" },
+      { "type": "visible", "expected": null, "description": "主内容 h2 Talent Library 仍可见" }
+    ]
+  }
+]

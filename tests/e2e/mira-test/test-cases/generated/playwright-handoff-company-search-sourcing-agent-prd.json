@@ -1,0 +1,519 @@
+[
+  {
+    "id": "TC-PRD-CSSA-001",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-whitelist-before",
+    "source": "prd",
+    "title": "变更前基线：白名单不含 company_search 时不可调用",
+    "priority": "P0",
+    "scenarioType": "negative",
+    "preconditions": ["SOURCING_AGENT_TOOLS（packages/db-schemas/src/seeds/agent-definitions.ts:101-144）尚未加入 \"company_search\"（当前生产基线状态）"],
+    "setup": [
+      { "type": "code", "action": "读取 SOURCING_AGENT_TOOLS 常量数组内容", "data": { "file": "packages/db-schemas/src/seeds/agent-definitions.ts", "lines": "101-144" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayNotContains", "target": "resolveAdvertisedToolNames(SourcingAgent)", "expected": "company_search" },
+      { "type": "toolCallAbsent", "target": "task execution log", "expected": "company_search" }
+    ],
+    "tags": ["@P0", "@regression", "@whitelist"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-002",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-whitelist-after",
+    "source": "prd",
+    "title": "变更后：白名单含 company_search 时可正常声明与调用",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["SOURCING_AGENT_TOOLS 已追加 \"company_search\""],
+    "setup": [
+      { "type": "code", "action": "检查白名单数组包含 company_search", "data": { "file": "packages/db-schemas/src/seeds/agent-definitions.ts" } },
+      { "type": "code", "action": "驱动 SourcingAgent 完成一次长尾类目探索式探针任务", "data": { "query": "宁波 3-9人 跨境小微出口商", "numResults": 10 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "arrayContains", "target": "resolveAdvertisedToolNames(SourcingAgent)", "expected": "company_search" },
+      { "type": "toolCallPresent", "target": "task execution log", "expected": "company_search" }
+    ],
+    "tags": ["@P0", "@regression", "@whitelist"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-003",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-3",
+    "source": "prd",
+    "title": "已知公司背景场景路由到 web_search",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已知目标公司名称，需要补充背景信息"],
+    "setup": [
+      { "type": "code", "action": "驱动 SourcingAgent 对已知公司发起背景调研任务", "data": { "companyName": "阿里巴巴集团" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "toolCallPresent", "target": "task execution log", "expected": "web_search" },
+      { "type": "toolCallAbsent", "target": "task execution log (same company)", "expected": "company_search" }
+    ],
+    "tags": ["@P1", "@routing"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-004",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-3",
+    "source": "prd",
+    "title": "域名解析场景路由到 company_lookup",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已获得候选公司域名，需要解析出公司实体信息"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "example-corp.com", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "toolCallPresent", "target": "task execution log", "expected": "company_lookup" },
+      { "type": "fieldPresent", "target": "response", "expected": "companyName" }
+    ],
+    "tags": ["@P1", "@routing"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-005",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-domain-reprobe",
+    "source": "prd",
+    "title": "query 传入域名字符串实际走名称匹配等价类（域名复探隐藏风险点）",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": ["company_lookup 的 schema 只有 query/numResults，域名字符串未接入 Apollo 的 q_organization_domains_list（packages/sourcing/src/providers/apollo/organization-search.ts:14）"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具，传入纯域名字符串", "data": { "query": "example-corp.cn", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "requestParamEquals", "target": "Apollo request", "expected": "q_organization_name (not q_organization_domains_list)" },
+      { "type": "noCrash", "target": "company_lookup call", "expected": "graceful empty/weak result on mismatch" }
+    ],
+    "tags": ["@P0", "@risk", "@domain-reprobe"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-006",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-fallback",
+    "source": "prd",
+    "title": "无场景语境的模糊探针输入降级处理",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["探针任务描述为空或仅有极短模糊词"],
+    "setup": [
+      { "type": "code", "action": "驱动 SourcingAgent 处理模糊任务", "data": { "taskDescription": "帮我找找" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "noCrash", "target": "SourcingAgent run", "expected": "graceful default routing or clarification, no crash/loop" }
+    ],
+    "tags": ["@P2", "@edge-case"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-007",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-output-volume",
+    "source": "prd",
+    "title": "company_search numResults 最小边界",
+    "priority": "P2",
+    "scenarioType": "boundary",
+    "preconditions": ["无"],
+    "setup": [
+      { "type": "code", "action": "调用 company_search 工具，numResults=1", "data": { "query": "宁波 小微跨境电商工厂", "numResults": 1 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "countEquals", "target": "response.results.length", "expected": 1 },
+      { "type": "noCrash", "target": "company_search call", "expected": "normal return, no error" }
+    ],
+    "tags": ["@P2", "@boundary"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-008",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-output-volume",
+    "source": "prd",
+    "title": "company_search 最坏体积边界与全局截断豁免对照",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["tool-output-guard.ts:74-78 中 MODEL_OUTPUT_CAP_EXEMPT = new Set([\"company_search\"])，全局截断上限 GLOBAL_TOOL_OUTPUT_CAP_CHARS 为 48KB"],
+    "setup": [
+      { "type": "code", "action": "调用 company_search 工具，触发~31条结果(~107KB)", "data": { "query": "<能返回~31条结果的宽泛长尾类目关键词>", "numResults": 31 } },
+      { "type": "code", "action": "在同一任务中调用非豁免工具并逼近48KB", "data": { "tool": "company_lookup" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "outputNotTruncated", "target": "company_search response", "expected": "exempt from GLOBAL_TOOL_OUTPUT_CAP_CHARS" },
+      { "type": "outputTruncated", "target": "non-exempt tool response at same volume", "expected": "truncated at 48KB" }
+    ],
+    "tags": ["@P1", "@boundary", "@output-volume"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-009",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-output-volume",
+    "source": "prd",
+    "title": "maxTurns 临近上限的长循环上下文/token 观测",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["SourcingAgent 的 maxTurns 明显高于 explore（agent-definitions.ts:275 vs :312，约40轮 vs 约15轮）"],
+    "setup": [
+      { "type": "code", "action": "驱动 SourcingAgent 任务持续到第38-40轮，每轮触发 company_search", "data": { "turnsRange": "38-40" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "contextGrowthObserved", "target": "per-turn context size", "expected": "growth curve captured" },
+      { "type": "convergenceOrTermination", "target": "agent run near maxTurns", "expected": "explicit termination, not silent mid-truncation" }
+    ],
+    "tags": ["@P1", "@boundary", "@long-loop"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-010",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-leaked-tool-warning-before",
+    "source": "prd",
+    "title": "变更前基线：Leader brief 提及 company_search 但白名单未开 → 告警触发",
+    "priority": "P1",
+    "scenarioType": "negative",
+    "preconditions": ["白名单不含 company_search；Leader 给 SourcingAgent 的任务简报文案中已提到 company_search（历史文案）"],
+    "setup": [
+      { "type": "code", "action": "驱动 Leader 向 SourcingAgent 派发任务", "data": { "briefMentions": ["company_search"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "warningPresent", "target": "sub-agent-factory.ts:452-462 leaked tool name warning", "expected": true }
+    ],
+    "tags": ["@P1", "@regression", "@leaked-tool-warning"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-011",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-leaked-tool-warning-after",
+    "source": "prd",
+    "title": "变更后回归观测点：白名单开启后告警应消失",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["白名单已加入 company_search；Leader brief 文案不变（仍提及该工具名）"],
+    "setup": [
+      { "type": "code", "action": "驱动 Leader 向 SourcingAgent 派发与基线相同文案的任务", "data": { "briefMentions": ["company_search"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "warningAbsent", "target": "sub-agent-factory.ts:452-462 leaked tool name warning", "expected": true },
+      { "type": "toolCallPresent", "target": "task execution log", "expected": "company_search" }
+    ],
+    "tags": ["@P0", "@regression", "@leaked-tool-warning"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-012",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-2",
+    "source": "prd",
+    "title": "头部类目命中后不应再强制调用 company_search",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["头部类目任务，目标公司已通过其他信息源命中背景资料"],
+    "setup": [
+      { "type": "code", "action": "驱动 SourcingAgent 处理头部类目 Mapping 任务", "data": { "category": "大型电商平台", "alreadyResolved": true } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "toolCallAbsent", "target": "task execution log (resolved head-category company)", "expected": "company_search" }
+    ],
+    "tags": ["@P0", "@routing", "@no-forced-call"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-013",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-domain-reprobe",
+    "source": "prd",
+    "title": "域名复探\"命中\"的伪命中风险组合场景",
+    "priority": "P0",
+    "scenarioType": "error",
+    "preconditions": ["中文名探针未命中 → company_search 返回候选域名 → 域名进入 company_lookup 复探且返回\"命中\""],
+    "setup": [
+      { "type": "code", "action": "依序调用 company_lookup(中文名,未命中) -> company_search(拿候选域名) -> company_lookup(域名复探)", "data": { "domainMismatch": true } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "falsePositiveCheck", "target": "domain re-probe hit", "expected": "verified against real domain, not blind name-match accept" },
+      { "type": "noCrash", "target": "reprobe pipeline", "expected": "graceful degrade, no infinite loop" }
+    ],
+    "tags": ["@P0", "@risk", "@domain-reprobe"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-014",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "完整阶梯正常路径",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["国内公司中文名探针任务，中文名首探未命中"],
+    "setup": [
+      { "type": "code", "action": "依序调用 company_lookup(中文名) -> company_search(拿域名) -> company_lookup(域名复探,命中)", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "stepSequenceEquals", "target": "tool call sequence", "expected": ["company_lookup", "company_search", "company_lookup"] },
+      { "type": "outcomePresent", "target": "final profile", "expected": "company profile produced" }
+    ],
+    "tags": ["@P0", "@state-machine", "@full-ladder"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-015",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "早退路径：中文名直接命中不发起多余调用",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["中文名探针首次即命中"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具", "data": { "query": "<能被Apollo直接命中的中文公司名>", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "toolCallAbsent", "target": "task execution log", "expected": "company_search" }
+    ],
+    "tags": ["@P1", "@state-machine", "@early-exit"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-016",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "兜底路径：阶梯未命中转浏览器通道",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["中文名未命中且域名复探也未命中"],
+    "setup": [
+      { "type": "code", "action": "依序执行三步工具调用后观察是否触发浏览器通道兜底", "data": { "targetCompany": "<在Apollo体系内难以命中的极小微公司中文名>" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "channelSwitchObserved", "target": "task execution log", "expected": "fallback to browser channel" }
+    ],
+    "tags": ["@P1", "@state-machine", "@fallback"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-017",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "全链路失败：不卡死不死循环",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["中文名、域名复探、浏览器兜底均未命中"],
+    "setup": [
+      { "type": "code", "action": "完整执行阶梯 + 浏览器兜底两个阶段", "data": { "targetCompany": "<虚构公司名，全通道查不到>" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "terminalStateEquals", "target": "final task state", "expected": "not-found, no infinite retry" }
+    ],
+    "tags": ["@P2", "@state-machine", "@full-failure"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-018",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-1",
+    "source": "prd",
+    "title": "非法状态跳转防护",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["域名复探(S3)依赖 company_search(S2)产出的域名"],
+    "setup": [
+      { "type": "code", "action": "检查 SourcingAgent 工具调用编排/Prompt 逻辑是否可跳过 S2 直接进 S3", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "illegalTransitionAbsent", "target": "orchestration logic", "expected": "no domain re-probe without prior company_search" }
+    ],
+    "tags": ["@P2", "@state-machine", "@guard"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-019",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "AC-2",
+    "source": "prd",
+    "title": "长尾类目 Mapping 展开目标公司集合",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["长尾类目 Mapping 任务，初始候选公司清单不完整"],
+    "setup": [
+      { "type": "code", "action": "驱动 SourcingAgent 完成一次长尾类目 Mapping 任务", "data": { "category": "区域性小微制造业出口商" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "countIncreased", "target": "target company set size", "expected": "increased after task vs before" },
+      { "type": "sourceTraceable", "target": "newly added entries", "expected": "traceable to company_search results" }
+    ],
+    "tags": ["@P1", "@scenario", "@long-tail"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-020",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-quota-pool",
+    "source": "prd",
+    "title": "跨 agent 用量池共享的连锁影响",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["同一 userId+taskId 下 Leader/general-purpose/explore 已大量调用 company_search 消耗额度；计费按 userId+taskId 记账（company-lookup.ts:69-83, Exa usage）"],
+    "setup": [
+      { "type": "code", "action": "先用其他角色大量消耗 company_search/Exa 额度", "data": { "userId": "<shared-user>", "taskId": "<shared-task>" } },
+      { "type": "code", "action": "再驱动 SourcingAgent 在该任务下发起 company_search 调用", "data": {} }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "billingKeyEquals", "target": "recordToolUsage / Exa usage key", "expected": "userId+taskId (not agent identity)" },
+      { "type": "consistentThrottling", "target": "SourcingAgent call under exhausted quota", "expected": "same throttle/reject behavior as other roles" }
+    ],
+    "tags": ["@P1", "@cross-agent", "@quota"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-021",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-output-volume",
+    "source": "prd",
+    "title": "长循环上下文膨胀观测",
+    "priority": "P1",
+    "scenarioType": "boundary",
+    "preconditions": ["SourcingAgent 长循环任务，每轮调用 company_search（单次最坏 ~107KB，豁免截断）"],
+    "setup": [
+      { "type": "code", "action": "驱动一次覆盖10+轮的 SourcingAgent 探针任务", "data": { "minTurns": 10 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "cumulativeGrowthObserved", "target": "context size / token usage across turns", "expected": "growth captured and reported" },
+      { "type": "additionalCompactionCheck", "target": "tool-compactors.ts:801 searchStrategy vs long-loop-specific trimming", "expected": "documented, gap flagged if absent" }
+    ],
+    "tags": ["@P1", "@long-loop", "@cost"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-CSSA-022",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-domain-reprobe",
+    "source": "prd",
+    "title": "极端域名不匹配的误判风险",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["构造一个域名与真实目标公司完全无关的复探输入"],
+    "setup": [
+      { "type": "code", "action": "调用 company_lookup 工具，传入与目标公司无关的域名", "data": { "query": "<竞品或第三方域名>", "numResults": 5 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "falsePositiveCheck", "target": "final profile written", "expected": "unrelated company not accepted as match without confidence signal" }
+    ],
+    "tags": ["@P1", "@error-guessing", "@domain-reprobe"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-023",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-test-coverage-gap",
+    "source": "prd",
+    "title": "现有单测覆盖盲区（结构测试通过 ≠ 行为正确）",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["teammate-toolset.test.ts、sourcing-agent-seed.test.ts 现状仅覆盖工具清单装配/seed结构"],
+    "setup": [
+      { "type": "code", "action": "阅读现有测试文件确认断言范围", "data": { "files": ["apps/mira-work/lib/ai/team/__tests__/teammate-toolset.test.ts", "sourcing-agent-seed.test.ts"] } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "behaviorAssertionPresent", "target": "existing unit tests after change", "expected": "flag as gap if only structural assertions exist" }
+    ],
+    "tags": ["@P2", "@error-guessing", "@test-coverage"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-024",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-pii-exposure",
+    "source": "prd",
+    "title": "PII 打码豁免在 SourcingAgent 场景下的暴露面",
+    "priority": "P2",
+    "scenarioType": "error",
+    "preconditions": ["guardrail-engine.ts:236 对 company_search/people_search 输出默认跳过 PII 打码"],
+    "setup": [
+      { "type": "code", "action": "调用 company_search 工具（返回结果含联系人信息）", "data": { "query": "<含联系人信息的公司搜索关键词>" } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "piiMaskingCheck", "target": "SourcingAgent received response", "expected": "PII not masked (consistent with other roles); flag as risk to evaluate" }
+    ],
+    "tags": ["@P2", "@error-guessing", "@pii"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-CSSA-025",
+    "storyId": "SOU-269+SOU-299",
+    "criterionId": "SUPP-prompt-sync-gap",
+    "source": "prd",
+    "title": "白名单已开但 Prompt 未同步的隐性回归",
+    "priority": "P1",
+    "scenarioType": "error",
+    "preconditions": ["SOURCING_AGENT_TOOLS 已含 company_search，但 SourcingAgent 系统 Prompt 未提及该工具（Prompt 改动跟踪于 SOU-268，不在本次范围）"],
+    "setup": [
+      { "type": "code", "action": "驱动 SourcingAgent 完成一次理应触发 company_search 的长尾探针任务", "data": { "query": "宁波 3-9人 跨境小微出口商", "numResults": 10 } }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "toolCallPresent", "target": "task execution log", "expected": "company_search actually invoked despite prompt not updated, else flag as latent regression" }
+    ],
+    "tags": ["@P1", "@error-guessing", "@prompt-sync"],
+    "timeout": 600000
+  }
+]

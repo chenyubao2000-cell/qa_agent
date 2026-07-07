@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/join-waitlist/success",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceComponent": "apps/mira-work/app/(auth)/join-waitlist/success/page.tsx",
+    "requiresQueryParam": "email",
+    "bareAccessBehavior": "redirectsTo /join-waitlist when ?email is missing",
+    "redirectsTo": "https://mira-bff-preview.up.railway.app/join-waitlist",
+    "explorationStats": {
+      "statesDiscovered": 2,
+      "interactionsPerformed": 2,
+      "elementsFound": 11,
+      "duration": "~2m"
+    }
+  },
+
+  "sourceContext": {
+    "components": [
+      { "name": "JoinWaitlistSuccessPage", "filePath": "apps/mira-work/app/(auth)/join-waitlist/success/page.tsx", "role": "page" },
+      { "name": "JoinWaitlistPage", "filePath": "apps/mira-work/app/(auth)/join-waitlist/page.tsx", "role": "page (redirect target)" }
+    ],
+    "testIds": [],
+    "ariaAttributes": [],
+    "conditionalElements": [
+      { "element": "entire page", "condition": "!email query param", "description": "server-side redirect() to /join-waitlist before render when email is absent" }
+    ],
+    "i18nKeys": [
+      { "element": "h1 heading", "key": "auth.joinWaitlist.successTitle", "value_en": "Application Submitted" },
+      { "element": "description paragraph", "key": "auth.joinWaitlist.successDescription", "value_en": "Once approved, we'll send your invitation code to: " },
+      { "element": "link button", "key": "auth.joinWaitlist.backToHome", "value_en": "Back to Homepage" }
+    ],
+    "utilityClasses": ["w-full", "max-w-[360px]", "mb-6", "space-y-3", "text-3xl", "font-bold", "text-muted-foreground", "text-sm", "text-foreground", "font-medium"]
+  },
+
+  "states": {
+    "S0": {
+      "name": "Bare access (no email param) -> redirected",
+      "sourceArea": "join-waitlist-success",
+      "trigger": null,
+      "note": "Navigating directly to /join-waitlist/success with no query param triggers a server-side redirect() to /join-waitlist. Landed page is the JoinWaitlistForm (anonymous mode), not the success page.",
+      "regions": {
+        "main": {
+          "interactives": [
+            { "tag": "input", "role": "textbox", "text": null, "placeholder": "name@company.com", "testId": null, "ariaLabel": null, "locatorHint": "getByPlaceholder('name@company.com')" },
+            { "tag": "button", "role": "button", "text": "Send Verify Code", "testId": null, "ariaLabel": null, "state": "disabled", "locatorHint": "getByRole('button', { name: 'Send Verify Code' })" },
+            { "tag": "button", "role": "button", "text": "Submit Application", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Submit Application' })" },
+            { "tag": "button", "role": "button", "text": "Cancel", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('button', { name: 'Cancel' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Join Waitlist" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+    "S1": {
+      "name": "Success page (valid email param)",
+      "sourceArea": "join-waitlist-success",
+      "trigger": { "action": "navigate", "element": "?email=qa-test%40example.com", "fromState": null },
+      "regions": {
+        "nav": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "select", "role": "combobox", "text": "English", "testId": null, "ariaLabel": null, "state": "expandable, haspopup=listbox", "locatorHint": "getByRole('combobox')" }
+          ],
+          "headings": []
+        },
+        "main": {
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Back to Homepage", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Back to Homepage' })" }
+          ],
+          "headings": [
+            { "level": 1, "text": "Application Submitted" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "textContent": {
+        "description": "Once approved, we'll send your invitation code to: ",
+        "emailEcho": "qa-test@example.com"
+      }
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": null, "action": "navigate:bare-url", "element": null, "to": "S0", "sourceArea": "join-waitlist-success", "note": "GET /join-waitlist/success (no query) -> 3xx redirect -> /join-waitlist" },
+      { "from": null, "action": "navigate:with-email-param", "element": null, "to": "S1", "sourceArea": "join-waitlist-success", "note": "GET /join-waitlist/success?email=qa-test%40example.com -> renders success page, no redirect" },
+      { "from": "S1", "action": "click", "element": "link:Back to Homepage", "to": "EXTERNAL(/)", "sourceArea": "join-waitlist-success", "note": "navigates to site root, verified working" }
+    ]
+  },
+
+  "activationAttempts": [],
+  "destructiveActions": [],
+  "externalLinks": [],
+  "forms": [],
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": false,
+    "dominantStrategy": "role+name"
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 7,
+    "totalForms": 0,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["query-param-gated-redirect", "static-confirmation-page", "same-origin-nav-link"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0
+  },
+
+  "keyFindings": [
+    "Bare access to /join-waitlist/success (no ?email param) correctly performs a server-side redirect() to /join-waitlist, landing on the anonymous JoinWaitlistForm. Confirmed working as designed, no crash/loop.",
+    "With a valid ?email= param, the success page renders correctly: heading 'Application Submitted', description text, and the exact email value echoed verbatim (including special characters if URL-encoded, tested with a standard email).",
+    "'Back to Homepage' link (getByRole('link', { name: 'Back to Homepage' })) navigates correctly to the site root '/'.",
+    "No data-testid attributes present anywhere in this page's source; locators should rely on role+name/i18n text.",
+    "No login wall encountered; page is fully anonymous-accessible as expected.",
+    "Page text is i18n-driven (auth.joinWaitlist.successTitle/successDescription/backToHome) — no hardcoded strings in source."
+  ]
+}

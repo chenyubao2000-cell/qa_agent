@@ -1,0 +1,232 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/contacts",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T00:00:00Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "sourceContext": {
+      "components": [
+        { "name": "ContactListPage", "filePath": "apps/mira-work/app/(agent)/contacts/page.tsx", "role": "page" },
+        { "name": "ContactListClient", "filePath": "apps/mira-work/features/contact/components/contact-list-client.tsx", "role": "page" },
+        { "name": "ContactListHeader", "filePath": "apps/mira-work/features/contact/components/contact-list-header.tsx", "role": "section" },
+        { "name": "ContactListToolbar", "filePath": "apps/mira-work/features/contact/components/contact-list-toolbar.tsx", "role": "section" },
+        { "name": "ContactSegmentedFilter", "filePath": "apps/mira-work/features/contact/components/contact-segmented-filter.tsx", "role": "widget" },
+        { "name": "ContactListTable", "filePath": "apps/mira-work/features/contact/components/contact-list-table.tsx", "role": "widget" },
+        { "name": "ContactListEmptyState", "filePath": "apps/mira-work/features/contact/components/contact-list-empty-state.tsx", "role": "widget" },
+        { "name": "ContactListNoMatch", "filePath": "apps/mira-work/features/contact/components/contact-list-no-match.tsx", "role": "widget" },
+        { "name": "ContactImportDialog", "filePath": "apps/mira-work/features/contact/components/contact-import-dialog.tsx", "role": "widget" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "search input", "label": "t('contact.list.searchPlaceholder')", "role": "textbox" },
+        { "element": "segmented filter group", "label": "t('contact.list.filter.all') (reused for group aria-label — not distinct per group)", "role": "radiogroup" },
+        { "element": "table row (desktop)", "label": "t('contact.list.openContact', {name}) → 'Open {name}'", "role": "button" }
+      ],
+      "conditionalElements": [
+        { "element": "ContactListSkeleton (full-page)", "condition": "isPending && !hasLoadedOnce", "description": "First-ever load only; subsequent search/tab refetches use inline ContactTableSkeleton instead" },
+        { "element": "ContactListHeader Import button", "condition": "!showEmpty", "description": "Hidden inside header when full empty-account state is showing (CTA moves into empty-state card instead)" },
+        { "element": "ContactListToolbar (search + tabs)", "condition": "!showEmpty", "description": "Hidden entirely when account has zero contacts and no active search" },
+        { "element": "ContactListEmptyState", "condition": "!isPending && !debouncedQuery && tabCounts.all === 0", "description": "Full empty-account state with centered Import CTA" },
+        { "element": "ContactListNoMatch", "condition": "!isPending && total === 0 && !isAccountEmpty", "description": "Inline no-match message; covers both 'search yields 0' and 'tab category yields 0 but account has contacts' cases; keeps header+toolbar visible" },
+        { "element": "ContactImportDialog", "condition": "isImportOpen", "description": "Opened via Import button (header or empty-state); Continue button disabled until a file is selected" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 title", "key": "contact.list.title", "namespace": "agent" },
+        { "element": "count text", "key": "contact.list.count", "namespace": "agent" },
+        { "element": "Import button", "key": "contact.list.importButton", "namespace": "agent" },
+        { "element": "search input placeholder/aria-label", "key": "contact.list.searchPlaceholder", "namespace": "agent" },
+        { "element": "segmented filter items", "key": "contact.list.filter.{all,candidates,clients}", "namespace": "agent" },
+        { "element": "table header cells", "key": "contact.list.table.{name,role,title,company,location,link,contact,activity,source}", "namespace": "agent" },
+        { "element": "row aria-label", "key": "contact.list.openContact", "namespace": "agent" },
+        { "element": "empty state title/body", "key": "contact.list.empty.{title,body}", "namespace": "agent" },
+        { "element": "no-match text", "key": "contact.list.noMatch", "namespace": "agent" },
+        { "element": "empty-category text", "key": "contact.list.emptyCategory", "namespace": "agent" },
+        { "element": "import dialog subtitle", "key": "contact.import.subtitle", "namespace": "agent" }
+      ],
+      "utilityClasses": ["flex", "flex-col", "gap-5", "px-4", "pt-3", "pb-5", "md:px-8", "rounded-lg", "border", "h-9", "overflow-y-auto"]
+    },
+    "explorationStats": {
+      "statesDiscovered": 4,
+      "interactionsPerformed": 6,
+      "elementsFound": 61,
+      "duration": "smoke (~3m)"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Initial page — populated contact list, All tab",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {
+        "main": {
+          "headings": [
+            { "role": "heading", "level": 1, "text": "Contacts" }
+          ],
+          "interactives": [
+            { "tag": "span", "role": "text", "text": "42 people", "locatorHint": "getByText(/\\d+ (people|person)/)" },
+            { "tag": "button", "role": "button", "text": "Import", "ariaLabel": null, "testId": null, "locatorHint": "getByRole('button', { name: 'Import' })" },
+            { "tag": "input", "role": "textbox", "text": null, "ariaLabel": "Search contacts by name, role, company, ...", "placeholder": "Search contacts by name, role, company, ...", "testId": null, "locatorHint": "getByRole('textbox', { name: 'Search contacts by name, role, company, ...' })" },
+            { "tag": "div", "role": "radiogroup", "text": null, "ariaLabel": "All", "testId": null, "locatorHint": "getByRole('radiogroup')" },
+            { "tag": "button", "role": "radio", "text": "All 42", "checked": true, "locatorHint": "getByRole('radio', { name: /All \\d+/ })" },
+            { "tag": "button", "role": "radio", "text": "Candidates 42", "checked": false, "locatorHint": "getByRole('radio', { name: /Candidates \\d+/ })" },
+            { "tag": "button", "role": "radio", "text": "Clients 0", "checked": false, "locatorHint": "getByRole('radio', { name: /Clients \\d+/ })" },
+            { "tag": "th", "role": "columnheader", "text": "Name" },
+            { "tag": "th", "role": "columnheader", "text": "Role" },
+            { "tag": "th", "role": "columnheader", "text": "Title" },
+            { "tag": "th", "role": "columnheader", "text": "Company" },
+            { "tag": "th", "role": "columnheader", "text": "Location" },
+            { "tag": "th", "role": "columnheader", "text": "Link" },
+            { "tag": "th", "role": "columnheader", "text": "Contact" },
+            { "tag": "th", "role": "columnheader", "text": "Source" },
+            { "tag": "th", "role": "columnheader", "text": "Activity" },
+            { "tag": "tr", "role": "button", "text": null, "ariaLabel": "Open {name}", "tabIndex": 0, "locatorHint": "getByRole('button', { name: /^Open / })", "note": "one row per contact; 34 rows rendered on initial page (no pagination UI — infinite scroll via IntersectionObserver sentinel at list bottom)" },
+            { "tag": "a", "role": "link", "text": "LinkedIn", "locatorHint": "getByRole('link', { name: 'LinkedIn' })", "note": "conditional per-row: only rendered when contact.links includes a LinkedIn URL" },
+            { "tag": "a", "role": "link", "text": "GitHub", "locatorHint": "getByRole('link', { name: 'GitHub' })", "note": "conditional per-row, seen on 1 of 34 rows (Hailey Cheng)" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": []
+    },
+
+    "S1": {
+      "name": "Clients tab selected — empty category (account not empty)",
+      "sourceArea": "tab-filter",
+      "trigger": { "action": "click", "element": "radio:Clients 0", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [{ "role": "heading", "level": 1, "text": "Contacts" }],
+          "interactives": [
+            { "tag": "span", "text": "0 people" },
+            { "tag": "button", "role": "radio", "text": "Clients 0", "checked": true, "focused": true },
+            { "tag": "p", "text": "No contacts in this category yet.", "locatorHint": "getByText('No contacts in this category yet.')" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "Header + toolbar (search + tabs) remain visible — only the list area is replaced by ContactListNoMatch. tabCounts.all latch stays 42 in background so isAccountEmpty stays false; confirms fix for 'tab disappears' regression referenced in source comments."
+    },
+
+    "S2": {
+      "name": "Search query with zero matches",
+      "sourceArea": "search",
+      "trigger": { "action": "fill", "element": "textbox:Search contacts...", "value": "zzzznonexistentquery", "fromState": "S0" },
+      "regions": {
+        "main": {
+          "headings": [{ "role": "heading", "level": 1, "text": "Contacts" }],
+          "interactives": [
+            { "tag": "span", "text": "0 people" },
+            { "tag": "input", "role": "textbox", "value": "zzzznonexistentquery" },
+            { "tag": "button", "role": "radio", "text": "All 0", "checked": true },
+            { "tag": "button", "role": "radio", "text": "Candidates 0" },
+            { "tag": "button", "role": "radio", "text": "Clients 0" },
+            { "tag": "p", "text": "No contacts match this search. Try a different keyword or clear it.", "locatorHint": "getByText('No contacts match this search. Try a different keyword or clear it.')" }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [],
+      "notes": "URL synced to ?q=zzzznonexistentquery via replaceState. Tab counts also reflect the active search (all 3 → 0), consistent with contract §3.1 (counts scoped by q, not by type)."
+    },
+
+    "S3": {
+      "name": "Import contacts dialog open",
+      "sourceArea": "import",
+      "trigger": { "action": "click", "element": "button:Import", "fromState": "S0" },
+      "regions": {
+        "dialog": {
+          "headings": [{ "role": "heading", "level": 2, "text": "Import contacts" }],
+          "interactives": [
+            { "tag": "div", "role": "dialog", "ariaLabel": "Import contacts", "text": null },
+            { "tag": "p", "text": "Import resumes and contact lists. Mira11111 will parse them automatically.", "note": "{twinName} interpolation — 'Mira11111' is this test account's configured AI-twin name, not literal product text; not a bug." },
+            { "tag": "div", "role": "radiogroup", "text": "IMPORT AS" },
+            { "tag": "button", "role": "radio", "text": "Candidate People you're sourcing for a role", "checked": false, "focused": true, "note": "Corrected 2026-07-03 via qa-fix-tests: original capture mis-recorded 'focused' as 'checked'. Live CDP re-verify shows aria-checked=false/data-state=unchecked; source contact-import-dialog.tsx uses useState<ContactType|null>(null) with no default — RadioGroup value={type ?? undefined} renders nothing checked until user picks." },
+            { "tag": "button", "role": "radio", "text": "Client Hiring managers and customer contacts", "checked": false },
+            { "tag": "button", "role": "button", "text": "Select files", "locatorHint": "getByRole('button', { name: 'Select files' })" },
+            { "tag": "input", "type": "file", "text": "选择文件 (未选择任何文件)", "note": "native OS file-picker control rendered in zh — browser Accept-Language mismatch vs English app UI; cosmetic, not app-level i18n bug" },
+            { "tag": "button", "role": "button", "text": "Cancel" },
+            { "tag": "button", "role": "button", "text": "Continue", "disabled": true, "note": "disabled until a file is selected — matches source form-gating logic" },
+            { "tag": "button", "role": "button", "text": "Close", "locatorHint": "getByRole('button', { name: 'Close' })" }
+          ]
+        }
+      },
+      "dialogs": [
+        { "role": "dialog", "name": "Import contacts", "closeMethod": "button:Close", "verified": true }
+      ],
+      "alerts": [],
+      "notes": "Dialog closed cleanly via 'Close' button, returned to S0 with list state intact (42 people, All tab). Did not select a file or click Continue per task instructions (avoid actually creating data)."
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": "S0", "action": "click", "element": "radio:Clients 0", "to": "S1", "sourceArea": "tab-filter" },
+      { "from": "S1", "action": "click", "element": "radio:All 42", "to": "S0", "sourceArea": "tab-filter" },
+      { "from": "S0", "action": "fill", "element": "textbox:Search", "to": "S2", "sourceArea": "search" },
+      { "from": "S2", "action": "clear (Ctrl+A, Backspace)", "element": "textbox:Search", "to": "S0", "sourceArea": "search" },
+      { "from": "S0", "action": "click", "element": "button:Import", "to": "S3", "sourceArea": "import" },
+      { "from": "S3", "action": "click", "element": "button:Close", "to": "S0", "sourceArea": "import" }
+    ]
+  },
+
+  "activationAttempts": [],
+
+  "destructiveActions": [],
+
+  "externalLinks": [
+    { "text": "LinkedIn", "href": "https://www.linkedin.com/in/... (per-row)" },
+    { "text": "GitHub", "href": "https://github.com/heilcheng" }
+  ],
+
+  "forms": [
+    {
+      "location": "S3 (Import contacts dialog)",
+      "fields": [
+        { "name": "importAs", "type": "radio-group", "required": true, "options": ["candidate", "client"], "default": null },
+        { "name": "file", "type": "file", "required": true, "accept": "CSV / XLSX / PDF (per filesHint copy)" }
+      ],
+      "submitButton": { "text": "Continue", "disabled": true, "enablingCondition": "file selected (not verified live — avoided actual upload)" }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [],
+  "dragTargets": [
+    { "draggable": null, "dropZones": ["FROM A FILE dropzone in Import dialog — 'Drop files here'"], "verified": false }
+  ],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "aria-label + role/name (no data-testid anywhere in contact feature source)"
+  },
+
+  "knownIssues": [
+    {
+      "type": "tooling_quirk_not_a_bug",
+      "description": "CDP fill(uid, '') to clear the search input to empty string did not update the DOM input value or trigger React onChange (input, URL, and list state all stayed on the previous non-empty query). Clearing via click + Ctrl+A + Backspace worked correctly and immediately restored the 42-person list. Root-cause is almost certainly the fill-tool's handling of empty-string values on this controlled input, not an app defect — Ctrl+A/Backspace is the reliable path for POM 'clear search' actions on this page."
+    },
+    {
+      "type": "source_only_potential_bug_unverified",
+      "description": "apps/mira-work/i18n/messages/en/agent.json contact.import namespace has several mojibake-corrupted strings (e.g. continuing: 'Uploading��', parseSubtitle: 'This usually takes 5�C30 seconds', candidateCount uses '��' instead of '·'). These keys drive the in-progress/parsing/preview steps of the Import flow, which were NOT triggered during this smoke pass (no file was uploaded, per task instructions). Flagging for a follow-up targeted pass through the full import flow to confirm whether the corruption reaches rendered UI."
+    }
+  ],
+
+  "summary": {
+    "totalStates": 4,
+    "totalInteractives": 61,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["tabs(segmented-filter)", "search-debounced", "modal(import-dialog)", "infinite-scroll(sentinel, not exercised)", "empty-state", "no-match-state"],
+    "scrollMode": "infinite-scroll",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 0.4,
+    "coverageNote": "Smoke scope only — list-item detail navigation, actual contact-detail page, infinite scroll pagination, and full import upload/parse/preview flow were intentionally not exercised."
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "url": "https://mira-bff-preview.up.railway.app/verify-email?email=test%40example.com",
+    "bareUrl": "https://mira-bff-preview.up.railway.app/verify-email",
+    "title": "Mira - Your next hire is already out there.",
+    "timestamp": "2026-07-03T04:39:30Z",
+    "mode": "targeted",
+    "scope": "smoke",
+    "redirectsTo": {
+      "from": "https://mira-bff-preview.up.railway.app/verify-email",
+      "to": "https://mira-bff-preview.up.railway.app/sign-in",
+      "reason": "missing required `email` search param — server component `app/(auth)/verify-email/page.tsx` calls redirect('/sign-in') when `email` is absent",
+      "verified": true
+    },
+    "sourceContext": {
+      "components": [
+        { "name": "VerifyEmailPage", "filePath": "apps/mira-work/app/(auth)/verify-email/page.tsx", "role": "page" },
+        { "name": "VerifyEmailForm", "filePath": "apps/mira-work/features/auth/components/verify-email-form.tsx", "role": "section" }
+      ],
+      "testIds": [],
+      "ariaAttributes": [
+        { "element": "otp input", "label": null, "role": "textbox", "extra": "aria-invalid bound to otpError state" },
+        { "element": "otp FieldLabel", "label": "Verification code", "role": "label", "extra": "htmlFor=otp associates accessible name" }
+      ],
+      "conditionalElements": [
+        { "element": "resend button (text: Resend)", "condition": "countdown === 0", "description": "While countdown > 0, a '{seconds}s' countdown text renders instead of the Resend button" },
+        { "element": "'Open email' link", "condition": "getEmailProviderUrl(email) resolves (email domain is in DESKTOP_EMAIL_PROVIDERS map, e.g. gmail.com/outlook.com)", "description": "Not rendered for test@example.com since example.com is not in the provider map" },
+        { "element": "description suffix span", "condition": "t('verifyEmail.descriptionSuffix') is non-empty", "description": "Currently the en.json value is an empty string, so this never renders" },
+        { "element": "FieldError under otp input", "condition": "otpError is set (empty submit or invalid code)", "description": "Not triggered during this smoke pass" },
+        { "element": "Continue button enabled", "condition": "otp.trim() is non-empty and not isLoading", "description": "Disabled at rest because otp starts empty" }
+      ],
+      "i18nKeys": [
+        { "element": "h1 title", "key": "auth.verifyEmail.title", "namespace": "auth" },
+        { "element": "description text", "key": "auth.verifyEmail.description", "namespace": "auth" },
+        { "element": "otp field label", "key": "auth.verifyEmail.otpLabel", "namespace": "auth" },
+        { "element": "otp placeholder", "key": "auth.verifyEmail.otpPlaceholder", "namespace": "auth" },
+        { "element": "resend button text", "key": "auth.verifyEmail.resend", "namespace": "auth" },
+        { "element": "resend countdown text", "key": "auth.verifyEmail.resendCountdown", "namespace": "auth" },
+        { "element": "Continue button", "key": "auth.continueTitle", "namespace": "auth" },
+        { "element": "Back to Login button", "key": "auth.backToLogin", "namespace": "auth" },
+        { "element": "invalid otp error", "key": "auth.verifyEmail.invalidOtp", "namespace": "auth" },
+        { "element": "success toast", "key": "auth.verifyEmail.success", "namespace": "auth" },
+        { "element": "resend success/failed toast", "key": "auth.verifyEmail.resendSuccess / auth.verifyEmail.resendFailed", "namespace": "auth" }
+      ],
+      "utilityClasses": ["w-full", "max-w-[360px]", "mb-6", "space-y-3", "text-3xl", "font-semibold", "text-sm", "pr-24", "absolute", "top-1/2", "right-3", "-translate-y-1/2", "cursor-pointer", "underline", "underline-offset-4"]
+    },
+    "explorationStats": {
+      "terminationReason": "smoke_scope_complete",
+      "statesDiscovered": 2,
+      "interactionsPerformed": 2,
+      "elementsFound": 9,
+      "duration": "~5m"
+    }
+  },
+
+  "states": {
+    "S0": {
+      "name": "Bare access redirect (no ?email= param)",
+      "sourceArea": null,
+      "trigger": null,
+      "regions": {},
+      "dialogs": [],
+      "alerts": [],
+      "note": "Navigating to /verify-email with no query params triggers a server-side redirect() to /sign-in before any verify-email markup renders. No interactives to record for this state."
+    },
+    "S1": {
+      "name": "Verify Email form (?email=test%40example.com)",
+      "sourceArea": null,
+      "trigger": { "action": "navigate", "element": "/verify-email?email=test%40example.com", "fromState": null },
+      "regions": {
+        "nav": {
+          "headings": [],
+          "interactives": [
+            { "tag": "a", "role": "link", "text": "Mira", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('link', { name: 'Mira' })" },
+            { "tag": "button", "role": "combobox", "text": "English", "testId": null, "ariaLabel": null, "locatorHint": "getByRole('combobox')", "note": "locale switcher, part of shared (auth) layout, not verify-email-specific" }
+          ]
+        },
+        "main": {
+          "headings": [
+            { "level": 1, "text": "Verify your email" }
+          ],
+          "interactives": [
+            {
+              "tag": "input",
+              "role": "textbox",
+              "text": "Verification code",
+              "testId": null,
+              "ariaLabel": null,
+              "id": "otp",
+              "placeholder": "Enter verification code",
+              "disabled": false,
+              "locatorHint": "getByLabel('Verification code')"
+            },
+            {
+              "tag": "button",
+              "role": "button",
+              "text": "Continue",
+              "testId": null,
+              "ariaLabel": null,
+              "disabled": true,
+              "disabledReason": "otp field is empty",
+              "locatorHint": "getByRole('button', { name: 'Continue' })"
+            },
+            {
+              "tag": "button",
+              "role": "button",
+              "text": "Back to Login",
+              "testId": null,
+              "ariaLabel": null,
+              "disabled": false,
+              "locatorHint": "getByRole('button', { name: 'Back to Login' })",
+              "note": "onClick calls window.location.replace('/sign-in') — hard navigation, not client router"
+            }
+          ]
+        }
+      },
+      "dialogs": [],
+      "alerts": [
+        { "role": "region", "text": "Notifications alt+T (sonner toast container)", "liveMode": "polite", "activeMessage": null },
+        { "role": "alert", "text": null, "liveMode": "assertive", "activeMessage": null }
+      ]
+    }
+  },
+
+  "stateGraph": {
+    "edges": [
+      { "from": null, "action": "navigate:bare-url", "element": "/verify-email", "to": "S0", "sourceArea": null },
+      { "from": "S0", "action": "redirect", "element": null, "to": "/sign-in", "sourceArea": null },
+      { "from": null, "action": "navigate:with-email-param", "element": "/verify-email?email=test%40example.com", "to": "S1", "sourceArea": null }
+    ]
+  },
+
+  "activationAttempts": [
+    {
+      "element": "button:Continue",
+      "initialState": "disabled",
+      "strategy": "not-attempted",
+      "result": "unactivated",
+      "context": "Smoke scope did not fill the OTP field; disabled state matches source logic (disabled={isLoading || !otp.trim()})"
+    }
+  ],
+
+  "destructiveActions": [],
+
+  "externalLinks": [],
+
+  "forms": [
+    {
+      "location": "S1 (Verify Email form)",
+      "fields": [
+        { "name": "otp", "type": "text", "id": "otp", "required": true, "inputMode": "numeric", "maxLength": 6, "pattern": "digits only (client strips non-digits via replace(/\\D/g, ''))", "autoComplete": "one-time-code" }
+      ],
+      "submitButton": { "text": "Continue", "disabled": true, "enabledWhen": "otp.trim() non-empty and not isLoading" }
+    }
+  ],
+
+  "shadowDom": [],
+  "iframes": [],
+  "keyboardShortcuts": [
+    { "key": "Enter", "action": "submits OTP (calls handleSubmit) while focus is in the otp input", "stateTransition": "S1 (unverified) — not exercised this pass" }
+  ],
+  "dragTargets": [],
+
+  "locatorProfile": {
+    "hasTestIds": false,
+    "testIdCount": 0,
+    "hasAriaLabels": true,
+    "dominantStrategy": "role+label"
+  },
+
+  "summary": {
+    "totalStates": 2,
+    "totalInteractives": 5,
+    "totalForms": 1,
+    "totalDestructiveActions": 0,
+    "coveredPatterns": ["redirect-guard", "form", "countdown-timer"],
+    "scrollMode": "none",
+    "hasShadowDom": false,
+    "hasIframes": false,
+    "coverageRate": 1.0
+  },
+
+  "qaNotes": {
+    "consoleIssues": [
+      {
+        "severity": "potential-bug",
+        "message": "Uncaught Error: Minified React error #418 (hydration mismatch: 'Hydration failed because the initial UI does not match what was rendered on the server')",
+        "observedOn": "first navigation to /verify-email?email=test%40example.com in this session",
+        "reproducedOnReload": false,
+        "likelyRootCause": "verify-email-form.tsx `getRestoredCountdown()` reads `sessionStorage` synchronously inside `useState(() => ...)` initializer. Server-side render always sees no sessionStorage (returns 0 → renders resend-button branch), while the client's first paint can read a pre-existing `verify-email-countdown-start` value from a prior visit in the same tab/session and render the '{seconds}s' countdown branch instead — a classic SSR/CSR branch mismatch. Intermittent: only reproduces when sessionStorage already holds a non-expired countdown from an earlier visit; a clean reload without prior storage does not trigger it.",
+        "recommendation": "Guard the countdown-restore branch so the first client render matches SSR (e.g. always initialize to 0 and correct via useEffect after mount), or wrap in useSyncExternalStore/suppressHydrationWarning if intentional."
+      }
+    ],
+    "networkObservations": [
+      {
+        "severity": "potential-bug",
+        "observation": "Every plain navigation/reload of /verify-email?email=... (i.e. without &sent=1) fires a fresh POST /api/auth/email-otp/send-verification-otp on mount (verify-email-form.tsx useEffect `if (sent) return; emailOtp.sendVerificationOtp(...)`), and the backend returned {success:true} again ~15s after the prior send — well inside the client-displayed 60s resend cooldown.",
+        "impact": "A user (or anyone with the verify-email URL + email query param) can trigger repeated verification-code emails simply by refreshing the page, bypassing the cooldown UX shown on screen (and the backend did not appear to rate-limit the rapid repeat request either in this smoke check). Potential for email spam / notification abuse against arbitrary addresses since the endpoint does not appear to validate the email belongs to a real pending session before returning success.",
+        "recommendation": "Have the effect check the restored countdown (or a server-verified cooldown) before calling sendVerificationOtp, and confirm backend-side rate limiting on this endpoint independent of the client UI."
+      },
+      {
+        "severity": "info",
+        "observation": "POST /api/auth/email-otp/send-verification-otp returned 200 {success:true} for the placeholder address test@example.com (no real pending verification), i.e. no visible error state was shown to the user — countdown started normally as if a real email had been sent.",
+        "recommendation": "Confirm this is intentional (anti user-enumeration behavior) rather than a missing validation error."
+      }
+    ],
+    "accessibilityIssues": [
+      { "severity": "minor", "message": "DevTools 'issue' log: 'A form field element should have an id or name attribute' (count: 1) — likely the locale-switcher combobox in the shared (auth) layout, not the otp input which does have id=\"otp\"." }
+    ],
+    "loginWallDetected": false
+  }
+}
