@@ -57,32 +57,6 @@ allowed_tools: [Read, Grep, Glob, Bash, mcp__claude_ai_Linear__list_issues, mcp_
 
 只有 Bug 现象是每次必须由用户提供的内容。
 
-### 1.5 Task 关联：获取分享链接
-
-若本次 bug 现象发生在某个具体的 **task** 上，需要获取分享链接并放进描述。两种来源都算：
-
-- **用户提供**：用户给了 task ID，或描述中能定位到唯一的 task
-- **你自己触发产生**：为了实际复现/验证 bug，你调用了 `/api/tasks` 相关接口新建了一个 task 并触发了一次会话（例如 POST 创建 task，再 POST `/api/tasks/{id}/messages` 发消息驱动 agent 走一遍流程来复现问题）——这种情况下产生的 taskId 同样要走下面的流程，不要因为是"临时验证用的"就跳过
-
-1. 调用分享接口获取该 task 的公开链接：
-   ```
-   POST https://mira-next-bua.up.railway.app/api/tasks/{taskId}/share
-   ```
-2. 从返回 JSON 中取出 `shareUrl` 字段
-3. 提交 issue 时（Step 7），将该链接放在描述**最上面**（复现步骤之前），格式：
-   ```
-   🔗 Task：{shareUrl}
-
-   ## 复现步骤
-   ...
-   ```
-   若链接来自你自己触发的验证 task（而非用户原本提供的），在链接后加括号说明来源：
-   ```
-   🔗 Task：{shareUrl}（验证复现用，非用户原始 task）
-   ```
-
-若 bug 与具体 task 无关（页面级/组件级/全局功能问题，没有单一 task 可关联，也没有为验证新建 task），跳过此步骤，描述里不加链接。
-
 ### 2. 读代码验证 + 排查相似 Bug
 
 > ⚠️ **强制要求：必须先读代码，从代码层面确认 bug 真实存在，才能提交。禁止仅凭用户描述的现象直接提交。**
@@ -110,7 +84,7 @@ allowed_tools: [Read, Grep, Glob, Bash, mcp__claude_ai_Linear__list_issues, mcp_
 用 `mcp__claude_ai_Linear__list_issues` 拉取当前项目下所有 issue 的**标题列表**，与本次 bug 现象做语义比对：
 
 - **标题明显相似**（同页面 + 同现象关键词）→ 用 `mcp__claude_ai_Linear__get_issue` 获取该 issue 完整描述，仔细比对：
-  - **完全重复**：不新建 issue，用 `mcp__claude_ai_Linear__save_comment` 在原 issue 下补充评论（贴上本次代码验证结果 / 复现细节 / 新发现，同样遵守下面 Step 7 的"讲人话"要求），告知用户"已有相同 bug [PRE-xxx]，已补充评论"
+  - **完全重复**：不新建 issue，用 `mcp__claude_ai_Linear__save_comment` 在原 issue 下补充评论（贴上本次代码验证结果 / 复现细节 / 新发现），告知用户"已有相同 bug [PRE-xxx]，已补充评论"
   - **有新内容可补充**（不同触发路径、新的代码证据、影响范围更广）：同上，评论补充，不新建
   - **角度不同、根因不同**：视为独立 bug，继续走后续流程新建
 - **无相似标题**：继续走后续流程新建
@@ -131,16 +105,15 @@ allowed_tools: [Read, Grep, Glob, Bash, mcp__claude_ai_Linear__list_issues, mcp_
 
 **标题**：`【bug】[xxx] 具体现象`，其中 xxx 为具体的页面或功能名，如"候选人 Profile 页面"、"上传简历弹窗"、"保存按钮"等，尽量具体
 
-> ⚠️ **描述中的 Bug 标题只写现象，不加任何优先级标注**（如"高优先级"、"中优先级"、"低优先级"）。Issue 优先级统一由字段控制，默认 Medium，描述里不重复标注。
-
-> 🗣️ **语言要求：讲人话，不堆技术黑话**（提交 issue 和补充评论都要遵守）
-> - 不出现未经解释的术语（如"静默丢弃"、"归类"、"兜底逻辑"、"回填"、"命中排除名单"、"全文件"）。如果非用不可，先用一句话讲清楚"具体在哪个环节发生了什么、造成用户能看到/看不到什么结果"，再用这个词。
-> - **"实际结果"必须代入一个具体例子**，说人话描述用户/PM 能观察到的现象（数据里少了什么字段、页面上显示了什么/没显示什么），不要停留在代码内部变量名或函数名层面。
-> - 没有真实用户操作路径的代码扫描类 bug，"复现步骤"改写成"触发条件"，同样要讲清楚是什么样的真实数据会触发（举一个具体的数据例子），而不是只描述代码分支条件。
-> - 提交前自查一遍：把描述读给没看过这段代码的人，能不能听懂"坏在哪、影响是什么"——听不懂就要重写。
-> - **不要暴露"这是特意讲人话写的"**：描述和评论里禁止出现任何自我说明性的话（如"已用通俗语言改写""大白话版""本条已简化表达"之类），直接把它写成本来就该有的正常技术描述，让人看不出这是刻意处理过的。
+> 🗣️ **描述正文必须以「说人话」二级标题开头**，格式与「代码分析」同级：
+> ```
+> ## 说人话
 >
-> 详细的正反面例子见 `references/issue-templates.md` 开头的"语言要求"一节。
+> <一句话>
+> ```
+> 用大白话把这个 bug 讲清楚——不用技术黑话（不写 O(n²)/TOCTOU/ResizeObserver/索引 之类），说清楚「什么情况下、用户/系统会遇到什么后果」，让不看代码的人（PM / 测试 / 老板）一眼看懂。技术细节留到下面的「代码分析」。合并多个 bug 时，这一句概括共同影响。
+
+> ⚠️ **描述中的 Bug 标题只写现象，不加任何优先级标注**（如"高优先级"、"中优先级"、"低优先级"）。Issue 优先级统一由字段控制，默认 Medium，描述里不重复标注。
 
 单个 bug / 合并多个相似 bug 的描述模板见 `references/issue-templates.md`。
 
@@ -171,5 +144,5 @@ allowed_tools: [Read, Grep, Glob, Bash, mcp__claude_ai_Linear__list_issues, mcp_
 
 ## Reference Files
 
-- `references/issue-templates.md` — 语言要求（讲人话）+ 单个 bug / 合并多个相似 bug 的 Issue 描述模板
+- `references/issue-templates.md` — 单个 bug / 合并多个相似 bug 的 Issue 描述模板
 - `references/verification-checklist.md` — 读代码验证、curl 实测、postgres 查库的强制要求和判断标准
