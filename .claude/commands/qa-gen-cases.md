@@ -86,20 +86,11 @@ The converted `.md` file serves as input for subsequent steps.
 
 When PRD contains multiple feature modules, split by `##` level headings into independent modules, each generating cases independently.
 
-### PRD Change Detection (same mechanism as /qa-run-prd)
+### PRD Change Detection
 
-Before generating, detect which PRD modules have changed since last generation:
-
-```
-1. Read existing .md files: Glob("$OUTPUT_DIR/test-cases/generated/*-prd.md")
-2. For each existing .md, extract PRD-hash from header: <!-- PRD-hash: {hash} -->
-3. For each current PRD module, compute content hash (sha256)
-4. Compare:
-   - Hash matches → prdChangeMode: "none" (skip, existing cases up-to-date)
-   - Hash differs → prdChangeMode: "updated" (incremental update)
-   - No existing .md → prdChangeMode: "new" (generate from scratch)
-   - Existing .md but module removed from PRD → prdChangeMode: "removed" (mark deprecated)
-```
+Detection algorithm (shared with `/qa-run-prd`): see `.claude/references/prd-change-detection.md`.
+Glob root for this command: `$OUTPUT_DIR/test-cases/generated/*-prd.md`. What each `prdChangeMode`
+value means for this command is covered by Phase 2 below.
 
 ## Phase 2: Generate Cases + Export Excel
 

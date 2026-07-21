@@ -52,38 +52,14 @@ When PRD contains multiple feature modules, split by module before passing to or
 
 ### PRD Change Detection (critical for incremental updates)
 
-> **Problem**: If PRD v2 updates the "User Login" module but orchestrator sees existing login.test.ts and skips it, updated requirements are never reflected in tests.
->
-> **Solution**: Before launching orchestrators, detect which PRD modules have changed since last generation.
-
-```
-1. Read existing test case .md files: Glob("$QA_WORKSPACE_DIR/test-cases/generated/*-prd.md")
-2. For each existing .md, extract the PRD content hash stored in its header comment:
-   // PRD-hash: {sha256 of the PRD module text at generation time}
-3. For each current PRD module, compute its content hash
-4. Compare:
-
-   | Current PRD module | Existing .md | Hash match | Action |
-   |--------------------|-------------|:----------:|--------|
-   | Module A (login)   | login-prd.md | Match      | unchanged → pass prdChangeMode: "none" |
-   | Module B (tasks)   | tasks-prd.md | Mismatch   | updated → pass prdChangeMode: "updated" |
-   | Module C (reports) | (none)       | —          | new → pass prdChangeMode: "new" |
-   | (deleted)          | chat-prd.md  | —          | removed → pass prdChangeMode: "removed" |
-
-5. Pass prdChangeMode per module to the orchestrator
-```
+Detection algorithm (shared with `/qa-gen-cases`): see `.claude/references/prd-change-detection.md`.
+Glob root for this command: `$QA_WORKSPACE_DIR/test-cases/generated/*-prd.md`.
 
 Each orchestrator receives `prdChangeMode` telling it how to handle existing tests:
 - `"none"` → skip generation (existing tests are up-to-date)
 - `"new"` → generate from scratch (no existing tests)
 - `"updated"` → **incremental update** (see orchestrator Step 2.5 below)
 - `"removed"` → mark existing tests as skipped/deprecated
-
-> **Hash storage**: When test-case-generator produces a .md file from PRD, it must include a header comment:
-> ```
-> <!-- PRD-hash: {sha256(module text)} -->
-> ```
-> This enables future change detection without re-reading the full PRD.
 
 ## Phase 2: Pipeline with Parallel Generation
 

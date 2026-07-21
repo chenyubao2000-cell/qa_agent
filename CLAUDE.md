@@ -23,7 +23,7 @@ qa-platform/
 │   ├── E2E 5 个：/qa-explore、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
 │   ├── 白盒 1 个：/qa-whitebox
 │   └── 灰盒 1 个：/qa-greybox
-├── .claude/references/ → 13 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
+├── .claude/references/ → 14 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
 ├── hooks/           → 1 个 Hook（session-start 校验）
 └── scripts/         → 工具
     ├── demo-mcp-server.ts（whitebox MCP 示例服务）
