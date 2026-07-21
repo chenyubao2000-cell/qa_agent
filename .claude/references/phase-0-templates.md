@@ -377,6 +377,10 @@ export { expect };
 
 ### Without APP_LANGUAGES — minimal fixtures.ts (still includes session guard when E2E_TEST_EMAIL is set)
 
+> Base pattern per `references/session-guard.md` (kept inline here, not a pointer, because this
+> template is written verbatim to a new project's `fixtures.ts`). If session-guard.md's
+> reAuthenticate/ensureAuthenticated pattern changes, update this template to match.
+
 ```typescript
 import { test as base, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";

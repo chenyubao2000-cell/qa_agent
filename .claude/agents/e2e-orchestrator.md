@@ -317,14 +317,17 @@ Read `skills/playwright-script-generator/SKILL.md` and execute according to the 
 
 After playwright-script-generator returns, verify the generated spec and POM:
 
-**Anti-pattern checks (must be 0 matches):**
+**Anti-pattern checks (must be 0 matches)**: these grep patterns assert the 4 forbidden
+anti-patterns in `playwright-script-generator/references/handoff-examples.md` §2.3.1, 1:1. If that
+section's forbidden list changes (rule added/removed), update this table to match — it's a
+verification-side mirror of that rule list, not an independent source.
 
-| Check | Grep Pattern | Expected |
-|-------|-------------|----------|
-| No direct message imports | `import.*messages.*\.json` | 0 matches |
-| No makeI18n helper | `makeI18n` | 0 matches |
-| No separate zh describe blocks | `test\.describe.*中文\|test\.describe.*zh\|test\.describe.*i18n` | 0 matches |
-| No manual language switching | `changeLanguage` | 0 matches |
+| Check | Grep Pattern | Expected | §2.3.1 rule # |
+|-------|-------------|----------|:---:|
+| No direct message imports | `import.*messages.*\.json` | 0 matches | 1 |
+| No makeI18n helper | `makeI18n` | 0 matches | 2 |
+| No separate zh describe blocks | `test\.describe.*中文\|test\.describe.*zh\|test\.describe.*i18n` | 0 matches | 3 |
+| No manual language switching | `changeLanguage` | 0 matches | 4 |
 
 **Positive checks (must be ≥1 match):**
 

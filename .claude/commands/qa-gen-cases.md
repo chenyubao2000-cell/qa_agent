@@ -185,19 +185,9 @@ After the subagent returns, execute `.claude/references/verification-gate-v1-v5.
 
 ### Excel Export (command layer, after all subagents complete + verification pass)
 
-```bash
-node skills/excel-case-export/scripts/generate-excel.js \
-  --input-dir $OUTPUT_DIR/test-cases/generated \
-  --output $OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx
-```
-
-**Verify Excel output** (same gate as other commands):
-```
-if NOT Glob("$OUTPUT_DIR/test-cases/excel/{prd-name}-all-cases.xlsx"):
-  WARN: "Excel export failed — retrying..."
-  Re-run generate-excel.js
-  if still NOT found → ERROR: "Excel export failed after retry — file not written"
-```
+Execute `.claude/references/excel-export-gate.md`, substituting `$OUTPUT_DIR` for `$QA_WORKSPACE_DIR`
+(this command's resolved output directory may differ from the default workspace — see Phase 0) and
+`{name}` = `{prd-name}`.
 
 ## Artifacts
 

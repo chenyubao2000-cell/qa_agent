@@ -100,40 +100,7 @@ node skills/excel-case-export/scripts/generate-excel.js \
   --output test-cases/excel/all-cases.xlsx
 ```
 
-## Test Case Design: Scenario Method
-
-The scenario method simulates different scenarios from requirements to cover all functional points and business flows, thereby designing test cases.
-
-The scenario method primarily involves identifying basic flows and alternative flows. The basic flow is the correct business process, simulating the user's correct business operations. The alternative flow is the incorrect business process, simulating the user's incorrect business operations.
-
-A basic flow has only one starting point and one ending point. The basic flow is the main process; alternative flows are sub-processes. An alternative flow can originate from the basic flow or from other alternative flows. The endpoint of an alternative flow can be a process exit or a return to another flow's entry point. When alternative flows converge, which merges into which depends on traffic volume — i.e., the likelihood of the flow occurring. Lower-traffic alternative flows merge into higher-traffic alternative flows. If two equally significant basic flows appear in a flow diagram, they should generally be treated as separate business processes.
-
-When using the scenario method, different scenarios must be tested to ensure comprehensive system testing.
-
-When designing different scenarios, follow the principle that every alternative flow is covered, with exactly one loop coverage.
-
-**Using the scenario method requires the following steps:**
-
-### Step 1: Identify all flows
-
-Find all basic flows and all alternative flows corresponding to the requirements under test.
-
-### Step 2: Combine flows into scenarios
-
-Combine basic flows and alternative flows to form different test scenarios.
-
-### Step 3: Convert scenarios into test cases
-
-Output test cases with one row per test case. Test cases should cover all inputs, conditions, and scenarios to ensure comprehensive system testing. Confirm that test case coverage logic is complete and non-redundant. Cover all situations and output as many cases as possible.
-
-Output following these steps:
-- Step 1: \<step 1 reasoning\>
-- Step 2: \<step 2 reasoning\>
-- Step 3: \<step 3 reasoning\>
-- Test cases: \<response to customer\>
-
-### Step 4: Output test cases as Markdown table
-
-Format: [Case ID] [Case Level] [Case Name] [Input Conditions] [Operations] [Expected Result]
-
-Think step by step.
+Test case design methodology (all 6 methods, including the Scenario Method referenced in Step 1
+above) is owned by `skills/test-case-generator/references/design-methods.md` — this skill only
+consumes the resulting Markdown and maps its columns to Excel (see table above). Do not re-derive
+design methodology here.
