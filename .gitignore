@@ -28,6 +28,11 @@ tests/whitebox/*/
 # Bug submit skill runtime state (last project/assignee cache)
 skills/bug-submit/state/*.json
 
+# tests/e2e/local — superseded by mira-test/miraday envs, only 1 stale spec,
+# unmaintained since 2026-07-07. Still git-tracked for now; scheduled for
+# `git rm -r` as a follow-up. Ignored here so nothing new gets added to it meanwhile.
+tests/e2e/local/
+
 # AI-generated test case docs & Excel exports (derived output, not source —
 # regenerable from test-cases/generated/*.json handoff + baseline data, which
 # stays tracked). Per CLAUDE.md naming convention: test-cases/generated/*.md,
