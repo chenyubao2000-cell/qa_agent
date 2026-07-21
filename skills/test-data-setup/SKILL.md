@@ -231,10 +231,11 @@ type TestDataFixtures = {
 };
 ```
 
-### 3. Fixture Registry 同步
+### 3. Fixture Registry
 
-生成后自动更新 `.claude/references/test-data-setup.md` 中的 Fixture Registry 表格，
-确保 fixtureId、name、env var、description、timeout 与 config 一致。
+Fixture Registry 的唯一权威来源是项目的 `test-data.config.json` 本身（见上方 §输入），
+不再另外维护一份 markdown 表格——`.claude/references/test-data-setup.md` 只保留执行期的
+管道说明，Registry 数据统一指回这份 config。
 
 ---
 
