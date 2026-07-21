@@ -10,24 +10,24 @@ QA 自动化测试平台（qa-platform）。通用 QA 能力集中管理，多�
 
 ```
 qa-platform/
-├── skills/          → 7 个 Skill
+├── skills/          → 8 个 Skill
 │   ├── E2E 相关 4 个：cdp-explorer、test-case-generator、playwright-script-generator、excel-case-export
 │   ├── 前置数据 1 个：test-data-setup
-│   ├── 白盒 1 个：whitebox-testing（普通代码 Vitest + Tool/MCP 插桩）
-│   └── 灰盒 1 个：greybox-testing（插桩运行中源码 + CDP 驱动 + 服务端日志对齐）
-├── .claude/agents/  → 7 个 Agent
-│   ├── E2E 5 个：e2e-orchestrator(opus)、test-executor(haiku)、cdp-test-executor(sonnet)、report-analyzer(sonnet)、bug-reporter(sonnet)
-│   ├── 白盒 1 个：tool-probe-orchestrator(sonnet)
+│   ├── 白盒 1 个：whitebox-testing（普通代码 Vitest + Tool/MCP 插桩，Tool 插桩编排内联在 skill 里，不再有独立 orchestrator agent）
+│   ├── 灰盒 1 个：greybox-testing（插桩运行中源码 + CDP 驱动 + 服务端日志对齐）
+│   └── Bug 上报 1 个：bug-submit（读代码验证用户描述的 bug 后提交 Linear；测试失败后的上报也统一引导到这个 skill）
+├── .claude/agents/  → 4 个 Agent
+│   ├── E2E 3 个：e2e-orchestrator(opus)、test-executor(haiku)、report-analyzer(sonnet)
 │   └── 灰盒 1 个：greybox-runner(sonnet)
-├── .claude/commands/→ 9 个 Slash Command
-│   ├── E2E 7 个：/qa-explore、qa-from-issue、qa-from-branch、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
+├── .claude/commands/→ 7 个 Slash Command
+│   ├── E2E 5 个：/qa-explore、qa-run、qa-run-prd、qa-gen-cases、qa-fix-tests
 │   ├── 白盒 1 个：/qa-whitebox
 │   └── 灰盒 1 个：/qa-greybox
 ├── .claude/references/ → 13 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
 ├── hooks/           → 1 个 Hook（session-start 校验）
 └── scripts/         → 工具
     ├── demo-mcp-server.ts（whitebox MCP 示例服务）
-    └── proxy-bootstrap.mjs（bug-reporter 走代理用）
+    └── proxy-bootstrap.mjs（.mcp.json 里 linear MCP server 走代理用）
 ```
 
 ## 流水线
@@ -40,12 +40,12 @@ E2E 测试流水线（已有）：
      ↓ 完成后
   report-analyzer (sonnet)  → 分析报告 → 返回失败列表（报告层）
      ↓ 命令层接收失败列表
-  bug-reporter (sonnet)     → 创建/追加 Linear Issue（上报层）
+  命令层展示失败列表 → 引导用户用 bug-submit skill 逐条核实后提交 Linear（不再自动创建 Issue）
 
 白盒测试流水线：
   /qa-whitebox (命令层)      → classify-diff 分类变更 → 普通代码读源码生成 Vitest（Mode A）
      ↓ Tool/MCP 目标（Mode B）
-  tool-probe-orchestrator (sonnet) → 4 桩注入 (模型决定位置) → tool.execute() 直调脚本 → claude -p 裁决 → Markdown 报告
+  /qa-whitebox 内联执行      → 4 桩注入（按 instrumentation.md §七 编排，不再走独立 agent） → tool.execute() 直调脚本 → claude -p 裁决 → Markdown 报告
 
 灰盒测试流水线：
   /qa-greybox (命令层)        → 插桩运行中源码 (复用白盒 4 探针) → 本地起服务 (带 DEBUG env)
@@ -59,8 +59,6 @@ SessionStart hook：
 
 手动命令：
 ├── /qa-explore    → CDP 页面探查 → 生成 + 执行（不汇报 Linear）
-├── /qa-from-issue → Linear issue → 生成 + 执行 + 汇报 Linear
-├── /qa-from-branch → GitHub 分支 vs main → 匹配已有 spec + 生成缺失 spec → 执行 + 可选 Linear 汇报
 ├── /qa-run-prd    → PRD 文档 → 生成 + /qa-fix-tests 修复（不汇报 Linear）
 ├── /qa-gen-cases  → PRD 文档 → 仅生成用例 + Excel
 ├── /qa-fix-tests  → CDP 探查 → 修复失败测试
@@ -73,8 +71,6 @@ SessionStart hook：
 
 ### E2E 测试（已有）
 - `/qa-explore` — 探查浏览器页面，自动生成 E2E 测试基线 + 用例 + POM + spec
-- `/qa-from-issue <issues>` — 从 Linear issue 生成或更新 E2E 测试（支持批量：多个 key / 关键词 / --all-open）
-- `/qa-from-branch [branch] [issue-key|url ...] [--source <dir>]` — 从 GitHub 分支变更驱动 QA 测试
 - `/qa-run-prd` — PRD 驱动 E2E 测试流水线
 - `/qa-gen-cases` — 仅从 PRD 生成用例 + Excel，不生成脚本
 - `/qa-fix-tests` — 通过 CDP 探查真实页面，修复失败的测试
@@ -99,9 +95,8 @@ SessionStart hook：
   - Baseline：`test-cases/generated/page-baseline-{slug}.json`
 - 文件名 `{area-id}` 规则：
   - `/qa-explore`（area 粒度）：含 area-id，如 `login-form-join-cdp.test.ts`
-  - `/qa-from-issue`、`/qa-run-prd`（feature 粒度）：不含 area-id，如 `login-issue.test.ts`
-  - `/qa-from-branch`（feature 粒度）：不含 area-id，如 `task-sidebar-branch.test.ts`
-  - `{source}` 取值：`cdp` | `prd` | `issue` | `branch` | `verify-fix`
+  - `/qa-run-prd`（feature 粒度）：不含 area-id，如 `login-issue.test.ts`
+  - `{source}` 取值：`cdp` | `prd` | `verify-fix`（`issue`/`branch` 曾对应已移除的 `/qa-from-issue`、`/qa-from-branch`，历史生成文件可能仍带这两个值）
 - 所有测试流水线输出统一 JSON 格式（见设计文档第九章）
 - Subagent 模型选择：协调类用 opus，分析类用 sonnet，纯执行类用 haiku
 - 去重通过扫描已有 spec 完成，已覆盖的模块跳过重新生成

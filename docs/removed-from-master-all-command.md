@@ -147,3 +147,27 @@ CLAUDE.md 中架构图 / 流水线段落的 git-watcher 相关描述已同步删
 git checkout backup/master-pre -- scripts/git-watcher.ts scripts/stop-watcher.sh
 ```
 
+---
+
+## 第三轮移除（2026-07-21）— 消除功能重复
+
+| 路径 | 原用途 | 处理方式 |
+|---|---|---|
+| `.claude/agents/bug-reporter.md` | 测试失败后自动创建/追加 Linear Issue | 删除。`/qa-run`、`/qa-greybox` 改为展示失败列表后引导用户用 `bug-submit` skill 手动核实提交，不再自动建 Issue |
+| `.claude/agents/tool-probe-orchestrator.md` | `/qa-whitebox` Mode B（Tool/vercel-ai）插桩编排 | 删除。核心编排流程迁入 `skills/whitebox-testing/references/instrumentation.md` §七，`/qa-whitebox` Phase 5c 改为内联执行，不再 spawn 独立 subagent |
+| `.claude/agents/cdp-test-executor.md` | 供 `/qa-from-branch` 用 CDP 驱动执行 spec | 删除。唯一调用方 `/qa-from-branch` 已删，无其他调用方 |
+| `.claude/commands/qa-from-issue.md` | 从 Linear issue 生成/更新 E2E 测试 | 删除，不常用 |
+| `.claude/commands/qa-from-branch.md` | 从 GitHub 分支变更驱动 QA 测试 | 删除，不常用 |
+
+CLAUDE.md 架构图/流水线/命令列表已同步更新。README.md、docs/architecture.md、
+`.claude/references/*.md` 中残留的 qa-from-issue / qa-from-branch 描述性文字暂未清理
+（这些引用文件仍被其他现存命令使用，未做整体删除）。
+
+如需恢复：
+
+```sh
+git checkout backup/master-pre -- .claude/agents/bug-reporter.md .claude/agents/tool-probe-orchestrator.md .claude/agents/cdp-test-executor.md .claude/commands/qa-from-issue.md .claude/commands/qa-from-branch.md
+```
+
+注：`backup/master-pre` 是本次三轮移除前打的快照分支（见上一轮记录），已 push 到 origin，比这轮改动更早，同样能找回这批文件的删除前版本。
+
