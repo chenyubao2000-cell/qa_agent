@@ -13,7 +13,7 @@ Phase 0: Load project context (.env -> target project config)
 Phase 1: Sequential launch (execute in order)
          test-executor -> execute existing specs -> produce reports
               | after completion
-         report-analyzer -> analyze reports -> bug-reporter -> Linear
+         report-analyzer -> analyze reports -> guide user to bug-submit skill -> Linear
 ```
 
 ## Phase 0: Load Project Context
@@ -203,47 +203,41 @@ Input:
 Execute per .claude/agents/report-analyzer.md steps:
 1. Read test reports from $QA_WORKSPACE_DIR/tests/reports/
 2. Parse results → route failed cases → deduplicate
-3. Build structured failure payload (do NOT launch bug-reporter)
+3. Build structured failure payload
 4. Generate summary report
 5. Open HTML report (unless headless)
 
 Return the structured failure payload as JSON (see report-analyzer.md Step 3 for schema).
 ```
 
-### Agent 3 — bug-reporter (sonnet) — Conditional
+### Step 3 — Guide user to bug-submit (no longer auto-creates Linear issues)
 
-Launched by the **command layer** after report-analyzer completes, ONLY if report-analyzer returned failures.
-
-> **Why command layer**: The command layer (opus) handles this orchestration to maintain clear agent hierarchy.
+Performed by the **command layer** after report-analyzer completes, ONLY if report-analyzer returned failures.
 
 ```
 Check: parse report-analyzer's return for the `failures` array.
 
 If failures.length > 0:
-
-  Launch bug-reporter (sonnet):
-
-  You are bug-reporter. First read .claude/agents/bug-reporter.md to understand your full responsibilities.
-
-  Input:
-  - linearTeamId: "{reportAnalyzerResult.linearConfig.linearTeamId}"
-  - linearProjectId: "{reportAnalyzerResult.linearConfig.linearProjectId}"
-  - previewUrl: "{reportAnalyzerResult.linearConfig.previewUrl}"
-  - failures: {reportAnalyzerResult.failures}
-
-  Execute per .claude/agents/bug-reporter.md: process each failure entry
-  (create new issues or append comments based on action field).
-  Return created/appended issue list.
+  1. Render a concise list to the user: for each failure, {TC ID} + name + error summary + screenshotPath (if any)
+  2. Prompt: "以上 N 个用例失败，是否要用 bug-submit skill 逐条核实后提交 Linear？"
+  3. If user confirms: for each failure, invoke the `bug-submit` skill (`skills/bug-submit/SKILL.md`),
+     passing the failure's description (error message, page, repro steps from handoffFile if present,
+     screenshotPath) as the bug description input. bug-submit independently handles code verification,
+     dedup against existing issues, and submission — it will prompt the user for project link /
+     assignees per its own flow if not already cached.
+  4. If user declines: leave the failure list in the summary as-is, no Linear submission.
 
 If allPassed is true or failures is empty:
-  Skip bug-reporter. No Linear reporting needed.
+  Skip this step entirely.
 ```
 
-### Post-processing — Update Summary with Linear URLs
+### Post-processing — Update Summary with Linear URLs (best-effort)
 
-After bug-reporter returns `{ created, appended }`:
+If the user went through bug-submit and issues were created/commented:
 1. Read `$QA_WORKSPACE_DIR/tests/reports/combined/summary.md`
 2. Replace the "Linear 上报（待命令层执行）" section with actual results:
    - 新建 Bug: N 条 — {issue URLs}
-   - 回写源 Issue: N 条 — {issue URLs}
+   - 追加评论: N 条 — {issue URLs}
 3. Write updated summary back
+
+If the user declined bug-submit, leave the summary's failure list untouched (no Linear section to fill in).

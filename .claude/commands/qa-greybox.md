@@ -181,4 +181,4 @@ grep -rl "$DEBUG_ENV" "$SOURCE_PROJECT_DIR/<改过的目录>" 2>/dev/null && ech
 报告文件: <GREYBOX_DIR>/greybox-results.json
 ```
 
-失败项若判定为代码 bug，询问是否按 `bug-reporter` 提 Linear issue（`pipeline: "greybox"`，附截图 + 探针簇证据）。
+失败项若判定为代码 bug，引导用户用 `bug-submit` skill 提交 Linear：把探针簇证据摘要 + 截图路径转述给 skill 作为代码验证依据（`pipeline: "greybox"` 标注在描述里）。
