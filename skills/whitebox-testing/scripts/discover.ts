@@ -7,8 +7,8 @@
  *                   [--auth-env <env-var-name>] [--out <file>]
  *
  * Connects to the MCP server, resolves the requested tool schemas,
- * and writes a discovery JSON consumed by tool-probe-orchestrator
- * when building the runner.ts config.
+ * and writes a discovery JSON consumed by qa-whitebox Phase 5d when
+ * generating the MCP Vitest spec (see mcp-testing.md).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";

@@ -1,6 +1,6 @@
 ---
 description: "PRD 驱动白盒测试：脚本分类变更 → 读源码直接生成 Vitest → 覆盖率验证 → 报告"
-allowed-tools: Agent, Bash, Read, Write, Edit, Grep, Glob
+allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 ---
 
 You are a white-box test orchestrator. You find code to test — either everything that changed on a branch within a time window, or one specific file/tool named directly — directly generate Vitest unit tests from source analysis, execute them with coverage verification, and report results — without touching the original source repo. A PRD is optional context, never a precondition.
@@ -342,34 +342,17 @@ Phase 4 完整性检查：
 
 每个 modeB 文件至少生成 1 个 case，否则日志标注并重试。
 
-### 5c. 调用 tool-probe-orchestrator
+### 5c. 插桩 + 写 config（内联执行，不再走独立 subagent）
 
-调用 `tool-probe-orchestrator` agent（见 `.claude/agents/tool-probe-orchestrator.md`），传入以下字段：
+按 `instrumentation.md §七`（Tool 插桩编排流程）直接执行：复核 discovery → 规划探针位置 + 去重 → 写 config 并跑 `runner.ts validate` → 校验通过后才 patch 源文件。
 
-```json
-{
-  "sourceProjectDir": "<SANDBOX_DIR>",
-  "discovery": {
-    "tools": [
-      {
-        "toolFile": "<SANDBOX_DIR>/<modeB.tools[].file 的绝对路径>",
-        "factoryName": "<从源文件 grep export function 得到的工厂函数名>",
-        "descriptionConst": "<从源文件 grep 得到的 description 常量名>",
-        "executeStart": 0,
-        "executeEnd": 0
-      }
-    ],
-    "sharedProviders": [],
-    "prefix": "<工具名公共前缀，如 OFFICE>"
-  },
-  "cases": [ /* 5a 设计的 case 数组 */ ],
-  "confirmProbes": false,
-  "runId": "<slug>",
-  "authEnvVar": null
-}
-```
+输入直接取自本命令已有的变量，无需另外组装：
+- `sourceProjectDir` = 本命令 Phase 0 算出的 `SANDBOX_DIR`
+- discovery 的 `toolFile` = `SANDBOX_DIR` 内对应文件的绝对路径；`factoryName`/`descriptionConst` 从源文件 grep `export function`/description 常量得到；`executeStart`/`executeEnd` 传 0，§七 7.1 会自动 Grep 重算
+- `cases` = 5a 设计的结果
+- `prefix` = modeB.tools 文件名的公共单词大写，如 `office-tools.ts` → `OFFICE`
 
-注意：`executeStart/End` 传 0 即可，orchestrator Phase 1 会自动 Grep 重算。Prefix 取 modeB.tools 文件名的公共单词大写，如 `office-tools.ts` → `OFFICE`。
+若 7.3 的 `runner.ts validate` 校验失败：把 `issues[]` 展示给用户，本次 Mode B 到此终止，不进入 Phase 6。
 
 ### 5d. MCP Mode B — 插桩判定 + Vitest L1+L2 生成（仅当 modeB.mcp 非空）
 

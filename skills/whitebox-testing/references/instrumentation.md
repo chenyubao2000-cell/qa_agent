@@ -354,3 +354,47 @@ bun $DISCOVER \
 ```
 
 任何 object > 8192 chars 被截断为 `<前8KB>"[truncated:N]"`，input 不截。
+
+---
+
+## 七、Tool（vercel-ai）插桩编排流程
+
+Mode B Tool 目标（`kind: vercel-ai`）由 `/qa-whitebox` Phase 5c **直接内联执行**（不再委派给独立 subagent），复用 Phase 1 的 discovery 结果和 Phase 5a 设计好的 case。步骤：
+
+### 7.1 复核 discovery（防御性）
+
+discovery 里的行号可能因源码变化而失真，执行前重新核实：
+- 每个 tool：`Read(toolFile, offset: executeStart-3, limit: executeEnd-executeStart+6)` 确认 `execute: async` 行；跳过空行/注释找到函数体第一条可执行语句；定位函数体内所有 `return`（IIFE 包裹范围）。
+- 每个 provider：`Read(providerFile, offset: providerFetchLine-5, limit: 15)` 确认 `fetch(` 调用存在；确认 `providerResponseLine` 在 `await res.json()` 与 rate-limit 解析**之后**。
+- 若行号已过期，用 Grep 重新定位。
+
+### 7.2 规划探针位置 + 去重
+
+按 §2a 的 4 探针规则逐个工具生成探针计划（`stage` / `file` / `line` / `kind: insert-before|insert-after|wrap-iife`）。**每插一个探针前**，先 Grep 同函数内是否已有 `<prefix>-debug.<stage>`，命中则跳过并记 `"skipped": "existing log"`。
+
+若上游要求先出计划再确认，打印计划后停止等待确认；否则直接进入 7.3。
+
+### 7.3 写 config → validate → 才 patch 源码（顺序不能反）
+
+> **关键顺序**：源码 patch 是物理状态变更，用户要靠 git 清理；如果 patch 完之后才发现 config schema 错误，工作区已经脏了。所以固定顺序是**先写 config 并跑校验，通过之后才动源码**。
+
+1. **写 config**（schema 见 §四），字段来自 discovery + Phase 5a 的 case + `sourceProjectDir = SANDBOX_DIR`：
+   - `loggerModule`：候选 logger 源文件路径，写入前 Grep 确认其他 import 该 logger 的位置都通过 re-export 追溯到同一个单例（如 mira 的 `@/lib/logger/logger` re-export `@mira/observability/logger/logger`，两边共享一个实例）。若发现真正独立的两套 logger（罕见），只采信探针较多的一侧，并在结果里注明局限。
+   - 输出到 `$QA_WORKSPACE_DIR/tests/reports/tool-probe/config-<runId>.json`（绝对路径，父目录不存在则创建）。
+2. **跑校验门**：
+   ```sh
+   bun <qa_agent>/skills/whitebox-testing/scripts/runner.ts validate --config <config 绝对路径>
+   ```
+   - exit 0 → 进入 7.4 开始 patch
+   - exit 1/2 → 把 `issues[]` 展示给用户，**不 patch 任何源文件**，config 文件留在磁盘供检查，本次 Mode B 到此终止（不进入 Phase 6 执行）
+3. **patch 源文件**（仅校验通过后）：按 §2a 的 4 个 diff 模板逐个 `Edit`；每次 Edit 后立即 `Read` 该区域前后 10 行，按 §2a"插桩校验清单"自检（括号平衡 / IIFE 内容字节对字节不变 / logger import 存在 / 无第 5 个探针）；若发现改坏，撤销这一处 Edit 并上报失败，不要连锁 patch 其余文件。
+
+### 7.4 Mode B 范围边界
+
+- MCP 目标不走这里——discovery 里混入 `mcp-http` 条目时静默跳过（不插桩、不写 config 条目），MCP 走 §2b / `mcp-testing.md`。
+- 除 4 个探针 + IIFE 包裹外，仅允许两类"逻辑相邻但非业务逻辑"的改动：description 常量加 `export`；工具是直接对象导出时补一行 `__qaWhiteboxToolFactory` 工厂包装（§2a 已有完整示例）。
+- 不备份文件（用户自己用 git 管理）；不新建源项目下的任何文件；不用模板文件；不加注释；探针默认关闭，唯一运行时开销是 env-var 判断。
+
+### 7.5 完成后
+
+Patch 完成、校验通过后，直接进入 Phase 6 用 `runner.ts` 执行 run+judge 全流程（见 §五）。若 7.3 校验失败，Phase 6 不执行，把 issues 呈现给用户即结束。
