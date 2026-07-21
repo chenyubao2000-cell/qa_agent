@@ -129,7 +129,7 @@ git checkout master-all-command -- <path>
 ## 第二轮移除（2026-07-21）
 
 `master-all-command` 是精简前的旧快照，不含此后新增的 `.env`、mira-test/miraday E2E 用例等内容，
-因此这轮改动前先从当前 `master` 打了一个新的完整快照分支 **`backup/master-pre-cleanup-20260721`**，
+因此这轮改动前先从当前 `master` 打了一个新的完整快照分支 **`backup/master-pre`**，
 包含本轮删除前的全部文件。
 
 | 路径 | 原用途 | 移除原因 |
@@ -144,6 +144,6 @@ CLAUDE.md 中架构图 / 流水线段落的 git-watcher 相关描述已同步删
 如需恢复：
 
 ```sh
-git checkout backup/master-pre-cleanup-20260721 -- scripts/git-watcher.ts scripts/stop-watcher.sh
+git checkout backup/master-pre -- scripts/git-watcher.ts scripts/stop-watcher.sh
 ```
 
