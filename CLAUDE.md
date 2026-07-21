@@ -25,8 +25,7 @@ qa-platform/
 │   └── 灰盒 1 个：/qa-greybox
 ├── .claude/references/ → 13 个共享 Reference（含 e2e-flakiness-playbook：fix-subagent 通用修复范式）
 ├── hooks/           → 1 个 Hook（session-start 校验）
-└── scripts/         → PR 监控 + 工具
-    ├── git-watcher.ts + stop-watcher.sh（PR 监控守护进程）
+└── scripts/         → 工具
     ├── demo-mcp-server.ts（whitebox MCP 示例服务）
     └── proxy-bootstrap.mjs（bug-reporter 走代理用）
 ```
@@ -57,9 +56,6 @@ E2E 测试流水线（已有）：
 
 SessionStart hook：
   hooks/session-start.sh → 校验 .env 必需变量 → 输出 {"env":"ok"}；同时兜底清理白盒测试残留的沙箱（`$SOURCE_PROJECT_DIR/.qa-sandboxes/wb-*`，见 `.claude/settings.json` 注册）
-
-PR 监控（独立流程）：
-  scripts/git-watcher.ts → 监听 PR 变更 → 评论同步
 
 手动命令：
 ├── /qa-explore    → CDP 页面探查 → 生成 + 执行（不汇报 Linear）
