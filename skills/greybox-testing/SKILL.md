@@ -120,7 +120,7 @@ Phase 7  输出报告（CDP 步骤 × 内部证据对照表）
 | 能力 | 来源 |
 |---|---|
 | 4 探针模型 / 插桩语法 / 校验清单 | 复用 `whitebox-testing/references/instrumentation.md` |
-| CDP 驱动 / 自适应找元素 / i18n 解析 | 复用 `cdp-test-executor` agent 的执行范式 |
+| CDP 驱动 / 自适应找元素 / i18n 解析 | 见 `greybox-runner` agent 自身的「CDP 通用范式」一节 |
 | **本 skill 新增的唯一内容** | 「插运行中源码 + 本地起服务 + 服务端日志与 CDP 对齐」这套编排（correlate.md） |
 
 不改 whitebox 的任何脚本；灰盒是它和 CDP 之间那座**手工搭的桥**的固化版。
