@@ -1,0 +1,307 @@
+[
+  {
+    "id": "TC-PRD-PULSEV4-001",
+    "storyId": "US-PULSE-REQ001",
+    "criterionId": "AC-001-1",
+    "source": "prd",
+    "title": "任务开始进入进行中不生成 activity",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["用户已登录 Mira，具备至少一种可创建任务的能力"],
+    "setup": [
+      { "type": "navigate", "action": "navigate", "url": "/", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "textbox", "name": "任务输入框", "action": "fill", "value": "创建一个候选人搜索任务-{timestamp}", "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "发送", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "text", "name": "创建一个候选人搜索任务-{timestamp}", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-002",
+    "storyId": "US-PULSE-REQ001",
+    "criterionId": "AC-001-3",
+    "source": "prd",
+    "title": "命中①HITL工具时新增 activity 且 HITL Queue 与 Recent Activity 双区同显",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已创建一个会触发 clarify_question/confirm 等 HITL 白名单工具的任务，任务已推进到需人确认节点"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createTaskAwaitingClarification", "data": { "prompt": "触发澄清提问-{timestamp}" }, "scope": "worker" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "region", "name": "HITL Queue", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "listitem", "name": "HITL Queue 卡片", "expected": "等待你的回复", "i18nKey": null },
+      { "type": "text", "selector": "listitem", "name": "Recent Activity 条目", "expected": "等待你的回复", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-003",
+    "storyId": "US-PULSE-REQ001",
+    "criterionId": "AC-001-2",
+    "source": "prd",
+    "title": "有 plan 时③关键节点仅出 plan stage 开始一条，非关键工具调用不进 feed",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["已创建一个复杂任务，任务已通过 write_todos 声明 plan stage"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createComplexTaskWithPlan", "data": { "prompt": "触发多阶段计划任务-{timestamp}" }, "scope": "worker" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "count", "selector": "listitem", "name": "执行计划 activity 条目", "expected": 1, "i18nKey": null },
+      { "type": "hidden", "selector": "text", "name": "人才搜索", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-004",
+    "storyId": "US-PULSE-REQ002",
+    "criterionId": "AC-002-1",
+    "source": "prd",
+    "title": "Recent Activity 单一时间流不置顶，进行中项与完成项按时间混排",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["存在任务 A（进行中，更新时间较早）与任务 B（已完成，更新时间较晚）"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createInProgressTask", "data": { "prompt": "任务A-{timestamp}" }, "scope": "test" },
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createAndCompleteTask", "data": { "prompt": "任务B-{timestamp}" }, "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "attribute", "selector": "listitem:nth-child(1)", "name": "任务B-{timestamp}", "expected": "排在任务A之前", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-005",
+    "storyId": "US-PULSE-REQ002",
+    "criterionId": "AC-002-2",
+    "source": "prd",
+    "title": "Recent Activity 按 Today/Yesterday 分组，条目含状态 pill+时间+任务级描述",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["存在昨天完成的任务与今天触发③关键节点（人才搜索）的任务"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createTaskWithMilestone", "data": { "prompt": "人才搜索任务-{timestamp}" }, "scope": "worker" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "heading", "name": "Today", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "status", "name": "状态 pill", "expected": "进行中", "i18nKey": null },
+      { "type": "text", "selector": "listitem", "name": "标题后缀", "expected": "人才搜索", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-006",
+    "storyId": "US-PULSE-REQ002",
+    "criterionId": "AC-002-3",
+    "source": "prd",
+    "title": "非任务数据操作（联系人导入）不进入 Recent Activity",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["用户具备联系人导入入口"],
+    "setup": [
+      { "type": "navigate", "url": "/contacts", "action": "navigate", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "导入联系人", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null },
+      { "role": "button", "name": "上传文件", "action": "upload", "value": null, "locatorHint": null, "dataType": "file.document", "dataVariant": "csv", "i18nKey": null },
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "text", "name": "联系人导入", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PULSEV4-007",
+    "storyId": "US-PULSE-REQ003",
+    "criterionId": "AC-003-1",
+    "source": "prd",
+    "title": "任务完成且有未查看成果时 Ready to Review 出现验收卡",
+    "priority": "P0",
+    "scenarioType": "positive",
+    "preconditions": ["已创建一个会产出候选人名单等可验收成果的任务，任务已完成"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createSourcingTaskAndComplete", "data": { "prompt": "sourcing任务-{timestamp}" }, "scope": "worker" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "region", "name": "Ready to review", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "text", "name": "New", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "button", "name": "View results", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P0", "@smoke", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-008",
+    "storyId": "US-PULSE-REQ003",
+    "criterionId": "AC-003-2",
+    "source": "prd",
+    "title": "点击 View results 后验收卡消失，完成记录仍保留在 Recent Activity",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["Ready to Review 中存在一张未查看的验收卡（任务已完成且有可验收成果）"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createSourcingTaskAndComplete", "data": { "prompt": "sourcing任务-{timestamp}" }, "scope": "worker" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "View results", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "url", "selector": null, "name": "任务 chat 页", "expected": "/tasks/*", "i18nKey": null },
+      { "type": "hidden", "selector": "region", "name": "Ready to review 卡片", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "listitem", "name": "Recent Activity 完成记录", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-009",
+    "storyId": "US-PULSE-REQ003",
+    "criterionId": "AC-003-3",
+    "source": "prd",
+    "title": "任务完成但无可验收成果时不进入 Ready to Review",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["已创建一个不产出可验收成果句柄的任务（如纯问答型任务）"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createQATaskAndComplete", "data": { "prompt": "问答任务-{timestamp}" }, "scope": "worker" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "link", "name": "Pulse", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "text", "name": "问答任务-{timestamp}", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "listitem", "name": "Recent Activity 完成记录", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-010",
+    "storyId": "US-PULSE-REQ004",
+    "criterionId": "AC-004-1",
+    "source": "prd",
+    "title": "[待实现] 已授权用户在①HITL/②任务结束事件时收到浏览器原生通知并可点击回流",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["用户已通过浏览器授权通知权限（当前代码无此功能，验收基线用例）", "Mira 标签页处于非聚焦状态"],
+    "setup": [
+      { "type": "ui", "action": "grant browser notification permission", "pomMethod": "grantNotificationPermission", "scope": "test" },
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createTaskAwaitingClarification", "data": { "prompt": "触发通知事件-{timestamp}" }, "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "切换标签页/最小化浏览器", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "text", "selector": "notification", "name": "标题", "expected": "Mira 已回复", "i18nKey": null },
+      { "type": "text", "selector": "notification", "name": "副标题", "expected": "Mira.day", "i18nKey": null },
+      { "type": "url", "selector": null, "name": "点击通知后回流", "expected": "/tasks/*", "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@not-implemented"],
+    "timeout": 600000
+  },
+  {
+    "id": "TC-PRD-PULSEV4-011",
+    "storyId": "US-PULSE-REQ004",
+    "criterionId": "AC-004-3",
+    "source": "prd",
+    "title": "[待实现] 未授权用户不接收通知，事件仅进站内 feed",
+    "priority": "P2",
+    "scenarioType": "negative",
+    "preconditions": ["用户未授权浏览器通知权限（当前代码无此功能，验收基线用例）"],
+    "setup": [
+      { "type": "ui", "action": "create", "resource": "task", "pomMethod": "createTaskAwaitingClarification", "data": { "prompt": "触发通知事件-{timestamp}" }, "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [],
+    "assertions": [
+      { "type": "hidden", "selector": "notification", "name": "浏览器系统通知", "expected": null, "i18nKey": null },
+      { "type": "visible", "selector": "listitem", "name": "Recent Activity 条目", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@not-implemented"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PULSEV4-012",
+    "storyId": "US-PULSE-REQ005",
+    "criterionId": "AC-005-1",
+    "source": "prd",
+    "title": "[待实现] 通知未开启时 sidebar 显示引导 callout，点击 Turn on 触发权限请求",
+    "priority": "P1",
+    "scenarioType": "positive",
+    "preconditions": ["通知未开启（未授权或未询问）且浏览器支持通知（当前代码无此组件，验收基线用例）"],
+    "setup": [
+      { "type": "navigate", "url": "/", "action": "navigate", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "Turn on", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "visible", "selector": "text", "name": "Browser notifications", "expected": null, "i18nKey": null },
+      { "type": "text", "selector": "text", "name": "说明文案", "expected": "Get pinged when a task needs your input or finishes — even when Mira isn't open.", "i18nKey": null },
+      { "type": "visible", "selector": "dialog", "name": "浏览器原生权限请求弹窗", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P1", "@regression", "@not-implemented"],
+    "timeout": null
+  },
+  {
+    "id": "TC-PRD-PULSEV4-013",
+    "storyId": "US-PULSE-REQ005",
+    "criterionId": "AC-005-2",
+    "source": "prd",
+    "title": "[待实现] 点击关闭 X 或已授权后 callout 不再显示",
+    "priority": "P2",
+    "scenarioType": "positive",
+    "preconditions": ["sidebar 已显示通知引导 callout（未开启状态，当前代码无此组件，验收基线用例）"],
+    "setup": [
+      { "type": "navigate", "url": "/", "action": "navigate", "scope": "test" }
+    ],
+    "teardown": [],
+    "uiElements": [
+      { "role": "button", "name": "关闭", "action": "click", "value": null, "locatorHint": null, "dataType": null, "dataVariant": null, "i18nKey": null }
+    ],
+    "assertions": [
+      { "type": "hidden", "selector": "text", "name": "Browser notifications", "expected": null, "i18nKey": null }
+    ],
+    "tags": ["@P2", "@regression", "@not-implemented"],
+    "timeout": null
+  }
+]
